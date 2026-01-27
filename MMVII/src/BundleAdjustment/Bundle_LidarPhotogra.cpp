@@ -6,6 +6,46 @@ namespace MMVII
 {
 
 
+
+cBA_LidarBase::cBA_LidarBase(cPhotogrammetricProject * aPhProj,
+                                     cMMVII_BundleAdj& aBA, const std::vector<std::string>& aParam) :
+    mPhProj     (aPhProj),
+    mBA         (aBA),                                 // memorize the bundel adj class itself (access to optimizer)
+    mInterp     (nullptr),                             // interpolator see bellow
+    mEq         (nullptr),                             // equation of egalisation Lidar/Phgr
+    mWeight      (NAN),
+    mNbUsedPoints (0),
+    mNbUsedObs (0)
+{
+
+}
+
+cBA_LidarBase::~cBA_LidarBase()
+{
+    delete mEq;
+    delete mInterp;
+}
+
+
+void cBA_LidarBase::init(const std::vector<std::string>& aParam, size_t aWeightParamIndex, size_t aInterpolParamIndex)
+{
+    mWeight = (1/Square(cStrIO<double>::FromStr(aParam.at(aWeightParamIndex))));
+    //  By default  use tabulation of apodized sinus cardinal
+    std::vector<std::string> aParamInt {"Tabul","1000","SinCApod","10","10"};
+    // if interpolator is not empty
+    if ((aParam.size() >=aInterpolParamIndex+1) && (!aParam.at(aInterpolParamIndex).empty()))
+    {
+        // if specified, take user's param
+        aParamInt = Str2VStr(aParam.at(aInterpolParamIndex));
+    }
+
+    // create the interpolator itself
+    mInterp  = cDiffInterpolator1D::AllocFromNames(aParamInt);
+    // delete mInterp;
+    // mInterp = cScaledInterpolator::AllocTab(cCubicInterpolator(-0.5),3,1000);
+}
+
+
 /**  Class for geometrically indexing the lidars (on 2D point) for patches creation , used
    to instantiate cTilingIndex 
 */
@@ -13,25 +53,13 @@ namespace MMVII
 
 cBA_LidarPhotogra::cBA_LidarPhotogra(cPhotogrammetricProject * aPhProj,
                                      cMMVII_BundleAdj& aBA, const std::vector<std::string>& aParam) :
-    mPhProj     (aPhProj),
-    mBA         (aBA),                                 // memorize the bundel adj class itself (access to optimizer)
+    cBA_LidarBase(aPhProj, aBA, aParam),
     mModeSim    (Str2E<eImatchCrit>(aParam.at(0))),    // mode of matching
-    mInterp     (nullptr),                             // interpolator see bellow
-    mEqLidPhgr  (nullptr),                             // equation of egalisation Lidar/Phgr
     mPertRad    (false),
-    mNbPointByPatch (32),
-    mWeight      (1/Square(cStrIO<double>::FromStr(aParam.at(2)))),
-    mNbUsedPoints (0),
-    mNbUsedObs (0)
+    mNbPointByPatch (32)
 {
-    //  By default  use tabulation of apodized sinus cardinal
-    std::vector<std::string> aParamInt {"Tabul","1000","SinCApod","10","10"};
-    // if interpolator is not empty
-    if ((aParam.size() >=4) && (!aParam.at(3).empty()))
-    {
-        // if specified, take user's param
-        aParamInt = Str2VStr(aParam.at(3));
-    }
+    init(aParam, 2, 3);
+
     if (aParam.size() >=5)
     {
         mPertRad = (aParam.at(4) != "");
@@ -42,10 +70,6 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cPhotogrammetricProject * aPhProj,
         MMVII_INTERNAL_ASSERT_User((mModeSim!=eImatchCrit::eDifRad) || (mNbPointByPatch==1),
                                    eTyUEr::eUnClassedError,"Only 1 point per patch in "+ToStr(eImatchCrit::eDifRad)+" mode");
     }
-    // create the interpolator itself
-    mInterp  = cDiffInterpolator1D::AllocFromNames(aParamInt);
-    // delete mInterp;
-    // mInterp = cScaledInterpolator::AllocTab(cCubicInterpolator(-0.5),3,1000);
 
     // read images before 1st iteration // TODO: read only images that may correspond to scans?
     for (const auto aPtrCam : aBA.VSCPC())
@@ -63,21 +87,26 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cPhotogrammetricProject * aPhProj,
 
 }
 
+void cBA_LidarPhotogra::InitEq(bool aScanPoseUk)
+{
+    if (mModeSim==eImatchCrit::eDifRad)
+        mEq = EqEqLidarImPonct (true,1,aScanPoseUk);
+    else if (mModeSim==eImatchCrit::eCensus)
+        mEq = EqEqLidarImCensus(true,1, aScanPoseUk);
+    else if (mModeSim==eImatchCrit::eCorrel)
+        mEq = EqEqLidarImCorrel(true,1, aScanPoseUk);
+    else
+    {
+        MMVII_UnclasseUsEr("Bad enum for cBA_LidarPhotogra");
+    }
+}
+
 cBA_LidarPhotograTri::cBA_LidarPhotograTri(cPhotogrammetricProject * aPhProj,
                                            cMMVII_BundleAdj& aBA,
                                            const std::vector<std::string>& aParam) :
     cBA_LidarPhotogra(aPhProj, aBA, aParam), mTri(nullptr)
 {
-    if (mModeSim==eImatchCrit::eDifRad)
-        mEqLidPhgr = EqEqLidarImPonct (true,1,false);
-    else if (mModeSim==eImatchCrit::eCensus)
-        mEqLidPhgr = EqEqLidarImCensus(true,1, false);
-    else if (mModeSim==eImatchCrit::eCorrel)
-        mEqLidPhgr = EqEqLidarImCorrel(true,1, false);
-    else
-    {
-        MMVII_UnclasseUsEr("Bad enum for cBA_LidarPhotogra");
-    }
+    InitEq(false);
 
     std::string aLidarFileName = aParam.at(1);
     MMVII_INTERNAL_ASSERT_User(UCaseEqual(LastPostfix(aLidarFileName),"ply"),
@@ -108,16 +137,7 @@ cBA_LidarPhotograRaster::cBA_LidarPhotograRaster(cPhotogrammetricProject * aPhPr
                                                  const std::vector<std::string>& aParam) :
     cBA_LidarPhotogra(aPhProj, aBA, aParam)
 {
-    if (mModeSim==eImatchCrit::eDifRad)
-        mEqLidPhgr = EqEqLidarImPonct (true,1,true);
-    else if (mModeSim==eImatchCrit::eCensus)
-        mEqLidPhgr = EqEqLidarImCensus(true,1,true);
-    else if (mModeSim==eImatchCrit::eCorrel)
-        mEqLidPhgr = EqEqLidarImCorrel(true,1,true);
-    else
-    {
-        MMVII_UnclasseUsEr("Bad enum for cBA_LidarPhotogra");
-    }
+    InitEq(true);
 
     //read scans files from directory corresponding to pattern in aParam.at(1)
     auto aVScanNames = mPhProj->GetStaticLidarNames(aParam.at(1));
@@ -140,8 +160,6 @@ cBA_LidarPhotograRaster::cBA_LidarPhotograRaster(cPhotogrammetricProject * aPhPr
 
 cBA_LidarPhotogra::~cBA_LidarPhotogra() 
 {
-    delete mEqLidPhgr;
-    delete mInterp;
 }
 
 cBA_LidarPhotograTri::~cBA_LidarPhotograTri()
@@ -264,7 +282,7 @@ void cBA_LidarPhotograRaster::SetVUkVObs
         int                     aKPt
         )
 {
-    cStaticLidar * aScan = mBA.MapTSL().at(aData.mScanName);
+    cStaticLidar * aScan = mBA.MapTSL().at(aData.mScanAName);
     cPt3dr aPScan = aScan->Pt_W2L(aPGround);  // coordinate of point in ground system
     cSensorCamPC * aCam = mBA.VSCPC().at(aData.mKIm);  // extract the camera
     cPt3dr aPCam = aCam->Pt_W2L(aPGround);  // coordinate of point in image system
@@ -318,7 +336,7 @@ void cBA_LidarPhotogra::AddPatchDifRad
          SetVUkVObs (aPGround,&aVIndUk,aVObs,aData,0);
             
          // accumulate the equation involving the radiom
-         aSys->R_AddEq2Subst(aStrSubst,mEqLidPhgr,aVIndUk,aVObs,aWeight);
+         aSys->R_AddEq2Subst(aStrSubst,mEq,aVIndUk,aVObs,aWeight);
      }
      // do the substitution & add the equation reduced (Schurr complement)
      aSys->R_AddObsWithTmpUK(aStrSubst);
@@ -354,7 +372,7 @@ void cBA_LidarPhotogra::AddPatchCensus
 
              SetVUkVObs(aVPatchGr.at(0)  ,&aVIndUk,aVObs,aData,0);            // add unkown AND observations
              SetVUkVObs(aVPatchGr.at(aKPt),nullptr ,aVObs,aData,aKPt);        // add ONLY observations
-             aSys->R_AddEq2Subst(aStrSubst,mEqLidPhgr,aVIndUk,aVObs,aWeight); // add the equation in Schurr structure
+             aSys->R_AddEq2Subst(aStrSubst,mEq,aVIndUk,aVObs,aWeight); // add the equation in Schurr structure
          }
          // add all the equation to the system with Schurr's elimination
          aSys->R_AddObsWithTmpUK(aStrSubst);
@@ -439,7 +457,7 @@ void cBA_LidarPhotogra::AddPatchCorrel
              std::vector<int>       aVIndUk{aIndPt,aIndIm,aIndIm-1} ;  // indexes of 3 unknown
              std::vector<tREAL8>    aVObs;  // vector of observations 
              SetVUkVObs (aVPatchGr.at(aKPt),&aVIndUk,aVObs,aVData.at(aKIm),aKPt);  // read obs & global Uk
-             aSys->R_AddEq2Subst(aStrSubst,mEqLidPhgr,aVIndUk,aVObs,aWeight);  // add equation in tmp struct
+             aSys->R_AddEq2Subst(aStrSubst,mEq,aVIndUk,aVObs,aWeight);  // add equation in tmp struct
          }
      }
 
@@ -462,7 +480,7 @@ void  cBA_LidarPhotogra::Add1Patch(tREAL8 aWeight,const std::vector<cPt3dr> & aV
           if (aCam->IsVisible(aVPatchGr.at(0))) // first test : is central point visible
           {
               cData1ImLidPhgr  aData; // data that will be filled
-              aData.mScanName = aScanName;
+              aData.mScanAName = aScanName;
               aData.mKIm = aKIm;
               for (size_t aKPt=0 ; aKPt<aVPatchGr.size() ; aKPt++) // parse the points of the patch
               {
@@ -500,7 +518,6 @@ void  cBA_LidarPhotogra::Add1Patch(tREAL8 aWeight,const std::vector<cPt3dr> & aV
      // mLastResidual.Add(1.0,  (aStdDev.StdDev(1e-5) ) );
      mLastResidual.Add(aVData.size(),  Square(aStdDev.StdDev(1e-5) ) );
 
-
      if (mModeSim==eImatchCrit::eDifRad)
      {
         AddPatchDifRad(aWeight,aVPatchGr,aVData);
@@ -521,26 +538,10 @@ void  cBA_LidarPhotogra::Add1Patch(tREAL8 aWeight,const std::vector<cPt3dr> & aV
 
 cBA_LidarLidarRaster::cBA_LidarLidarRaster(cPhotogrammetricProject * aPhProj,
                                            cMMVII_BundleAdj& aBA, const std::vector<std::string>& aParam) :
-    mPhProj     (aPhProj),
-    mBA         (aBA),                                 // memorize the bundel adj class itself (access to optimizer)
-    mInterp     (nullptr),                             // interpolator see bellow
-    mEqLidLid  (EqEqLidarLidar (true,1)),                             // equation of egalisation Lidar/Phgr
-    mWeight      (1/Square(cStrIO<double>::FromStr(aParam.at(1)))),
-    mNbUsedPoints (0),
-    mNbUsedObs (0)
+    cBA_LidarBase(aPhProj, aBA, aParam)
 {
-    //  By default  use tabulation of apodized sinus cardinal
-    std::vector<std::string> aParamInt {"Tabul","1000","SinCApod","10","10"};
-    // if interpolator is not empty
-    if ((aParam.size() >=3) && (!aParam.at(2).empty()))
-    {
-        // if specified, take user's param
-        aParamInt = Str2VStr(aParam.at(2));
-    }
-    // create the interpolator itself
-    mInterp  = cDiffInterpolator1D::AllocFromNames(aParamInt);
-    // delete mInterp;
-    // mInterp = cScaledInterpolator::AllocTab(cCubicInterpolator(-0.5),3,1000);
+    mEq = EqEqLidarLidar (true,1);
+    init(aParam, 1, 2);
 
     //read scans files from directory corresponding to pattern in aParam.at(1)
     auto aVScanNames = mPhProj->GetStaticLidarNames(aParam.at(0));
@@ -561,8 +562,6 @@ cBA_LidarLidarRaster::cBA_LidarLidarRaster(cPhotogrammetricProject * aPhProj,
 
 cBA_LidarLidarRaster::~cBA_LidarLidarRaster()
 {
-    delete mEqLidLid;
-    delete mInterp;
 }
 
 
@@ -587,19 +586,17 @@ void cBA_LidarLidarRaster::AddObs()
 }
 
 
-
 void cBA_LidarLidarRaster::SetVUkVObs
-    (
-        const cPt3dr&           aPGround,
-        std::vector<int> *      aVIndUk,
-        std::vector<tREAL8> &   aVObs,
-        const cData1LidLidPt &  aData,
-        int                     aKPt
-        )
+    (const cPt3dr&           aPGround,
+     std::vector<int> *      aVIndUk,
+     std::vector<tREAL8> &   aVObs,
+     const cData1ImLidPhgr & aData,
+     int                     aKPt
+     )
 {
-    cStaticLidar * aScanA = mBA.MapTSL().at(aData.mScanFromName);
+    cStaticLidar * aScanA = mBA.MapTSL().at(aData.mScanAName);
     cPt3dr aPScanA = aScanA->Pt_W2L(aPGround);  // coordinate of point in ground system
-    cStaticLidar * aScanB = mBA.MapTSL().at(aData.mScanToName);
+    cStaticLidar * aScanB = mBA.MapTSL().at(aData.mScanBName);
     cPt3dr aPScanB0 = aScanB->Pt_W2L(aPGround);  // coordinate of point in image system
     tProjImAndGrad aPImGr = aScanB->InternalCalib()->DiffGround2Im(aPScanB0); // compute proj & gradient
 
@@ -628,7 +625,7 @@ void cBA_LidarLidarRaster::SetVUkVObs
 
 void  cBA_LidarLidarRaster::Add1Patch(tREAL8 aWeight,const cPt3dr & aPGround, const std::string & aScanName)
 {
-    std::vector<cData1LidLidPt> aVData; // for each image where patch is visible will store the data
+    std::vector<cData1ImLidPhgr> aVData; // for each image where patch is visible will store the data
     cWeightAv<tREAL8>   aAvgRes;    // compute average residual
 
     //  Parse all the scans, we will select the ones where the patch is visible
@@ -640,9 +637,9 @@ void  cBA_LidarLidarRaster::Add1Patch(tREAL8 aWeight,const cPt3dr & aPGround, co
         cDataGenUnTypedIm<2> & aGenDImDist = aScanTo->getRasterDistance();
         if (aScanTo->IsVisible(aPGround)) // first test : is central point visible
         {
-            cData1LidLidPt  aData; // data that will be filled
-            aData.mScanFromName = aScanName;
-            aData.mScanToName = aScanData.mScanName;
+            cData1ImLidPhgr  aData; // data that will be filled
+            aData.mScanAName = aScanName;
+            aData.mScanBName = aScanData.mScanName;
             cPt2dr aPIm = aScanTo->Ground2Image(aPGround); // extract the image  projection
             tREAL8 aDist = Norm2(aPGround-aScanTo->Center());
             if (!aScanTo->IsValidPoint(aPIm))
@@ -677,7 +674,7 @@ void  cBA_LidarLidarRaster::Add1Patch(tREAL8 aWeight,const cPt3dr & aPGround, co
 void cBA_LidarLidarRaster::AddPatchDist
     (tREAL8 aWeight,
      const cPt3dr & aPGround,
-     const std::vector<cData1LidLidPt> &aVData
+     const std::vector<cData1ImLidPhgr> &aVData
      )
 {
     // read the solver now, because was not initialized at creation
@@ -689,7 +686,7 @@ void cBA_LidarLidarRaster::AddPatchDist
         std::vector<int>       aVIndUk;
         std::vector<tREAL8>    aVObs;
         SetVUkVObs (aPGround,&aVIndUk,aVObs,aData,0);
-        aSys->CalcAndAddObs(mEqLidLid,aVIndUk,aVObs,aWeight);
+        aSys->CalcAndAddObs(mEq,aVIndUk,aVObs,aWeight);
     }
 }
 
