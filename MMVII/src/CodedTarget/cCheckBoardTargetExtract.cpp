@@ -466,15 +466,17 @@ void cAppliCheckBoardTargetExtract::ComputeTopoSadles()
 	     cPt2di aPCC = aBestPInCC.IndexExtre();
 
          //-todo:OK is there any aPCC among predicted targets ?-OK//
-         cMesIm1Pt * aNearestMeas = mSetPredictMes.NearestMeasure(ToR(aPCC));
-         if (Norm2(aNearestMeas->mPt - ToR(aPCC)) <= 1.0)
+         if (mPredictedTargets!="")
          {
-             StdOut() << "Pt n°" << aNearestMeas->mNamePt
-                      << " CritTopoSaddle (BestPInCC) "
-                      << aPCC << " = "
-                      << aBestPInCC.ValExtre() << std::endl;
+             cMesIm1Pt * aNearestMeas = mSetPredictMes.NearestMeasure(ToR(aPCC));
+             if (Norm2(aNearestMeas->mPt - ToR(aPCC)) <= 1.0)
+             {
+                 StdOut() << "Pt n°" << aNearestMeas->mNamePt
+                          << " CritTopoSaddle (BestPInCC) "
+                          << aPCC << " = "
+                          << aBestPInCC.ValExtre() << std::endl;
+             }
          }
-
 	     SetLabel(ToR(aPCC),eTopoMaxOfCC);
 	 }
     }
@@ -511,13 +513,17 @@ void cAppliCheckBoardTargetExtract::SaddleCritFiler()
              tREAL8 aCritS = aCalcSBlur.CalcSaddleCrit(*mDImBlur,aPix);
 
              //-todo:OK what is the value of saddle crit. for predicted targets ?
-             cMesIm1Pt * aNearestMeas = mSetPredictMes.NearestMeasure(ToR(aPix));
-             if (Norm2(aNearestMeas->mPt - ToR(aPix)) <= 1.0)
+             if (mPredictedTargets!="")
              {
-                 StdOut() << "Pt n°" << aNearestMeas->mNamePt
-                          << " SaddleCrit = "
-                          << aCritS << std::endl;
+                 cMesIm1Pt * aNearestMeas = mSetPredictMes.NearestMeasure(ToR(aPix));
+                 if (Norm2(aNearestMeas->mPt - ToR(aPix)) <= 1.0)
+                 {
+                     StdOut() << "Pt n°" << aNearestMeas->mNamePt
+                              << " SaddleCrit = "
+                              << aCritS << std::endl;
+                 }
              }
+
 
              mVCdtSad.push_back(cCdSadle(ToR(aPix),aCritS,IsPtTest(ToR(aPix))) );
 	 }
@@ -564,14 +570,16 @@ void cAppliCheckBoardTargetExtract::SymetryFiler()
         aCdtSad.mC = aNewP;
 
         //-todo:OK expose the value of aValSym for the nearest PredictMes of aNewP
-        cMesIm1Pt * aNearestMeas = mSetPredictMes.NearestMeasure(aCdtSad.mC);
-        if (Norm2(aNearestMeas->mPt - aCdtSad.mC) <= 1.0)
+        if (mPredictedTargets!="")
         {
-            StdOut() << "Pt n°" << aNearestMeas->mNamePt << " " << aCdtSad.mC
-                     << " ValSym = "
-                     << aValSym << std::endl;
+            cMesIm1Pt * aNearestMeas = mSetPredictMes.NearestMeasure(aCdtSad.mC);
+            if (Norm2(aNearestMeas->mPt - aCdtSad.mC) <= 1.0)
+            {
+                StdOut() << "Pt n°" << aNearestMeas->mNamePt << " " << aCdtSad.mC
+                         << " ValSym = "
+                         << aValSym << std::endl;
+            }
         }
-
 
         if (aValSym < mThresholdSym)
         {

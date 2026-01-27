@@ -303,7 +303,7 @@ template <class Type>  cAffin2D<Type> cAffin2D<Type>::MapInverse() const
  {
      MMVII::AddData(cAuxAr2007("Tr",anAux),mTr);
      MMVII::AddData(cAuxAr2007("Vx",anAux),mVX);
-     MMVII::AddData(cAuxAr2007("Vx",anAux),mVY);
+     MMVII::AddData(cAuxAr2007("Vy",anAux),mVY);
 
      if (anAux.Ar().Input())
          *this = cAffin2D<Type>(mTr,mVX,mVY);
