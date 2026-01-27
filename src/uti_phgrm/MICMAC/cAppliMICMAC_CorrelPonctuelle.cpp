@@ -118,6 +118,9 @@ void cAppliMICMAC::DoCostLearnedMMVII(const Box2di & aBox,const cScoreLearnedMMV
    if ((aBoxIn2._p0.x==aBoxIn2._p1.x) || (aBoxIn2._p0.y==aBoxIn2._p1.y) )
        return;
 
+   if  (abs(aBoxIn2._p0.x-aBoxIn2._p1.x)<50 || abs(aBoxIn2._p0.y-aBoxIn2._p1.y)<50 )
+       return ;
+
 
    Tiff_Im aF1(aN1.c_str());
    int aX0In1 = ElMax(mBoxIn.P0().x-aSzW,  0);
