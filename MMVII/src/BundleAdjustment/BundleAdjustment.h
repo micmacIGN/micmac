@@ -351,25 +351,26 @@ public :
     /// destuctor, free interopaltor, calculator ....
     virtual ~cBA_LidarBase();
 
+    void init(const std::vector<std::string>& aParam, size_t aWeightParamIndex, size_t aInterpolParamIndex);
+
     /// add observation
     virtual void AddObs() = 0;
 
 protected :
     /**  Add observation for 1 Patch of point */
-    virtual void Add1Patch(tREAL8 aWeight, const cPt3dr &aPGround, const std::string & aScanName);
 
-    void SetVUkVObs
+    virtual void SetVUkVObs
         (const cPt3dr&           aPGround,
          std::vector<int> *      aVIndUk,
          std::vector<tREAL8> &   aVObs,
          const cData1ImLidPhgr & aData,
          int                     aKPt
-         );
+         ) = 0;
 
     cPhotogrammetricProject *      mPhProj;         // Photogrammetric project
     cMMVII_BundleAdj&              mBA;             ///< The global bundle adj structure
     cDiffInterpolator1D *          mInterp;         ///< Interpolator, used to extract  Value & Grad of images
-    cCalculator<double>  *         mEqLidLid;      ///< Calculator used for constrain the pose from image obs
+    cCalculator<double>  *         mEq;      ///< Calculator used for constrain the pose from image obs
     cWeightAv<tREAL8,tREAL8>       mLastResidual;   ///< Accumulate the radiometric residual
     double                         mWeight;          ///< weight for observations
     size_t                         mNbUsedPoints;   ///< number of lidar used points
@@ -381,7 +382,7 @@ protected :
 /**  Class for adjusment between Lidar & Photogra
  */
 
-class cBA_LidarPhotogra
+class cBA_LidarPhotogra: public cBA_LidarBase
 {
     public :
        /// constructor, take the global bundle struct + one vector of param
@@ -389,12 +390,10 @@ class cBA_LidarPhotogra
        /// destuctor, free interopaltor, calculator ....
        virtual ~cBA_LidarPhotogra();
 
-       /// add observation
-       virtual void AddObs() = 0;
-
     protected :
-       /**  Add observation for 1 Patch of point */
-       void Add1Patch(tREAL8 aWeight, const std::vector<cPt3dr> & aVPatchGr, const std::string & aScanName);
+       void InitEq(bool aScanPoseUk);
+
+       void Add1Patch(tREAL8 aWeight,const std::vector<cPt3dr> & aVPatchGr, const std::string & aScanName);
 
        /// Method for adding observations with radiometric differences as similatity criterion
        void AddPatchDifRad(tREAL8 aWeight,const std::vector<cPt3dr> & aVPatchGr,const std::vector<cData1ImLidPhgr> &aVData) ;
@@ -405,26 +404,9 @@ class cBA_LidarPhotogra
        /// Method for adding observations with Normalized Centred Coefficent Correlation as similatity criterion
        void AddPatchCorrel(tREAL8 aWeight,const std::vector<cPt3dr> & aVPatchGr,const std::vector<cData1ImLidPhgr> &aVData) ;
 
-       virtual void SetVUkVObs
-       (
-            const cPt3dr&           aPGround,
-            std::vector<int> *      aVIndUk,
-            std::vector<tREAL8> &   aVObs,
-            const cData1ImLidPhgr & aData,
-            int                     aKPt
-       ) = 0;
-
-       cPhotogrammetricProject *      mPhProj;         // Photogrammetric project
-       cMMVII_BundleAdj&              mBA;             ///< The global bundle adj structure
        eImatchCrit                    mModeSim;        ///< type of similarity used
-       cDiffInterpolator1D *          mInterp;         ///< Interpolator, used to extract  Value & Grad of images
-       cCalculator<double>  *         mEqLidPhgr;      ///< Calculator used for constrain the pose from image obs
-       cWeightAv<tREAL8,tREAL8>       mLastResidual;   ///< Accumulate the radiometric residual
        bool                           mPertRad;        ///< do we pertubate the radiometry (simulation & test)
        size_t                         mNbPointByPatch; ///< (approximate) required number of point /patch
-       double                         mWeight;          ///< weight for observations
-       size_t                         mNbUsedPoints;   ///< number of lidar used points
-       size_t                         mNbUsedObs;      ///< number of lidar obs used
 };
 
 
@@ -489,16 +471,16 @@ protected:
  * Class for adjustment between two lidar scans
  */
 
-class cBA_LidarLidarRaster
+class cBA_LidarLidarRaster: public cBA_LidarBase
 {
 public :
     /// constructor, take the global bundle struct + one vector of param
     cBA_LidarLidarRaster(cPhotogrammetricProject *aPhProj, cMMVII_BundleAdj&, const std::vector<std::string> & aParam);
     /// destuctor, free interopaltor, calculator ....
-    ~cBA_LidarLidarRaster();
+    virtual ~cBA_LidarLidarRaster();
 
     /// add observation
-    void AddObs();
+    void AddObs() override;
 
 protected :
     /**  Add observation for 1 Patch of point */
@@ -512,16 +494,8 @@ protected :
          std::vector<tREAL8> &   aVObs,
          const cData1ImLidPhgr &  aData,
          int                     aKPt
-         );
+         ) override;
 
-    cPhotogrammetricProject *      mPhProj;         // Photogrammetric project
-    cMMVII_BundleAdj&              mBA;             ///< The global bundle adj structure
-    cDiffInterpolator1D *          mInterp;         ///< Interpolator, used to extract  Value & Grad of images
-    cCalculator<double>  *         mEqLidLid;      ///< Calculator used for constrain the pose from image obs
-    cWeightAv<tREAL8,tREAL8>       mLastResidual;   ///< Accumulate the radiometric residual
-    double                         mWeight;          ///< weight for observations
-    size_t                         mNbUsedPoints;   ///< number of lidar used points
-    size_t                         mNbUsedObs;      ///< number of lidar obs used
     std::vector<cStaticLidarBAData> mVScans;      ///< vector of raster representations of lidar
 };
 
