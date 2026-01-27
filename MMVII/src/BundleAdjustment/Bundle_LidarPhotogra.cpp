@@ -47,7 +47,7 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cPhotogrammetricProject * aPhProj,
     // delete mInterp;
     // mInterp = cScaledInterpolator::AllocTab(cCubicInterpolator(-0.5),3,1000);
 
-    // read images before 1st iteration
+    // read images before 1st iteration // TODO: read only images that may correspond to scans?
     for (const auto aPtrCam : aBA.VSCPC())
     {
         auto & aImage = aPtrCam->LoadImage();
@@ -137,27 +137,6 @@ cBA_LidarPhotograRaster::cBA_LidarPhotograRaster(cPhotogrammetricProject * aPhPr
         StdOut() << "Nb patches for " << aScanName << ": " << aLidarBAData.mLPatchesP.size() << "\n";
     }
 }
-
-
-void cBA_LidarPhotograRaster::SetFrozenVar(bool aVerbose, cResolSysNonLinear<tREAL8> & aSys, std::string aPatFrozenTSL)
-{
-    // Freeze full pose (TODO: be able to to fix only verticalization)
-    tNameSelector aSel = AllocRegex(cStaticLidar::Pat2Sup(aPatFrozenTSL));
-    int nbMatches = 0;
-    for (auto & aScanName : mVScanNames)
-    {
-        if (aSel.Match(aScanName))
-        {
-            auto & aLidarBAData = mBA.MapTSL().at(aScanName);
-            aSys.SetFrozenVarCurVal(*aLidarBAData.mLidarRaster,aLidarBAData.mLidarRaster->Center());
-            aSys.SetFrozenVarCurVal(*aLidarBAData.mLidarRaster,aLidarBAData.mLidarRaster->Omega());
-            nbMatches++;
-        }
-    }
-    if (aVerbose)
-        StdOut() << "Frozen TSL poses: " << nbMatches << ".\n";
-}
-
 
 cBA_LidarPhotogra::~cBA_LidarPhotogra() 
 {
