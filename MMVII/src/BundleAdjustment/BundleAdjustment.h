@@ -356,9 +356,6 @@ class cBA_LidarPhotogra
        /// freeze unknowns
        virtual void SetFrozenVar(bool aVerbose, cResolSysNonLinear<tREAL8> & aSys, std::string aPatFrozenTSL) {}
 
-       /// save results
-       virtual void Save() {}
-
     protected :
        /**  Add observation for 1 Patch of point */
        void Add1Patch(tREAL8 aWeight, const std::vector<cPt3dr> & aVPatchGr, const std::string & aScanName);
@@ -436,7 +433,6 @@ public :
     /// destuctor, free interopaltor, calculator ....
     virtual ~cBA_LidarPhotograRaster();
     void SetFrozenVar(bool aVerbose, cResolSysNonLinear<tREAL8> & aSys, std::string aPatFrozenTSL) override;
-    virtual void Save() override;
 
     /// add observation
     virtual void AddObs() override;

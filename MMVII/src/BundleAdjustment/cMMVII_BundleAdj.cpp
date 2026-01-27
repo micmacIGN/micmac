@@ -836,10 +836,8 @@ std::unordered_map<std::string, cStaticLidarBAData> &  cMMVII_BundleAdj::MapTSL(
 
 void cMMVII_BundleAdj::SaveTSL()
 {
-    for (const auto & aBALidar : mVBA_Lidar)
-    {
-        aBALidar->Save();
-    }
+    for (auto & aScanPair : mMapTSL)
+        aScanPair.second.mLidarRaster->ToFile(mPhProj->DPOrient().FullDirOut() + aScanPair.first);
 }
 
 /* ---------------------------------------- */

@@ -158,15 +158,6 @@ void cBA_LidarPhotograRaster::SetFrozenVar(bool aVerbose, cResolSysNonLinear<tRE
         StdOut() << "Frozen TSL poses: " << nbMatches << ".\n";
 }
 
-void cBA_LidarPhotograRaster::Save()
-{
-    for (auto & aScanName : mVScanNames)
-    {
-        auto & aLidarBAData = mBA.MapTSL().at(aScanName);
-        aLidarBAData.mLidarRaster->ToFile(mPhProj->DPOrient().FullDirOut() + aScanName);
-    }
-}
-
 
 cBA_LidarPhotogra::~cBA_LidarPhotogra() 
 {
