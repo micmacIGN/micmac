@@ -112,8 +112,11 @@ void cAppliMICMAC::DoCostLearnedMMVII(const Box2di & aBox,const cScoreLearnedMMV
    if ( (aX1In2<0) || (aY1In2<0) || (aX0In2>aF2.sz().x) || (aY0In2>aF2.sz().y))
         return;
 
+
    Box2di aBoxIn2(Pt2di(aX0In2,aY0In2),Pt2di(aX1In2,aY1In2));
 
+   if ((aBoxIn2._p0.x==aBoxIn2._p1.x) || (aBoxIn2._p0.y==aBoxIn2._p1.y) )
+       return;
 
 
    Tiff_Im aF1(aN1.c_str());
