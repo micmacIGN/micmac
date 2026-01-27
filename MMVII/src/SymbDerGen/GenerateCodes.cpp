@@ -469,6 +469,12 @@ cCalculator<double> * EqEqLidarImCorrel(bool WithDerive,int aSzBuf, bool aScanPo
     return StdAllocCalc(NameFormula(cEqLidarImCorrel(aScanPoseUk),WithDerive),aSzBuf);
 }
 
+cCalculator<double> * EqEqLidarLidar(bool WithDerive,int aSzBuf)
+{
+    return StdAllocCalc(NameFormula(cEqLidarLidar(),WithDerive),aSzBuf);
+}
+
+
 /* **************************** */
 /*      BENCH  PART             */
 /* **************************** */
@@ -852,6 +858,8 @@ int cAppliGenCode::Exe()
        GenCodesFormula((tREAL8*)nullptr,cEqLidarImPonct(true),WithDer); // Lidar static with pose
        GenCodesFormula((tREAL8*)nullptr,cEqLidarImCensus(true),WithDer);
        GenCodesFormula((tREAL8*)nullptr,cEqLidarImCorrel(true),WithDer);
+
+       GenCodesFormula((tREAL8*)nullptr,cEqLidarLidar(),WithDer); // lidar/lidar
 
        GenCodesFormula((tREAL8*)nullptr,cFormulaSumSquares(8),WithDer); // example for contraint
 

@@ -389,7 +389,6 @@ class cBA_LidarPhotogra
 };
 
 
-
 class cBA_LidarPhotograTri : public cBA_LidarPhotogra
 {
 public :
@@ -447,6 +446,61 @@ protected:
 };
 
 
+
+/**
+* Help per class for lidar/lidar observation
+*/
+class cData1LidLidPt
+{
+public :
+    std::string mScanFromName; //scan id to get uk
+    std::string mScanToName;   //scan id to get uk
+    std::vector<std::pair<tREAL8,cPt2dr>> mVGr; ///< pair of radiometry/gradient, in image,  for each point of the patch
+};
+
+
+/**
+ * Class for adjustment between two lidar scans
+ */
+
+class cBA_LidarLidarRaster
+{
+public :
+    /// constructor, take the global bundle struct + one vector of param
+    cBA_LidarLidarRaster(cPhotogrammetricProject *aPhProj, cMMVII_BundleAdj&, const std::vector<std::string> & aParam);
+    /// destuctor, free interopaltor, calculator ....
+    ~cBA_LidarLidarRaster();
+
+    /// add observation
+    void AddObs();
+
+protected :
+    /**  Add observation for 1 Patch of point */
+    void Add1Patch(tREAL8 aWeight, const cPt3dr &aPGround, const std::string & aScanName);
+
+    void AddPatchDist(tREAL8 aWeight, const cPt3dr &aPGround, const std::vector<cData1LidLidPt> &aVData) ;
+
+    void SetVUkVObs
+        (const cPt3dr&           aPGround,
+         std::vector<int> *      aVIndUk,
+         std::vector<tREAL8> &   aVObs,
+         const cData1LidLidPt &  aData,
+         int                     aKPt
+         );
+
+    cPhotogrammetricProject *      mPhProj;         // Photogrammetric project
+    cMMVII_BundleAdj&              mBA;             ///< The global bundle adj structure
+    cDiffInterpolator1D *          mInterp;         ///< Interpolator, used to extract  Value & Grad of images
+    cCalculator<double>  *         mEqLidLid;      ///< Calculator used for constrain the pose from image obs
+    cWeightAv<tREAL8,tREAL8>       mLastResidual;   ///< Accumulate the radiometric residual
+    double                         mWeight;          ///< weight for observations
+    size_t                         mNbUsedPoints;   ///< number of lidar used points
+    size_t                         mNbUsedObs;      ///< number of lidar obs used
+    std::vector<cStaticLidarBAData> mVScans;      ///< vector of raster representations of lidar
+};
+
+
+
 struct  cBundleBlocNamedVar
 {
     public :
@@ -489,6 +543,7 @@ class cMMVII_BundleAdj
           cStaticLidar *AddStaticLidar(const std::string &aScanName);
           void Add1AdjLidarPhotogra(const std::vector<std::string> &);
           void Add1AdjLidarPhoto(const std::vector<std::string> &);
+          void Add1AdjLidarLidar(const std::vector<std::string> &);
 
 	  ///  ============  Add multiple tie point ============
 	  void AddMTieP(const std::string & aName,cComputeMergeMulTieP  * aMTP,const cStdWeighterResidual & aWIm);
@@ -617,6 +672,7 @@ class cMMVII_BundleAdj
           cBA_Topo*              mTopo;  // TOPO
 
           std::vector<cBA_LidarPhotogra*>  mVBA_Lidar;
+          std::vector<cBA_LidarLidarRaster*>  mVBA_LidarLidar;
 
 	         // - - - - - - -   Reference poses- - - - - - - -
           std::vector<cSensorCamPC *>        mVCamRefPoses;      ///< vector of reference  poses if they exist

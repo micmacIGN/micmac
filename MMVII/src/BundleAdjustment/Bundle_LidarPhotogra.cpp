@@ -277,7 +277,7 @@ void cBA_LidarPhotograRaster::SetVUkVObs
         aCam->PushIndexes(*aVIndUk);       // add the unknowns [C,R] of the camera
     }
 
-    // vector that will contains values of observation at this step
+    // vector that will contain values of observation at this step
     aScan->Pose_WU().PushObs(aVObs,false); // no transpose for scan
     aCam->Pose_WU().PushObs(aVObs,true);  // true because we transpose: we use W->C, which is the transposition of IJK : C->W
 
@@ -514,5 +514,185 @@ void  cBA_LidarPhotogra::Add1Patch(tREAL8 aWeight,const std::vector<cPt3dr> & aV
         AddPatchCorrel(aWeight,aVPatchGr,aVData);
      }
 }
+
+//-------------------------------------------------------------
+
+
+
+cBA_LidarLidarRaster::cBA_LidarLidarRaster(cPhotogrammetricProject * aPhProj,
+                                           cMMVII_BundleAdj& aBA, const std::vector<std::string>& aParam) :
+    mPhProj     (aPhProj),
+    mBA         (aBA),                                 // memorize the bundel adj class itself (access to optimizer)
+    mInterp     (nullptr),                             // interpolator see bellow
+    mEqLidLid  (EqEqLidarLidar (true,1)),                             // equation of egalisation Lidar/Phgr
+    mWeight      (1/Square(cStrIO<double>::FromStr(aParam.at(1)))),
+    mNbUsedPoints (0),
+    mNbUsedObs (0)
+{
+    //  By default  use tabulation of apodized sinus cardinal
+    std::vector<std::string> aParamInt {"Tabul","1000","SinCApod","10","10"};
+    // if interpolator is not empty
+    if ((aParam.size() >=3) && (!aParam.at(2).empty()))
+    {
+        // if specified, take user's param
+        aParamInt = Str2VStr(aParam.at(2));
+    }
+    // create the interpolator itself
+    mInterp  = cDiffInterpolator1D::AllocFromNames(aParamInt);
+    // delete mInterp;
+    // mInterp = cScaledInterpolator::AllocTab(cCubicInterpolator(-0.5),3,1000);
+
+    //read scans files from directory corresponding to pattern in aParam.at(1)
+    auto aVScanNames = mPhProj->GetStaticLidarNames(aParam.at(0));
+    for (const auto & aNameSens : aVScanNames)
+    {
+        cStaticLidar * aScan = mBA.AddStaticLidar(aNameSens);
+        StdOut() << "Add Scan " << aNameSens << "\n";
+        mVScans.push_back({aNameSens, aScan, {}});
+    }
+
+    // Creation of the patches, here juste center point
+    for (auto & aScanData: mVScans)
+    {
+        aScanData.mLidarRaster->MakePatches(aScanData.mLPatchesP,aBA.VSCPC(),1,5);
+        StdOut() << "Nb patches for " << aScanData.mScanName << ": " << aScanData.mLPatchesP.size() << "\n";
+    }
+}
+
+cBA_LidarLidarRaster::~cBA_LidarLidarRaster()
+{
+    delete mEqLidLid;
+    delete mInterp;
+}
+
+
+
+void cBA_LidarLidarRaster::AddObs()
+{
+    mLastResidual.Reset();
+    mNbUsedPoints = 0;
+    mNbUsedObs = 0;
+    for (auto & aScan : mVScans)
+        for (const auto& aPatch : aScan.mLPatchesP)
+        {
+            Add1Patch(mWeight,
+                      aScan.mLidarRaster->Image2Ground(*aPatch.begin()),
+                      aScan.mScanName);
+        }
+    if (mLastResidual.SW() != 0)
+        StdOut() << "  * Lid/Lid Residual dist " << std::sqrt(mLastResidual.Average())
+                 << " ("<<mVScans.size()<<" scans, "<<mNbUsedObs<<" obs, "<<mNbUsedPoints<<" points)\n";
+    else
+        StdOut() << "  * Lid/Lid: no obs\n";
+}
+
+
+
+void cBA_LidarLidarRaster::SetVUkVObs
+    (
+        const cPt3dr&           aPGround,
+        std::vector<int> *      aVIndUk,
+        std::vector<tREAL8> &   aVObs,
+        const cData1LidLidPt &  aData,
+        int                     aKPt
+        )
+{
+    cStaticLidar * aScanA = mBA.MapTSL().at(aData.mScanFromName);
+    cPt3dr aPScanA = aScanA->Pt_W2L(aPGround);  // coordinate of point in ground system
+    cStaticLidar * aScanB = mBA.MapTSL().at(aData.mScanToName);
+    cPt3dr aPScanB0 = aScanB->Pt_W2L(aPGround);  // coordinate of point in image system
+    tProjImAndGrad aPImGr = aScanB->InternalCalib()->DiffGround2Im(aPScanB0); // compute proj & gradient
+
+    // Vector of indexes of unknwons
+    if (aVIndUk)
+    {
+        aScanA->PushIndexes(*aVIndUk);      // add the unknowns [C,R] of the scan
+        aScanB->PushIndexes(*aVIndUk);       // add the unknowns [C,R] of the camera
+    }
+
+    // vector that will contain values of observation at this step
+    aScanA->Pose_WU().PushObs(aVObs,false); // no transpose for scan
+    aScanB->Pose_WU().PushObs(aVObs,true);  // true because we transpose: we use W->C, which is the transposition of IJK : C->W
+
+    aPScanA.PushInStdVector(aVObs);   //
+    aPScanB0.PushInStdVector(aVObs);
+
+    aPImGr.mGradI.PushInStdVector(aVObs);  // Grad Proj/PCam
+    aPImGr.mGradJ.PushInStdVector(aVObs);
+
+    auto [aRad0,aGradIm] = aData.mVGr.at(aKPt);  // Radiom & grad
+    aVObs.push_back(aRad0);
+    aGradIm.PushInStdVector(aVObs);
+}
+
+
+void  cBA_LidarLidarRaster::Add1Patch(tREAL8 aWeight,const cPt3dr & aPGround, const std::string & aScanName)
+{
+    std::vector<cData1LidLidPt> aVData; // for each image where patch is visible will store the data
+    cWeightAv<tREAL8>   aAvgRes;    // compute average residual
+
+    //  Parse all the scans, we will select the ones where the patch is visible
+    for (auto & aScanData : mVScans)
+    {
+        if (aScanData.mScanName==aScanName)
+            continue; // no obs on the same scan
+        cStaticLidar * aScanTo = aScanData.mLidarRaster;
+        cDataGenUnTypedIm<2> & aGenDImDist = aScanTo->getRasterDistance();
+        if (aScanTo->IsVisible(aPGround)) // first test : is central point visible
+        {
+            cData1LidLidPt  aData; // data that will be filled
+            aData.mScanFromName = aScanName;
+            aData.mScanToName = aScanData.mScanName;
+            cPt2dr aPIm = aScanTo->Ground2Image(aPGround); // extract the image  projection
+            tREAL8 aDist = Norm2(aPGround-aScanTo->Center());
+            if (!aScanTo->IsValidPoint(aPIm))
+                continue;
+            if (aGenDImDist.InsideInterpolator(*mInterp,aPIm,1.0))  // is it sufficiently inside
+            {
+                auto aVGr = aGenDImDist.GetValueAndGradInterpol(*mInterp,aPIm); // extract pair Value/Grad of image
+                aData.mVGr = {aVGr};
+                aVData.push_back(aData); // memorize the data for this image
+                tREAL8 aValIm = aData.mVGr.at(0).first;   // value of first/central pixel in this image
+                aAvgRes.Add(1.0,fabs(aValIm-aDist));  // compute std deviation
+            }
+        }
+    }
+
+    // if less than 1 scan to: nothing valuable to do
+    if (aVData.size()<1) return;
+
+    mNbUsedPoints++;
+    mNbUsedObs+=aVData.size();
+
+    // accumlulate for computing average of deviation
+    // mLastResidual.Add(1.0,  (aStdDev.StdDev(1e-5) *aVData.size()) / (aVData.size()-1.0));
+    // mLastResidual.Add(1.0,  (aStdDev.StdDev(1e-5) ) );
+    mLastResidual.Add(aVData.size(),  Square(aAvgRes.Average() ) );
+
+    AddPatchDist(aWeight,aPGround,aVData);
+
+}
+
+
+void cBA_LidarLidarRaster::AddPatchDist
+    (tREAL8 aWeight,
+     const cPt3dr & aPGround,
+     const std::vector<cData1LidLidPt> &aVData
+     )
+{
+    // read the solver now, because was not initialized at creation
+    cResolSysNonLinear<tREAL8> *  aSys = mBA.Sys();
+
+    // parse the data of the patch
+    for (const auto & aData : aVData)
+    {
+        std::vector<int>       aVIndUk;
+        std::vector<tREAL8>    aVObs;
+        SetVUkVObs (aPGround,&aVIndUk,aVObs,aData,0);
+        aSys->CalcAndAddObs(mEqLidLid,aVIndUk,aVObs,aWeight);
+    }
+}
+
+
 
 };

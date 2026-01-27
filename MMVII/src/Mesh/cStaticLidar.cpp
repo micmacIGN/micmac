@@ -616,6 +616,18 @@ std::string  cStaticLidar::Pat2Sup(const std::string & aPatSelect)
     return "Ori-" + cStaticLidar::PrefixName() + "-" + aPatSelect + "\\." + GlobTaggedNameDefSerial();
 }
 
+cDataIm2D<tREAL4> & cStaticLidar::getRasterDistance() const
+{
+    return mRasterDistance.get()->DIm();
+}
+
+bool cStaticLidar::IsValidPoint(const cPt2dr & aRasterPx) const
+{
+    MMVII_INTERNAL_ASSERT_tiny(mRasterMask, "Error: mRasterMask must be computed first");
+    auto & aMaskImData = mRasterMask->DIm();
+    return aMaskImData.InsideBL(aRasterPx) && (aMaskImData.GetVBL(aRasterPx)==255.);
+}
+
 cPt2dr cStaticLidar::Ground2ImagePrecise(const cPt3dr & aGroundPt) const
 {
     MMVII_INTERNAL_ASSERT_tiny(mAreRastersReady, "Error: rasters not ready");

@@ -142,6 +142,9 @@ public :
     std::string  V_PrefixName() const override;
     static std::string Pat2Sup(const std::string & aPatSelect);
 
+    cDataIm2D<tREAL4> &getRasterDistance() const;
+    bool IsValidPoint(const cPt2dr &aRasterPx) const;
+
 
 private :
     template <typename TYPE> void fillRaster(const cStaticLidarImporter & aSL_importer, const std::string& aPhProjDirOut, const std::string& aFileName,
