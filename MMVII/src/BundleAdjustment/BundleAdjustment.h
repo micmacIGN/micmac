@@ -331,8 +331,8 @@ class cBA_TieP
 /** "Helper" class for cBA_LidarPhotogra : for a given patch in one image, will store all the data on the points*/
 class cData1ImLidPhgr
 {
-     public :
-        size_t mKScan; // scan number (not used in cBA_LidarPhotograTri)
+    public :
+        std::string mScanName; //scan id to get uk
         size_t mKIm;  ///< num of images where the patch is seen
         std::vector<std::pair<tREAL8,cPt2dr>> mVGr; ///< pair of radiometry/gradient, in image,  for each point of the patch
 };
@@ -361,16 +361,16 @@ class cBA_LidarPhotogra
 
     protected :
        /**  Add observation for 1 Patch of point */
-       void Add1Patch(tREAL8 aW, const std::vector<cPt3dr> & aPatch, size_t aKScan);
+       void Add1Patch(tREAL8 aWeight, const std::vector<cPt3dr> & aVPatchGr, const std::string & aScanName);
 
        /// Method for adding observations with radiometric differences as similatity criterion
-       void AddPatchDifRad(tREAL8 aW,const std::vector<cPt3dr> & aPatch,const std::vector<cData1ImLidPhgr> &aVData) ;
+       void AddPatchDifRad(tREAL8 aWeight,const std::vector<cPt3dr> & aVPatchGr,const std::vector<cData1ImLidPhgr> &aVData) ;
 
        /// Method for adding observations with Census Coeff as similatity criterion
-       void AddPatchCensus(tREAL8 aW,const std::vector<cPt3dr> & aPatch,const std::vector<cData1ImLidPhgr> &aVData) ;
+       void AddPatchCensus(tREAL8 aWeight,const std::vector<cPt3dr> & aVPatchGr,const std::vector<cData1ImLidPhgr> &aVData) ;
 
        /// Method for adding observations with Normalized Centred Coefficent Correlation as similatity criterion
-       void AddPatchCorrel(tREAL8 aW,const std::vector<cPt3dr> & aPatch,const std::vector<cData1ImLidPhgr> &aVData) ;
+       void AddPatchCorrel(tREAL8 aWeight,const std::vector<cPt3dr> & aVPatchGr,const std::vector<cData1ImLidPhgr> &aVData) ;
 
        virtual void SetVUkVObs
        (
@@ -424,7 +424,6 @@ protected:
 // record all data for each scan raster
 struct cStaticLidarBAData
 {
-    std::string                    mName;
     cStaticLidar *                 mLidarRaster;   //< raster representations of lidar
     std::list<std::set<cPt2di>>    mLPatchesP;      //< set of patches as px in raster, consituted by 3D points in a lidar scan
 };
@@ -451,7 +450,7 @@ protected:
          int                     aKPt
          ) override;
 
-    std::vector<cStaticLidarBAData> mVLidarData;      ///< vector of raster representations of lidar
+    std::vector<std::string> mVScanNames;      ///< vector of raster representations of lidar
 };
 
 
@@ -476,7 +475,6 @@ class cMMVII_BundleAdj
           void  AddCalib(cPerspCamIntrCalib *);  /// add  if not exist
           void  AddCamPC(cSensorCamPC *);  /// add, error id already exist
           void  AddCam(const std::string & aNameIm);  /// add from name, require PhP exist
-          void  AddStaticLidar(cStaticLidar * aLidarData);
 	  void  AddReferencePoses(const std::vector<std::string> &);  ///  [Fofder,SigmGCP,SigmaRot ?]
 
 	  void AddBlocRig(const std::vector<double>& aSigma,const std::vector<double>&  aSigmRat ); // RIGIDBLOC
@@ -495,7 +493,7 @@ class cMMVII_BundleAdj
           cBA_GCP& getGCP() { return mGCP;}
 
           ///  ============  Add Lidar/Photogra ===============          void AddLineAdjust(const std::vector<std::string> &);
-
+          void AddStaticLidar(const std::string &aScanName);
           void Add1AdjLidarPhotogra(const std::vector<std::string> &);
           void Add1AdjLidarPhoto(const std::vector<std::string> &);
 
@@ -507,6 +505,7 @@ class cMMVII_BundleAdj
 
           const std::vector<cSensorImage *> &  VSIm() const ;  ///< Accessor
           const std::vector<cSensorCamPC *> &  VSCPC() const;   ///< Accessor
+          std::unordered_map<std::string, cStaticLidarBAData> & MapTSL(); ///< Accessor
 								//
 
           bool CheckGCPConstraints() const; //< test if free points have enough observations
@@ -594,6 +593,7 @@ class cMMVII_BundleAdj
           std::vector<cPerspCamIntrCalib *>  mVPCIC;     ///< vector of all internal calibration 4 easy parse
           std::vector<cSensorCamPC *>        mVSCPC;      ///< vector of perspectiv  cameras
           std::vector<cSensorImage *>        mVSIm;       ///< vector of sensor image (PC+RPC ...)
+          std::unordered_map<std::string, cStaticLidarBAData>  mMapTSL;      ///< map of static lidar scans data for BA, indexed by scan name
           //  std::vector<cCalculator<double> *> mVEqCol;     ///< vector of co-linearity equation -> replace by direct access
 
           cSetInterUK_MultipeObj<tREAL8>    mSetIntervUK;

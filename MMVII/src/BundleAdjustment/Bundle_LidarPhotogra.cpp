@@ -120,24 +120,21 @@ cBA_LidarPhotograRaster::cBA_LidarPhotograRaster(cPhotogrammetricProject * aPhPr
     }
 
     //read scans files from directory corresponding to pattern in aParam.at(1)
-    auto aVScanNames = mPhProj->GetStaticLidarNames(aParam.at(1));
-    for (const auto & aNameSens : aVScanNames)
+    mVScanNames = mPhProj->GetStaticLidarNames(aParam.at(1));
+    for (const auto & aNameSens : mVScanNames)
     {
-        cStaticLidar * aLidarData = mPhProj->ReadStaticLidar(aNameSens, true, true);
-        MMVII_INTERNAL_ASSERT_User(aLidarData,
-                                   eTyUEr::eUnClassedError,"Error opening static scans " + aNameSens);
-        mVLidarData.push_back({aNameSens, aLidarData, {}});
+        mBA.AddStaticLidar(aNameSens);
         StdOut() << "Add Scan " << aNameSens << "\n";
-        aBA.AddStaticLidar(aLidarData);
     }
 
     // Creation of the patches, choose a neigborhood around patch centers. TODO: adapt to images ground pixels size?
     if (mModeSim==eImatchCrit::eDifRad)
         mNbPointByPatch = 1;
-    for (auto & aLidarData: mVLidarData)
+    for (auto & aScanName: mVScanNames)
     {
-        aLidarData.mLidarRaster->MakePatches(aLidarData.mLPatchesP,aBA.VSCPC(),mNbPointByPatch,5);
-        StdOut() << "Nb patches for " << aLidarData.mName << ": " << aLidarData.mLPatchesP.size() << "\n";
+        auto & aLidarBAData = mBA.MapTSL().at(aScanName);
+        aLidarBAData.mLidarRaster->MakePatches(aLidarBAData.mLPatchesP,aBA.VSCPC(),mNbPointByPatch,5);
+        StdOut() << "Nb patches for " << aScanName << ": " << aLidarBAData.mLPatchesP.size() << "\n";
     }
 }
 
@@ -147,10 +144,11 @@ void cBA_LidarPhotograRaster::SetFrozenVar(bool aVerbose, cResolSysNonLinear<tRE
     // Freeze full pose (TODO: be able to to fix only verticalization)
     tNameSelector aSel = AllocRegex(cStaticLidar::Pat2Sup(aPatFrozenTSL));
     int nbMatches = 0;
-    for (auto & aLidarBAData : mVLidarData)
+    for (auto & aScanName : mVScanNames)
     {
-        if (aSel.Match(aLidarBAData.mName))
+        if (aSel.Match(aScanName))
         {
+            auto & aLidarBAData = mBA.MapTSL().at(aScanName);
             aSys.SetFrozenVarCurVal(*aLidarBAData.mLidarRaster,aLidarBAData.mLidarRaster->Center());
             aSys.SetFrozenVarCurVal(*aLidarBAData.mLidarRaster,aLidarBAData.mLidarRaster->Omega());
             nbMatches++;
@@ -162,9 +160,10 @@ void cBA_LidarPhotograRaster::SetFrozenVar(bool aVerbose, cResolSysNonLinear<tRE
 
 void cBA_LidarPhotograRaster::Save()
 {
-    for (auto & aLidarBAData : mVLidarData)
+    for (auto & aScanName : mVScanNames)
     {
-        aLidarBAData.mLidarRaster->ToFile(mPhProj->DPOrient().FullDirOut() + aLidarBAData.mName);
+        auto & aLidarBAData = mBA.MapTSL().at(aScanName);
+        aLidarBAData.mLidarRaster->ToFile(mPhProj->DPOrient().FullDirOut() + aScanName);
     }
 }
 
@@ -223,29 +222,35 @@ void cBA_LidarPhotograRaster::AddObs()
     mNbUsedObs = 0;
     if (mModeSim==eImatchCrit::eDifRad)
     {
-        for (size_t aKScan = 0; aKScan<mVLidarData.size(); ++aKScan)
-            for (const auto& aPatch : mVLidarData[aKScan].mLPatchesP)
+        for (auto & aScanName : mVScanNames)
+        {
+            auto & aLidarBAData = mBA.MapTSL().at(aScanName);
+            for (const auto& aPatch : aLidarBAData.mLPatchesP)
             {
                 Add1Patch(mWeight,
-                          {mVLidarData[aKScan].mLidarRaster->Image2Ground(*aPatch.begin())},
-                          aKScan);
+                          {aLidarBAData.mLidarRaster->Image2Ground(*aPatch.begin())},
+                          aScanName);
             }
+        }
     }
     else
     {
-        for (size_t aKScan = 0; aKScan<mVLidarData.size(); ++aKScan)
-            for (const auto& aPatch : mVLidarData[aKScan].mLPatchesP)
+        for (auto & aScanName : mVScanNames)
+        {
+            auto & aLidarBAData = mBA.MapTSL().at(aScanName);
+            for (const auto& aPatch : aLidarBAData.mLPatchesP)
             {
                 std::vector<cPt3dr> aVP;
                 for (const auto aPt : aPatch)
-                    aVP.push_back(mVLidarData[aKScan].mLidarRaster->Image2Ground(aPt));
-                Add1Patch(mWeight,aVP,aKScan);
+                    aVP.push_back(aLidarBAData.mLidarRaster->Image2Ground(aPt));
+                Add1Patch(mWeight,aVP,aScanName);
             }
+        }
     }
 
     if (mLastResidual.SW() != 0)
         StdOut() << "  * Lid/Phr Residual Rad " << std::sqrt(mLastResidual.Average())
-                 << " ("<<mVLidarData.size()<<" scans, "<<mNbUsedObs<<" obs, "<<mNbUsedPoints<<" points)\n";
+                 << " ("<<mVScanNames.size()<<" scans, "<<mNbUsedObs<<" obs, "<<mNbUsedPoints<<" points)\n";
     else
         StdOut() << "  * Lid/Phr: no obs\n";
 }
@@ -295,7 +300,7 @@ void cBA_LidarPhotograRaster::SetVUkVObs
         int                     aKPt
         )
 {
-    cStaticLidar * aScan = mVLidarData.at(aData.mKScan).mLidarRaster;
+    cStaticLidar * aScan = mBA.MapTSL().at(aData.mScanName).mLidarRaster;
     cPt3dr aPScan = aScan->Pt_W2L(aPGround);  // coordinate of point in ground system
     cSensorCamPC * aCam = mBA.VSCPC().at(aData.mKIm);  // extract the camera
     cPt3dr aPCam = aCam->Pt_W2L(aPGround);  // coordinate of point in image system
@@ -480,7 +485,7 @@ void cBA_LidarPhotogra::AddPatchCorrel
      aSys->R_AddObsWithTmpUK(aStrSubst);
 }
 
-void  cBA_LidarPhotogra::Add1Patch(tREAL8 aWeight,const std::vector<cPt3dr> & aVPatchGr, size_t aKScan)
+void  cBA_LidarPhotogra::Add1Patch(tREAL8 aWeight,const std::vector<cPt3dr> & aVPatchGr, const std::string & aScanName)
 {
      std::vector<cData1ImLidPhgr> aVData; // for each image where patch is visible will store the data
      cComputeStdDev<tREAL8>   aStdDev;    // compute the standard deviation of projected radiometry (indicator) 
@@ -493,7 +498,7 @@ void  cBA_LidarPhotogra::Add1Patch(tREAL8 aWeight,const std::vector<cPt3dr> & aV
           if (aCam->IsVisible(aVPatchGr.at(0))) // first test : is central point visible
           {
               cData1ImLidPhgr  aData; // data that will be filled
-              aData.mKScan = aKScan;
+              aData.mScanName = aScanName;
               aData.mKIm = aKIm;
               for (size_t aKPt=0 ; aKPt<aVPatchGr.size() ; aKPt++) // parse the points of the patch
               {
