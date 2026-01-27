@@ -264,7 +264,7 @@ void cBA_LidarPhotograRaster::SetVUkVObs
         int                     aKPt
         )
 {
-    cStaticLidar * aScan = mBA.MapTSL().at(aData.mScanName);
+    cStaticLidar * aScan = mBA.MapTSL().at(aData.mScanAName);
     cPt3dr aPScan = aScan->Pt_W2L(aPGround);  // coordinate of point in ground system
     cSensorCamPC * aCam = mBA.VSCPC().at(aData.mKIm);  // extract the camera
     cPt3dr aPCam = aCam->Pt_W2L(aPGround);  // coordinate of point in image system
@@ -462,7 +462,7 @@ void  cBA_LidarPhotogra::Add1Patch(tREAL8 aWeight,const std::vector<cPt3dr> & aV
           if (aCam->IsVisible(aVPatchGr.at(0))) // first test : is central point visible
           {
               cData1ImLidPhgr  aData; // data that will be filled
-              aData.mScanName = aScanName;
+              aData.mScanAName = aScanName;
               aData.mKIm = aKIm;
               for (size_t aKPt=0 ; aKPt<aVPatchGr.size() ; aKPt++) // parse the points of the patch
               {
@@ -587,19 +587,17 @@ void cBA_LidarLidarRaster::AddObs()
 }
 
 
-
 void cBA_LidarLidarRaster::SetVUkVObs
-    (
-        const cPt3dr&           aPGround,
-        std::vector<int> *      aVIndUk,
-        std::vector<tREAL8> &   aVObs,
-        const cData1LidLidPt &  aData,
-        int                     aKPt
-        )
+    (const cPt3dr&           aPGround,
+     std::vector<int> *      aVIndUk,
+     std::vector<tREAL8> &   aVObs,
+     const cData1ImLidPhgr & aData,
+     int                     aKPt
+     )
 {
-    cStaticLidar * aScanA = mBA.MapTSL().at(aData.mScanFromName);
+    cStaticLidar * aScanA = mBA.MapTSL().at(aData.mScanAName);
     cPt3dr aPScanA = aScanA->Pt_W2L(aPGround);  // coordinate of point in ground system
-    cStaticLidar * aScanB = mBA.MapTSL().at(aData.mScanToName);
+    cStaticLidar * aScanB = mBA.MapTSL().at(aData.mScanBName);
     cPt3dr aPScanB0 = aScanB->Pt_W2L(aPGround);  // coordinate of point in image system
     tProjImAndGrad aPImGr = aScanB->InternalCalib()->DiffGround2Im(aPScanB0); // compute proj & gradient
 
@@ -628,7 +626,7 @@ void cBA_LidarLidarRaster::SetVUkVObs
 
 void  cBA_LidarLidarRaster::Add1Patch(tREAL8 aWeight,const cPt3dr & aPGround, const std::string & aScanName)
 {
-    std::vector<cData1LidLidPt> aVData; // for each image where patch is visible will store the data
+    std::vector<cData1ImLidPhgr> aVData; // for each image where patch is visible will store the data
     cWeightAv<tREAL8>   aAvgRes;    // compute average residual
 
     //  Parse all the scans, we will select the ones where the patch is visible
@@ -640,9 +638,9 @@ void  cBA_LidarLidarRaster::Add1Patch(tREAL8 aWeight,const cPt3dr & aPGround, co
         cDataGenUnTypedIm<2> & aGenDImDist = aScanTo->getRasterDistance();
         if (aScanTo->IsVisible(aPGround)) // first test : is central point visible
         {
-            cData1LidLidPt  aData; // data that will be filled
-            aData.mScanFromName = aScanName;
-            aData.mScanToName = aScanData.mScanName;
+            cData1ImLidPhgr  aData; // data that will be filled
+            aData.mScanAName = aScanName;
+            aData.mScanBName = aScanData.mScanName;
             cPt2dr aPIm = aScanTo->Ground2Image(aPGround); // extract the image  projection
             tREAL8 aDist = Norm2(aPGround-aScanTo->Center());
             if (!aScanTo->IsValidPoint(aPIm))
@@ -677,7 +675,7 @@ void  cBA_LidarLidarRaster::Add1Patch(tREAL8 aWeight,const cPt3dr & aPGround, co
 void cBA_LidarLidarRaster::AddPatchDist
     (tREAL8 aWeight,
      const cPt3dr & aPGround,
-     const std::vector<cData1LidLidPt> &aVData
+     const std::vector<cData1ImLidPhgr> &aVData
      )
 {
     // read the solver now, because was not initialized at creation

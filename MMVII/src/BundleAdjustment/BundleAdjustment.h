@@ -327,19 +327,58 @@ class cBA_TieP
        cStdWeighterResidual     mTieP_Weighter;
 };
 
+//---------------------------------------------------------
 
 /** "Helper" class for cBA_LidarPhotogra : for a given patch in one image, will store all the data on the points*/
 class cData1ImLidPhgr
 {
     public :
-        std::string mScanName; //scan id to get uk
-        size_t mKIm;  ///< num of images where the patch is seen
+        std::string mScanAName;    //< origin scan id to get uk
+        std::string mScanBName;    //< secondary scan id to get uk (only for llidar/lidar adj)
+        size_t mKIm;  ///< num of images where the patch is seen (only for lidar/im adj)
         std::vector<std::pair<tREAL8,cPt2dr>> mVGr; ///< pair of radiometry/gradient, in image,  for each point of the patch
 };
 
 
-/**  Class for doing the adjsment between Lidar & Photogra, prototype for now, what will most certainly will need
-     to evolve is the weighting policy.
+/**
+ * base class for lidar/photo and lidar/lidar adj
+ */
+class cBA_LidarBase
+{
+public :
+    /// constructor, take the global bundle struct + one vector of param
+    cBA_LidarBase(cPhotogrammetricProject *aPhProj, cMMVII_BundleAdj&, const std::vector<std::string> & aParam);
+    /// destuctor, free interopaltor, calculator ....
+    virtual ~cBA_LidarBase();
+
+    /// add observation
+    virtual void AddObs() = 0;
+
+protected :
+    /**  Add observation for 1 Patch of point */
+    virtual void Add1Patch(tREAL8 aWeight, const cPt3dr &aPGround, const std::string & aScanName);
+
+    void SetVUkVObs
+        (const cPt3dr&           aPGround,
+         std::vector<int> *      aVIndUk,
+         std::vector<tREAL8> &   aVObs,
+         const cData1ImLidPhgr & aData,
+         int                     aKPt
+         );
+
+    cPhotogrammetricProject *      mPhProj;         // Photogrammetric project
+    cMMVII_BundleAdj&              mBA;             ///< The global bundle adj structure
+    cDiffInterpolator1D *          mInterp;         ///< Interpolator, used to extract  Value & Grad of images
+    cCalculator<double>  *         mEqLidLid;      ///< Calculator used for constrain the pose from image obs
+    cWeightAv<tREAL8,tREAL8>       mLastResidual;   ///< Accumulate the radiometric residual
+    double                         mWeight;          ///< weight for observations
+    size_t                         mNbUsedPoints;   ///< number of lidar used points
+    size_t                         mNbUsedObs;      ///< number of lidar obs used
+};
+
+
+
+/**  Class for adjusment between Lidar & Photogra
  */
 
 class cBA_LidarPhotogra
@@ -417,7 +456,7 @@ protected:
 // record all data for each scan raster
 struct cStaticLidarBAData
 {
-    std::string                    mScanName;      //scan id
+    std::string                    mScanName;      //< scan id
     cStaticLidar *                 mLidarRaster;   //< raster representations of lidar
     std::list<std::set<cPt2di>>    mLPatchesP;     //< set of patches as px in raster, consituted by 3D points in a lidar scan
 };
@@ -446,19 +485,6 @@ protected:
 };
 
 
-
-/**
-* Help per class for lidar/lidar observation
-*/
-class cData1LidLidPt
-{
-public :
-    std::string mScanFromName; //scan id to get uk
-    std::string mScanToName;   //scan id to get uk
-    std::vector<std::pair<tREAL8,cPt2dr>> mVGr; ///< pair of radiometry/gradient, in image,  for each point of the patch
-};
-
-
 /**
  * Class for adjustment between two lidar scans
  */
@@ -478,13 +504,13 @@ protected :
     /**  Add observation for 1 Patch of point */
     void Add1Patch(tREAL8 aWeight, const cPt3dr &aPGround, const std::string & aScanName);
 
-    void AddPatchDist(tREAL8 aWeight, const cPt3dr &aPGround, const std::vector<cData1LidLidPt> &aVData) ;
+    void AddPatchDist(tREAL8 aWeight, const cPt3dr &aPGround, const std::vector<cData1ImLidPhgr> &aVData) ;
 
     void SetVUkVObs
         (const cPt3dr&           aPGround,
          std::vector<int> *      aVIndUk,
          std::vector<tREAL8> &   aVObs,
-         const cData1LidLidPt &  aData,
+         const cData1ImLidPhgr &  aData,
          int                     aKPt
          );
 
