@@ -338,12 +338,12 @@ void cMMVII_BundleAdj::OneIteration(bool isFirstIter, tREAL8 aLVM, bool isLastIt
         // Freeze full pose (TODO: be able to to fix only verticalization)
         tNameSelector aSel = AllocRegex(cStaticLidar::Pat2Sup(mPatFrozenTSL));
         int nbMatches = 0;
-        for (auto & [aScanName, aLidarBAData] : mMapTSL)
+        for (auto & [aScanName, aLidar] : mMapTSL)
         {
             if (aSel.Match(aScanName))
             {
-                mR8_Sys->SetFrozenVarCurVal(*aLidarBAData.mLidarRaster,aLidarBAData.mLidarRaster->Center());
-                mR8_Sys->SetFrozenVarCurVal(*aLidarBAData.mLidarRaster,aLidarBAData.mLidarRaster->Omega());
+                mR8_Sys->SetFrozenVarCurVal(*aLidar,aLidar->Center());
+                mR8_Sys->SetFrozenVarCurVal(*aLidar,aLidar->Omega());
                 nbMatches++;
             }
         }
@@ -824,7 +824,7 @@ void cMMVII_BundleAdj::Add1AdjLidarPhoto(const std::vector<std::string> &aParam)
     mVBA_Lidar.push_back(new cBA_LidarPhotograRaster(mPhProj, *this,aParam));
 }
 
-void cMMVII_BundleAdj::AddStaticLidar(const std::string &aScanName)
+cStaticLidar * cMMVII_BundleAdj::AddStaticLidar(const std::string &aScanName)
 {
     AssertPhpAndPhaseAdd();
     if (mMapTSL.count(aScanName)==0)
@@ -833,21 +833,22 @@ void cMMVII_BundleAdj::AddStaticLidar(const std::string &aScanName)
         MMVII_INTERNAL_ASSERT_User(aLidarData,
                                    eTyUEr::eUnClassedError,"Error opening static scans " + aScanName);
 
-        mMapTSL[aScanName]=cStaticLidarBAData({aLidarData, {}});
+        mMapTSL[aScanName] = aLidarData;
 
         MMVII_INTERNAL_ASSERT_tiny (!aLidarData->UkIsInit(),"Multiple add of TSL : " + aLidarData->NameImage());
         mSetIntervUK.AddOneObj(aLidarData);
         aLidarData->SetAndGetEqColinearity(true,10,true);  // WithDer, SzBuf, ReUse
     }
+    return mMapTSL.at(aScanName);
 }
 
-std::unordered_map<std::string, cStaticLidarBAData> &  cMMVII_BundleAdj::MapTSL() {return mMapTSL;}
+const std::unordered_map<std::string, cStaticLidar *> &cMMVII_BundleAdj::MapTSL() const {return mMapTSL;}
 
 
 void cMMVII_BundleAdj::SaveTSL()
 {
-    for (auto & [aScanName, aLidarBAData] : mMapTSL)
-        aLidarBAData.mLidarRaster->ToFile(mPhProj->DPOrient().FullDirOut() + aScanName);
+    for (auto & [aScanName, aLidar] : mMapTSL)
+        aLidar->ToFile(mPhProj->DPOrient().FullDirOut() + aScanName);
 }
 
 /* ---------------------------------------- */
