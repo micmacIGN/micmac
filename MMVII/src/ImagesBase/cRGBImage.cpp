@@ -179,19 +179,19 @@ void cRGBImage::SetRGBBorderRectWithAlpha(const cPt2di & aC,int aSzW,int aBorder
 
     ///  ===========  Manipulation from gray images ========================
 
-template <class Type> void SetGrayPix(cRGBImage& aRGBIm,const cPt2di & aPix,const cDataIm2D<Type> & aGrayIm,const double & aMul)
+template <class Type> void SetGrayPix(cRGBImage& aRGBIm, const cPt2di & aPix, const cDataIm2D<Type> & aGrayIm, double aMul)
 {
     aRGBIm.SetGrayPix(aPix,round_ni(aMul*aGrayIm.GetV(aPix)));
 }
 
-template <class Type> void SetGrayPix(cRGBImage& aRGBIm,const cDataIm2D<Type> & aGrayIm,const double & aMul)
+template <class Type> void SetGrayPix(cRGBImage& aRGBIm, const cDataIm2D<Type> & aGrayIm, double aMul)
 {
     for (const auto & aPix : aRGBIm.BoxZ1())
         SetGrayPix(aRGBIm,aPix,aGrayIm,aMul);
 }
 
 
-template <class Type> cRGBImage  RGBImFromGray(const cDataIm2D<Type> & aGrayIm,const double & aMul,int aZoom)
+template <class Type> cRGBImage  RGBImFromGray(const cDataIm2D<Type> & aGrayIm, double aMul,int aZoom)
 {
    cRGBImage aRes(aGrayIm.Sz(),aZoom);
 
@@ -200,7 +200,7 @@ template <class Type> cRGBImage  RGBImFromGray(const cDataIm2D<Type> & aGrayIm,c
    return aRes;
 }
 
-template <class Type> cRGBImage  RGBImFromGray(const cDataIm2D<Type> & aGrayIm,const cBox2di & aBox0,const double & aMul,int aZoom)
+template <class Type> cRGBImage  RGBImFromGray(const cDataIm2D<Type> & aGrayIm,const cBox2di & aBox0, double aMul,int aZoom)
 {
    cBox2di aBoxC = aBox0.Inter(aGrayIm);
    cRGBImage aRes(aBoxC.Sz(),aZoom);
@@ -432,10 +432,10 @@ std::vector<cPt3di>  cRGBImage::LutVisuLabRand(int aNbLab)
 
 
 #endif
-template  void SetGrayPix(cRGBImage&,const cPt2di & aPix,const cDataIm2D<tREAL4> & aIm,const double &);
-template  void SetGrayPix(cRGBImage&,const cDataIm2D<tREAL4> & aIm,const double & aMul);
-template  cRGBImage  RGBImFromGray(const cDataIm2D<tREAL4> & aGrayIm,const double & aMul,int aZoom);
-template  cRGBImage  RGBImFromGray(const cDataIm2D<tU_INT1> & aGrayIm,const double & aMul,int aZoom);
-template  cRGBImage  RGBImFromGray(const cDataIm2D<tREAL4> & aGrayIm,const cBox2di&,const double & aMul,int aZoom);
-template  cRGBImage  RGBImFromGray(const cDataIm2D<tU_INT1> & aGrayIm,const cBox2di&,const double & aMul,int aZoom);
+template  void SetGrayPix(cRGBImage&,const cPt2di & aPix,const cDataIm2D<tREAL4> & aIm, double );
+template  void SetGrayPix(cRGBImage&,const cDataIm2D<tREAL4> & aIm, double aMul);
+template  cRGBImage  RGBImFromGray(const cDataIm2D<tREAL4> & aGrayIm, double aMul,int aZoom);
+template  cRGBImage  RGBImFromGray(const cDataIm2D<tU_INT1> & aGrayIm, double aMul,int aZoom);
+template  cRGBImage  RGBImFromGray(const cDataIm2D<tREAL4> & aGrayIm,const cBox2di&, double aMul,int aZoom);
+template  cRGBImage  RGBImFromGray(const cDataIm2D<tU_INT1> & aGrayIm,const cBox2di&, double aMul,int aZoom);
 };
