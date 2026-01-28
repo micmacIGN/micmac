@@ -539,18 +539,19 @@ cPt2dr cStaticLidarImporter::Input3DtoRasterAngle(const cPt3dr &aPt3DInput) cons
 
 cStaticLidar::cStaticLidar(const std::string & aNameFile, const std::string & aStationName,
                            const std::string & aScanName, const tPose & aPose, cPerspCamIntrCalib * aCalib,
-                           cRotation3D<tREAL8> aRotInput2Raster) :
+                           cRotation3D<tREAL8> aRotInput2Raster, tREAL8 aSigma) :
     cSensorCamPC(aNameFile, aPose, aCalib),
     mStationName(aStationName),
     mScanName(aScanName),
     mAreRastersReady(false),
+    mSigma(aSigma),
     mRotInput2Raster(aRotInput2Raster)
 {
 }
 
 cStaticLidar * cStaticLidar::FromFile(const std::string & aNameScanFile, const std::string & aNameRastersDir)
 {
-    cStaticLidar * aRes = new cStaticLidar("NONE","?","?",tPoseR::Identity(),nullptr,tRotR::Identity());
+    cStaticLidar * aRes = new cStaticLidar("NONE","?","?",tPoseR::Identity(),nullptr,tRotR::Identity(),NAN);
     ReadFromFile(*aRes, aNameScanFile);
 
     cPerspCamIntrCalib* aCalib = cPerspCamIntrCalib::FromFile(DirOfPath(aNameScanFile)
@@ -1057,7 +1058,7 @@ void cStaticLidar::MakeVisu(const cPhotogrammetricProject & aPhProj) const
     {
         //aImDist8b.SetRGBPoint(ToR(aCenter)-cPt2dr(0.,0.), cRGBImage::Red);
         //aImDist8b.RawSetPoint(aCenter, cRGBImage::Red);
-        aImDist8b.FillRectangle(cRGBImage::Red, aCenter-cPt2di(1,1), aCenter+cPt2di(1,1), {0.,0.,0.});
+        aImDist8b.FillRectangle(cRGBImage::Red, aCenter-cPt2di(0,0), aCenter+cPt2di(1,1), {0.,0.,0.});
     }
     std::string aPath = aPhProj.DirVisuAppli() + mStationName + "_" + mScanName + "_patches.jpg";
     StdOut() << "write visu " << aPath << "\n";
@@ -1166,6 +1167,7 @@ void cStaticLidar::AddData(const  cAuxAr2007 & anAux)
     MMVII::AddData(cAuxAr2007("RasterPhi",anAux),mRasterPhiPath);
     MMVII::AddData(cAuxAr2007("RasterThetaErr",anAux),mRasterThetaErrPath);
     MMVII::AddData(cAuxAr2007("RasterPhiErr",anAux),mRasterPhiErrPath);
+    MMVII::AddData(cAuxAr2007("Sigma",anAux),mSigma);
 
     MMVII::AddData(cAuxAr2007("RotInput2Raster",anAux),mRotInput2Raster);
 

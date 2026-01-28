@@ -102,7 +102,7 @@ public :
 
     cStaticLidar(const std::string &aNameFile, const std::string & aStationName,
                  const std::string & aScanName, const tPose &aPose, cPerspCamIntrCalib *aCalib,
-                 cRotation3D<tREAL8> aRotInput2Raster);
+                 cRotation3D<tREAL8> aRotInput2Raster, tREAL8 aSigma);
 
     static cStaticLidar *FromFile(const std::string & aNameScanFile, const std::string & aNameRastersDir="");
 
@@ -145,6 +145,7 @@ public :
 
     cDataIm2D<tREAL4> &getRasterDistance() const;
     bool IsValidPoint(const cPt2dr &aRasterPx) const;
+    tREAL8 Sigma() const { return mSigma; }
 
 
 private :
@@ -175,6 +176,7 @@ private :
 
     bool mAreRastersReady;
 
+    tREAL8 mSigma;
     std::vector<cPt2di> mPatchCenters;
 
     // rasters for filtering
