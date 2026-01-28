@@ -377,7 +377,7 @@ template<class TypeEl> bool  cAppliParseBoxIm<TypeEl>::TopCallParallTile() const
    return  mParalTiles && (!InsideParalRecall());
 }
 
-template<class TypeEl> void  cAppliParseBoxIm<TypeEl>::APBI_ExecAll()
+template<class TypeEl> void  cAppliParseBoxIm<TypeEl>::APBI_ExecAll(bool Silence)
 {
      mDFI2d = cDataFileIm2D::Create(mNameIm,mIsGray);
      if (APBI_TestMode())
@@ -413,7 +413,7 @@ template<class TypeEl> void  cAppliParseBoxIm<TypeEl>::APBI_ExecAll()
          }
      }
      mParseBox = nullptr ;   // No longer inside parsing
-     mAppli.ExeComParal(aLComParal);
+     mAppli.ExeComParal(aLComParal,Silence);
 }
 
 template<class TypeEl> const std::string & cAppliParseBoxIm<TypeEl>::APBI_NameIm() const

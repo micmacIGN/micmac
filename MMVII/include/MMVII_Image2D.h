@@ -482,7 +482,7 @@ template<class TypeEl> class  cAppliParseBoxIm
         cAppliParseBoxIm(cMMVII_Appli & anAppli,eForceGray IsGray,const cPt2di & aSzTiles,const cPt2di & aSzOverlap,bool ParalTiles) ;
         ~cAppliParseBoxIm();
 
-	void  APBI_ExecAll(); ///< Execute Action on all Box of file  OR  only on Test Box if exist
+        void  APBI_ExecAll(bool Silence=false); ///< Execute Action on all Box of file  OR  only on Test Box if exist
 
         cCollecSpecArg2007 & APBI_ArgObl(cCollecSpecArg2007 & anArgObl) ; ///< For sharing mandatory args
         cCollecSpecArg2007 & APBI_ArgOpt(cCollecSpecArg2007 & anArgOpt); ///< For sharing optionnal args
