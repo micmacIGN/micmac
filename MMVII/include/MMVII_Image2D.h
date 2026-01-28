@@ -640,16 +640,16 @@ class cRGBImage
         cPt2di mSzz;   ///< Sz with zoom, "physicall" pixel
         int    mZoom;
         tREAL8 mRZoom;
-	cPt2dr mOffsetZoom;  ///< Offset for corresponding real pixel to physicall
+	cPt2dr mOffsetZoom;  ///< Offset for corresponding real pixel to physical
         tIm1C  mImR;
         tIm1C  mImG;
         tIm1C  mImB;
 };
 
-template <class Type> void SetGrayPix(cRGBImage& aRGBIm,const cPt2di & aPix,const cDataIm2D<Type> & aGrayIm,const double & aMul=1.0);
-template <class Type> void SetGrayPix(cRGBImage& aRGBIm,const cDataIm2D<Type> & aGrayIm,const double & aMul=1.0);
-template <class Type> cRGBImage  RGBImFromGray(const cDataIm2D<Type> & aGrayIm,const double & aMul=1.0,int aZoom=1);
-template <class Type> cRGBImage  RGBImFromGray(const cDataIm2D<Type> & aGrayIm,const cBox2di&,const double & aMul=1.0,int aZoom=1);
+template <class Type> void SetGrayPix(cRGBImage& aRGBIm,const cPt2di & aPix,const cDataIm2D<Type> & aGrayIm, double aMul=1.0);
+template <class Type> void SetGrayPix(cRGBImage& aRGBIm,const cDataIm2D<Type> & aGrayIm, double aMul=1.0);
+template <class Type> cRGBImage  RGBImFromGray(const cDataIm2D<Type> & aGrayIm, double aMul=1.0,int aZoom=1);
+template <class Type> cRGBImage  RGBImFromGray(const cDataIm2D<Type> & aGrayIm,const cBox2di&, double aMul=1.0,int aZoom=1);
 
 
 /// 8 neighboors stored in order compatible with freeman-numbering
