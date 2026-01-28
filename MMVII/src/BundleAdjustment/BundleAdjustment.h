@@ -410,6 +410,10 @@ class cBA_LidarPhotogra: public cBA_LidarBase
 };
 
 
+/**  Class for geometrically indexing the lidars (on 2D point) for patches creation , used
+   to instantiate cTilingIndex
+*/
+
 class cBA_LidarPhotograTri : public cBA_LidarPhotogra
 {
 public :
@@ -442,6 +446,10 @@ struct cStaticLidarBAData
     cStaticLidar *                 mLidarRaster;   //< raster representations of lidar
     std::list<std::set<cPt2di>>    mLPatchesP;     //< set of patches as px in raster, consituted by 3D points in a lidar scan
 };
+
+/**
+ * use lidar raster geometry, with unknown pose
+*/
 
 class cBA_LidarPhotograRaster : public cBA_LidarPhotogra
 {

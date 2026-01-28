@@ -918,8 +918,6 @@ void cStaticLidar::MaskBuffer(const cStaticLidarImporter &aSL_importer, tREAL8 a
     aMaskBufImData.InitCste(255);
 
     std::vector<bool> aLinesFull(aSL_importer.NbLine()+1, false); // record lignes completely masked to pass them next time
-    // int c = 100;
-    // for (int l = 100; l < 2700; l += 500)
     for (int l = 0 ; l < aSL_importer.NbLine(); ++l)
     {
         for (int c = 0 ; c < aSL_importer.NbCol(); ++c)
@@ -1044,6 +1042,28 @@ void cStaticLidar::SelectPatchCenters2(const cStaticLidarImporter &aSL_importer,
     }
 }
 
+void cStaticLidar::MakeVisu(const cPhotogrammetricProject & aPhProj) const
+{
+    MMVII_INTERNAL_ASSERT_tiny(mAreRastersReady, "Error: rasters not ready");
+    auto & aRasterDistData = mRasterDistance->DIm();
+    double aDistMax = 0.;
+    for (auto & aPt :  aRasterDistData)
+    {
+        if (aRasterDistData.GetV(aPt)>aDistMax)
+            aDistMax=aRasterDistData.GetV(aPt);
+    }
+    cRGBImage  aImDist8b = RGBImFromGray(aRasterDistData, 255./aDistMax,1);
+    for (auto & aCenter : mPatchCenters)
+    {
+        //aImDist8b.SetRGBPoint(ToR(aCenter)-cPt2dr(0.,0.), cRGBImage::Red);
+        //aImDist8b.RawSetPoint(aCenter, cRGBImage::Red);
+        aImDist8b.FillRectangle(cRGBImage::Red, aCenter-cPt2di(1,1), aCenter+cPt2di(1,1), {0.,0.,0.});
+    }
+    std::string aPath = aPhProj.DirVisuAppli() + mStationName + "_" + mScanName + "_patches.jpg";
+    StdOut() << "write visu " << aPath << "\n";
+    aImDist8b.ToJpgFileDeZoom(aPath, 1, {"QUALITY=100"});
+
+}
 
 void cStaticLidar::MakePatches
     (std::list<std::set<cPt2di> > &aLPatches,

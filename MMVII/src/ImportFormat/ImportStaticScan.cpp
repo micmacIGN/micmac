@@ -774,6 +774,7 @@ int cAppli_ImportStaticScan::Exe()
     aSL_data.FilterIncidence(mSL_importer, M_PI/2-mIncidenceMin);
     aSL_data.MaskBuffer(mSL_importer, mSL_importer.mPhiStep*mMaskBufferSteps, mPhProj.DirStaticLidarRasters());
     aSL_data.SelectPatchCenters2(mSL_importer, mNbPatches);
+    aSL_data.MakeVisu(mPhProj);
 
     aSL_data.ToFile(mPhProj.DPOrient().FullDirOut() + aSL_data.NameOriStd());
 
