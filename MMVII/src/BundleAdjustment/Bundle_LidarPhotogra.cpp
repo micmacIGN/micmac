@@ -46,11 +46,6 @@ void cBA_LidarBase::init(const std::vector<std::string>& aParam, size_t aWeightP
 }
 
 
-/**  Class for geometrically indexing the lidars (on 2D point) for patches creation , used
-   to instantiate cTilingIndex 
-*/
-
-
 cBA_LidarPhotogra::cBA_LidarPhotogra(cPhotogrammetricProject * aPhProj,
                                      cMMVII_BundleAdj& aBA, const std::vector<std::string>& aParam) :
     cBA_LidarBase(aPhProj, aBA, aParam),
