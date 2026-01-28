@@ -1117,7 +1117,11 @@ void cStaticLidar::MakePatches
         tREAL4 aMeanDepth = aRasterDistData.GetV(aCenter);
 
         cPt3dr aCenterThetaPhiDist = Image2ThetaPhiDist(aCenter);
-        tREAL4 aThetaStep = aCenterThetaPhiDist.x() - Image2ThetaPhiDist(aCenter+cPt2di(1, 0)).x();
+        tREAL4 aThetaStep = NAN;
+        if (aCenter.x() < mRasterX->DIm().SzX()/2)
+            aThetaStep = aCenterThetaPhiDist.x() - Image2ThetaPhiDist(aCenter+cPt2di(1, 0)).x();
+        else
+            aThetaStep = Image2ThetaPhiDist(aCenter-cPt2di(1, 0)).x() - aCenterThetaPhiDist.x();
 
         tREAL4 aProjColFactor = 1/cos(aCenterThetaPhiDist.y());
         tREAL4 aNbStepRadius = sqrt(aNbPointByPatch/M_PI) + 1;
