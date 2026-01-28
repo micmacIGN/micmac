@@ -372,7 +372,7 @@ protected :
     cDiffInterpolator1D *          mInterp;         ///< Interpolator, used to extract  Value & Grad of images
     cCalculator<double>  *         mEq;      ///< Calculator used for constrain the pose from image obs
     cWeightAv<tREAL8,tREAL8>       mLastResidual;   ///< Accumulate the radiometric residual
-    double                         mWeight;          ///< weight for observations
+    double                         mWFactor;          ///< weight for observations
     size_t                         mNbUsedPoints;   ///< number of lidar used points
     size_t                         mNbUsedObs;      ///< number of lidar obs used
 };

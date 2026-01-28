@@ -13,7 +13,7 @@ cBA_LidarBase::cBA_LidarBase(cPhotogrammetricProject * aPhProj,
     mBA         (aBA),                                 // memorize the bundel adj class itself (access to optimizer)
     mInterp     (nullptr),                             // interpolator see bellow
     mEq         (nullptr),                             // equation of egalisation Lidar/Phgr
-    mWeight      (NAN),
+    mWFactor      (NAN),
     mNbUsedPoints (0),
     mNbUsedObs (0)
 {
@@ -29,7 +29,7 @@ cBA_LidarBase::~cBA_LidarBase()
 
 void cBA_LidarBase::init(const std::vector<std::string>& aParam, size_t aWeightParamIndex, size_t aInterpolParamIndex)
 {
-    mWeight = (1/Square(cStrIO<double>::FromStr(aParam.at(aWeightParamIndex))));
+    mWFactor = (1/Square(cStrIO<double>::FromStr(aParam.at(aWeightParamIndex))));
     //  By default  use tabulation of apodized sinus cardinal
     std::vector<std::string> aParamInt {"Tabul","1000","SinCApod","10","10"};
     // if interpolator is not empty
@@ -176,7 +176,7 @@ void cBA_LidarPhotograTri::AddObs()
     {
         for (size_t aKP=0 ; aKP<mTri->NbPts() ; aKP++)
         {
-            Add1Patch(mWeight,{ToR(mTri->KthPts(aKP))},0);
+            Add1Patch(mWFactor,{ToR(mTri->KthPts(aKP))},0);
         }
     }
     else
@@ -186,7 +186,7 @@ void cBA_LidarPhotograTri::AddObs()
             std::vector<cPt3dr> aVP;
             for (const auto anInd : aPatchIndex)
                 aVP.push_back(ToR(mTri->KthPts(anInd)));
-            Add1Patch(mWeight,aVP,0);
+            Add1Patch(mWFactor,aVP,0);
         }
     }
 
@@ -208,7 +208,7 @@ void cBA_LidarPhotograRaster::AddObs()
         for (auto & aScan : mVScans)
             for (const auto& aPatch : aScan.mLPatchesP)
             {
-                Add1Patch(mWeight,
+                Add1Patch(mWFactor,
                           {aScan.mLidarRaster->Image2Ground(*aPatch.begin())},
                           aScan.mScanName);
             }
@@ -221,7 +221,7 @@ void cBA_LidarPhotograRaster::AddObs()
                 std::vector<cPt3dr> aVP;
                 for (const auto aPt : aPatch)
                     aVP.push_back(aScan.mLidarRaster->Image2Ground(aPt));
-                Add1Patch(mWeight,aVP,aScan.mScanName);
+                Add1Patch(mWFactor,aVP,aScan.mScanName);
             }
     }
 
@@ -567,12 +567,15 @@ void cBA_LidarLidarRaster::AddObs()
     mNbUsedPoints = 0;
     mNbUsedObs = 0;
     for (auto & aScan : mVScans)
+    {
+        tREAL8 aScanW = mWFactor*1/Square(aScan.mLidarRaster->Sigma());
         for (const auto& aPatch : aScan.mLPatchesP)
         {
-            Add1Patch(mWeight,
+            Add1Patch(aScanW,
                       aScan.mLidarRaster->Image2Ground(*aPatch.begin()),
                       aScan.mScanName);
         }
+    }
     if (mLastResidual.SW() != 0)
         StdOut() << "  * Lid/Lid Residual dist " << std::sqrt(mLastResidual.Average())
                  << " ("<<mVScans.size()<<" scans, "<<mNbUsedObs<<" obs, "<<mNbUsedPoints<<" points)\n";

@@ -54,6 +54,7 @@ private :
     tREAL8                   mMaskBufferSteps;
     int                      mNbPatches;
     std::string              mPoseXYZFilename;
+    tREAL8                   mSigma;              ///< in m
 
     // data
     tPoseR                   mForcedPose;
@@ -73,6 +74,7 @@ cAppli_ImportStaticScan::cAppli_ImportStaticScan(const std::vector<std::string> 
     mIncidenceMin   (0.05),
     mMaskBufferSteps(2.),
     mNbPatches      (1000),
+    mSigma          (0.001),
     mForcedPose     (tPoseR::Identity()),
     mPhiStepApprox  (NAN)
 {
@@ -99,6 +101,7 @@ cCollecSpecArg2007 & cAppli_ImportStaticScan::ArgOpt(cCollecSpecArg2007 & anArgO
            << AOpt2007(mIncidenceMin,"FilterIncidence","Filter on min incidence (rad)",{{eTA2007::HDV}})
            << AOpt2007(mMaskBufferSteps,"MaskBuffer","Final mask buffer in hz scan steps",{{eTA2007::HDV}})
            << AOpt2007(mNbPatches,"NbPatches","Approx nb patches to make",{{eTA2007::HDV}})
+           << AOpt2007(mSigma,"Sigma","Initial sigma of measurements (in m)",{{eTA2007::HDV}})
            << AOpt2007(mPoseXYZFilename,"PoseXYZ","Set initial pose from a Comp3D .xyz file",{{eTA2007::HDV, eTA2007::FileAny}})
         ;
 }
@@ -756,7 +759,7 @@ int cAppli_ImportStaticScan::Exe()
 
     cStaticLidar aSL_data(aScanName, mStationName, mScanName,
                           cIsometry3D<tREAL8>({}, cRotation3D<tREAL8>::Identity()),
-                          aCalib, mSL_importer.RotInput2Raster());
+                          aCalib, mSL_importer.RotInput2Raster(), mSigma);
 
     if (IsInit(&mPoseXYZFilename))
     {
