@@ -1,6 +1,7 @@
 #include "cMMVII_Appli.h"
 #include "MMVII_Sensor.h"
 
+#include <vector>
 
 /**
    \file EpipGeom.cpp
@@ -10,12 +11,144 @@
 
 namespace MMVII
 {
+// /////////////////////////////////// POLY
+template<typename T>
+class cPolyXY_N
+{
+public:
+    cPolyXY_N(int degree);
+    cPolyXY_N(std::initializer_list<T> aK);
+    cPolyXY_N(const std::vector<T>& aK);
+
+    T operator()(const T& x, const T& y);
+
+    const T& K(int i, int j) const;
+    T& K(int i, int j);
+    const std::vector<T>& VK() const;
+    void SetVK(const std::vector<T>& aVK);
+
+    int NbCoeffs() const;
+
+    cDenseVect<T> resolv(const T& x, const T& y);
+
+
+private:
+    int idx(int i, int j);
+    int mDegree;
+    std::vector<T> mK;
+};
+
+
+template<typename T>
+cPolyXY_N<T>::cPolyXY_N(int degree)
+: mDegree(degree)
+, mK((degree+1) * (degree+2) / 2)
+{
+}
+
+template<typename T>
+cPolyXY_N<T>::cPolyXY_N(std::initializer_list<T> aK)
+: mDegree(static_cast<int>(std::sqrt(aK.size()*2)) - 1)
+, mK(aK)
+{
+    MMVII_INTERNAL_ASSERT_medium((mDegree+1)*(mDegree+2)/2 == (int)aK.size(),"Incorrect vector for cPolyXY_N coefficients");
+}
+
+template<typename T>
+cPolyXY_N<T>::cPolyXY_N(const std::vector<T>& aK)
+: mDegree(static_cast<int>(std::sqrt(aK.size()*2)) - 1)
+, mK(aK)
+{
+    MMVII_INTERNAL_ASSERT_medium((mDegree+1)*(mDegree+2)/2 == (int)aK.size(),"Incorrect vector for cPolyXY_N coefficients");
+}
+
+template<typename T>
+T cPolyXY_N<T>::operator()(const T &x, const T &y)
+{
+    T X_n;
+    T Y_n;
+    T result;
+    int n;
+
+    X_n = 1;            // X^0
+    n = 0;
+    result = T{};
+    for (int i=0; i<=mDegree; i++) {
+        Y_n = 1;        // Y^0
+        for (int j=0; j<=mDegree-i; j++) {
+            result += mK[n] * X_n * Y_n;
+            Y_n *= y;   // Y^(j+1)
+            n++;
+        }
+        X_n *= x;       // X^(i+1)
+    }
+    return result;
+}
+
+template<typename T>
+const T &cPolyXY_N<T>::K(int i, int j) const
+{
+    return mK[idx(i,j)];
+}
+
+template<typename T>
+T& cPolyXY_N<T>::K(int i, int j)
+{
+    return mK[idx(i,j)];
+}
+
+template<typename T>
+const std::vector<T> &cPolyXY_N<T>::VK() const
+{
+    return mK;
+}
+
+template<typename T>
+void cPolyXY_N<T>::SetVK(const std::vector<T>& aVK)
+{
+    MMVII_INTERNAL_ASSERT_medium(aVK.size() == mK.size(),"Incorrect vector for cPolyXY_N coefficients");
+    mK = aVK;
+}
+
+template<typename T>
+int cPolyXY_N<T>::NbCoeffs() const
+{
+    return mK.size();
+}
+
+template<typename T>
+cDenseVect<T> cPolyXY_N<T>::resolv(const T &x, const T &y)
+{
+    cDenseVect<T> coeffs(NbCoeffs());
+    int n = 0;
+    T X_n = 1;
+    for (int i=0; i<=mDegree; i++) {
+        T Y_n = 1;
+        for (int j=0; j<=mDegree-i; j++) {
+            coeffs(n) = X_n * Y_n;
+            Y_n *= y;
+            n++;
+        }
+        X_n *= x;
+    }
+    return coeffs;
+}
+
+template<typename T>
+int cPolyXY_N<T>::idx(int i, int j)
+{
+    MMVII_INTERNAL_ASSERT_medium(i>=0 && j>=0 && i+j<=mDegree,"Bad usage of cPolyXY_N");
+    return j + ((mDegree + 1) * (mDegree + 2) - (mDegree - i + 1) * (mDegree - i + 2)) / 2;
+}
+
+// /////////////////////////////////// END POLY
+
 
 struct cHCompat
 {
     cPt2dr p1;
     cPt2dr p2;
-};
+};\
 
 typedef std::vector<cHCompat> cHCompatList;
 
@@ -65,6 +198,28 @@ cAppli_EpipGeom::cAppli_EpipGeom (
 int cAppli_EpipGeom::Exe()
 {
     mPhProj.FinishInit();
+
+    cPolyXY_N<double> PSin(mDegre);
+    cLeasSqtAA<tREAL8> leastSin(PSin.NbCoeffs());
+
+    for (double x = -3.0; x<=3.0; x+= 0.1) {
+        for (double y = -3.0; y<=3.0; y+= 0.1) {
+            auto coeffs = PSin.resolv(x, y);
+            leastSin.PublicAddObservation(1,coeffs, 10* (sin(x) + sin(y)));
+        }
+    }
+    auto vsin = leastSin.PublicSolve();
+    PSin.SetVK(vsin.ToStdVect());
+    printf("V2 var %lf\n",leastSin.VarCurSol());
+    for (int i=0; i< 20; i++) {
+        cPt2dr p(RandInInterval(-3,3),RandInInterval(-3,3));
+        auto f = 10 * (sin(p.x()) + sin(p.y()));
+        auto po = PSin(p.x(),p.y());
+        StdOut() << std::setw(11) << po << " " << f << " " << f - po  << "\n";
+    }
+
+    return 0;
+
     
     // mIm1 = cDataFileIm2D::Create(mIm1);
     auto mImRect1 = cRect2(cDataFileIm2D::Create(mImName1,eForceGray::No).Sz());
@@ -131,32 +286,22 @@ int cAppli_EpipGeom::Exe()
         leastSq1.PublicAddObservation(1,coeffs1,pair.p2.y() - pair.p1.y());
     }
     v1 = leastSq1.PublicSolve();
+
     printf("V1 var %lf\n",leastSq1.VarCurSol());
     
     /* V2 Calculus */
     /* v2(x,y) = S(i=0->d; S(j->d-i; C(i,j) * x^i * y^j ) )
      * x = p1.x(); y = p1.y(); v2(x,y) = p2.y()
      */
-    int nbVar2 = (mDegre+1) * (mDegre+2) / 2 ;
-    cDenseVect<tREAL8> v2(nbVar2);
-    cLeasSqtAA<tREAL8> leastSq2(nbVar2);
-    cDenseVect<tREAL8> coeffs2(nbVar2);
+    cPolyXY_N<double> P(mDegre);
+    cLeasSqtAA<tREAL8> leastSq2(P.NbCoeffs());
     
     for (auto& pair : List2) {
-        int n = 0;
-        tREAL8 x = 1;
-        for (int i=0; i<=mDegre; i++) {
-            tREAL8 y = 1;
-            for (int j=0; j<=mDegre-i; j++) {
-                coeffs2(n) = x*y;
-                y *= pair.p1.y();
-                n++;
-            }
-            x *= pair.p1.x();
-        }
-        leastSq2.PublicAddObservation(1,coeffs2,pair.p2.y());
+        auto coeffs = P.resolv(pair.p1.x(), pair.p1.y());
+        leastSq2.PublicAddObservation(1,coeffs,pair.p2.y());
     }
-    v2 = leastSq2.PublicSolve();
+    auto v2 = leastSq2.PublicSolve();
+    P.SetVK(v2.ToStdVect());
     printf("V2 var %lf\n",leastSq2.VarCurSol());
     
     
@@ -172,9 +317,9 @@ int cAppli_EpipGeom::Exe()
 cCollecSpecArg2007 & cAppli_EpipGeom::ArgObl(cCollecSpecArg2007 & anArgObl)
 {
     return anArgObl
-           << Arg2007(mImName1,"name first image",{eTA2007::FileImage})
-           << Arg2007(mImName2,"name second image",{eTA2007::FileImage})
-           << mPhProj.DPOrient().ArgDirInMand()
+//           << Arg2007(mImName1,"name first image",{eTA2007::FileImage})
+//           << Arg2007(mImName2,"name second image",{eTA2007::FileImage})
+//           << mPhProj.DPOrient().ArgDirInMand()
         ;
 }
 
@@ -258,6 +403,7 @@ cSpecMMVII_Appli  TheSpec_EpipGeom
       {eApDT::Orient},
       __FILE__
 );
+
 
 
 }; // MMVII
