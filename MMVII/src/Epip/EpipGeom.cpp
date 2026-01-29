@@ -17,8 +17,8 @@ class cPolyXY_N
 {
 public:
     cPolyXY_N(int degree);
-    cPolyXY_N(std::initializer_list<T> aK);
-    cPolyXY_N(const std::vector<T>& aK);
+    cPolyXY_N(std::initializer_list<T> aVK);
+    cPolyXY_N(const std::vector<T>& aVK);
 
     T operator()(const T& x, const T& y);
 
@@ -30,39 +30,43 @@ public:
     int NbCoeffs() const;
 
     void StartFit();
-    void AddObs(const T& x, const T& y, const T& v);
+    void EndFit();
+    void AddObs(const T& x, const T& y, const T& v, const T& aWeight=1);
     void Fit();
+    T VarCurSol() const;
+
 
 
 private:
     int idx(int i, int j);
     int mDegree;
-    std::vector<T> mK;
+    std::vector<T> mVK;
     std::unique_ptr<cLeasSqtAA<T>> mLeastSq;
+    std::map<std::pair<int,int>, T> mFixedK;
 };
 
 
 template<typename T>
 cPolyXY_N<T>::cPolyXY_N(int degree)
 : mDegree(degree)
-, mK((degree+1) * (degree+2) / 2)
+, mVK((degree+1) * (degree+2) / 2)
 {
 }
 
 template<typename T>
-cPolyXY_N<T>::cPolyXY_N(std::initializer_list<T> aK)
-: mDegree(static_cast<int>(std::sqrt(aK.size()*2)) - 1)
-, mK(aK)
+cPolyXY_N<T>::cPolyXY_N(std::initializer_list<T> aVK)
+    : mDegree(static_cast<int>(std::sqrt(aVK.size()*2)) - 1)
+    , mVK(aVK)
 {
-    MMVII_INTERNAL_ASSERT_medium((mDegree+1)*(mDegree+2)/2 == (int)aK.size(),"Incorrect vector for cPolyXY_N coefficients");
+    MMVII_INTERNAL_ASSERT_medium((mDegree+1)*(mDegree+2)/2 == (int)aVK.size(),"Incorrect vector for cPolyXY_N coefficients");
 }
 
 template<typename T>
-cPolyXY_N<T>::cPolyXY_N(const std::vector<T>& aK)
-: mDegree(static_cast<int>(std::sqrt(aK.size()*2)) - 1)
-, mK(aK)
+cPolyXY_N<T>::cPolyXY_N(const std::vector<T>& aVK)
+    : mDegree(static_cast<int>(std::sqrt(aVK.size()*2)) - 1)
+    , mVK(aVK)
 {
-    MMVII_INTERNAL_ASSERT_medium((mDegree+1)*(mDegree+2)/2 == (int)aK.size(),"Incorrect vector for cPolyXY_N coefficients");
+    MMVII_INTERNAL_ASSERT_medium((mDegree+1)*(mDegree+2)/2 == (int)aVK.size(),"Incorrect vector for cPolyXY_N coefficients");
 }
 
 template<typename T>
@@ -79,7 +83,7 @@ T cPolyXY_N<T>::operator()(const T &x, const T &y)
     for (int i=0; i<=mDegree; i++) {
         Y_n = 1;        // Y^0
         for (int j=0; j<=mDegree-i; j++) {
-            result += mK[n] * X_n * Y_n;
+            result += mVK[n] * X_n * Y_n;
             Y_n *= y;   // Y^(j+1)
             n++;
         }
@@ -91,64 +95,82 @@ T cPolyXY_N<T>::operator()(const T &x, const T &y)
 template<typename T>
 const T &cPolyXY_N<T>::K(int i, int j) const
 {
-    return mK[idx(i,j)];
+    return mVK[idx(i,j)];
 }
 
 template<typename T>
 T& cPolyXY_N<T>::K(int i, int j)
 {
-    return mK[idx(i,j)];
+    return mVK[idx(i,j)];
 }
 
 template<typename T>
 const std::vector<T> &cPolyXY_N<T>::VK() const
 {
-    return mK;
+    return mVK;
 }
 
 template<typename T>
 void cPolyXY_N<T>::SetVK(const std::vector<T>& aVK)
 {
-    MMVII_INTERNAL_ASSERT_medium(aVK.size() == mK.size(),"Incorrect vector for cPolyXY_N coefficients");
-    mK = aVK;
+    MMVII_INTERNAL_ASSERT_medium(aVK.size() == mVK.size(),"Incorrect vector for cPolyXY_N coefficients");
+    mVK = aVK;
 }
 
 template<typename T>
 int cPolyXY_N<T>::NbCoeffs() const
 {
-    return mK.size();
+    return mVK.size();
 }
 
 template<typename T>
 void cPolyXY_N<T>::StartFit()
 {
     mLeastSq = std::make_unique<cLeasSqtAA<T>>(NbCoeffs());
+    mFixedK.clear();
 }
 
 template<typename T>
-void cPolyXY_N<T>::AddObs(const T &x, const T &y, const T &v)
+void cPolyXY_N<T>::EndFit()
 {
-    cDenseVect<T> coeffs(NbCoeffs());
+    mLeastSq.reset();
+}
+
+template<typename T>
+void cPolyXY_N<T>::AddObs(const T &x, const T &y, const T &v, const T& aWeight)
+{
+    cDenseVect<T> coeffs(NbCoeffs() - mFixedK.size());
     int n = 0;
+    T aDiffObs = 0;
     T X_n = 1;
     for (int i=0; i<=mDegree; i++) {
         T Y_n = 1;
         for (int j=0; j<=mDegree-i; j++) {
-            coeffs(n) = X_n * Y_n;
+            auto itFixedK = mFixedK.find({i,j});
+            if ( itFixedK == mFixedK.end()) {
+                coeffs(n) = X_n * Y_n;
+                n++;
+            } else {
+                aDiffObs += itFixedK->second * X_n * Y_n;
+            }
             Y_n *= y;
-            n++;
         }
         X_n *= x;
     }
-    mLeastSq->PublicAddObservation(1,coeffs, v);
+    mLeastSq->PublicAddObservation(aWeight,coeffs, v - aDiffObs);
 }
 
 template<typename T>
 void cPolyXY_N<T>::Fit()
 {
-    auto vsin = mLeastSq->PublicSolve();
-    mK = vsin.ToStdVect();
-    mLeastSq.release();
+    auto aVK = mLeastSq->PublicSolve();
+    mVK = aVK.ToStdVect();
+}
+
+template<typename T>
+T cPolyXY_N<T>::VarCurSol() const
+{
+    return mLeastSq->VarCurSol();
 }
 
 template<typename T>
@@ -226,7 +248,7 @@ int cAppli_EpipGeom::Exe()
         }
     }
     PSin.Fit();
-    printf("V2 var %lf\n",leastSin.VarCurSol());
+    printf("V2 var %lf\n",PSin.VarCurSol());
     for (int i=0; i< 20; i++) {
         cPt2dr p(RandInInterval(-3,3),RandInInterval(-3,3));
         auto f = 10 * (sin(p.x()) + sin(p.y()));
