@@ -29,13 +29,16 @@ public:
 
     int NbCoeffs() const;
 
-    cDenseVect<T> resolv(const T& x, const T& y);
+    void StartFit();
+    void AddObs(const T& x, const T& y, const T& v);
+    void Fit();
 
 
 private:
     int idx(int i, int j);
     int mDegree;
     std::vector<T> mK;
+    std::unique_ptr<cLeasSqtAA<T>> mLeastSq;
 };
 
 
@@ -117,7 +120,13 @@ int cPolyXY_N<T>::NbCoeffs() const
 }
 
 template<typename T>
-cDenseVect<T> cPolyXY_N<T>::resolv(const T &x, const T &y)
+void cPolyXY_N<T>::StartFit()
+{
+    mLeastSq = std::make_unique<cLeasSqtAA<T>>(NbCoeffs());
+}
+
+template<typename T>
+void cPolyXY_N<T>::AddObs(const T &x, const T &y, const T &v)
 {
     cDenseVect<T> coeffs(NbCoeffs());
     int n = 0;
@@ -131,7 +140,15 @@ cDenseVect<T> cPolyXY_N<T>::resolv(const T &x, const T &y)
         }
         X_n *= x;
     }
-    return coeffs;
+    mLeastSq->PublicAddObservation(1,coeffs, v);
+}
+
+template<typename T>
+void cPolyXY_N<T>::Fit()
+{
+    auto vsin = mLeastSq->PublicSolve();
+    mK = vsin.ToStdVect();
+    mLeastSq.release();
 }
 
 template<typename T>
@@ -202,14 +219,13 @@ int cAppli_EpipGeom::Exe()
     cPolyXY_N<double> PSin(mDegre);
     cLeasSqtAA<tREAL8> leastSin(PSin.NbCoeffs());
 
+    PSin.StartFit();
     for (double x = -3.0; x<=3.0; x+= 0.1) {
         for (double y = -3.0; y<=3.0; y+= 0.1) {
-            auto coeffs = PSin.resolv(x, y);
-            leastSin.PublicAddObservation(1,coeffs, 10* (sin(x) + sin(y)));
+            PSin.AddObs(x,y, 10 * (sin(x) + sin(y)));
         }
     }
-    auto vsin = leastSin.PublicSolve();
-    PSin.SetVK(vsin.ToStdVect());
+    PSin.Fit();
     printf("V2 var %lf\n",leastSin.VarCurSol());
     for (int i=0; i< 20; i++) {
         cPt2dr p(RandInInterval(-3,3),RandInInterval(-3,3));
@@ -294,15 +310,13 @@ int cAppli_EpipGeom::Exe()
      * x = p1.x(); y = p1.y(); v2(x,y) = p2.y()
      */
     cPolyXY_N<double> P(mDegre);
-    cLeasSqtAA<tREAL8> leastSq2(P.NbCoeffs());
     
+    P.StartFit();
     for (auto& pair : List2) {
-        auto coeffs = P.resolv(pair.p1.x(), pair.p1.y());
-        leastSq2.PublicAddObservation(1,coeffs,pair.p2.y());
+        P.AddObs(pair.p1.x(), pair.p1.y(),pair.p2.y());
     }
-    auto v2 = leastSq2.PublicSolve();
-    P.SetVK(v2.ToStdVect());
-    printf("V2 var %lf\n",leastSq2.VarCurSol());
+    P.Fit();
+//    printf("V2 var %lf\n",leastSq2.VarCurSol());
     
     
     // TODOCM: Calcul fonctions inverses W1 W2
