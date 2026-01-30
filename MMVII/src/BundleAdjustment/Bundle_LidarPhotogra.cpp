@@ -578,7 +578,7 @@ void cBA_LidarLidarRaster::AddObs()
     }
     if (mLastResidual.SW() != 0)
         StdOut() << "  * Lid/Lid Residual dist " << std::sqrt(mLastResidual.Average())
-                 << " ("<<mVScans.size()<<" scans, "<<mNbUsedObs<<" obs, "<<mNbUsedPoints<<" points)\n";
+                 << "m ("<<mVScans.size()<<" scans, "<<mNbUsedObs<<" obs, "<<mNbUsedPoints<<" points)\n";
     else
         StdOut() << "  * Lid/Lid: no obs\n";
 }

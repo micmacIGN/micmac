@@ -52,6 +52,7 @@ public:
     bool checkLineCol(); // verify that mMaxCol/mMaxLine ar compatible with mVectPtsLine/mVectPtsCol
     const cRotation3D<tREAL8> & RotInput2TSL() const { return mRotInput2TSL; }
     const cRotation3D<tREAL8> & RotInput2Raster() const { return mRotInput2Raster; }
+    std::pair<tREAL8,tREAL8> AvgDistAndNbValid() const; //< return average dist for valid points, and number of valid points
 
     float ColToLocalThetaApprox(float aCol) const;
     float LineToLocalPhiApprox(float aLine) const;

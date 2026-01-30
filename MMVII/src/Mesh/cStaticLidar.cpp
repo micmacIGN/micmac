@@ -417,6 +417,21 @@ bool cStaticLidarImporter::checkLineCol()
     return isOk;
 }
 
+std::pair<tREAL8,tREAL8> cStaticLidarImporter::AvgDistAndNbValid() const
+{
+    tREAL8 aAvg = 0.;
+    int aNb = 0;
+    for (size_t i=0; i<mVectPtsTPD.size(); ++i)
+    {
+        if (mVectPtsTPD[i].z()>0)
+        {
+            aAvg+=mVectPtsTPD[i].z();
+            ++aNb;
+        }
+    }
+    return {aAvg/aNb, aNb};
+}
+
 
 float cStaticLidarImporter::ColToLocalThetaApprox(float aCol) const
 {
@@ -998,12 +1013,12 @@ void cStaticLidar::SelectPatchCenters2(const cStaticLidarImporter &aSL_importer,
     mPatchCenters = aRes.mPtsMax;*/
 
     // regular grid
-    float aAvgDist = 3.;
+    auto [aAvgDist, aNbValid] = aSL_importer.AvgDistAndNbValid();
     auto & aRasterDistData = mRasterDistance->DIm();
     float aXYratio=((float)aRasterMaskData.SzX())/aRasterMaskData.SzY();
     int aNbPatchesX = sqrt((double)aNbPatches)*sqrt(aXYratio)+1;
     int aNbPatchesY = sqrt((double)aNbPatches)/sqrt(aXYratio)+1;
-    float aNbPatchesFactor = 1.5; // a priori search for aNbPatches * aNbPatchesFactor
+    float aNbPatchesFactor = aSL_importer.mVectPtsXYZ.size()/aNbValid; // a priori search for aNbPatches * aNbPatchesFactor, not 1 to adjust for no return
     float aX;
     float aY = float(aRasterMaskData.SzY()) / aNbPatchesY / 2.;
     float aXStep;
