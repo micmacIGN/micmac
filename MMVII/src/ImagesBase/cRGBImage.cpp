@@ -326,7 +326,7 @@ void cRGBImage::ToJpgFileDeZoom(const std::string & aName,int aDeZoom, const tFi
     auto options = aOptions;
     if (options.empty())
     {
-        options.push_back("QUALITY=90");
+        options.push_back("QUALITY=90"); // WARNING! even QUALITY=100 will be insufficient for brutal variations, do to fixed jpeg chroma sampling-factor in GDAL?
     }
     ToFileDeZoom(aNameJPG,aDeZoom,options);
 }
