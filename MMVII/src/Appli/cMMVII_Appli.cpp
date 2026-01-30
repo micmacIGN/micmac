@@ -809,8 +809,8 @@ void cMMVII_Appli::InitParam(cGenArgsSpecContext *aArgsSpecs)
                const std::string & aNameInterval = mIntervFilterMS[aNum];
                if (IsInit(&aNameInterval))
                {
-		       // JOE
-		   cPatternTransfo aPat(mTransfoFFI[aNum]);
+                   // JOE
+                   cPatternTransfo aPat(mTransfoFFI[aNum]);
                    mVMainSets.at(aNum).Filter(Str2Interv<std::string>(aNameInterval),aPat);
                    // mVMainSets.at(aNum).Filter(Str2Interv<std::string>(aNameInterval));
                }
@@ -820,12 +820,12 @@ void cMMVII_Appli::InitParam(cGenArgsSpecContext *aArgsSpecs)
             {
                 // if we are in a recall mode, posibly pattern comes file xml, and file insid can be un-existent
                 if (mLevelCall>0)
-		{
-                   mVMainSets.at(aNum).Add(aVValues[aK]);
-		}
-		else
                 {
-                   MMVII_UserError(eTyUEr::eEmptyPattern,"Specified set of files was empty");
+                    mVMainSets.at(aNum).Add(aVValues[aK]);
+                }
+                else
+                {
+                    MMVII_UserError(eTyUEr::eEmptyPattern,"Specified set of files was empty");
                 }
             } else if (mVMainSets.at(aNum).size() == 1){
                 // If only 1 file matches the pattern, we replace the pattern in this arg by the matched file
