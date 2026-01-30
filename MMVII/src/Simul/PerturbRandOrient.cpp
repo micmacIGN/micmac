@@ -32,9 +32,10 @@ class cAppli_PerturbRandomOri : public cMMVII_Appli
 
         void TestPly();
      private :
+        bool AcceptEmptySet(int aK) const override {return true;}
 
-	cPhotogrammetricProject    mPhProj;
-	std::string                mSpecIm;
+        cPhotogrammetricProject    mPhProj;
+        std::string                mSpecIm;
         tREAL8                     mRandOri;
         tREAL8                     mRandC;
         cPt3dr                     mTransl;
