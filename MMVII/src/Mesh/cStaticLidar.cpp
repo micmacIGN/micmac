@@ -1060,9 +1060,8 @@ void cStaticLidar::MakeVisu(const cPhotogrammetricProject & aPhProj) const
         //aImDist8b.RawSetPoint(aCenter, cRGBImage::Red);
         aImDist8b.FillRectangle(cRGBImage::Red, aCenter-cPt2di(0,0), aCenter+cPt2di(1,1), {0.,0.,0.});
     }
-    std::string aPath = aPhProj.DirVisuAppli() + mStationName + "_" + mScanName + "_patches.jpg";
-    StdOut() << "write visu " << aPath << "\n";
-    aImDist8b.ToJpgFileDeZoom(aPath, 1, {"QUALITY=100"});
+    std::string aPath = aPhProj.DirVisuAppli() + mStationName + "_" + mScanName + "_patches.png";
+    aImDist8b.ToFile(aPath);
 
 }
 
