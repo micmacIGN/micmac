@@ -250,7 +250,8 @@ private :
     std::string  mImName2;
     cSensorImage *mSens1;
     cSensorImage *mSens2;
-    int mDegre;
+    int mDegree;
+    int mDegreeInv;
     int mNbXY;
     int mNbZ;
     int mMinZ;
@@ -263,7 +264,8 @@ cAppli_EpipGeom::cAppli_EpipGeom (
     )
     : cMMVII_Appli  (aVArgs,aSpec)
     , mPhProj       (*this)
-    , mDegre(5)
+    , mDegree(5)
+    , mDegreeInv(mDegree+4)
     , mNbXY(100)
     , mNbZ(3)
     , mMinZ(100)
@@ -279,7 +281,9 @@ double f(double x, double y)
 int cAppli_EpipGeom::Exe()
 {
     mPhProj.FinishInit();
-
+    if (! IsInit(&mDegreeInv))
+        mDegreeInv = mDegree + 4;
+#if 0
     cPolyXY_N<double> P(mDegre);
 
     cHCompatList l;
@@ -307,7 +311,7 @@ int cAppli_EpipGeom::Exe()
         StdOut() << std::setw(11) << po << " " << std::setw(11) << v << " " << std::setw(11) << v - po  << " " << p << "\n";
     }
 
-    cPolyXY_N<double> Q(mDegre+4);
+    cPolyXY_N<double> Q(mDegreInv);
     for (auto& pair : l) {
         Q.AddObs(pair.p1.x(),P(pair.p1),pair.p1.y());
     }
@@ -320,7 +324,7 @@ int cAppli_EpipGeom::Exe()
     }
 
     return 0;
-
+#endif
     
     // mIm1 = cDataFileIm2D::Create(mIm1);
     auto mImRect1 = cRect2(cDataFileIm2D::Create(mImName1,eForceGray::No).Sz());
@@ -336,7 +340,10 @@ int cAppli_EpipGeom::Exe()
     
     auto [centre1,dir2,List1] = GenerateData(mImRect1, mSens1, mImRect2, mSens2);
     auto [centre2,dir1,List2] = GenerateData(mImRect2, mSens2, mImRect1, mSens1);
-    
+
+    StdOut() << centre1 << "," << dir1 << std::endl;
+    StdOut() << centre2 << "," << dir2 << std::endl;
+
     // TODOCM: Check almost epip
     // if ((dir2.x+dir1.x) <0)
     // {
@@ -367,7 +374,7 @@ int cAppli_EpipGeom::Exe()
     /* v1(x,y) = y + S(i=1->d, S(j=0->d-i; C(i,j) * x^i * y^j ) )
      * x = p1.x(); y = p1.y(); v1(x,y) = p2.y()
      */
-    cPolyXY_N<double> V1(mDegre);
+    cPolyXY_N<double> V1(mDegree);
     for (int i=0; i<=V1.Degree(); i++) {
         V1.AddFixedK(0,i,0.0);
     }
@@ -382,7 +389,7 @@ int cAppli_EpipGeom::Exe()
     /* v2(x,y) = S(i=0->d; S(j->d-i; C(i,j) * x^i * y^j ) )
      * x = p1.x(); y = p1.y(); v2(x,y) = p2.y()
      */
-    cPolyXY_N<double> V2(mDegre);
+    cPolyXY_N<double> V2(mDegree);
     for (auto& pair : List2) {
         V2.AddObs(pair.p1,pair.p2.y());
     }
@@ -391,14 +398,14 @@ int cAppli_EpipGeom::Exe()
     
     
     // TODOCM: Calcul fonctions inverses W1 W2
-    cPolyXY_N<double> W1(mDegre+4);
+    cPolyXY_N<double> W1(mDegreeInv);
     for (auto& pair : List1) {
         W1.AddObs(pair.p1.x(),V1(pair.p1),pair.p1.y());
     }
     W1.Fit();
     printf("W1 var %lf\n",W1.VarCurSol());
 
-    cPolyXY_N<double> W2(mDegre+4);
+    cPolyXY_N<double> W2(mDegreeInv);
     for (auto& pair : List2) {
         W2.AddObs(pair.p1.x(),V2(pair.p1),pair.p1.y());
     }
@@ -415,9 +422,9 @@ int cAppli_EpipGeom::Exe()
 cCollecSpecArg2007 & cAppli_EpipGeom::ArgObl(cCollecSpecArg2007 & anArgObl)
 {
     return anArgObl
-//           << Arg2007(mImName1,"name first image",{eTA2007::FileImage})
-//           << Arg2007(mImName2,"name second image",{eTA2007::FileImage})
-//           << mPhProj.DPOrient().ArgDirInMand()
+           << Arg2007(mImName1,"name first image",{eTA2007::FileImage})
+           << Arg2007(mImName2,"name second image",{eTA2007::FileImage})
+           << mPhProj.DPOrient().ArgDirInMand()
         ;
 }
 
@@ -426,11 +433,12 @@ cCollecSpecArg2007 & cAppli_EpipGeom::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
     
     return anArgOpt
-           << AOpt2007(mDegre,"Degre","Poly degre",{eTA2007::HDV})
+           << AOpt2007(mDegree,"Degree","Poly degree",{eTA2007::HDV})
+           << AOpt2007(mDegreeInv,"DegreeInv","Inv Poly degree",{eTA2007::HDV})
            << AOpt2007(mNbXY,"XYSteps","Nb XY steps",{eTA2007::HDV})
            << AOpt2007(mNbZ,"ZSteps","Nb Z steps",{eTA2007::HDV})
            << AOpt2007(mMinZ,"minZ","Z start",{eTA2007::HDV})
-           << AOpt2007(mMaxZ,"maxZ","Z stopt",{eTA2007::HDV})
+           << AOpt2007(mMaxZ,"maxZ","Z stop",{eTA2007::HDV})
         ;
 }
 
@@ -497,6 +505,90 @@ cSpecMMVII_Appli  TheSpec_EpipGeom
       Alloc_EpipGeom,
       "Epipolar geometry of two images",
       {eApF::Ori},
+      {eApDT::Orient},
+      {eApDT::Orient},
+      __FILE__
+);
+}
+
+/* ======================================================================================================== */
+/* ======================================================================================================== */
+/* ======================================================================================================== */
+#include "MMVII_PCSens.h"
+
+namespace  MMVII {
+
+class cAppli_SimulEpip : public cMMVII_Appli
+{
+public :
+
+    cAppli_SimulEpip(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli &);
+    int Exe() override;
+    cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override;
+    cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override;
+
+private :
+    int CreateCam(const std::string& aNameImage);
+    std::string  mImName1;
+    std::string  mImName2;
+    cPt2di mSize = cPt2di(2000,2000);
+    tREAL8 mFocale = 2000;
+    cPerspCamIntrCalib *mCalibStenope;
+};
+
+cAppli_SimulEpip::cAppli_SimulEpip (
+    const std::vector<std::string> &  aVArgs,
+    const cSpecMMVII_Appli & aSpec
+    )
+    : cMMVII_Appli  (aVArgs,aSpec)
+{
+}
+
+int cAppli_SimulEpip::CreateCam(const std::string& aNameImage)
+{
+    cSensorCamPC::tPose aPose;
+    cSensorCamPC Cam(aNameImage,aPose,mCalibStenope);
+
+}
+
+int cAppli_SimulEpip::Exe()
+{
+    mCalibStenope = cPerspCamIntrCalib::SimpleCalib("Stenopee",mSize,mFocale);
+    return 0;
+}
+
+cCollecSpecArg2007 & cAppli_SimulEpip::ArgObl(cCollecSpecArg2007 & anArgObl)
+{
+    return anArgObl
+           << Arg2007(mImName1,"name first image",{eTA2007::FileImage})
+           << Arg2007(mImName2,"name second image",{eTA2007::FileImage})
+        ;
+}
+
+
+cCollecSpecArg2007 & cAppli_SimulEpip::ArgOpt(cCollecSpecArg2007 & anArgOpt)
+{
+
+    return anArgOpt
+//           << AOpt2007(mDegree,"Degree","Poly degree",{eTA2007::HDV})
+    ;
+}
+
+
+
+/* ==================================================== */
+
+tMMVII_UnikPApli Alloc_SimulEpip(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec)
+{
+   return tMMVII_UnikPApli(new cAppli_SimulEpip(aVArgs,aSpec));
+}
+
+cSpecMMVII_Appli  TheSpec_SimulEpip
+(
+     "EpipSimul",
+      Alloc_SimulEpip,
+      "Create simulated dataset for EpipGeom",
+      {eApF::Test},
       {eApDT::Orient},
       {eApDT::Orient},
       __FILE__
