@@ -28,6 +28,7 @@
       <RasterPhi>"St5_Sc1_Phi.tif"</RasterPhi>
       <RasterThetaErr>"St5_Sc1_ThetaErr.tif"</RasterThetaErr>
       <RasterPhiErr>"St5_Sc1_PhiErr.tif"</RasterPhiErr>
+      <Sigma>0.001</Sigma>
       <RotInput2Raster>
          <RotMatrix>
             <AxeI>0.000000005143532 0 1</AxeI>

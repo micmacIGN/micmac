@@ -1248,6 +1248,12 @@ void BenchTSL(cParamExeBench & aParam)
         aVectPtsTest2.push_back( pp + cPt2dr(pp.x()/10. * i * cos(2*M_PI*i/10),
                                             pp.y()/10. * i * sin(2*M_PI*i/10)));
     TestRaster2Gnd2Raster(aVectPtsTest2, aScan);
+
+    // set a bad F, to make Ground2ImagePrecise different from simple projection
+    aScan->InternalCalib()->MapPProj2Im().F()*=0.9;
+    // TestRaster2Gnd2Raster(aVectPtsTest1, aScan); // TODO: what to do with points out of raster?
+    TestRaster2Gnd2Raster(aVectPtsTest2, aScan);
+
     delete aScan;
 
     // tests with scan translation
