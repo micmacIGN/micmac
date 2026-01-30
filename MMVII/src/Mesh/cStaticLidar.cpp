@@ -417,6 +417,21 @@ bool cStaticLidarImporter::checkLineCol()
     return isOk;
 }
 
+std::pair<tREAL8,tREAL8> cStaticLidarImporter::AvgDistAndNbValid() const
+{
+    tREAL8 aAvg = 0.;
+    int aNb = 0;
+    for (size_t i=0; i<mVectPtsTPD.size(); ++i)
+    {
+        if (mVectPtsTPD[i].z()>0)
+        {
+            aAvg+=mVectPtsTPD[i].z();
+            ++aNb;
+        }
+    }
+    return {aAvg/aNb, aNb};
+}
+
 
 float cStaticLidarImporter::ColToLocalThetaApprox(float aCol) const
 {
@@ -998,12 +1013,12 @@ void cStaticLidar::SelectPatchCenters2(const cStaticLidarImporter &aSL_importer,
     mPatchCenters = aRes.mPtsMax;*/
 
     // regular grid
-    float aAvgDist = 3.;
+    auto [aAvgDist, aNbValid] = aSL_importer.AvgDistAndNbValid();
     auto & aRasterDistData = mRasterDistance->DIm();
     float aXYratio=((float)aRasterMaskData.SzX())/aRasterMaskData.SzY();
     int aNbPatchesX = sqrt((double)aNbPatches)*sqrt(aXYratio)+1;
     int aNbPatchesY = sqrt((double)aNbPatches)/sqrt(aXYratio)+1;
-    float aNbPatchesFactor = 1.5; // a priori search for aNbPatches * aNbPatchesFactor
+    float aNbPatchesFactor = aSL_importer.mVectPtsXYZ.size()/aNbValid; // a priori search for aNbPatches * aNbPatchesFactor, not 1 to adjust for no return
     float aX;
     float aY = float(aRasterMaskData.SzY()) / aNbPatchesY / 2.;
     float aXStep;
@@ -1116,14 +1131,15 @@ void cStaticLidar::MakePatches
         tREAL4 aMeanDepth = aRasterDistData.GetV(aCenter);
 
         cPt3dr aCenterThetaPhiDist = Image2ThetaPhiDist(aCenter);
+        //StdOut() << "CenterThetaPhiDist: " << aCenterThetaPhiDist << "\n";
         tREAL4 aThetaStep = NAN;
-        if (aCenter.x() < mRasterX->DIm().SzX()/2)
+        if (aCenter.x() < mRasterX->DIm().SzX()/2) // TODO: strange way to compute steps?
             aThetaStep = aCenterThetaPhiDist.x() - Image2ThetaPhiDist(aCenter+cPt2di(1, 0)).x();
         else
             aThetaStep = Image2ThetaPhiDist(aCenter-cPt2di(1, 0)).x() - aCenterThetaPhiDist.x();
 
         tREAL4 aProjColFactor = 1/cos(aCenterThetaPhiDist.y());
-        tREAL4 aNbStepRadius = sqrt(aNbPointByPatch/M_PI) + 1;
+        tREAL4 aNbStepRadius = sqrt(aNbPointByPatch+2) / 2.;
         tREAL4 aRasterPxGndW = fabs(aThetaStep) * aMeanDepth * aProjColFactor;
         tREAL4 aRasterPxGndH = fabs(aThetaStep) * aMeanDepth;
         tREAL4 aRasterStepPixelsY = aGndPixelSize / aRasterPxGndH;
@@ -1136,10 +1152,13 @@ void cStaticLidar::MakePatches
         if (aRasterStepPixelsY < 1.)
             aRasterStepPixelsY = 1.;
 
-        std::set<cPt2di> aPatch;
+        std::set<cPt2di> aPatch = {aCenter}; // convention: center is at first
+
         for (int aJ = -aNbStepRadius; aJ<=aNbStepRadius; ++aJ)
             for (int aI = -aNbStepRadius; aI<=aNbStepRadius; ++aI)
             {
+                if ((aI==0)&&(aJ==0))
+                    continue; // do not add center twice
                 cPt2di aPt = aCenter + cPt2di(aI*aRasterStepPixelsX,aJ*aRasterStepPixelsY);
                 if (aRasterMaskData.Inside(aPt) && aRasterMaskData.GetV(aPt))
                     aPatch.insert(aPt);

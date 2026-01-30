@@ -48,6 +48,7 @@ public:
     bool checkLineCol(); // verify that mMaxCol/mMaxLine ar compatible with mVectPtsLine/mVectPtsCol
     const cRotation3D<tREAL8> & RotInput2TSL() const { return mRotInput2TSL; }
     const cRotation3D<tREAL8> & RotInput2Raster() const { return mRotInput2Raster; }
+    std::pair<tREAL8,tREAL8> AvgDistAndNbValid() const; //< return average dist for valid points, and number of valid points
 
     float ColToLocalThetaApprox(float aCol) const;
     float LineToLocalPhiApprox(float aLine) const;
@@ -196,7 +197,8 @@ template <typename TYPE>
 {
     cPt3dr aPtCam3D = Image2Camera3D(aRasterPx);
     tREAL8 aDist = Norm2(aPtCam3D);
-    cPt2dr aDir = InternalCalib()->Value(aPtCam3D);
+    cPt2dr aPx = InternalCalib()->Value(aPtCam3D);
+    cPt2dr aDir = (aPx - InternalCalib()->PP()) / InternalCalib()->F();
     return {aDir.x(), aDir.y(), aDist};
 }
 void AddData(const  cAuxAr2007 & anAux,cStaticLidar & aSL);

@@ -617,6 +617,8 @@ class cMMVII_BundleAdj
 
           cPhotogrammetricProject  &PhProj();
 
+          int NbIter() const { return mNbIter;}
+
      private :
 
           //============== Methods =============================
