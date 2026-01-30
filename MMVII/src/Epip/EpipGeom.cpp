@@ -21,21 +21,22 @@ public:
     cPolyXY_N(const std::vector<T>& aVK);
 
     T operator()(const T& x, const T& y);
+    T operator()(const cPtxd<T,2> aPt);
 
     const T& K(int i, int j) const;
     T& K(int i, int j);
     const std::vector<T>& VK() const;
     void SetVK(const std::vector<T>& aVK);
 
+    int Degree() const;
     int NbCoeffs() const;
 
-    void StartFit();
-    void EndFit();
+    void ResetFit();
+    void AddFixedK(int i, int j, const T& k);
     void AddObs(const T& x, const T& y, const T& v, const T& aWeight=1);
+    void AddObs(const cPtxd<T,2> aPt, const T& v, const T& aWeight=1);
     void Fit();
     T VarCurSol() const;
-
-
 
 private:
     int idx(int i, int j);
@@ -93,6 +94,12 @@ T cPolyXY_N<T>::operator()(const T &x, const T &y)
 }
 
 template<typename T>
+T cPolyXY_N<T>::operator()(const cPtxd<T, 2> aPt)
+{
+    return this->operator()(aPt.x(),aPt.y());
+}
+
+template<typename T>
 const T &cPolyXY_N<T>::K(int i, int j) const
 {
     return mVK[idx(i,j)];
@@ -118,27 +125,38 @@ void cPolyXY_N<T>::SetVK(const std::vector<T>& aVK)
 }
 
 template<typename T>
+int cPolyXY_N<T>::Degree() const
+{
+    return mDegree;
+}
+
+template<typename T>
 int cPolyXY_N<T>::NbCoeffs() const
 {
     return mVK.size();
 }
 
+
 template<typename T>
-void cPolyXY_N<T>::StartFit()
+void cPolyXY_N<T>::ResetFit()
 {
-    mLeastSq = std::make_unique<cLeasSqtAA<T>>(NbCoeffs());
+    mLeastSq.reset();
     mFixedK.clear();
 }
 
 template<typename T>
-void cPolyXY_N<T>::EndFit()
+void cPolyXY_N<T>::AddFixedK(int i, int j, const T &k)
 {
-    mLeastSq.reset();
+    MMVII_INTERNAL_ASSERT_medium(i>=0 && j>=0 && i+j<=mDegree,"Bad usage of cPolyXY_N::AddFixedK()");
+    MMVII_INTERNAL_ASSERT_medium(! mLeastSq,"Can't add fixed K after obs in cPolyXY_N::AddFixedK()");
+    mFixedK.insert_or_assign(std::make_pair(i,j),k);
 }
 
 template<typename T>
 void cPolyXY_N<T>::AddObs(const T &x, const T &y, const T &v, const T& aWeight)
 {
+    if (! mLeastSq)
+        mLeastSq = std::make_unique<cLeasSqtAA<T>>(NbCoeffs() - mFixedK.size());
     cDenseVect<T> coeffs(NbCoeffs() - mFixedK.size());
     int n = 0;
     T aDiffObs = 0;
@@ -161,10 +179,29 @@ void cPolyXY_N<T>::AddObs(const T &x, const T &y, const T &v, const T& aWeight)
 }
 
 template<typename T>
+void cPolyXY_N<T>::AddObs(const cPtxd<T, 2> aPt, const T &v, const T &aWeight)
+{
+    AddObs(aPt.x(),aPt.y(),v,aWeight);
+}
+
+template<typename T>
 void cPolyXY_N<T>::Fit()
 {
     auto aVK = mLeastSq->PublicSolve();
-    mVK = aVK.ToStdVect();
+    int n=0;
+    int m=0;
+    for (int i=0; i<= mDegree; i++) {
+        for (int j=0; j<=mDegree-i; j++) {
+            auto itFixedK = mFixedK.find({i,j});
+            if ( itFixedK == mFixedK.end()) {
+                mVK[n] = aVK(m);
+                m++;
+            } else {
+                mVK[n] = itFixedK->second;
+            }
+            n++;
+        }
+    }
 }
 
 template<typename T>
@@ -234,26 +271,52 @@ cAppli_EpipGeom::cAppli_EpipGeom (
 {
 }
 
+double f(double x, double y)
+{
+    return 10 * sin(x) + sin(y);
+}
+
 int cAppli_EpipGeom::Exe()
 {
     mPhProj.FinishInit();
 
-    cPolyXY_N<double> PSin(mDegre);
-    cLeasSqtAA<tREAL8> leastSin(PSin.NbCoeffs());
+    cPolyXY_N<double> P(mDegre);
 
-    PSin.StartFit();
+    cHCompatList l;
     for (double x = -3.0; x<=3.0; x+= 0.1) {
         for (double y = -3.0; y<=3.0; y+= 0.1) {
-            PSin.AddObs(x,y, 10 * (sin(x) + sin(y)));
+            l.push_back({cPt2dr(x,y),cPt2dr(x,f(x,y))});
         }
     }
-    PSin.Fit();
-    printf("V2 var %lf\n",PSin.VarCurSol());
-    for (int i=0; i< 20; i++) {
+/*
+    for (int i=0; i<=PSin.Degree(); i++) {
+        PSin.AddFixedK(0,i,0.0);
+    }
+    PSin.AddFixedK(0,1,1.0);
+*/
+
+    for (const auto& pair : l) {
+        P.AddObs(pair.p1, pair.p2.y());
+    }
+    P.Fit();
+    printf("P var %lf\n",P.VarCurSol());
+    for (int i=0; i< 10; i++) {
         cPt2dr p(RandInInterval(-3,3),RandInInterval(-3,3));
-        auto f = 10 * (sin(p.x()) + sin(p.y()));
-        auto po = PSin(p.x(),p.y());
-        StdOut() << std::setw(11) << po << " " << f << " " << f - po  << "\n";
+        auto v = f(p.x(),p.y());
+        auto po = P(p);
+        StdOut() << std::setw(11) << po << " " << std::setw(11) << v << " " << std::setw(11) << v - po  << " " << p << "\n";
+    }
+
+    cPolyXY_N<double> Q(mDegre+4);
+    for (auto& pair : l) {
+        Q.AddObs(pair.p1.x(),P(pair.p1),pair.p1.y());
+    }
+    Q.Fit();
+    printf("Q var %lf\n",Q.VarCurSol());
+    for (int i=0; i< 10; i++) {
+        cPt2dr p(RandInInterval(-3,3),RandInInterval(-3,3));
+        cPt2dr p2(p.x(),Q(p.x(),P(p)));
+        StdOut() << std::setw(11) << p << " " << std::setw(11) << p2 << " " << std::setw(11) << p - p2 << "\n";
     }
 
     return 0;
@@ -304,45 +367,44 @@ int cAppli_EpipGeom::Exe()
     /* v1(x,y) = y + S(i=1->d, S(j=0->d-i; C(i,j) * x^i * y^j ) )
      * x = p1.x(); y = p1.y(); v1(x,y) = p2.y()
      */
-    int nbVar1 = (mDegre+1) * (mDegre+2) / 2  - (mDegre + 1);
-    cDenseVect<tREAL8> v1(nbVar1);
-    cLeasSqtAA<tREAL8> leastSq1(nbVar1);
-    cDenseVect<tREAL8> coeffs1(nbVar1);
-    
-    for (auto& pair : List1) {
-        int n = 0;
-        tREAL8 x = pair.p1.x();
-        for (int i=1; i<=mDegre; i++) {
-            tREAL8 y = 1;
-            for (int j=0; j<=mDegre-i; j++) {
-                coeffs1(n) = x*y;
-                y *= pair.p1.y();
-                n++;
-            }
-            x *= pair.p1.x();
-        }
-        leastSq1.PublicAddObservation(1,coeffs1,pair.p2.y() - pair.p1.y());
+    cPolyXY_N<double> V1(mDegre);
+    for (int i=0; i<=V1.Degree(); i++) {
+        V1.AddFixedK(0,i,0.0);
     }
-    v1 = leastSq1.PublicSolve();
-
-    printf("V1 var %lf\n",leastSq1.VarCurSol());
+    V1.AddFixedK(0,1,1.0);
+    for (auto& pair : List1) {
+        V1.AddObs(pair.p1, pair.p2.y());
+    }
+    V1.Fit();
+    printf("V1 var %lf\n",V1.VarCurSol());
     
     /* V2 Calculus */
     /* v2(x,y) = S(i=0->d; S(j->d-i; C(i,j) * x^i * y^j ) )
      * x = p1.x(); y = p1.y(); v2(x,y) = p2.y()
      */
-    cPolyXY_N<double> P(mDegre);
-    
-    P.StartFit();
+    cPolyXY_N<double> V2(mDegre);
     for (auto& pair : List2) {
-        P.AddObs(pair.p1.x(), pair.p1.y(),pair.p2.y());
+        V2.AddObs(pair.p1,pair.p2.y());
     }
-    P.Fit();
-//    printf("V2 var %lf\n",leastSq2.VarCurSol());
+    V2.Fit();
+    printf("V2 var %lf\n",V2.VarCurSol());
     
     
     // TODOCM: Calcul fonctions inverses W1 W2
-    
+    cPolyXY_N<double> W1(mDegre+4);
+    for (auto& pair : List1) {
+        W1.AddObs(pair.p1.x(),V1(pair.p1),pair.p1.y());
+    }
+    W1.Fit();
+    printf("W1 var %lf\n",W1.VarCurSol());
+
+    cPolyXY_N<double> W2(mDegre+4);
+    for (auto& pair : List2) {
+        W2.AddObs(pair.p1.x(),V2(pair.p1),pair.p1.y());
+    }
+    W2.Fit();
+    printf("W2 var %lf\n",W2.VarCurSol());
+
     // TODOCM: Utilisation de  v1 O R et de R-1 O W1
     
     // TODOCM: jeu test !!
