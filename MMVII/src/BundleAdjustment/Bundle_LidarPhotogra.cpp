@@ -509,19 +509,33 @@ void  cBA_LidarPhotogra::Add1Patch(tREAL8 aWeight,const std::vector<cPt3dr> & aV
 #define NUMPATCHDEBUG 0
 #ifdef NUMPATCHDEBUG
      // debug patch
-     int aPixSz = 14;
-     int aSpaceSz = 2;
+     int aPixSz = 15;
+     int aSpaceSz = 1;
      if (mNbUsedPoints==NUMPATCHDEBUG)
      {
          for (const auto & aData : aVData)
          {
             tREAL4 aW = sqrt(aData.mVGr.size());
-            cRGBImage  aImDist8b(cPt2di(aW, aW)*(aPixSz+aSpaceSz), cRGBImage::White);
+            cRGBImage  aImDist8b(cPt2di(aW, aW)*(aPixSz+aSpaceSz)+cPt2di(aSpaceSz,aSpaceSz), cRGBImage::Gray128);
             int aI = 0;
             int aJ = 0;
-            for (const auto & [aV, aGr] : aData.mVGr)
+            // make a vect of gray in correct order
+            std::vector<tREAL4> aVGrOrdered(aData.mVGr.size());
+            for (size_t i=0; i<aData.mVGr.size() ; ++i)
             {
-                aImDist8b.FillRectangle(cPt3di(aV,aV,aV),cPt2di(aI, aJ)*(aPixSz+aSpaceSz), cPt2di(aI, aJ)*(aPixSz+aSpaceSz)+cPt2di(aPixSz, aPixSz),cPt3dr(0.,0.,0.));
+                if (i==0)
+                    aVGrOrdered[aData.mVGr.size()/2] = aData.mVGr[0].first; //center
+                else if (i<=aData.mVGr.size()/2)
+                    aVGrOrdered[i-1] = aData.mVGr[i].first;
+                else
+                    aVGrOrdered[i] = aData.mVGr[i].first;
+            }
+            for (const auto & aV : aVGrOrdered)
+            {
+                aImDist8b.FillRectangle(cPt3di(aV,aV,aV),
+                                        cPt2di(aI, aJ)*(aPixSz+aSpaceSz)+cPt2di(aSpaceSz,aSpaceSz),
+                                        cPt2di(aI+1, aJ+1)*(aPixSz+aSpaceSz),
+                                        cPt3dr(0.,0.,0.));
                 //aImDist8b.RawSetPoint(cPt2di(aI, aJ)*(aPixSz+aSpaceSz), aV, aV, aV);
                 aI++;
                 if (aI==aW)
