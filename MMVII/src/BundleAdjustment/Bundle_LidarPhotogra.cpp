@@ -506,38 +506,38 @@ void  cBA_LidarPhotogra::Add1Patch(tREAL8 aWeight,const std::vector<cPt3dr> & aV
      // if less than 2 images : nothing valuable to do
      if (aVData.size()<2) return;
 
-     mNbUsedPoints++;
-     mNbUsedObs+=aVData.size();
-
-//#define NUMPATCHDEBUG 10
+#define NUMPATCHDEBUG 0
 #ifdef NUMPATCHDEBUG
      // debug patch
-     int aPixSz = 5;
-     int aSpaceSz = 3;
+     int aPixSz = 14;
+     int aSpaceSz = 2;
      if (mNbUsedPoints==NUMPATCHDEBUG)
      {
          for (const auto & aData : aVData)
          {
-            tREAL4 aNbStepRadius = sqrt(aData.mVGr.size()/M_PI) + 1;
-            cRGBImage  aImDist8b(cPt2di(aNbStepRadius*2+1, aNbStepRadius*2+1)*(aPixSz+aSpaceSz), cRGBImage::White);
+            tREAL4 aW = sqrt(aData.mVGr.size());
+            cRGBImage  aImDist8b(cPt2di(aW, aW)*(aPixSz+aSpaceSz), cRGBImage::White);
             int aI = 0;
             int aJ = 0;
             for (const auto & [aV, aGr] : aData.mVGr)
-             {
+            {
+                aImDist8b.FillRectangle(cPt3di(aV,aV,aV),cPt2di(aI, aJ)*(aPixSz+aSpaceSz), cPt2di(aI, aJ)*(aPixSz+aSpaceSz)+cPt2di(aPixSz, aPixSz),cPt3dr(0.,0.,0.));
+                //aImDist8b.RawSetPoint(cPt2di(aI, aJ)*(aPixSz+aSpaceSz), aV, aV, aV);
                 aI++;
-                if (aI==aNbStepRadius*2+1)
+                if (aI==aW)
                 {
                     aJ++;
                     aI = 0;
                 }
-                aImDist8b.FillRectangle(cPt3di(aV,aV,aV),cPt2di(aI, aJ)*(aPixSz+aSpaceSz), cPt2di(aI, aJ)*(aPixSz+aSpaceSz)+cPt2di(aPixSz, aPixSz),cPt3dr(0.,0.,0.));
-                //aImDist8b.RawSetPoint(cPt2di(aI, aJ)*(aPixSz+aSpaceSz), aV, aV, aV);
-             }
+            }
             std::string aPath = mPhProj->DirVisuAppli() + "iter" + ToStr(mBA.NbIter(),1) + "_" + mBA.VSCPC()[aData.mKIm]->NameImage() + "_patch.png";
-             aImDist8b.ToFile(aPath);
+            aImDist8b.ToFile(aPath);
          }
      }
 #endif
+
+     mNbUsedPoints++;
+     mNbUsedObs+=aVData.size();
 
      // accumlulate for computing average of deviation
      // mLastResidual.Add(1.0,  (aStdDev.StdDev(1e-5) *aVData.size()) / (aVData.size()-1.0));
