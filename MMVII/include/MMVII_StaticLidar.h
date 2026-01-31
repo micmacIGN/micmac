@@ -201,7 +201,8 @@ template <typename TYPE>
 {
     cPt3dr aPtCam3D = Image2Camera3D(aRasterPx);
     tREAL8 aDist = Norm2(aPtCam3D);
-    cPt2dr aDir = InternalCalib()->Value(aPtCam3D);
+    cPt2dr aPx = InternalCalib()->Value(aPtCam3D);
+    cPt2dr aDir = (aPx - InternalCalib()->PP()) / InternalCalib()->F();
     return {aDir.x(), aDir.y(), aDist};
 }
 void AddData(const  cAuxAr2007 & anAux,cStaticLidar & aSL);

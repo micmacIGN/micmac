@@ -51,7 +51,7 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cPhotogrammetricProject * aPhProj,
     cBA_LidarBase(aPhProj, aBA, aParam),
     mModeSim    (Str2E<eImatchCrit>(aParam.at(0))),    // mode of matching
     mPertRad    (false),
-    mNbPointByPatch (32)
+    mNbPointByPatch (25)
 {
     init(aParam, 2, 3);
 
@@ -462,6 +462,7 @@ void cBA_LidarPhotogra::AddPatchCorrel
      aSys->R_AddObsWithTmpUK(aStrSubst);
 }
 
+
 void  cBA_LidarPhotogra::Add1Patch(tREAL8 aWeight,const std::vector<cPt3dr> & aVPatchGr, const std::string & aScanName)
 {
      std::vector<cData1ImLidPhgr> aVData; // for each image where patch is visible will store the data
@@ -504,6 +505,50 @@ void  cBA_LidarPhotogra::Add1Patch(tREAL8 aWeight,const std::vector<cPt3dr> & aV
 
      // if less than 2 images : nothing valuable to do
      if (aVData.size()<2) return;
+
+//#define NUMPATCHDEBUG 0
+#ifdef NUMPATCHDEBUG
+     // debug patch
+     int aPixSz = 15;
+     int aSpaceSz = 1;
+     if (mNbUsedPoints==NUMPATCHDEBUG)
+     {
+         for (const auto & aData : aVData)
+         {
+            tREAL4 aW = sqrt(aData.mVGr.size());
+            cRGBImage  aImDist8b(cPt2di(aW, aW)*(aPixSz+aSpaceSz)+cPt2di(aSpaceSz,aSpaceSz), cRGBImage::Gray128);
+            int aI = 0;
+            int aJ = 0;
+            // make a vect of gray in correct order
+            std::vector<tREAL4> aVGrOrdered(aData.mVGr.size());
+            for (size_t i=0; i<aData.mVGr.size() ; ++i)
+            {
+                if (i==0)
+                    aVGrOrdered[aData.mVGr.size()/2] = aData.mVGr[0].first; //center
+                else if (i<=aData.mVGr.size()/2)
+                    aVGrOrdered[i-1] = aData.mVGr[i].first;
+                else
+                    aVGrOrdered[i] = aData.mVGr[i].first;
+            }
+            for (const auto & aV : aVGrOrdered)
+            {
+                aImDist8b.FillRectangle(cPt3di(aV,aV,aV),
+                                        cPt2di(aI, aJ)*(aPixSz+aSpaceSz)+cPt2di(aSpaceSz,aSpaceSz),
+                                        cPt2di(aI+1, aJ+1)*(aPixSz+aSpaceSz),
+                                        cPt3dr(0.,0.,0.));
+                //aImDist8b.RawSetPoint(cPt2di(aI, aJ)*(aPixSz+aSpaceSz), aV, aV, aV);
+                aI++;
+                if (aI==aW)
+                {
+                    aJ++;
+                    aI = 0;
+                }
+            }
+            std::string aPath = mPhProj->DirVisuAppli() + "iter" + ToStr(mBA.NbIter(),1) + "_" + mBA.VSCPC()[aData.mKIm]->NameImage() + "_patch.png";
+            aImDist8b.ToFile(aPath);
+         }
+     }
+#endif
 
      mNbUsedPoints++;
      mNbUsedObs+=aVData.size();
@@ -619,7 +664,6 @@ void cBA_LidarLidarRaster::SetVUkVObs
     aVObs.push_back(aRad0);
     aGradIm.PushInStdVector(aVObs);
 }
-
 
 void  cBA_LidarLidarRaster::Add1Patch(tREAL8 aWeight,const cPt3dr & aPGround, const std::string & aScanName)
 {
