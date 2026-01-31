@@ -462,6 +462,7 @@ void cBA_LidarPhotogra::AddPatchCorrel
      aSys->R_AddObsWithTmpUK(aStrSubst);
 }
 
+
 void  cBA_LidarPhotogra::Add1Patch(tREAL8 aWeight,const std::vector<cPt3dr> & aVPatchGr, const std::string & aScanName)
 {
      std::vector<cData1ImLidPhgr> aVData; // for each image where patch is visible will store the data
@@ -507,6 +508,36 @@ void  cBA_LidarPhotogra::Add1Patch(tREAL8 aWeight,const std::vector<cPt3dr> & aV
 
      mNbUsedPoints++;
      mNbUsedObs+=aVData.size();
+
+//#define NUMPATCHDEBUG 10
+#ifdef NUMPATCHDEBUG
+     // debug patch
+     int aPixSz = 5;
+     int aSpaceSz = 3;
+     if (mNbUsedPoints==NUMPATCHDEBUG)
+     {
+         for (const auto & aData : aVData)
+         {
+            tREAL4 aNbStepRadius = sqrt(aData.mVGr.size()/M_PI) + 1;
+            cRGBImage  aImDist8b(cPt2di(aNbStepRadius*2+1, aNbStepRadius*2+1)*(aPixSz+aSpaceSz), cRGBImage::White);
+            int aI = 0;
+            int aJ = 0;
+            for (const auto & [aV, aGr] : aData.mVGr)
+             {
+                aI++;
+                if (aI==aNbStepRadius*2+1)
+                {
+                    aJ++;
+                    aI = 0;
+                }
+                aImDist8b.FillRectangle(cPt3di(aV,aV,aV),cPt2di(aI, aJ)*(aPixSz+aSpaceSz), cPt2di(aI, aJ)*(aPixSz+aSpaceSz)+cPt2di(aPixSz, aPixSz),cPt3dr(0.,0.,0.));
+                //aImDist8b.RawSetPoint(cPt2di(aI, aJ)*(aPixSz+aSpaceSz), aV, aV, aV);
+             }
+            std::string aPath = mPhProj->DirVisuAppli() + "iter" + ToStr(mBA.NbIter(),1) + "_" + mBA.VSCPC()[aData.mKIm]->NameImage() + "_patch.png";
+             aImDist8b.ToFile(aPath);
+         }
+     }
+#endif
 
      // accumlulate for computing average of deviation
      // mLastResidual.Add(1.0,  (aStdDev.StdDev(1e-5) *aVData.size()) / (aVData.size()-1.0));
@@ -619,7 +650,6 @@ void cBA_LidarLidarRaster::SetVUkVObs
     aVObs.push_back(aRad0);
     aGradIm.PushInStdVector(aVObs);
 }
-
 
 void  cBA_LidarLidarRaster::Add1Patch(tREAL8 aWeight,const cPt3dr & aPGround, const std::string & aScanName)
 {
