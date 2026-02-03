@@ -761,7 +761,7 @@ double cElemMepRelCoplan::DistanceEuclid() const
 
 
 
-// Diff Ensembliste
+// Diff Ensembliste;  are  {V1,V2 } != {U1,U2}
 static REAL SetDiff(REAL V1,REAL V2,REAL U1,REAL U2)
 {
 	return ElAbs(ElMax(V1,V2)-(ElMax(U1,U2)))
