@@ -143,7 +143,13 @@ template<class Type> void cImGradWithN<Type>::SetQuickSobel(cDataIm2D<Type> & aD
  *      that's why we consider only the point which are orientd in the same direction (test "Scal > 0"),
  *      note this work for a dark or light line on a average back-ground
  */
-template<class Type> bool  cImGradWithN<Type>::IsMaxLocDirGrad(const cPt2di& aPix,const std::vector<cPt2di> & aVP,tREAL8 aRatioXY) const
+template<class Type>
+  bool  cImGradWithN<Type>::IsMaxLocDirGrad
+        (
+              const cPt2di& aPix,
+              const std::vector<cPt2di> & aVP,
+               tREAL8 aRatioXY
+         ) const
 {
     //  [1] Compute unitary vector
     tREAL8 aN = mDataNG.GetV(aPix);
@@ -165,18 +171,19 @@ template<class Type> bool  cImGradWithN<Type>::IsMaxLocDirGrad(const cPt2di& aPi
 
     // [3]
 
+    // As Dir Grad is normalised, its inverse is the conjugate
     cPt2dr aConjDG =  conj(aDirGrad);
     for (const auto & aDeltaNeigh : aVP)
     {
         // cPt2dr aDirLoc = ToR(aDeltaNeigh) / aDirGrad;
         cPt2dr aDirLoc = ToR(aDeltaNeigh) * aConjDG;
         if (std::abs(aDirLoc.x()) >= std::abs(aDirLoc.y()*aRatioXY))
-	{
+        {
             cPt2di aNeigh = aPix + aDeltaNeigh;
 
             if ( (mDataNG.DefGetV(aNeigh,-1)>aN) && (Scal(aDirGrad,ToR(this->Grad(aNeigh))) >0))
                return false;
-	}
+        }
         /*cPt2dr aNeigh = ToR(aPix) + ToR(aDeltaNeigh) * aDirGrad;  
         if ( (mDataNG.DefGetVBL(aNeigh,-1)>aN) && (Scal(aDirGrad,ToR(this->GradBL(aNeigh))) >0))
            return false;
@@ -194,7 +201,13 @@ bool PtIsSup00(const cPt2di & aP)
 }
 
 
-template<class Type> bool  cImGradWithN<Type>::TabIsMaxLocDirGrad(const cPt2di& aPix,const cTabulateGrad & aTabul,bool isWhite) const
+template<class Type>
+    bool  cImGradWithN<Type>::TabIsMaxLocDirGrad
+          (
+             const cPt2di& aPix,
+             const cTabulateGrad & aTabul,
+             bool isWhite
+           ) const
 {
     int aSignGlob = isWhite ? -1 : 1;
     Type  aNormG = mDataNG.GetV(aPix);
@@ -208,7 +221,7 @@ template<class Type> bool  cImGradWithN<Type>::TabIsMaxLocDirGrad(const cPt2di& 
     for (int anInd=0 ; anInd<aIndR0 ; anInd++)
     {
         for (auto aSign : {-1,1})
-	{
+        {
              cPt2di aNeigh = aPtrVecNeigh->at(anInd) * aSign ;
              Type aNormNeigh =  mDataNG.GetV(aPix+aNeigh);
 
@@ -216,7 +229,7 @@ template<class Type> bool  cImGradWithN<Type>::TabIsMaxLocDirGrad(const cPt2di& 
                 return false;
              if ((aNormG==aNormNeigh) && PtIsSup00(aNeigh))
                 return false;
-	}
+        }
     }
 
     // first check in "big" half neighboorhood (opposed to posible matching seg of the wire) if it's max lox
@@ -237,7 +250,7 @@ template<class Type> bool  cImGradWithN<Type>::TabIsMaxLocDirGrad(const cPt2di& 
     {
         cPt2di aNeigh = aPtrVecNeigh->at(anInd) * (-aSignGlob);
         cPt2di aGradNeigh(this->mDGx->GetV(aPix+aNeigh),this->mDGy->GetV(aPix+aNeigh));
-	if (Scal(aGrad,aGradNeigh) > 0)
+        if (Scal(aGrad,aGradNeigh) > 0)
         {
             Type aNormNeigh =  mDataNG.GetV(aPix+aNeigh);
 
@@ -245,7 +258,7 @@ template<class Type> bool  cImGradWithN<Type>::TabIsMaxLocDirGrad(const cPt2di& 
                return false;
             if ((aNormG==aNormNeigh) && PtIsSup00(aNeigh))
                return false;
-	}
+        }
     }
 
     return true;

@@ -560,6 +560,10 @@ class cPhotogrammetricProject
 	  ///  compute the standard name of calibration before reading it
 	  cPerspCamIntrCalib *  InternalCalibFromStdName (const std::string aNameIm,bool isRemanent=true) const;
 
+      /// compute the calibration from the name of the file
+      cPerspCamIntrCalib *  InternalCalibFromStdNameCalib (const std::string aNameIm,bool isRemanent=true) const;
+
+
     //===================================================================
     //==================   ORIENTATION OF TRIPLETS    ==================
     //===================================================================

@@ -241,7 +241,7 @@ template <class Type> class  cExtractCurves
 
 	  /// initialize the gradient
           void SetSobelAndMasq(eIsWhite,tREAL8 aRayMaxLoc,int aBorder,bool Show=false);
-          void SetDericheAndMasq(eIsWhite,tREAL8 aAlphaDerich,tREAL8 aRayMaxLoc,int aBorder,bool Show=false);
+          void SetDericheAndMasq(tREAL8 aAlphaDerich,tREAL8 aRayMaxLoc,int aBorder,bool Show=false);
 
 
 	  ///  Initialize the hough transform

@@ -65,6 +65,8 @@ struct cSet2D3D : public cMemCheck
          void AddPair(const cPt2dr&,const cPt3dr&,double aWeight=1.0);
 
          const tCont2D3D &  Pairs() const;
+          tCont2D3D &  Pairs() ;
+
 	 const tPair &  KthPair(int aK) const;
 	 size_t NbPair() const;
          void  Clear() ;

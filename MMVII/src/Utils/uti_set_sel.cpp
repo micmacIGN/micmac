@@ -1047,7 +1047,7 @@ tNameSet SetNameFromFile(const std::string& aNameFile,int aNumV)
 
 }
 
-tNameSet SetNameFromString(const std::string & aName,bool AllowPat)
+tNameSet SetNameFromString(const std::string & aName,bool AllowPat,bool WithDir)
 {
    if (IsFileGivenTag(true,aName,TagSetOfName)) // MMVII
    {
@@ -1059,7 +1059,7 @@ tNameSet SetNameFromString(const std::string & aName,bool AllowPat)
    }
    else if (AllowPat)
    {
-      return SetNameFromPat(aName);
+      return SetNameFromPat(aName,WithDir);
    }
    // If we are here, we accept  file as empty set, but not file of bad format
    if (ExistFile(aName))
@@ -1069,7 +1069,12 @@ tNameSet SetNameFromString(const std::string & aName,bool AllowPat)
    return  tNameSet(); // emty set mode US
 }
 
-tNameSet SetNameFromPat(const std::string& aFullPat)
+tNameSet SetNameFromString(const std::string & aName,bool AllowPat)
+{
+    return SetNameFromString(aName,AllowPat,false);
+}
+
+tNameSet SetNameFromPat(const std::string& aFullPat,bool WithDir)
 {
      std::string aDir,aPat;
      SplitDirAndFile(aDir,aPat,aFullPat,false);
@@ -1078,8 +1083,17 @@ tNameSet SetNameFromPat(const std::string& aFullPat)
 
      GetFilesFromDir(aV,aDir,AllocRegex(aPat));
      for (const auto & el : aV)
-        aRes.Add(el);
+     {
+         if (WithDir)
+             aRes.Add(aDir+el);
+         else
+             aRes.Add(el);
+     }
      return aRes;
+}
+tNameSet SetNameFromPat(const std::string& aFullPat)
+{
+   return    SetNameFromPat(aFullPat,false);
 }
 
 std::vector<std::string>  ToVect(const tNameSet & aSet)

@@ -223,7 +223,9 @@ class cAppli_Rename : public cMMVII_Appli
 
         void TestSet(const std::string & aName);
 
-        std::string               mPattern;
+        std::string               mPatternGlob; // in simple case, same pat for sel and replace
+        std::string               mPatternRepl; // with sub-dir we may need diff pat
+
         std::string               mSubst;
         std::vector<std::string>  mArithmReplace;
         bool                      mDoReplace;
@@ -236,7 +238,7 @@ class cAppli_Rename : public cMMVII_Appli
 cCollecSpecArg2007 & cAppli_Rename::ArgObl(cCollecSpecArg2007 & anArgObl)
 {
    return anArgObl
-            << Arg2007(mPattern,"Pattern of file to replace",{{eTA2007::MPatFile,"0"},{eTA2007::FileDirProj}})
+            << Arg2007(mPatternGlob,"Pattern of file to replace",{{eTA2007::MPatFile,"0"},{eTA2007::FileDirProj}})
             << Arg2007(mSubst,"Pattern of substituion")
 ;
 }
@@ -245,8 +247,9 @@ cCollecSpecArg2007 & cAppli_Rename::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
    return anArgOpt
             << AOpt2007(mDoReplace,"DoReplace","do the replacement ",{{eTA2007::HDV}})
+            << AOpt2007(mPatternRepl,"PatRepl","Pattern 4 replace, when != Pattern glob")
             << AOpt2007(mArithmReplace,"AR","arthim repacement like [+,33,2,4] to add 33 to second expr and put on 4 digt ",{{eTA2007::ISizeV,"[3,4]"}})
-            ;
+          ;
 }
 
 
@@ -280,11 +283,18 @@ int cAppli_Rename::Exe()
 
     std::vector<std::pair<std::string,std::string>  > aVInOut;
 
+    StdOut() << "RRR " << __LINE__ << "\n";
 
-    std::regex aPat(mPattern);
+    if (! IsInit(&mPatternRepl))
+        mPatternRepl = mPatternGlob;
+
+    std::regex aPat(mPatternRepl);
+
+    StdOut() << "RRR " << __LINE__ << "\n";
 
     for (const auto & aStrIn0 : VectMainSet(0))
     {
+  StdOut() << "aStrIn0aStrIn0=[" << aStrIn0 << "]\n";
         std::string aStrIn = aStrIn0;
         if (IsInit(&mArithmReplace))
 	{
@@ -325,9 +335,9 @@ int cAppli_Rename::Exe()
 	}
         if (0)
         {
-            StdOut() << "P=" << mPattern << " S=" << mSubst << " I=" << aStrIn << "\n";
+            StdOut() << "P=" << mPatternRepl << " S=" << mSubst << " I=" << aStrIn << "\n";
         }
-        std::string aStrOut =  ReplacePattern(mPattern,mSubst,aStrIn);
+        std::string aStrOut =  ReplacePattern(mPatternRepl,mSubst,aStrIn);
         StdOut() << "[" << aStrIn0  << "] ";
         if (IsInit(&mArithmReplace))
            StdOut() << " AR==> [" << aStrIn  << "] ";
@@ -359,7 +369,7 @@ int cAppli_Rename::Exe()
         {
             auto [aStrIn0,aStrOut] = aPair;
             StdOut() << "mv " << aStrIn0  << " " << aPrefTmp+aStrIn0  << std::endl;
-	    RenameFiles(aStrIn0,aPrefTmp+aStrIn0);
+            RenameFiles(aStrIn0,aPrefTmp+aStrIn0);
         }
 	// the put, safely, "tmp" in "output"
         for (const auto & aPair : aVInOut)
@@ -383,7 +393,7 @@ cSpecMMVII_Appli  TheSpecRename
 (
     "UtiRename",
     Alloc_Rename,
-    "This command is rename files using expr and eventually arithmetic",
+    "This command renames files using regexpr and eventually arithmetic",
     {eApF::Project},
     //  {eApF::ManMMVII, eApF::Project},  JOE ?  j'ai enleve eApF::ManMMVI, je sais plus qui l'a mis
     {eApDT::FileSys},

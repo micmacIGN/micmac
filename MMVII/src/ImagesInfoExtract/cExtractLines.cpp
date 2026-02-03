@@ -124,7 +124,14 @@ template <class Type> void cExtractCurves<Type>::SetHough
      }
 }
 
-template <class Type> void cExtractCurves<Type>::SetSobelAndMasq(eIsWhite isWhite,tREAL8 aRayMaxLoc,int aBorder,bool Show)
+template <class Type>
+    void cExtractCurves<Type>::SetSobelAndMasq
+         (
+            eIsWhite isWhite,
+            tREAL8 aRayMaxLoc,
+            int aBorder,
+            bool Show
+         )
 {
      // Create the data for storing gradient & init gradient
      mGrad = new cImGradWithN<Type>(mIm.DIm().Sz());
@@ -135,20 +142,38 @@ template <class Type> void cExtractCurves<Type>::SetSobelAndMasq(eIsWhite isWhit
      SetGradAndMasq(eIsQuick::Yes,isWhite, aRayMaxLoc,aBorder,Show);
 }
 
-/*  The behaviour is not coherent with "SetSobelAndMasq" , to modify later probably, for now comment 
-     
-template <class Type>  void cExtractLines<Type>::SetDericheAndMasq(eIsWhite isWhite,tREAL8 aAlphaDerich,tREAL8 aRayMaxLoc,int aBorder,bool Show)
+
+
+/*  The behaviour is not coherent with "SetSobelAndMasq" , to modify later probably, for now comment */
+   // void SetDericheAndMasq(tREAL8 aAlphaDerich,tREAL8 aRayMaxLoc,int aBorder,bool Show=false);
+
+template <class Type>
+    void cExtractCurves<Type>::SetDericheAndMasq
+         (
+            tREAL8 aAlphaDerich,
+            tREAL8 aRayMaxLoc,
+            int    aBorder,
+            bool   Show
+          )
 {
      // Create the data for storing gradient & init gradient
      mGrad = new cImGradWithN<Type>(mIm.DIm().Sz());
 
      mGrad->SetDeriche(mIm.DIm(),aAlphaDerich);
 
-     SetGradAndMasq(eIsQuick::No,isWhite, aRayMaxLoc,aBorder,Show);
+     SetGradAndMasq(eIsQuick::No,eIsWhite::Yes,aRayMaxLoc,aBorder,Show);
 }
-*/
 
-template <class Type> void cExtractCurves<Type>::SetGradAndMasq(eIsQuick isQuick,eIsWhite isWhite,tREAL8 aRayMaxLoc,int aBorder,bool Show)
+
+template <class Type>
+    void cExtractCurves<Type>::SetGradAndMasq
+         (
+            eIsQuick isQuick,
+            eIsWhite isWhite,
+            tREAL8 aRayMaxLoc,
+            int aBorder,
+            bool Show
+          )
 
 {
      // Create the data for storing gradient & init gradient

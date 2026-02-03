@@ -831,6 +831,7 @@ class cStdStatRes
 {
      public :
         cStdStatRes();
+        cStdStatRes(const std::vector<tREAL8> &);
 
         void Add(tREAL8 aVal);
 
@@ -842,6 +843,11 @@ class cStdStatRes
         tREAL8  Min() const;
         tREAL8  Max() const;
         int     NbMeasures() const;
+        tREAL8  ErrAtKth(int aK) const;
+        tREAL8  ErrAtKthLast(int aK) const;
+
+        int IndVal(tREAL8 aV,bool SVP=false) const;
+        int IndMax() const;
 
         std::string Show(const std::string & aPrefix,const std::vector<int> & aPerc) const;
         const std::vector<tREAL8>  & VRes() const;

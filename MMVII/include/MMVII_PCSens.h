@@ -220,9 +220,18 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
                    aNbPtsMeasures : possibly reduce the number of point for measuring accuracy (not for triplet selection)
 
            return "best" pose + score as Avg Residual (angular not pixel)
+
+                  First parameter use a new robust weighting that use the rank as weight
             */
              cWhichMin<tPoseR,tREAL8>  RansacPoseEstimSpaceResection
-            (const cSet2D3D & aSet0,size_t aNbTriplet,bool Real8=true, int aNbPtsMeasures=-1,cTimerSegm * =nullptr);
+                                       (
+                                            bool NewRobustW,
+                                            const cSet2D3D & aSet0,
+                                            size_t aNbTriplet,
+                                            bool Real8=true,
+                                            int aNbPtsMeasures=-1,
+                                            cTimerSegm * =nullptr
+                                     );
 
         /**  Acces to the elementay space resection method : get a list of pose corresponding to a triplet of 2D-3D corresp*/
         std::list<tPoseR >  ElemPoseEstimSpaceResection(const cPair2D3D&,const cPair2D3D&,const cPair2D3D&);
@@ -617,9 +626,12 @@ class cSensorCamPC : public cSensorImage
          std::vector<cPt2dr>  PtsSampledOnSensor(int aNbByDim,tREAL8 aEpsRel=0.0) const override;
 
          ///  residual of projection as angle between directions, work with any lenses
-         tREAL8  AngularProjResiudal(const cPair2D3D&) const;
+         tREAL8  AngularProjResiudal(const cPair2D3D&,bool InPix=false) const;
          ///  average of AngularProjResiudal
-         tREAL8  AvgAngularProjResiudal(const cSet2D3D&) const;
+         tREAL8  AvgAngularProjResiudal(const cSet2D3D&,bool InPix=false) const;
+
+         /// Return all the residual, more for debug / inspection / reports
+         std::vector<tREAL8> ListAngularProjResiudal(const cSet2D3D&,bool InPix=false) const;
 
      ///  real center
      cPt3dr  PseudoCenterOfProj() const override;
