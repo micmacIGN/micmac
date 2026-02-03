@@ -140,7 +140,7 @@ cIrbCal_Clino1 * cIrbCal_ClinoSet::ClinoFromName(const std::string& aName,bool O
 
 void cIrbCal_ClinoSet::AddClino(const std::string & aName,tREAL8 aSigma,bool SVP)
 {
-   StdOut() << "  AddClino, Sigma=" << Rad2DMgon(aSigma) << "DMgon\n";
+   StdOut() << "  AddClino " << aName << ", Sigma=" << Rad2DMgon(aSigma) << "DMgon\n";
    cIrbCal_Clino1 * aClino = ClinoFromName(aName,true);
    cIrbCal_Clino1 aNewClino (aName);
    if (aClino)

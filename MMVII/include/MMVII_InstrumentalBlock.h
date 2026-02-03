@@ -104,6 +104,12 @@ class cIrbCal_Cam1  : public cMemCheck
         cPoseWithUK&  PoseUKInBlock(); //< Accessor
         bool          IsInit() const;  //< Was the pose initialzed (computed from Ptr on mPoseInBlock)
         void UnInit();  //< Set un-initialized
+
+        /// return Intr Calib after eventually creating it
+        cPerspCamIntrCalib *  IntrCalib(const cPhotogrammetricProject *);
+        /// return Cam in bloc after eventually creating it
+        cSensorCamPC *        CamInBloc(const cPhotogrammetricProject *);
+
     private :
        // cIrbCal_Cam1(const cIrbCal_Cam1&);
         int           mNum;
@@ -113,7 +119,10 @@ class cIrbCal_Cam1  : public cMemCheck
         std::string   mImSelect;       ///< selector, indicate if an image belongs  to the block
         bool          mIsInit;         ///< was the pose in the block computed ?
         std::shared_ptr<cPoseWithUK>  mPoseInBlock;    ///< Position in the block  +- boresight
+        cPerspCamIntrCalib *          mIntrCalib;
+        cSensorCamPC *                mCamInBloc;
 };
+
 /// standard interface to serialization
 void AddData(const  cAuxAr2007 & anAux,cIrbCal_Cam1 & aCam);
 
@@ -130,6 +139,8 @@ class cIrbCal_CamSet  : public cMemCheck
          cIrbCal_Cam1 * CamFromNameCalib(const std::string& aName,bool OkNone=false);
          /// Acces to index of an existing camera from its name, 0 if none and OkNone
          int IndexCamFromNameCalib(const std::string& aName,bool OkNone=false);
+
+         cSensorCamPC *     CamInBloc(const cPhotogrammetricProject *,const std::string & aNameIm);
 
          size_t  NbCams() const;                       ///< Number of cameras
          int     NumMaster() const;                    ///< Accessor
@@ -335,6 +346,8 @@ class cIrbCal_Block  : public cMemCheck
 
          const std::map<tNamePair,cIrb_CstrOrthog> &  CstrOrthog() const;
 
+         void ShowDescr(eTyInstr) const;
+
      private :
 
          void AvgPairSigma (eTyInstr,eTyInstr); //< Avg sigma for pairs having the corresponding type
@@ -373,7 +386,9 @@ class cIrbComp_Cam1 : public cMemCheck
 {
      public :
          cIrbComp_Cam1();
-         void Init(cSensorCamPC *);
+         ~cIrbComp_Cam1();
+
+         void Init(cSensorCamPC *,bool Adopt);
 
          /// Compute Pose of CamB relatively to CamA=this
          tPoseR PosBInSysA(const cIrbComp_Cam1 & aCamB) const;
@@ -385,10 +400,9 @@ class cIrbComp_Cam1 : public cMemCheck
 
 
      private :
-       /*  bool        mIsInit;
-         tPoseR      mPoseInW;  /// C2W
-         std::string mNameIm; */
+
          cSensorCamPC * mCamPC;
+         bool           mAdoptCam; // If the cam is adpoted it must be destroyed by this
 };
 
 class cIrbComp_CamSet  : public cMemCheck
@@ -411,7 +425,7 @@ class cIrbComp_CamSet  : public cMemCheck
     private :
          cIrbComp_CamSet(const cIrbComp_CamSet &) = delete;
 
-         void AddImagePose(int anIndex,cSensorCamPC * aCamPC);
+         void AddImagePose(int anIndex,cSensorCamPC * aCamPC,bool Adopt);
          const cIrbComp_Block &      mBlock;
          std::vector<cIrbComp_Cam1>  mVCompPoses;
 };
@@ -502,10 +516,13 @@ class   cIrbComp_Block : public cMemCheck
        void ComputePoseInstrument(bool SVP = false);
 
 
+       // Add all image of vect
+       void AddImagesPoses(const std::vector<std::string> &,bool okImNotInBloc=false,bool Adopt=false);
+
        // Add an image if orientation exist (via PhProj)
-       void AddImagePose(const std::string &,bool okImNotInBloc=false);
+       void AddImagePose(const std::string &,bool okImNotInBloc=false,bool usePosOfCalib=false);
        // Add an image with given pose
-       void AddImagePose(cSensorCamPC * aCamPC,bool okImNotInBloc=false);
+       void AddImagePose(cSensorCamPC * aCamPC,bool okImNotInBloc=false,bool usePosOfCalib=false);
 
        // for a given pair K1/K2 the 'best' relative pose and its sigma
        tResCompCal ComputeCalibCamsInit(int aK1,int aK2) const;

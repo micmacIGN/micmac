@@ -747,24 +747,39 @@ cSensorImage * cSensorCamPC::SensorChangSys(const std::string &, cChangeSysCo &a
 
 
 //
-tREAL8 cSensorCamPC::AngularProjResiudal(const cPair2D3D& aPair) const
+tREAL8 cSensorCamPC::AngularProjResiudal(const cPair2D3D& aPair,bool InPix) const
 {
     cPt2dr aPIm =  aPair.mP2;
     cPt3dr aDirBundleIm = ImageAndDepth2Ground(cPt3dr(aPIm.x(),aPIm.y(),1.0)) - Center();
     cPt3dr aDirProj =  aPair.mP3 - Center();              // direction of projection
 
     tREAL8 aRes = Norm2(VUnit(aDirBundleIm)-VUnit(aDirProj));  // equivalent to angular distance
+    if (InPix)
+        aRes *= mInternalCalib->F();
 
     return aRes;
 }
 
-tREAL8  cSensorCamPC::AvgAngularProjResiudal(const cSet2D3D& aSet) const
+std::vector<tREAL8> cSensorCamPC::ListAngularProjResiudal(const cSet2D3D& aSet,bool InPix) const
+{
+    std::vector<tREAL8> aRes;
+    for (const auto & aPair : aSet.Pairs())
+    {
+        aRes.push_back(AngularProjResiudal(aPair,InPix));
+    }
+
+    return aRes;
+}
+
+
+
+tREAL8  cSensorCamPC::AvgAngularProjResiudal(const cSet2D3D& aSet,bool InPix) const
 {
    cWeightAv<tREAL8> aWA;
 
    for (const auto & aPair : aSet.Pairs())
    {
-       aWA.Add(1.0,AngularProjResiudal(aPair));
+       aWA.Add(1.0,AngularProjResiudal(aPair,InPix));
    }
 
    return aWA.Average();

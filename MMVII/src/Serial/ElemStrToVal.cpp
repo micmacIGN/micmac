@@ -409,6 +409,15 @@ template<> cE2Str<eTyClino>::tMapE2Str cE2Str<eTyClino>::mE2S
                 {eTyClino::eSpring,"Spring"}
            };
 
+template<> cE2Str<eModeFusionData>::tMapE2Str cE2Str<eModeFusionData>::mE2S
+           {
+                {eModeFusionData::eMerge,"Merge"},
+                {eModeFusionData::eOverWrite,"OverWrite"},
+                {eModeFusionData::eDoNothing,"DoNothing"},
+                {eModeFusionData::eError,"Error"}
+           };
+
+
 template<> cE2Str<eTyInstr>::tMapE2Str cE2Str<eTyInstr>::mE2S
            {
                 {eTyInstr::eCamera,"Camera"},
@@ -1270,6 +1279,7 @@ MACRO_INSTANTITATE_STRIO_ENUM(eTAAr,"TypeAAr")
 MACRO_INSTANTITATE_STRIO_ENUM(eTA2007,"TA2007")
 MACRO_INSTANTITATE_STRIO_ENUM(eTySC,"TySC")
 MACRO_INSTANTITATE_STRIO_ENUM(eTyUnitAngle,"AngleUnit")
+MACRO_INSTANTITATE_STRIO_ENUM(eModeFusionData,"ModeFusionData")
 MACRO_INSTANTITATE_STRIO_ENUM(eTyClino,"TypeClino")
 MACRO_INSTANTITATE_STRIO_ENUM(eTyInstr,"TypeInstr")
 

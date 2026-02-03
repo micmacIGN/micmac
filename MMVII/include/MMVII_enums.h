@@ -192,6 +192,16 @@ enum class eLevelCheck
               Error
            };
 
+/// Possible behaviour when two datas exist
+enum class eModeFusionData
+           {
+              eMerge,     // (try to) merge
+              eOverWrite, // over write new data
+              eDoNothing, // do nothing, maintain old data
+              eError,     // refuse existing
+              eNbVals     // required for automatized serialization
+           };
+
 /// Type of set creation
 enum class eTySC    
            {
@@ -650,6 +660,8 @@ enum class eMTDIm
               eNbVals
            };
 
+
+const std::string & E2Str(const eModeFusionData &);
 const std::string & E2Str(const eTyClino &);
 const std::string & E2Str(const eTyInstr &);
 

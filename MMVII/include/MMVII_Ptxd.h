@@ -142,12 +142,26 @@ template <class Type,const int Dim> class cPtxd
 	       static_assert(Dim==4,"bad dim in cPtxd initializer");
        }
 
+       cPtxd(const Type & x,const Type &y,const Type &z,const Type &t,const Type &u) :  mCoords{x,y,z,t,u}
+       {
+	       tNumTrait<Type>::AssertValueOk(x);
+	       tNumTrait<Type>::AssertValueOk(y);
+	       tNumTrait<Type>::AssertValueOk(z);
+	       tNumTrait<Type>::AssertValueOk(t);
+           tNumTrait<Type>::AssertValueOk(u);
+
+	       static_assert(Dim==5,"bad dim in cPtxd initializer");
+       }
+
        /// Contructor for 1 dim point, statically checked
         explicit cPtxd(const Type * aV)  
         {
            AssertTabValueOk(aV,size_t(Dim));
            MemCopy(&mCoords[0],aV,Dim);
         }
+
+       // return Pt ot -Pt, the one "best" oriented with this
+        tPt OrientInSameDir(const tPt& aPt) const;
 
         inline Type & x()             {static_assert(Dim>=1,"bad dim in cPtxd initializer");return mCoords[0];}
         inline const Type & x() const {static_assert(Dim>=1,"bad dim in cPtxd initializer");return mCoords[0];}
@@ -164,6 +178,10 @@ template <class Type,const int Dim> class cPtxd
         inline Type & t()             {static_assert(Dim>=4,"bad dim in cPtxd initializer");return mCoords[3];}
         inline const Type & t() const {static_assert(Dim>=4,"bad dim in cPtxd initializer");return mCoords[3];}
         inline tBigNum  BigT2() const {return Square(tBigNum(t()));}
+
+        inline Type & u()             {static_assert(Dim>=5,"bad dim in cPtxd initializer");return mCoords[4];}
+        inline const Type & u() const {static_assert(Dim>=5,"bad dim in cPtxd initializer");return mCoords[4];}
+        inline tBigNum  BigU2() const {return Square(tBigNum(u()));}
 
         cDenseVect<Type> ToVect() const; ///< conversion
         std::vector<Type> ToStdVector() const; ///< conversion
@@ -270,6 +288,8 @@ template <class Type> inline cPtxd<Type,3> operator + (const cPtxd<Type,3> & aP1
 template <class Type> inline cPtxd<Type,4> operator + (const cPtxd<Type,4> & aP1,const cPtxd<Type,4> & aP2) 
 { return cPtxd<Type,4>(aP1.x() + aP2.x(),aP1.y() + aP2.y(),aP1.z()+aP2.z(),aP1.t()+aP2.t()); }
 
+template <class Type> inline cPtxd<Type,5> operator + (const cPtxd<Type,5> & aP1,const cPtxd<Type,5> & aP2)
+{ return cPtxd<Type,5>(aP1.x() + aP2.x(),aP1.y() + aP2.y(),aP1.z()+aP2.z(),aP1.t()+aP2.t(),aP1.u()+aP2.u()); }
 
 template <class Type> inline cPtxd<Type,1> operator += (cPtxd<Type,1> & aP1,const cPtxd<Type,1> & aP2)
 { 
@@ -297,7 +317,16 @@ template <class Type> inline cPtxd<Type,4> operator += (cPtxd<Type,4> & aP1,cons
     aP1.t() += aP2.t(); 
     return aP1;
 }
+template <class Type> inline cPtxd<Type,5> operator += (cPtxd<Type,5> & aP1,const cPtxd<Type,5> & aP2)
+{
+    aP1.x() += aP2.x();
+    aP1.y() += aP2.y();
+    aP1.z() += aP2.z();
+    aP1.t() += aP2.t();
+    aP1.u() += aP2.u();
 
+    return aP1;
+}
 
 
 ///  binary operator - on points
@@ -604,6 +633,12 @@ template <class T> inline cPtxd<tREAL8,1> ToR(const cPtxd<T,1> & aP) {return cPt
 template <class T> inline cPtxd<tREAL8,2> ToR(const cPtxd<T,2> & aP) {return cPtxd<tREAL8,2>(aP.x(),aP.y());}
 template <class T> inline cPtxd<tREAL8,3> ToR(const cPtxd<T,3> & aP) {return cPtxd<tREAL8,3>(aP.x(),aP.y(),aP.z());}
 template <class T> inline cPtxd<tREAL8,4> ToR(const cPtxd<T,4> & aP) {return cPtxd<tREAL8,4>(aP.x(),aP.y(),aP.z(),aP.t());}
+
+template <class T> inline cPtxd<tREAL8,5> ToR(const cPtxd<T,5> & aP)
+{
+    return cPtxd<tREAL8,5>(aP.x(),aP.y(),aP.z(),aP.t(),aP.u());
+}
+
 
 template <class T> inline cPtxd<tREAL4,2> ToF(const cPtxd<T,2> & aP) {return cPtxd<tREAL4,2>(aP.x(),aP.y());}
 
@@ -938,6 +973,23 @@ template <class Type,const int Dim> class cSegmentCompiled : public cSegment<Typ
        tPt     mTgt;
 };
 
+/// class for modelization of an affine space : a point + vectorials
+template<const int Dim> class cAffineSpace
+{
+   public :
+      typedef cPtxd<tREAL8,Dim> tPtR;
+      typedef std::vector<tPtR> tVecSp;
+      typedef cAffineSpace<Dim> tAffSp;
+
+      const tPtR &   P0()    const {return mP0;}
+      const tVecSp & VecSp() const {return mVecSp;}
+
+      static tAffSp LstSqEstimate(const  std::vector<tPtR> &,int aSzSubs,const std::vector<tREAL8> * aVW=nullptr);
+
+   private :
+      tPtR    mP0;
+      tVecSp  mVecSp;
+};
 
 
 

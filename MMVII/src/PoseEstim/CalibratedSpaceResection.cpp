@@ -51,11 +51,12 @@ template <class Type>  class cElemSpaceResection
 
            static  cWhichMin<tPoseR,tREAL8>  RansacPoseBySR
                                              (
+                                                  bool useNewRobustW,
                                                   cPerspCamIntrCalib&,
                                                   const cSet2D3D &,
-					          size_t aNbTest,
-					          int    aNbPtsMeasures = -1,
-	                                          cTimerSegm * aTS = nullptr
+                                                  size_t aNbTest,
+                                                  int    aNbPtsMeasures = -1,
+                                                  cTimerSegm * aTS = nullptr
                                              );
 
 
@@ -343,27 +344,38 @@ template <class Type>
 template <class Type>  
    cWhichMin<tPoseR,tREAL8>  cElemSpaceResection<Type>::RansacPoseBySR
                       (
+                          bool useNewRobustW,
                           cPerspCamIntrCalib& aCalib,
                           const  cSet2D3D & aSet0,
                           size_t aNbTriplet,
                           int    aNbPtsMeasures,
-	                  cTimerSegm * aTS
+                          cTimerSegm * aTS
                       )
 {
-   cAutoTimerSegm  anATS2 (aTS,"CreateTriplet");
-   cWhichMin<tPoseR,tREAL8>  aWMin(cIsometry3D<tREAL8>::Identity(),1e10);
+   bool DEBUG = false;
 
+ //  StdOut() << "HHHHHHHHHHHHHHHHHh " << useNewRobustW << " kkkkkkk\n";
+   cAutoTimerSegm  anATS2 (aTS,"CreateTriplet");
+   cWhichMin<tPoseR,tREAL8>  aWMin(cIsometry3D<tREAL8>::Identity(),1e10); // store the result
+
+   // is we have too many point we will make a selection, aSetTest will point to set used
+   // the selection or the initial
    const cSet2D3D * aSetTest = & aSet0;
-   cSet2D3D aBufSetTest;  // will have the space to store locally the test set
+
+   cSet2D3D aBufSetTest;  // will store the selected points
    int aNbTot = aSet0.NbPair();
 
    if (aNbTot<=3)
    {
-        MMVII_INTERNAL_ASSERT_strong(false,"Not enough 2-3 corresp in RansacPoseBySR, need>3, got :" + ToStr(aNbTot));
+        MMVII_INTERNAL_ASSERT_strong
+       (
+             false,
+             "Not enough 2-3 corresp in RansacPoseBySR, need>3, got :" + ToStr(aNbTot)
+       );
    }
 
 
-   //  is we require less test that total of point we must create the subset
+   // ============= [0] is we require less test that total of point we must create the subset =====
    if ( (aNbPtsMeasures>0)  && (aNbPtsMeasures<aNbTot)  )  
    {
       aSetTest = & aBufSetTest;
@@ -375,10 +387,20 @@ template <class Type>
              aBufSetTest.AddPair(aSet0.KthPair(aKPair));
    }
 
+
+   // ============= [1]  Select the triplet ==================================
    std::vector<cSetIExtension>  aVecTriplet;
    GenRanQsubCardKAmongN(aVecTriplet,aNbTriplet,3,aNbTot);
 
    cAutoTimerSegm  anATS3 (aTS,"ResolveEqResec");
+
+   if (false && DEBUG)
+   {
+       StdOut () << "[ NPTS , Init: " << aSet0.NbPair() <<  " Selected: " <<  aSetTest->NbPair() << "] "
+                 << "\n";
+   }
+
+   // ===================  Parse all triplet ===================================
    for (const auto &aTriplet : aVecTriplet)
    {
        size_t aK1 = aTriplet.mElems.at(0);
@@ -397,10 +419,67 @@ template <class Type>
        for (const auto & anIsom : aLIsom)
        {
            cIsometry3D<tREAL8>  aIsomR8 = ToReal8(anIsom);
-           cSensorCamPC aCam("RansacSpaceResection",aIsomR8,&aCalib);
+           cSensorCamPC aCam("RansacSpaceResection",aIsomR8,&aCalib);           
+           std::vector<tREAL8> aVRes = aCam.ListAngularProjResiudal(*aSetTest);
 
-           aWMin.Add(aIsomR8,aCam.AvgAngularProjResiudal(*aSetTest));
+           tREAL8 aScore = 0.0;
+
+           if (!useNewRobustW)
+           {
+               aScore = Average(aVRes);
+           }
+           else
+           {
+               std::vector<tREAL8> aVRes = aCam.ListAngularProjResiudal(*aSetTest);
+
+               std::sort(aVRes.begin(),aVRes.end());
+               cWeightAv<tREAL8,tREAL8> aWAvg;
+               for (size_t aK = 0 ; aK<aVRes.size(); aK++)
+               {
+                    tREAL8 aRnk = (aK+0.5) / (aVRes.size());
+                    // aRnk = 1.0 -aRnk;
+                    tREAL8 aW = 1+std::cos(M_PI*aRnk);
+                   // StdOut() << " WWWWW=" << aW << " " << aVRes.at(aK) << "\n";
+                    aWAvg.Add(aW,aVRes.at(aK));
+               }
+               aScore = aWAvg.Average();
+            //   StdOut() << "============ ==========SS= " << aScore  << "====\n";
+
+              //  aScore = aSR.ErrAtProp(0.8);
+           }
+
+           aWMin.Add(aIsomR8,aScore);
        }
+   }
+   if (false && DEBUG)
+   {
+       StdOut() << "FINAL RES : " << aWMin.ValExtre() << "\n";
+       cSensorCamPC aCam("RansacSpaceResection",aWMin.IndexExtre(),&aCalib);
+
+       std::vector<tREAL8> aVRes = aCam.ListAngularProjResiudal(*aSetTest);
+       cStdStatRes aSR (aVRes);
+       int aKMax = aSR.IndMax();
+
+       StdOut() << "  AngRes: "
+                    << " Avg="  << aSR.Avg()
+                   << " Med="  << aSR.ErrAtProp(0.5)
+                   << " P80="  << aSR.ErrAtProp(0.8)
+                   << " P90="  << aSR.ErrAtProp(0.9)
+                   << " Max="  << aSR.Max()
+                << "\n";
+
+        StdOut() << " WorstRes : ";
+        int aNb = std::min(6,(int)aVRes.size());
+        for (int aK=0 ; aK< aNb ; aK++)
+            StdOut() << " " << aSR.ErrAtKthLast(aK) ;
+        StdOut() << "\n";
+
+        cWeightedPair2D3D aPairMax = aSetTest->KthPair(aKMax);
+
+        StdOut() << " IndM : " << aKMax
+                 << " Angle :" <<    aCam.AngularProjResiudal(aPairMax)
+                 << " P2=" << aPairMax.mP2
+                 << "\n";
    }
 
    return aWMin;
@@ -419,17 +498,18 @@ template class cElemSpaceResection<tREAL16>;
 
 cWhichMin<tPoseR,tREAL8> cPerspCamIntrCalib::RansacPoseEstimSpaceResection
        (
+            bool NewRobust,
             const cSet2D3D & aSet0,
             size_t aNbTriplet,
             bool Real8,
             int aNbPtsMeasures,
-	    cTimerSegm * aTS
+            cTimerSegm * aTS
         )
 {
     if (Real8)
-       return cElemSpaceResection<tREAL8>::RansacPoseBySR(*this,aSet0,aNbTriplet,aNbPtsMeasures,aTS);
+       return cElemSpaceResection<tREAL8>::RansacPoseBySR(NewRobust,*this,aSet0,aNbTriplet,aNbPtsMeasures,aTS);
     else 
-       return cElemSpaceResection<tREAL16>::RansacPoseBySR(*this,aSet0,aNbTriplet,aNbPtsMeasures,aTS);
+       return cElemSpaceResection<tREAL16>::RansacPoseBySR(NewRobust,*this,aSet0,aNbTriplet,aNbPtsMeasures,aTS);
 
 }
 
@@ -483,7 +563,7 @@ void BenchCalibResection(cSensorCamPC & aCam,cTimerSegm * aTimeSeg)
 
     //  estimate pose by ransac
     cPerspCamIntrCalib * aCal = aCam.InternalCalib();
-    cIsometry3D<tREAL8> aPose = aCal->RansacPoseEstimSpaceResection(aSet,100,true,-1,aTimeSeg).IndexExtre();
+    cIsometry3D<tREAL8> aPose = aCal->RansacPoseEstimSpaceResection(true,aSet,100,true,-1,aTimeSeg).IndexExtre();
 
     // test with ground truth
     MMVII_INTERNAL_ASSERT_bench(Norm2(aPose.Tr() - aCam.Pose().Tr())<1e-4,"Translation in space resection");
@@ -564,22 +644,28 @@ class cAppli_CalibratedSpaceResection : public cMMVII_Appli
         /// In case multiple pose for same camera try a robust compromise for each value
         void  DoMedianCalib();
 
+        ///
+        void  EstimateParam(const std::vector<tREAL8> &, const std::vector<tREAL8> &aParam);
+
         std::string              mSpecImIn;   ///  Pattern of xml file
         cPhotogrammetricProject  mPhProj;
         cSetMesGndPt             mSetMes;
         cSet2D3D                 mSet23 ;
 
-	int                      mNbTriplets;
-	int                      mNbIterBundle;
-	bool                     mShowBundle;
-	tREAL8                   mThrsReject;
-	tREAL8                   mMaxErrOK;
+        int                      mNbTriplets;
+        int                      mNbIterBundle;
+        std::vector<tREAL8>      mParamWeight;
+        std::vector<tREAL8>      mParamFiltered;
+
+        bool                     mShowBundle;
+        tREAL8                   mThrsReject;
+        tREAL8                   mMaxErrOK;
         std::string              mDirFilter;
         std::string              mNameReport;
         std::string              mNameIm;
-        // bool                     mShow;
-        // bool                     mReal16;
 
+        tREAL8                    mEstimSigma;
+        tREAL8                    mEstimRejec;
 };
 
 cAppli_CalibratedSpaceResection::cAppli_CalibratedSpaceResection
@@ -587,16 +673,30 @@ cAppli_CalibratedSpaceResection::cAppli_CalibratedSpaceResection
      const std::vector<std::string> &  aVArgs,
      const cSpecMMVII_Appli & aSpec
 ) :
-     cMMVII_Appli  (aVArgs,aSpec),
-     mPhProj       (*this),
-     mNbTriplets   (500),
-     mNbIterBundle (10),
-     mShowBundle   (false),
-     mThrsReject   (10000.0),
-     mMaxErrOK     (20.0)
+     cMMVII_Appli   (aVArgs,aSpec),
+     mPhProj        (*this),
+     mNbTriplets    (500),
+     mNbIterBundle  (10),
+     mParamWeight   {0.75,1.0,4.0,2.0},   // % for sigma, + for rejection, * for rejection , exp for
+     mParamFiltered {0.9,3.0,8.0,0},
+     mShowBundle    (false),
+     mThrsReject    (-1.0),
+     mMaxErrOK      (20.0)
 {
 }
 
+void  cAppli_CalibratedSpaceResection::EstimateParam
+      (
+          const std::vector<tREAL8> & aVRes,
+          const std::vector<tREAL8> & aParam
+      )
+{
+    tREAL8 anErr =  Cst_KthVal(aVRes,aParam.at(0));
+
+    mEstimSigma  = aParam.at(1) + anErr;
+    mEstimRejec  = aParam.at(1) + anErr *  aParam.at(2);
+
+}
 
 
 cCollecSpecArg2007 & cAppli_CalibratedSpaceResection::ArgObl(cCollecSpecArg2007 & anArgObl)
@@ -616,6 +716,7 @@ cCollecSpecArg2007 & cAppli_CalibratedSpaceResection::ArgOpt(cCollecSpecArg2007 
     return    anArgOpt
 	   << AOpt2007(mNbTriplets,"NbTriplets","Number max of triplet tested in Ransac",{eTA2007::HDV})
 	   << AOpt2007(mNbIterBundle,"NbIterBund","Number of bundle iteration, after ransac init",{eTA2007::HDV})
+       << AOpt2007(mParamWeight,"WeightBA","[%Sig,+Sig-Rejec,*Sig-Rejec,Exp]",{eTA2007::HDV})
 	   << AOpt2007(mShowBundle,"ShowBundle","Show detail of bundle results",{eTA2007::HDV})
 	   << AOpt2007(mThrsReject,"ThrRej","Threshold for rejection of outlayer, in pixel",{eTA2007::HDV})
 	   << AOpt2007(mMaxErrOK,"MaxErr","Max error acceptable for initial resection",{eTA2007::HDV})
@@ -627,12 +728,12 @@ cCollecSpecArg2007 & cAppli_CalibratedSpaceResection::ArgOpt(cCollecSpecArg2007 
 
 int cAppli_CalibratedSpaceResection::Exe()
 {
+    bool mRobustEstim = true;
     mPhProj.FinishInit();
     mNameReport = "Rejected_Ori-" +   mPhProj.DPOrient().DirIn() + "_Mes-" + mPhProj.DPGndPt3D().DirIn() + "-" + mPhProj.DPGndPt2D().DirIn() ;
 
     InitReportCSV(mNameReport,"csv",true);
 
-    bool  aExpFilt = mPhProj.DPGndPt2D().DirOutIsInit();
 
     if (RunMultiSet(0,0))
     {
@@ -647,6 +748,8 @@ int cAppli_CalibratedSpaceResection::Exe()
 
         return EXIT_SUCCESS;
     }
+
+    // ======= [0]  LOAD DATA =========================================================
 
     // By default print detail if we are not in //
     SetIfNotInit(mShowBundle,LevelCall()==0);
@@ -663,95 +766,127 @@ int cAppli_CalibratedSpaceResection::Exe()
         MMVII_INTERNAL_ASSERT_User
         (false,eTyUEr::eUnClassedError,"Not enouh 3-2 pair for space resection, need>3, got "+ToStr(mSet23.NbPair()));
     }
-
     cPerspCamIntrCalib *   aCal = mPhProj.InternalCalibFromStdName(mNameIm);
 
-    // Pose estimation with ransac using 3 point method
-    cWhichMin<tPoseR,tREAL8>  aWMin = aCal->RansacPoseEstimSpaceResection(mSet23,mNbTriplets);
+    // ======= [1] COMPUTE INITIAL VALUES ===========================================
+
+    //  ----- [1.A] INITIAL POSE ESTIMATE WITH RANSAC ON SPACE RESEC ----------------
+
+    cWhichMin<tPoseR,tREAL8>  aWMin = aCal->RansacPoseEstimSpaceResection(mRobustEstim,mSet23,mNbTriplets);
     tPoseR   aPose = aWMin.IndexExtre();
     cSensorCamPC  aCam(FileOfPath(mNameIm,false),aPose,aCal);
 
-    std::vector<double> aVRes;
-    {
-       for (const auto & aPair : mSet23.Pairs())
-       {
-            tREAL8 aRes = aCam.AngularProjResiudal(aPair) * aCal->F();
-	    aVRes.push_back(aRes); 
-       }
-       std::sort(aVRes.begin(),aVRes.end());
-       std::reverse(aVRes.begin(),aVRes.end()); // reverse to supress 3 lowest val => RANSAC
-       for (int aK=0 ; aK<3 ; aK++)
-          aVRes.pop_back();
-       std::reverse(aVRes.begin(),aVRes.end());
+    //  ----- [1.B] TEST if residual are too high, probably smth was bad  ----------------
 
-       tREAL8 aMedErr = Cst_KthVal(aVRes,0.5);
-       if (aMedErr> mMaxErrOK)
-       {
+
+    {
+        // Vector of residual, in pixel (* Focal
+        std::vector<double> aVRes = aCam.ListAngularProjResiudal(mSet23,true);
+        //  ordere from low to high, supress 3 lowest because
+        // they are intrisically 0 (Ransac), this may be important for low number of point
+     /*   for (const auto & aPair : mSet23.Pairs())
+        {
+           tREAL8 aRes = aCam.AngularProjResiudal(aPair,true) ;
+           aVRes.push_back(aRes);
+        }*/
+        std::sort(aVRes.begin(),aVRes.end());
+        std::reverse(aVRes.begin(),aVRes.end()); // reverse to supress 3 lowest val => RANSAC
+        for (int aK=0 ; aK<3 ; aK++)
+           aVRes.pop_back();
+         std::reverse(aVRes.begin(),aVRes.end());
+
+        tREAL8 aMedErr = Cst_KthVal(aVRes,0.5);
+
+        StdOut() << "MEDIAN-ERROR : " << aMedErr << "\n";
+        if (aMedErr> mMaxErrOK)
+        {
            StdOut() << " ============================================================" << std::endl;
            StdOut() << " median error on residual seems too High " << aMedErr << std::endl;
            StdOut() << " check data or eventutally change value of [MaxErr] (now =" << mMaxErrOK << ")" << std::endl;
            MMVII_INTERNAL_ASSERT_User(false,eTyUEr::eUnClassedError,"Space resection probably failed due to bad data");
-       }
+        }
     }
-     
 
-    // If we want to filter on residual 
-    if (aExpFilt )
-    {
-         cFilterMesIm aFMIM(mPhProj,mNameIm);
-         StdOut() <<   " =====  WORST RESIDUAL ============= " << std::endl;
-
-         tREAL8 aThShow = aVRes.at(std::max(0,int(aVRes.size()-5)));  // arbitray threshols for worst points
-	 for (const auto & aMes : mSetMes.MesImOfPt())
-	 {
-             if (! aMes.VMeasures().empty())
-	     {
-                 cPt2dr aPtIm  = aMes.VMeasures().at(0);
-	         cMes1Gnd3D      aGCP =  mSetMes.MesGCP().at(aMes.NumPt());
-
-	         tREAL8 aRes = aCam.AngularProjResiudal(cPair2D3D(aPtIm,aGCP.mPt)) * aCal->F();
-
-	         if (aRes>=aThShow)
-                 {			  
-                     StdOut() <<   " * Name=" << aGCP.mNamePt << " " << aRes << std::endl;
-		 }
-		 if (aRes>mThrsReject)
-                     AddOneReportCSV(mNameReport,{mNameIm,aGCP.mNamePt,ToStr(aRes)});
-
-                 aFMIM.AddInOrOut(aPtIm,aGCP.mNamePt,aRes < mThrsReject);
-	     }
-	 }
-         aFMIM.SetFinished();
-
-	 aFMIM.Save();
-	 aFMIM.SetMesImGCP().ExtractMes1Im(mSet23,mNameIm);
-    }
 
     if (mNbIterBundle)
     {
-         tREAL8 aF0 = aCal->F();
-         tREAL8 aRes0 = aCam.AvgSqResidual(mSet23);
-
          cCorresp32_BA aBA32(&aCam, mSet23);
          aBA32.Sys().SetFrozenFromPat(*aCal,".*",true);
 
-	 for (int aK=0 ; aK<mNbIterBundle  ; aK++)
+         std::vector<tREAL8> aVRes;
+         std::vector<tREAL8> aVRes0;
+
+         for (int aK=0 ; aK<mNbIterBundle  ; aK++)
+         {
+             if (mRobustEstim)
+             {
+                aVRes = aCam.ListAngularProjResiudal(mSet23,true);
+                if (aK==0)
+                    aVRes0 = aVRes;
+                EstimateParam(aVRes,mParamWeight);
+
+                for (auto & aPair : aBA32.SetCorresp().Pairs())
+                {
+                    tREAL8 aResidual = aCam.AngularProjResiudal(aPair,true);
+                    tREAL8 aW = 1.0 / (1.0 +std::pow(aResidual/mEstimSigma,mParamWeight.at(3)));
+                    if (aResidual > mEstimRejec)
+                        aW = 0.0;
+                    aPair.mWeight = aW;
+                }
+             }
+
              aBA32.OneIteration();
+         }
 
-         tREAL8 aF1 = aCal->F();
-         tREAL8 aRes1 = aCam.AvgSqResidual(mSet23);
-         tPoseR   aPose1 = aCam.Pose();
 
-	 if (mShowBundle)
-	 {
-	    StdOut() <<  "DFoc : " <<  aF1-aF0 << std::endl;
-	    StdOut() <<  "Pose DC=" <<  Norm2(aPose.Tr()-aPose1.Tr()) 
-	              <<   " DMat=" <<  aPose.Rot().Mat().L2Dist(aPose1.Rot().Mat()) << "\n";
-	    // StdOut() <<  "DPose : " <<  Norm2(aCam.Center()-aPose1.Tr()) << std::endl; // check conv, should be 0
-	    StdOut() <<  "Sq Residual : " << aRes0 << " => " << aRes1 << std::endl;
-	 }
-
+        if (mShowBundle)
+        {
+            for (auto aProp : {0.5,0.75,0.9,1.0})
+            {
+                StdOut() << " Err at " << aProp*100.0 << "%"
+                         << " " << Cst_KthVal(aVRes0,aProp)
+                         << " => " << Cst_KthVal(aVRes,aProp)
+                         << "\n";
+            }
+        }
     }
+
+    // =======   FILTER POINT FOR EXPORT =========================================================
+
+    bool  aExportFiltered = mPhProj.DPGndPt2D().DirOutIsInit();
+
+    if (aExportFiltered )
+    {
+         cFilterMesIm aFMIM(mPhProj,mNameIm);
+         StdOut() <<   " =====  WORST RESIDUAL ============= " << std::endl;
+         std::vector<tREAL8> aVRes = aCam.ListAngularProjResiudal(mSet23,true);
+         EstimateParam(aVRes,mParamFiltered);
+
+        // tREAL8 aThShow = aVRes.at(std::max(0,int(aVRes.size()-5)));  // arbitray threshols for worst points
+         for (const auto & aMes : mSetMes.MesImOfPt())
+         {
+             if (! aMes.VMeasures().empty())
+             {
+                 cPt2dr aPtIm  = aMes.VMeasures().at(0);
+                 cMes1Gnd3D      aGCP =  mSetMes.MesGCP().at(aMes.NumPt());
+
+                 tREAL8 aRes = aCam.AngularProjResiudal(cPair2D3D(aPtIm,aGCP.mPt),true) ;
+
+                 if (aRes>=mEstimRejec)
+                 {
+                     StdOut() <<   " * Name=" << aGCP.mNamePt << " " << aRes << " REJ=" << mEstimRejec << std::endl;
+                     AddOneReportCSV(mNameReport,{mNameIm,aGCP.mNamePt,ToStr(aRes)});
+                 }
+
+                 aFMIM.AddInOrOut(aPtIm,aGCP.mNamePt,aRes < mEstimRejec);
+            }
+         }
+         aFMIM.SetFinished();
+
+         aFMIM.Save();
+         aFMIM.SetMesImGCP().ExtractMes1Im(mSet23,mNameIm);
+    }
+
 
     auto aSysCoGCP = mPhProj.CurSysCoGCP(SVP::Yes,IO::In);
     if (aSysCoGCP)

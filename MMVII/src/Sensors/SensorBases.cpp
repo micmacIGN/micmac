@@ -62,12 +62,16 @@ tREAL8 cPixelDomain::DegreeVisibility(const cPt2dr & aP) const
 cSensorImage::cSensorImage(const std::string & aNameImage)  :
      mNameImage               (aNameImage),
      mEqColinearity           (nullptr),
-     mEqCIsInit               (false)
+     mEqCIsInit               (false),
+     mImage                   (nullptr),
+     mOwnsImage               (false)
 {
 }
 
 cSensorImage::~cSensorImage()
 {
+    if (mOwnsImage)
+        delete mImage;
 }
 
 
@@ -536,7 +540,20 @@ const cSensorCamPC * cSensorImage::UserGetSensorCamPC() const
     return const_cast<cSensorImage*>(this)->UserGetSensorCamPC();
 }
 
+cDataGenUnTypedIm<2> & cSensorImage::LoadImage()
+{
+    if (!mImage)
+    {
+        mImage = ReadIm2DGen(mNameImage);
+        mOwnsImage = true;
+    }
+    return *mImage;
+}
 
+bool cSensorImage::ImageIsLoaded() const
+{
+    return mImage;
+}
 
 /* ******************************************************* */
 /*                                                         */

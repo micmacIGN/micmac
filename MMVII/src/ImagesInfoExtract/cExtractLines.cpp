@@ -10,13 +10,13 @@ namespace MMVII
 
 /* ************************************************************************ */
 /*                                                                          */
-/*                       cExtractLines                                      */
+/*                       cExtractCurves                                     */
 /*                                                                          */
 /* ************************************************************************ */
 
 
 
-template <class Type> cExtractLines<Type>::cExtractLines(tIm anIm) :
+template <class Type> cExtractCurves<Type>::cExtractCurves(tIm anIm) :
        mSz         (anIm.DIm().Sz()),
        mIm         (anIm),
        mImMasqCont (mSz,nullptr,eModeInitImage::eMIA_Null),
@@ -28,14 +28,16 @@ template <class Type> cExtractLines<Type>::cExtractLines(tIm anIm) :
 {
 }
 
-template <class Type> cExtractLines<Type>::~cExtractLines()
+
+
+template <class Type> cExtractCurves<Type>::~cExtractCurves()
 {
     delete mHough;
     delete mTabG;
     delete mGrad;
 }
 
-template <class Type> void cExtractLines<Type>::SetHough
+template <class Type> void cExtractCurves<Type>::SetHough
                            (
                                 const cPt2dr & aMulTetaRho,
                                 tREAL8 aSigmTeta,
@@ -122,7 +124,14 @@ template <class Type> void cExtractLines<Type>::SetHough
      }
 }
 
-template <class Type> void cExtractLines<Type>::SetSobelAndMasq(eIsWhite isWhite,tREAL8 aRayMaxLoc,int aBorder,bool Show)
+template <class Type>
+    void cExtractCurves<Type>::SetSobelAndMasq
+         (
+            eIsWhite isWhite,
+            tREAL8 aRayMaxLoc,
+            int aBorder,
+            bool Show
+         )
 {
      // Create the data for storing gradient & init gradient
      mGrad = new cImGradWithN<Type>(mIm.DIm().Sz());
@@ -133,20 +142,38 @@ template <class Type> void cExtractLines<Type>::SetSobelAndMasq(eIsWhite isWhite
      SetGradAndMasq(eIsQuick::Yes,isWhite, aRayMaxLoc,aBorder,Show);
 }
 
-/*  The behaviour is not coherent with "SetSobelAndMasq" , to modify later probably, for now comment 
-     
-template <class Type>  void cExtractLines<Type>::SetDericheAndMasq(eIsWhite isWhite,tREAL8 aAlphaDerich,tREAL8 aRayMaxLoc,int aBorder,bool Show)
+
+
+/*  The behaviour is not coherent with "SetSobelAndMasq" , to modify later probably, for now comment */
+   // void SetDericheAndMasq(tREAL8 aAlphaDerich,tREAL8 aRayMaxLoc,int aBorder,bool Show=false);
+
+template <class Type>
+    void cExtractCurves<Type>::SetDericheAndMasq
+         (
+            tREAL8 aAlphaDerich,
+            tREAL8 aRayMaxLoc,
+            int    aBorder,
+            bool   Show
+          )
 {
      // Create the data for storing gradient & init gradient
      mGrad = new cImGradWithN<Type>(mIm.DIm().Sz());
 
      mGrad->SetDeriche(mIm.DIm(),aAlphaDerich);
 
-     SetGradAndMasq(eIsQuick::No,isWhite, aRayMaxLoc,aBorder,Show);
+     SetGradAndMasq(eIsQuick::No,eIsWhite::Yes,aRayMaxLoc,aBorder,Show);
 }
-*/
 
-template <class Type> void cExtractLines<Type>::SetGradAndMasq(eIsQuick isQuick,eIsWhite isWhite,tREAL8 aRayMaxLoc,int aBorder,bool Show)
+
+template <class Type>
+    void cExtractCurves<Type>::SetGradAndMasq
+         (
+            eIsQuick isQuick,
+            eIsWhite isWhite,
+            tREAL8 aRayMaxLoc,
+            int aBorder,
+            bool Show
+          )
 
 {
      // Create the data for storing gradient & init gradient
@@ -177,9 +204,9 @@ template <class Type> void cExtractLines<Type>::SetGradAndMasq(eIsQuick isQuick,
      for (const auto & aPix :  aRect)
      {
          aNbPt++;
-	 bool IsMaxLoc =    IsYes(isQuick)                                  ?
-		            mGrad->TabIsMaxLocDirGrad(aPix,*mTabG,IsYes(isWhite))  :
-			    mGrad->IsMaxLocDirGrad(aPix,aVecNeigh,1.0)      ;
+         bool IsMaxLoc =    IsYes(isQuick)                                            ?
+                               mGrad->TabIsMaxLocDirGrad(aPix,*mTabG,IsYes(isWhite))  :
+                               mGrad->IsMaxLocDirGrad(aPix,aVecNeigh,1.0)             ;
          if (IsMaxLoc)
          {
             mPtsCont.push_back(aPix);
@@ -198,12 +225,14 @@ template <class Type> void cExtractLines<Type>::SetGradAndMasq(eIsQuick isQuick,
  *     - background is initial image
  *     - point of contour are set to red with alpha transparency
  */
-template <class Type> cRGBImage cExtractLines<Type>::MakeImageMaxLoc(tREAL8 aAlpha)
+template <class Type> cRGBImage cExtractCurves<Type>::MakeImageMaxLoc(tREAL8 aAlpha)
 {
+      //StdOut()  << "MakeImageMaxLocMakeImageMaxLoc_n";getchar();
      cRGBImage aImV(mIm.DIm().Sz()); // init RGB with size
      for (const auto & aPix :  mImMasqCont.DIm())
      {
          aImV.SetGrayPix(aPix,mIm.DIm().GetV(aPix)); // transfer image
+         //aImV.SetGrayPix(aPix,128);
 	 // set contour 
          if (mImMasqCont.DIm().GetV(aPix))
          {
@@ -214,19 +243,19 @@ template <class Type> cRGBImage cExtractLines<Type>::MakeImageMaxLoc(tREAL8 aAlp
 }
 
 
-template <class Type> void  cExtractLines<Type>::MarqBorderMasq(size_t aFlag)
+template <class Type> void  cExtractCurves<Type>::MarqBorderMasq(size_t aFlag)
 {
     for (const auto & aPix : mDImMasq.Border(1))
        mDImMasq.GetReference_V(aPix) |= aFlag;
 }
 
-template <class Type> void  cExtractLines<Type>::UnMarqBorderMasq(size_t aFlag)
+template <class Type> void  cExtractCurves<Type>::UnMarqBorderMasq(size_t aFlag)
 {
     for (const auto & aPix : mDImMasq.Border(1))
        mDImMasq.GetReference_V(aPix) &= aFlag;
 }
 
-template <class Type> cDataIm2D<tU_INT1>&   cExtractLines<Type>::DImMasq() {return mDImMasq;}
+template <class Type> cDataIm2D<tU_INT1>&   cExtractCurves<Type>::DImMasq() {return mDImMasq;}
 
 
 cPt2dr NewPtRefined(const cDenseVect<tREAL8> &aSol,const cSegment2DCompiled<tREAL8> & aSeg0,tREAL8 aDeltaAbs)
@@ -236,7 +265,7 @@ cPt2dr NewPtRefined(const cDenseVect<tREAL8> &aSol,const cSegment2DCompiled<tREA
     return aSeg0.FromCoordLoc(cPt2dr(aX,aY));
 }
 
-template <class Type> void  cExtractLines<Type>::RefineLineInSpace(cHoughPS & aHPS)
+template <class Type> void  cExtractCurves<Type>::RefineLineInSpace(cHoughPS & aHPS)
 {
 // static int aCpt=0 ; aCpt++;
 // StdOut() << "\n\n RefineLineInSpacellll " << __LINE__ << " Cpt=" << aCpt << "\n";
@@ -373,13 +402,13 @@ template <class Type> void  cExtractLines<Type>::RefineLineInSpace(cHoughPS & aH
 
 
 
-template <class Type> cHoughTransform & cExtractLines<Type>::Hough()   {return *mHough;}
-template <class Type> cImGradWithN<Type> & cExtractLines<Type>::Grad() {return *mGrad;}
-template <class Type> const std::vector<cPt2di>& cExtractLines<Type>::PtsCont() const {return mPtsCont;}
+template <class Type> cHoughTransform & cExtractCurves<Type>::Hough()   {return *mHough;}
+template <class Type> cImGradWithN<Type> & cExtractCurves<Type>::Grad() {return *mGrad;}
+template <class Type> const std::vector<cPt2di>& cExtractCurves<Type>::PtsCont() const {return mPtsCont;}
 
 
 // =========================  INSTANCIATION ===============
 
-template class cExtractLines<tREAL4>;
+template class cExtractCurves<tREAL4>;
 
 };

@@ -15,6 +15,8 @@ double Cst_KthVal(const std::vector<double> &, double aProportion);
 template <class Type> Type Average(const Type * aTab,size_t aNb);
 template <class Type> Type Average(const std::vector<Type> &);
 
+double  IKthVal(std::vector<double> & aV, int aK);
+
 
 tREAL8 AngleFromRad(eTyUnitAngle);
 tREAL8 AngleFromRad(tREAL8 aAngInRad,eTyUnitAngle);
