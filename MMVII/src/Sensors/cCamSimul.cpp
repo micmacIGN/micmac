@@ -125,6 +125,7 @@ class cPSC_PB  //< cPS_CompPose Param Bench
        }
 };
 
+/// Make aq "pretty print" of line aY of matrice aMat
 void ShowMatL3(const cMatrix<tREAL8> & aMat,int aY)
 {
     for (int aX = 0 ; aX<aMat.Sz().x() ; aX++)
@@ -140,6 +141,7 @@ void ShowMatL3(const cMatrix<tREAL8> & aMat,int aY)
     }
 }
 
+/// Make a pretty print of full matric
 void ShowMatL3(const cMatrix<tREAL8> & aMat)
 {
     for (int aY = 0 ; aY<aMat.Sz().y() ; aY++)
@@ -733,17 +735,23 @@ void cCamSimul::AddCam(cPerspCamIntrCalib * aPC,bool SubVert)
 {
       cPt3dr aNewC = GenValideCenter(SubVert);
 
+      //  Axe K will point to the center of the scene
       cPt3dr aK = VUnit(mCenterGround - aNewC);
+      // generate random I orthog to K
       cPt3dr aI = cPt3dr::PRandUnitNonAligned(aK,1e-2);
+      // complete
       cPt3dr aJ = VUnit(aK ^aI);
-      aI = aJ ^aK;
+      aI = aJ ^aK; // Just in case
 
-
+      // we have now a rotation
       cRotation3D<tREAL8> aRot(M3x3FromCol(aI,aJ,aK),false);
 
+      // if we add a small noise to not have a perfect intersec
       aNewC += cPt3dr::PRandC() * mRandInterK;
+      // now we have a pose
       cIsometry3D<tREAL8> aPose(aNewC,aRot);
 
+      // now we have a Cam
       mListCam.push_back(new cSensorCamPC("Test",aPose,aPC));
 }
 

@@ -737,6 +737,8 @@ class cCamSimul : public cMemCheck
       static void BenchPoseRel2Cam(cTimerSegm * aTS,bool PerfInter,bool SubVert,bool Planar);
       void TestCam(cSensorCamPC * aCam) const;
 
+      const std::vector<cSensorCamPC *> & ListCam() const;
+
    private :
       /// Add a cam of given type by generating a random calib
       void AddCam(eProjPC aProj1,bool SubVert);
