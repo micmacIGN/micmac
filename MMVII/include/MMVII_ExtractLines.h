@@ -226,7 +226,7 @@ enum class eIsQuick
 
 template <class Type> bool IsYes(const Type & aVal) {return aVal==Type::Yes;}
 
-template <class Type> class  cExtractLines
+template <class Type> class  cExtractCurves
 {
       public :
           typedef  cIm2D<Type>      tIm;
@@ -234,14 +234,14 @@ template <class Type> class  cExtractLines
           static const size_t  TheFlagLine=2;
           static const size_t  TheFlagSuprLine=  0xFFFFFFFF ^ TheFlagLine;
 
-          cExtractLines(tIm anIm);  ///< constructor , memorize image
-          ~cExtractLines();
+          cExtractCurves(tIm anIm);  ///< constructor , memorize image
+          ~cExtractCurves();
 
           // isWhite is necessary for oriented test on max loc
 
 	  /// initialize the gradient
           void SetSobelAndMasq(eIsWhite,tREAL8 aRayMaxLoc,int aBorder,bool Show=false);
-          void SetDericheAndMasq(eIsWhite,tREAL8 aAlphaDerich,tREAL8 aRayMaxLoc,int aBorder,bool Show=false);
+          void SetDericheAndMasq(tREAL8 aAlphaDerich,tREAL8 aRayMaxLoc,int aBorder,bool Show=false);
 
 
 	  ///  Initialize the hough transform
@@ -260,7 +260,7 @@ template <class Type> class  cExtractLines
           cDataIm2D<tU_INT1>&   DImMasq(); ///< Accessor (for visu ?)
 
 
-      private :
+      protected :
           void SetGradAndMasq(eIsQuick Quick,eIsWhite isWhite,tREAL8 aRayMaxLoc,int aBorder,bool Show=false);
 
           cPt2di                mSz;        ///<  Size of the image
@@ -276,6 +276,7 @@ template <class Type> class  cExtractLines
           cPerspCamIntrCalib *  mCalib;         ///< (Optional) calibration for distorsion correction
           std::vector<cPt2di>   mPtsCont;      ///< List of point in mImMasqCont
 };
+
 
 
 /** Class for extracting a line arround a point, for now its very specialized in the extraction of
@@ -378,8 +379,6 @@ template <class Type> class cOptimSeg_ValueIm : public cOptimPosSeg
          const cDataIm2D<Type> & mDataIm;      ///<  Image on which it is computed
          tREAL8                    mTargetValue; ///<
 };
-
-
 
 
 };

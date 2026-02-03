@@ -76,7 +76,7 @@ cAppli_ClinoReport::cAppli_ClinoReport
 void cAppli_ClinoReport::ProcessOneCam(cSensorCamPC * aCam)
 {
    cPerspCamIntrCalib *  aCalib = aCam->InternalCalib();
-   const  cOneMesureClino * aMes =  mMesClino.MeasureOfImage(aCam->NameImage(),true); 
+   const  cOneMesureClino * aMes =  mMesClino.ClinoDeprecatedMeasureOfImage(aCam->NameImage()); 
    if (aMes==nullptr)
       return;
 

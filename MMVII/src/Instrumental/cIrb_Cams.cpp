@@ -17,18 +17,25 @@ namespace MMVII
 /* *************************************************************** */
 
 cIrbComp_Cam1::cIrbComp_Cam1() :
-  mCamPC (nullptr)
+  mCamPC (nullptr),
+  mAdoptCam (false)
 {
 }
 
+cIrbComp_Cam1::~cIrbComp_Cam1()
+{
+  if (mAdoptCam)
+     delete mCamPC;
+}
 
-void cIrbComp_Cam1::Init(cSensorCamPC * aCamPC)
+void cIrbComp_Cam1::Init(cSensorCamPC * aCamPC,bool Adopt)
 {
     if (mCamPC)
     {
         MMVII_INTERNAL_ERROR("Multiple init in cIrbComp_Cam1 for : " + mCamPC->NameImage());
     }
     mCamPC = aCamPC;
+    mAdoptCam = Adopt;
 }
 
 bool cIrbComp_Cam1::IsInit() const {return mCamPC!=nullptr;}
@@ -54,9 +61,9 @@ cIrbComp_CamSet::cIrbComp_CamSet(const cIrbComp_Block & aCompBlock) :
     mVCompPoses     (aCompBlock.SetOfCalibCams().NbCams())
 {
 }
-void cIrbComp_CamSet::AddImagePose(int anIndex,cSensorCamPC * aCamPC)
+void cIrbComp_CamSet::AddImagePose(int anIndex,cSensorCamPC * aCamPC,bool Adopt)
 {
-   mVCompPoses.at(anIndex).Init(aCamPC);
+   mVCompPoses.at(anIndex).Init(aCamPC,Adopt);
 }
 
 bool   cIrbComp_CamSet::HasPoseRel(size_t aK1,size_t aK2) const
@@ -102,12 +109,15 @@ cIrbCal_Cam1::cIrbCal_Cam1(int aNum,const std::string & aNameCal,const std::stri
      mSelIsPat      (true),
      mImSelect      (aPatImSel),
      mIsInit        (false),
-     mPoseInBlock   (nullptr)
+     mPoseInBlock   (nullptr),
+     mIntrCalib     (nullptr),
+     mCamInBloc     (nullptr)
 {
 }
 
 cIrbCal_Cam1::~cIrbCal_Cam1()
 {
+    delete mCamInBloc;
 }
 
 cIrbCal_Cam1::cIrbCal_Cam1()  :
@@ -201,7 +211,26 @@ void AddData(const  cAuxAr2007 & anAux,cIrbCal_Cam1 & aCam)
 }
 
 
+cPerspCamIntrCalib *  cIrbCal_Cam1::IntrCalib(const cPhotogrammetricProject * aPhProj)
+{
+   if (mIntrCalib==nullptr)
+   {
+       mIntrCalib = aPhProj->InternalCalibFromStdNameCalib(mNameCal);
+      //  StdOut() << " mIntrCalibmIntrCalib " << mIntrCalib->F() << "\n";
+   }
+   return mIntrCalib;
+}
 
+
+cSensorCamPC *        cIrbCal_Cam1::CamInBloc(const cPhotogrammetricProject * aPhProj)
+{
+    if (mCamInBloc==nullptr)
+    {
+        mCamInBloc = new cSensorCamPC(mNameCal,mPoseInBlock->Pose(),IntrCalib(aPhProj));
+    }
+    return mCamInBloc;
+    //return nullptr;
+}
 
 /* *************************************************************** */
 /*                                                                 */
@@ -341,6 +370,14 @@ int cIrbCal_CamSet::IndexCamFromNameCalib(const std::string& aNameCalib,bool SVP
 tPoseR cIrbCal_CamSet::PoseRel(size_t aK1,size_t aK2) const
 {
    return mVCams.at(aK1).PosBInSysA(mVCams.at(aK2));
+}
+
+cSensorCamPC *  cIrbCal_CamSet::CamInBloc(const cPhotogrammetricProject * aPhProj,const std::string & aNameIm)
+{
+    std::string aNameCal = aPhProj->StdNameCalibOfImage(aNameIm);
+    cIrbCal_Cam1 *  aCal = CamFromNameCalib(aNameCal);
+
+    return aCal->CamInBloc(aPhProj);
 }
 
 

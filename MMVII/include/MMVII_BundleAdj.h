@@ -43,7 +43,9 @@ class cCorresp32_BA
          ~cCorresp32_BA();
          void OneIteration();
          const cSet2D3D  & SetCorresp() const {return   mSetCorresp;}
-	 void SetFrozenVarOfPattern(const std::string & aPattern);
+         cSet2D3D  & SetCorresp()  {return   mSetCorresp;}
+
+         void SetFrozenVarOfPattern(const std::string & aPattern);
 
          cResolSysNonLinear<double> &   Sys();   ///< Solver
        protected :

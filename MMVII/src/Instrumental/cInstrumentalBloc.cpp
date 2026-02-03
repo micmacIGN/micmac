@@ -272,7 +272,7 @@ cIrbComp_TimeS &  cIrbComp_Block::DataOfTimeS(const std::string & aTS)
     return anIter->second;
 }
 
-void cIrbComp_Block::AddImagePose(cSensorCamPC * aCamPC,bool okImNotInBloc)
+void cIrbComp_Block::AddImagePose(cSensorCamPC * aCamPC,bool okImNotInBloc,bool Adopt)
 {
     // extract the name of the calibration 
     std::string aNameIm = aCamPC->NameImage();
@@ -297,19 +297,34 @@ void cIrbComp_Block::AddImagePose(cSensorCamPC * aCamPC,bool okImNotInBloc)
     cIrbComp_TimeS &  aDataTS =  DataOfTimeS(aTimeS);
 
     // StdOut() << " III=" << aNameIm << " CCC=" << aNameCal << " Ptr=" << aTimeS << "\n";
-    aDataTS.mSetCams.AddImagePose(aCInRBoI->Num(),aCamPC);
+    aDataTS.mSetCams.AddImagePose(aCInRBoI->Num(),aCamPC,Adopt);
 }
 
-void cIrbComp_Block::AddImagePose(const std::string & aNameIm,bool  okImNotInBloc)
+void cIrbComp_Block::AddImagePose(const std::string & aNameIm,bool  okImNotInBloc, bool usePoseOfCalib)
 {
- //   bool hasPose;
-    cSensorCamPC * aCamPC = PhProj().ReadCamPC(aNameIm,DelAuto::Yes,SVP::Yes);
+    cSensorCamPC * aCamPC = nullptr;
 
-  //  tPoseR aPose = PhProj().ReadPoseCamPC(aNameIm,&hasPose);
+
+    if (usePoseOfCalib)
+    {
+        aCamPC = mCalBlock->SetCams().CamInBloc(&PhProj(),aNameIm);
+        aCamPC = new cSensorCamPC(aNameIm,aCamPC->Pose(),aCamPC->InternalCalib());
+    }
+    else
+    {
+         aCamPC = PhProj().ReadCamPC(aNameIm,DelAuto::Yes,SVP::Yes);
+    }
+
     if (aCamPC!=0)
     {
-         AddImagePose(aCamPC,okImNotInBloc);
+         AddImagePose(aCamPC,okImNotInBloc,usePoseOfCalib);
     }
+}
+
+void cIrbComp_Block::AddImagesPoses(const std::vector<std::string> & aVecName,bool okImNotInBloc,bool usePoseOfCalib)
+{
+    for (const auto & aName : aVecName)
+        AddImagePose(aName,okImNotInBloc,usePoseOfCalib);
 }
 
 
@@ -734,8 +749,34 @@ void cIrbCal_Block::AvgSigma()
 }
 
 
+void cIrbCal_Block::ShowDescr(eTyInstr aType) const
+{
+    StdOut() << " ====Block " << mNameBloc << " TypInstr: " << E2Str(aType) << "====\n";
+    cWeightAv<tREAL8> aAvSigTr;
+    cWeightAv<tREAL8> aAvSigRot;
 
+    for (const auto & [aName,aDesc] : mDescrIndiv )
+    {
+        if (aDesc.Type()==eTyInstr::eCamera)
+        {
+           cIrb_SigmaInstr aSig = aDesc.Sigma();
+           aAvSigTr.Add(1.0,aSig.SigmaTr());
+           aAvSigRot.Add(1.0,aSig.SigmaRot());
 
+           StdOut() << "  *NameInsr=[" << aName << "]"
+                    <<" Sigmas =["
+                     << " Tr:" <<  aSig.SigmaTr()
+                     << " Rot:" << aSig.SigmaRot() << " Rad]"
+                     << "\n";
+        }
+    }
+    StdOut ()  << "    AVERAGE  "
+                <<" Sigmas =["
+               << " Tr:" <<  aAvSigTr.Average()
+               << " Rot:" << aAvSigRot.Average() << " Rad]"
+               << "\n";
+
+}
 
 };
 

@@ -51,28 +51,33 @@ void AddData(const  cAuxAr2007 & anAux, cOneMesureClino & aMesClino);
 class cSetMeasureClino
 {
        public :
-          cSetMeasureClino(const std::string& aPatMatch,const std::string &aPatReplace,const std::vector<std::string> & aVNames = {});
+        //  cSetMeasureClino(const std::string& aPatMatch,const std::string &aPatReplace,const std::vector<std::string> & aVNames = {});
+          cSetMeasureClino(const std::vector<std::string> & aVNames);
           cSetMeasureClino();
 
           void Add1Mesures(const cOneMesureClino &);
           void AddData(const  cAuxAr2007 & anAux);
 
-          std::string NameOfIm(const cOneMesureClino & ) const;
+        //   std::string NameOfIm(const cOneMesureClino & ) const;
 
 	  const std::vector<cOneMesureClino>&  SetMeasures() const;
           const std::vector<std::string> &     NamesClino() const;
           const  cOneMesureClino *  MeasureOfId(const std::string & anId,bool SVP=false) const;
-          const  cOneMesureClino *  MeasureOfImage(const std::string & aNameImage,bool SVP=false) const;
-	 
+
+          // will disapear, used only in deprecated code
+         std::string ClinoDeprecatedNameOfImage(const cOneMesureClino&) const;
+         const  cOneMesureClino * ClinoDeprecatedMeasureOfImage(const std::string & aNameIm) const;
+
 
           void SetNames(const  std::vector<std::string> &);
 
           void FilterByPatIdent(const std::string& aPat);
 
+          void Merge(const cSetMeasureClino&) ;
        private :
           std::vector<std::string>      mNamesClino;
-          std::string                   mPatMatch;
-          std::string                   mPatReplace;
+          // std::string                   mPatMatch;
+          // std::string                   mPatReplace;
           std::vector<cOneMesureClino>  mSetMeasures;
 };
 

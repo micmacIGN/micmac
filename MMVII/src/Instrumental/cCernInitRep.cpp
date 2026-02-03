@@ -224,7 +224,7 @@ void cAppli_CernInitRep::ProcessOneBloc(const std::vector<cSensorCamPC *> & aVPC
    const  cOneMesureClino & aMes = *  mMesClino.MeasureOfId(anId);  // Extract the set of clino mes of time
 
    // 
-   std::string aNameIm = mMesClino.NameOfIm(aMes); // Extract image  "Master" of clino measure
+   std::string aNameIm = mMesClino.ClinoDeprecatedNameOfImage(aMes); // Extract image  "Master" of clino measure
    cPerspCamIntrCalib *  aCalib = mPhProj.InternalCalibFromImage(aNameIm);  
 
    cSensorCamPC * aCamClino = nullptr;
