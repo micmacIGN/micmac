@@ -85,6 +85,7 @@
                <NbPixels> 1920 1080 </NbPixels>
             </V>
          </Pair>
+         <Pair>
             <K>"Blender1k"</K>
             <V>
                <Name>"Blender1k"</Name>

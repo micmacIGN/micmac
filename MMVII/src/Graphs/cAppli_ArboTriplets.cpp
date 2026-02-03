@@ -808,7 +808,6 @@ void cNodeArborTriplets::RefineSolutionGen()
     int aNbIter=mPMAT->NbIterBA();
     // image points weighting function
     tREAL8 aSigAtt = mPMAT->SigmaTPt();
-    //tREAL8 aThr = mPMAT->SigmaTPt()*mPMAT->FacElim();
     tREAL8 aFactElim = mPMAT->FacElim();
     std::vector<tREAL8> aThrRange({aSigAtt*aFactElim,aSigAtt*5});
     tREAL8 aDeltaThr=aThrRange[0]-aThrRange[1];
@@ -899,7 +898,7 @@ void cNodeArborTriplets::RefineSolutionGen()
 
         // intersect tie-points in 3D
         for (auto & aPair : aTPts.Pts())
-            MakePGround(aPair,aVSens); // MakePGroundFromBundles(aPair,aVSens);
+            MakePGroundFromBundles(aPair,aVSens); //MakePGround(aPair,aVSens); //
 
         /* W(R) =
                0 if R>Thrs
@@ -908,7 +907,7 @@ void cNodeArborTriplets::RefineSolutionGen()
 
         tREAL8 aThr = aDeltaThr*(1 - double(aIter)/(aNbIter-1)) + aThrRange[1]; //dynamic, per-iteration thresholding
         //StdOut() << "aThr=" << aThr << ", Start=" << aThrRange[0] << ", End=" << aThrRange[1] << std::endl;
-        cStdWeighterResidual aTPtsW (1.0,aSigAtt,aThr,2.0);// (1.0,50.0,1000.0,1.0) (1,aSigAtt,aThr,2); residual fun for image points
+        cStdWeighterResidual aTPtsW (1.0,aSigAtt,aThr,2.0);// (1.0,50.0,1000.0,1.0) residual fun for image points
 
         tREAL8 aMaxRes=0;
         int aNumAllTiePts=0;
@@ -941,8 +940,10 @@ void cNodeArborTriplets::RefineSolutionGen()
                 {
                     size_t aKImSorted = aConfig.at(aKIm);
 
-                    const cPt2dr aPIm = aVals.mVPIm.at(aKPts*aNbIm+aKIm);
-                    const cPt3dr aPBun  = aVals.mVPBun.at(aKPts*aNbIm+aKIm);
+                    //const cPt2dr aPIm = aVals.mVPIm.at(aKPts*aNbIm+aKIm);
+                    const cPt3dr aPBun (aVals.mVPIm.at(aKPts*aNbIm+aKIm).x(),
+                                        aVals.mVPIm.at(aKPts*aNbIm+aKIm).y(),
+                                        aVals.mVPZ.at(aKPts*aNbIm+aKIm) ) ;
                     cSensorCamPC* aCam = aVCams.at(aKImSorted);
 
                     // compute u,v orthogonal to bundle
@@ -955,18 +956,28 @@ void cNodeArborTriplets::RefineSolutionGen()
                     }
 
                     // handle visibility
-                    // change to DegreeVisibility which works on pts
                     //
-                    if (aCam->IsVisibleOnImFrame(aPIm) && aCam->IsVisible(aP3D))
+                    //if (aCam->IsVisibleOnImFrame(aPIm) && aCam->IsVisible(aP3D))
+                    if (aCam->DegreeVisibility(aP3D) >0.0)
                     {
+                        //cPt3dr aPCam = Pt_W2L(aP);
+                        //cPt2dr(aPCam.x()/aPCam.z(),aPCam.y()/aPCam.z());
 
-                        cPt2dr aResidual = aPIm - aCam->Ground2Image(aP3D);
+                        //cPt2dr aResidual = aPIm - aCam->Ground2Image(aP3D);
+                        cPt3dr aPBunPred = aCam->Pt_W2L(aP3D);
+                        aPBunPred.x() /= aPBunPred.z();
+                        aPBunPred.y() /= aPBunPred.z();
+                        aPBunPred.z() = 1.0;
+                        cPt2dr aResidual { aCal->F() * (aPBun.x() - aPBunPred.x()),
+                                           aCal->F() * (aPBun.y() - aPBunPred.y())};
                         tREAL8 aResNorm = Norm2(aResidual);
 
                         tREAL8 aWeight = aTPtsW.SingleWOfResidual(aResidual);
-                        //StdOut() << aCam->Center() << " " << aCam->Pose().Rot().ToWPK() << std::endl;
-                        //StdOut() << "RRRR " << aResidual << " W=" << aWeight << ", " << aPIm
-                        //         << ", 3D=" << aP3D << "\n";
+                        StdOut() << "RRRR " << aResidual << " W=" << aWeight << ", "
+                                 << ", 3D=" << aP3D <<  " "
+                                 << aCam->DegreeVisibility(aPBun) << " "
+                                 << aPBun << " "
+                                 << aPBunPred << "\n";
 
 
                         cCalculator<double> * aEqCol =  aVEqCol.at(aKIm);
@@ -974,7 +985,7 @@ void cNodeArborTriplets::RefineSolutionGen()
 
                         // add observations:
                         //    u,v vectors and focal
-                        //             (and rot init implicitly in PushOwnObsColinearity)
+                        //    (rot init aded implicitly in PushOwnObsColinearity)
                         std::vector<double> aVObs;
                         aVObs.push_back(aVecConfUV.at(aConfigNum).at(aKPts*aNbIm+aKIm).first.x());  //ux
                         aVObs.push_back(aVecConfUV.at(aConfigNum).at(aKPts*aNbIm+aKIm).first.y());  //uy
@@ -988,7 +999,7 @@ void cNodeArborTriplets::RefineSolutionGen()
                         aCam->PushOwnObsColinearity(aVObs,aP3D);
 
                         std::vector<int> aVIndGlob = {-1,-2,-3};  // index of unknown, temporary
-                        for (auto & anObj : aCam->GetAllUKPose())  // GetAllUK; now add sensor unknowns (no calib)
+                        for (auto & anObj : aCam->GetAllUKPose())  // now add unknowns for sensor's extrinsics (no calib)
                         {
                             anObj->PushIndexes(aVIndGlob);
                         }
@@ -1004,7 +1015,7 @@ void cNodeArborTriplets::RefineSolutionGen()
                             if (aMaxRes<aResNorm)
                                 aMaxRes=aResNorm;
                         }
-                    }//else StdOut() << "some cam\n" << "not vis " << aPIm << std::endl;
+                    }//else StdOut() << "some cam\n" << "not vis " << aPIm << aCam->IsVisibleOnImFrame(aPIm) << " " << aCam->IsVisible(aP3D) << std::endl;
                     aNumAllTiePts++;
                 }
 
@@ -1516,8 +1527,8 @@ void cMakeArboTriplet::InitTPtsStruct(const std::string& aFolder, std::vector<st
         int NbPts = aVals.mVPIm.size()/NbIm;
 
         // check that input points are not bundles
-        MMVII_INTERNAL_ASSERT_medium(aVals.mVPBun.size()==0,"Observations are already bundles");
-        aVals.mVPBun.resize(NbIm*NbPts);//aVals.mVPZ.resize(NbIm*NbPts);
+        MMVII_INTERNAL_ASSERT_medium(aVals.mVPZ.size()==0,"Observations are already bundles");
+        aVals.mVPZ.resize(NbIm*NbPts); //aVals.mVPBun.resize(NbIm*NbPts);
 
         // for every image
         for (int aKIm=0; aKIm<NbIm; aKIm++)
@@ -1541,9 +1552,12 @@ void cMakeArboTriplet::InitTPtsStruct(const std::string& aFolder, std::vector<st
             // update vector of observation in tie-point structure
             for (int aKObs=0; aKObs<NbPts; aKObs++)
             {
-                aVals.mVPBun.at(aKIm*NbPts+aKObs) = cPt3dr(aOutBundles[aKObs].x(),
-                                                           aOutBundles[aKObs].y(),
-                                                           aOutBundles[aKObs].z());
+                //aVals.mVPBun.at(aKIm*NbPts+aKObs) = cPt3dr(aOutBundles[aKObs].x(),
+                //                                           aOutBundles[aKObs].y(),
+                //                                           aOutBundles[aKObs].z());
+                aVals.mVPIm.at(aKIm*NbPts+aKObs) = cPt2dr(aOutBundles[aKObs].x(),
+                                                              aOutBundles[aKObs].y()),
+                aVals.mVPZ.at(aKIm*NbPts+aKObs) = aOutBundles[aKObs].z();
             }
         }
 
