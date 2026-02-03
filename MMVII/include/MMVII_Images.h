@@ -130,6 +130,12 @@ template <> inline  bool cPixBox<4>::InsideBL(const cPtxd<double,4> & aP) const
           && (aP.t() >= tBox::mP0.t()) &&  ((aP.t()+1) <  tBox::mP1.t())
     ;
 }
+template <> inline  bool cPixBox<5>::InsideBL(const cPtxd<double,5> & aP) const
+{
+   // need it for linking reason, but not sure it will ever used, to see
+   MMVII_INTERNAL_ERROR("No cPixBox<5>::InsideBL");
+   return false;
+}
 
 
 
@@ -287,6 +293,18 @@ template <> inline cPixBoxIterator<3> &  cPixBoxIterator<3>::operator ++()
     return *this;
 }
 
+template <> inline cPixBoxIterator<4> &  cPixBoxIterator<4>::operator ++() 
+{
+   // need it for linking reason, but not sure it will ever used, to see
+   MMVII_INTERNAL_ERROR("No cPixBoxIterator<4>::operator ++");
+   return *this;
+}
+template <> inline cPixBoxIterator<5> &  cPixBoxIterator<5>::operator ++() 
+{
+   // need it for linking reason, but not sure it will ever used, to see
+   MMVII_INTERNAL_ERROR("No cPixBoxIterator<4>::operator ++");
+   return *this;
+}
 
 
 ///  Abstract class allowing to manipulate images independanlty of their type

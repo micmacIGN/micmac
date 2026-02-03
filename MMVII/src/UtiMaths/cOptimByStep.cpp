@@ -128,6 +128,8 @@ template <const int Dim> bool cOptimByStep<Dim>::DoOneStep(tREAL8 aStep)
 template class cOptimByStep<1>;
 template class cOptimByStep<2>;
 template class cOptimByStep<3>;
+template class cOptimByStep<4>;
+template class cOptimByStep<5>;
 
 
 
