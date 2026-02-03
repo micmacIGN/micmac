@@ -460,6 +460,60 @@ float cStaticLidarImporter::LocalPhiToLineApprox(float aPhi) const
     return (aPhi - mPhiStart) / mPhiStep;
 }
 
+void cStaticLidarImporter::decimXY(const cPt2di & aDecimXY)
+{
+    if (aDecimXY==cPt2di(1,1))
+        return;
+
+    MMVII_INTERNAL_ASSERT_tiny(HasRowCol(),"Error: ComputeRotInput2Raster needs row/col");
+
+    size_t aNewNbPts = mVectPtsTPD.size() / aDecimXY.x() / aDecimXY.y() + 1; // ???
+    std::vector<int> aNewVectPtsLine(aNewNbPts);
+    std::vector<int> aNewVectPtsCol(aNewNbPts);
+    std::vector<cPt3dr> aNewVectPtsXYZ(aNewNbPts);
+    std::vector<tREAL8> aNewVectPtsIntens(aNewNbPts);
+    std::vector<cPt3dr> aNewVectPtsTPD(aNewNbPts);
+    size_t j = 0;
+    for (size_t i=0; i<mVectPtsTPD.size(); ++i)
+    {
+        if (((mVectPtsLine[i] % aDecimXY.y()) == 0)
+            && ((mVectPtsCol[i] % aDecimXY.x()) == 0))
+        {
+            aNewVectPtsLine[j] = mVectPtsLine[i] / aDecimXY.y();
+            aNewVectPtsCol[j] = mVectPtsCol[i] / aDecimXY.x();
+            aNewVectPtsXYZ[j] = mVectPtsXYZ[i];
+            aNewVectPtsIntens[j] = mVectPtsIntens[i];
+            aNewVectPtsTPD[j] = mVectPtsTPD[i];
+
+            if (j<10)
+            {
+                std::cout<<i<<" "<<j<<" "<<aNewVectPtsLine[j]<<" "<<mVectPtsLine[i]<<" "<<aDecimXY.y()
+                          <<" "<<aNewVectPtsCol[j]<<" "<<mVectPtsCol[i]<<" "<<aDecimXY.x()<<"\n";
+            }
+            ++j;
+        }
+    }
+    StdOut() << "decim " <<  mVectPtsTPD.size() << " " << aNewNbPts << " " << j << "\n";
+    StdOut() << "avant " <<  mThetaStep << " " << mPhiStep << " " << "\n";
+    MMVII_INTERNAL_ASSERT_tiny(aNewNbPts==j,"Error in decimation");
+
+    mThetaStep *= aDecimXY.x();
+    mPhiStep *= aDecimXY.y();
+
+    mNbCol /= aDecimXY.x();
+    mNbLine /= aDecimXY.y();
+
+    std::swap(aNewVectPtsLine, mVectPtsLine);
+    std::swap(aNewVectPtsCol, mVectPtsCol);
+    std::swap(aNewVectPtsXYZ, mVectPtsXYZ);
+    std::swap(aNewVectPtsIntens, mVectPtsIntens);
+    std::swap(aNewVectPtsTPD, mVectPtsTPD);
+
+    StdOut() << "après " <<  mThetaStep << " " << mPhiStep << " " << "\n";
+    StdOut() << "=> " <<  mVectPtsTPD.size() << "\n";
+}
+
+
 void cStaticLidarImporter::ComputeAgregatedAngles()
 {
     mVectPhisCol.resize(mNbLine, 0.);

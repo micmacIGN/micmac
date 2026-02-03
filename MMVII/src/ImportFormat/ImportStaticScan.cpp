@@ -55,6 +55,7 @@ private :
     int                      mNbPatches;
     std::string              mPoseXYZFilename;
     tREAL8                   mSigma;              ///< in m
+    cPt2di                   mDecimXY;            ///< skip one point out of mDecimXY in x and y
 
     // data
     tPoseR                   mForcedPose;
@@ -75,6 +76,7 @@ cAppli_ImportStaticScan::cAppli_ImportStaticScan(const std::vector<std::string> 
     mMaskBufferSteps(2.),
     mNbPatches      (1000),
     mSigma          (0.001),
+    mDecimXY        (1,1),
     mForcedPose     (tPoseR::Identity()),
     mPhiStepApprox  (NAN)
 {
@@ -103,6 +105,7 @@ cCollecSpecArg2007 & cAppli_ImportStaticScan::ArgOpt(cCollecSpecArg2007 & anArgO
            << AOpt2007(mNbPatches,"NbPatches","Approx nb patches to make",{{eTA2007::HDV}})
            << AOpt2007(mSigma,"Sigma","Initial sigma of measurements (in m)",{{eTA2007::HDV}})
            << AOpt2007(mPoseXYZFilename,"PoseXYZ","Set initial pose from a Comp3D .xyz file",{{eTA2007::HDV, eTA2007::FileAny}})
+           << AOpt2007(mDecimXY,"DecimXY","Keep one point out of DecimXY, in line and col",{{eTA2007::HDV}})
         ;
 }
 
@@ -289,8 +292,10 @@ void cAppli_ImportStaticScan::computeLineCol()
     mSL_importer.checkLineCol();
 }
 
+
 void cAppli_ImportStaticScan::computeAngStartStep()
 {
+    std::cout<<mSL_importer.mVectPtsTPD.size()<<"\n";
     tREAL8 aMinAngToZenith = 0.1;
     if (mSL_importer.HasRowCol())
     {
@@ -311,6 +316,7 @@ void cAppli_ImportStaticScan::computeAngStartStep()
                         mSL_importer.mThetaStep = (aPtAng.x()-a1stPtAng.x())/(mSL_importer.mVectPtsCol[i]-mSL_importer.mVectPtsCol[a1stPti]);
                         mSL_importer.mPhiStart = a1stPtAng.y() - mSL_importer.mPhiStep * mSL_importer.mVectPtsLine[a1stPti];
                         mSL_importer.mThetaStart = a1stPtAng.x() - mSL_importer.mThetaStep * mSL_importer.mVectPtsCol[a1stPti];
+                        StdOut() << "computeAngStartStep " <<  mSL_importer.mThetaStep << " " << mSL_importer.mPhiStep << " " << "\n";
                         break;
                     }
                 }
@@ -331,6 +337,7 @@ void cAppli_ImportStaticScan::computeAngStartStep()
                     mSL_importer.mThetaStep = (a2ndPtAng.x()-a1stPtAng.x())/(mSL_importer.mVectPtsCol[i]-mSL_importer.mVectPtsCol[a1stPti]);
                     mSL_importer.mPhiStart = a1stPtAng.y() - mSL_importer.mPhiStep * mSL_importer.mVectPtsLine[a1stPti];
                     mSL_importer.mThetaStart = a1stPtAng.x() - mSL_importer.mThetaStep * mSL_importer.mVectPtsCol[a1stPti];
+                    StdOut() << "computeAngStartStep2 " <<  mSL_importer.mThetaStep << " " << mSL_importer.mPhiStep << " " << "\n";
                     StdOut() << "i1 i2: " << a1stPti << " " << i << ", "
                              << mSL_importer.mVectPtsCol[a1stPti] << " " << mSL_importer.mVectPtsLine[a1stPti] << " "
                              << mSL_importer.mVectPtsCol[i] << " " << mSL_importer.mVectPtsLine[i] << "\n";
@@ -619,6 +626,7 @@ CT197	3.580	-3.306	5.238	0.001
 int cAppli_ImportStaticScan::Exe()
 {
     mPhProj.FinishInit();
+    MMVII_INTERNAL_ASSERT_tiny((mDecimXY.x()>0) && (mDecimXY.y()>0),"Incorrect Decim argument "+ToStr(mDecimXY));
 
     mSL_importer.read(mNameFile, false, mForceStructured, mStrInput2TSL);
 
@@ -649,6 +657,9 @@ int cAppli_ImportStaticScan::Exe()
 
     estimatePhiStep();
     computeLineCol();
+    mSL_importer.decimXY(mDecimXY);
+    mThetaStepApprox *= mDecimXY.x();
+    mPhiStepApprox *= mDecimXY.y();
     computeAngStartStep(); // best results when having line col
 
     exportThetas("thetas_before.txt", 20, false);
@@ -747,6 +758,7 @@ int cAppli_ImportStaticScan::Exe()
     //find F: scale from angle to pixels
     tREAL8 aFy = 1./fabs(mSL_importer.mPhiStep); //TODO: add polynomial disto for different angular steps
 
+    StdOut()<<"Angular steps: "<<fabs(mSL_importer.mPhiStep) << " " << fabs(mSL_importer.mThetaStep)<<"\n";
     MMVII_INTERNAL_ASSERT_tiny(fabs((fabs(mSL_importer.mPhiStep)-fabs(mSL_importer.mThetaStep))/mSL_importer.mPhiStep)<1e-2,
                                "Error: different steps in theta and phi are not supported yet!");
 
