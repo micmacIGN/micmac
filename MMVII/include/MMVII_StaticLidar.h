@@ -36,6 +36,7 @@ public:
     bool HasSpherical() const {return mHasSpherical;}
     bool HasRowCol() const {return mHasRowCol;}
     bool NoMiss() const {return mNoMiss;}
+    bool AllPointsReturn() const {return mAllPointsReturn;}
     bool IsStructured() const {return mIsStrucured;}
     int NbCol() const {return mNbCol;}
     int NbLine() const {return mNbLine;}
@@ -46,6 +47,7 @@ public:
     tREAL8 DistMinToExist() const {return mDistMinToExist;}
     tPoseR ReadPose() const { return mReadPose;}
     bool checkLineCol(); // verify that mMaxCol/mMaxLine ar compatible with mVectPtsLine/mVectPtsCol
+    void decimXY(const cPt2di & aDecim);
     const cRotation3D<tREAL8> & RotInput2TSL() const { return mRotInput2TSL; }
     const cRotation3D<tREAL8> & RotInput2Raster() const { return mRotInput2Raster; }
     std::pair<tREAL8,tREAL8> AvgDistAndNbValid() const; //< return average dist for valid points, and number of valid points
@@ -78,7 +80,8 @@ protected:
     bool mHasSpherical; //< in original read data
     bool mHasRowCol;    //< in original read data
 
-    bool mNoMiss; // seems to be full
+    bool mNoMiss; // seems to be full (even if some points are (0,0,0)
+    bool mAllPointsReturn; // some points are (0,0,0) => no angle!
     bool mIsStrucured;
     tPoseR mReadPose;
     tREAL8 mDistMinToExist;
