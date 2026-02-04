@@ -39,39 +39,39 @@ extern cSpecMMVII_Appli  TheSpec_TiePConv;
 extern cSpecMMVII_Appli  TheSpec_ToTiePMul;
 extern cSpecMMVII_Appli  TheSpec_PseudoIntersect;
 extern cSpecMMVII_Appli  TheSpecEpipGenDenseMatch;
-extern cSpecMMVII_Appli  TheSpecEpipDenseMatchEval; 
+extern cSpecMMVII_Appli  TheSpecEpipDenseMatchEval;
 extern cSpecMMVII_Appli  TheSpecGenSymbDer;
 extern cSpecMMVII_Appli  TheSpecFormatTDEDM_WT;  // Wu Teng
 extern cSpecMMVII_Appli  TheSpecFormatTDEDM_MDLB; // Middleburry
 extern cSpecMMVII_Appli  TheSpecTestHypStep; // Middleburry
-extern cSpecMMVII_Appli  TheSpecExtractLearnVecDM; 
-extern cSpecMMVII_Appli  TheSpecCalcHistoCarac; 
-extern cSpecMMVII_Appli  TheSpecCalcHistoNDim; 
-extern cSpecMMVII_Appli  TheSpecFillCubeCost; 
-extern cSpecMMVII_Appli  TheSpecMatchMultipleOrtho; 
-extern cSpecMMVII_Appli  TheSpecDMEvalRef; 
-extern cSpecMMVII_Appli  TheSpecGenCodedTarget; 
-extern cSpecMMVII_Appli  TheSpecExtractCircTarget; 
-extern cSpecMMVII_Appli  TheSpecExtractCodedTarget; 
-extern cSpecMMVII_Appli  TheSpecExtractCheckBoardTarget; 
-extern cSpecMMVII_Appli  TheSpecSimulCodedTarget; 
-extern cSpecMMVII_Appli  TheSpecSimulSphere; 
-extern cSpecMMVII_Appli  TheSpecDensifyRefMatch; 
-extern cSpecMMVII_Appli  TheSpecCompletUncodedTarget; 
-extern cSpecMMVII_Appli  TheSpecCloudClip; 
-extern cSpecMMVII_Appli  TheSpec_MMVII_CloudImProj; 
-extern cSpecMMVII_Appli  TheSpecMeshDev; 
-extern cSpecMMVII_Appli  TheSpecGenMeshDev; 
-extern cSpecMMVII_Appli  TheSpecTestCovProp; 
-extern cSpecMMVII_Appli  TheSpec_OriConvV1V2; 
-extern cSpecMMVII_Appli  TheSpec_OriUncalibSpaceResection; 
-extern cSpecMMVII_Appli  TheSpec_OriCalibratedSpaceResection; 
-extern cSpecMMVII_Appli  TheSpec_OriCheckGCPDist; 
-extern cSpecMMVII_Appli  TheSpec_OriRel2Im; 
-extern cSpecMMVII_Appli  TheSpecMeshCheck; 
-extern cSpecMMVII_Appli  TheSpecProMeshImage; 
-extern cSpecMMVII_Appli  TheSpecMeshImageDevlp; 
-extern cSpecMMVII_Appli  TheSpecRadiom2ImageSameMod; 
+extern cSpecMMVII_Appli  TheSpecExtractLearnVecDM;
+extern cSpecMMVII_Appli  TheSpecCalcHistoCarac;
+extern cSpecMMVII_Appli  TheSpecCalcHistoNDim;
+extern cSpecMMVII_Appli  TheSpecFillCubeCost;
+extern cSpecMMVII_Appli  TheSpecMatchMultipleOrtho;
+extern cSpecMMVII_Appli  TheSpecDMEvalRef;
+extern cSpecMMVII_Appli  TheSpecGenCodedTarget;
+extern cSpecMMVII_Appli  TheSpecExtractCircTarget;
+extern cSpecMMVII_Appli  TheSpecExtractCodedTarget;
+extern cSpecMMVII_Appli  TheSpecExtractCheckBoardTarget;
+extern cSpecMMVII_Appli  TheSpecSimulCodedTarget;
+extern cSpecMMVII_Appli  TheSpecSimulSphere;
+extern cSpecMMVII_Appli  TheSpecDensifyRefMatch;
+extern cSpecMMVII_Appli  TheSpecCompletUncodedTarget;
+extern cSpecMMVII_Appli  TheSpecCloudClip;
+extern cSpecMMVII_Appli  TheSpec_MMVII_CloudImProj;
+extern cSpecMMVII_Appli  TheSpecMeshDev;
+extern cSpecMMVII_Appli  TheSpecGenMeshDev;
+extern cSpecMMVII_Appli  TheSpecTestCovProp;
+extern cSpecMMVII_Appli  TheSpec_OriConvV1V2;
+extern cSpecMMVII_Appli  TheSpec_OriUncalibSpaceResection;
+extern cSpecMMVII_Appli  TheSpec_OriCalibratedSpaceResection;
+extern cSpecMMVII_Appli  TheSpec_OriCheckGCPDist;
+extern cSpecMMVII_Appli  TheSpec_OriRel2Im;
+extern cSpecMMVII_Appli  TheSpecMeshCheck;
+extern cSpecMMVII_Appli  TheSpecProMeshImage;
+extern cSpecMMVII_Appli  TheSpecMeshImageDevlp;
+extern cSpecMMVII_Appli  TheSpecRadiom2ImageSameMod;
 extern cSpecMMVII_Appli  TheSpecRadiomCreateModel;
 extern cSpecMMVII_Appli  TheSpecTopoComp;
 extern cSpecMMVII_Appli  TheSpecGenerateEncoding;
@@ -103,10 +103,10 @@ extern cSpecMMVII_Appli  TheSpec_TiePReport;
 extern cSpecMMVII_Appli  TheSpec_SegImReport;
 extern cSpecMMVII_Appli  TheSpec_PoseCmpReport;
 extern cSpecMMVII_Appli  TheSpec_BlockCamInit;   // RIGIDBLOC
-extern cSpecMMVII_Appli  TheSpec_BlocReport;   
-extern cSpecMMVII_Appli  TheSpec_ClinoReport;   
-extern cSpecMMVII_Appli  TheSpec_CernInitRep;   
-						
+extern cSpecMMVII_Appli  TheSpec_BlocReport;
+extern cSpecMMVII_Appli  TheSpec_ClinoReport;
+extern cSpecMMVII_Appli  TheSpec_CernInitRep;
+
 extern cSpecMMVII_Appli  TheSpec_ClinoInit;
 extern cSpecMMVII_Appli  TheSpecRename;
 extern cSpecMMVII_Appli  TheSpec_V2ImportCalib;
@@ -138,7 +138,7 @@ extern cSpecMMVII_Appli  TheSpec_ArboTriplet;
 
 extern cSpecMMVII_Appli  TheSpecAppliBenchAPBI;
 extern cSpecMMVII_Appli  TheSpec_EpipGeom;
-
+extern cSpecMMVII_Appli  TheSpec_SimulEpip;
 };
 
 #endif  //  _MMVII_DeclareAllCmd_H_

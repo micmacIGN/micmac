@@ -678,6 +678,17 @@ cCamSimul::cCamSimul() :
 {
 }
 
+cCamSimul::cCamSimul(const cPt3dr& aCenterGround, double aProfMin, double aProfMax) :
+    mCenterGround (aCenterGround),
+    mProfMin      (aProfMin),
+    mProfMax      (aProfMax),
+    mBsHMin       (0.1),
+    mBsHMax       (0.5),
+    mRandInterK   (0.1)
+{
+}
+
+
 cCamSimul::~cCamSimul()
 {
     DeleteAllAndClear(mListCam);
@@ -685,7 +696,7 @@ cCamSimul::~cCamSimul()
 }
 
 bool cCamSimul::ValidateCenter(const cPt3dr & aP2) const
-{ 
+{
     if (mListCam.empty()) return true;
 
     tREAL8 aTetaMin = 1e10;
@@ -747,6 +758,11 @@ void cCamSimul::AddCam(cPerspCamIntrCalib * aPC,bool SubVert)
       mListCam.push_back(new cSensorCamPC("Test",aPose,aPC));
 }
 
+const std::vector<cSensorCamPC *> &cCamSimul::listCam() const
+{
+    return mListCam;
+}
+
 void cCamSimul::AddCam(eProjPC aProj,bool SubVert)
 {
     // 1 => means Deg of direct dist is 2 (dir inverse is 5,1,1)
@@ -768,16 +784,16 @@ cCamSimul * cCamSimul::Alloc2VIewTerrestrial(eProjPC aProj1,eProjPC aProj2,bool 
 
 void cCamSimul::TestCam(cSensorCamPC * aCam) const
 {
-	StdOut() << "CC " << aCam->Center()  << " CG=" << mCenterGround << std::endl;
+    StdOut() << "CC " << aCam->Center()  << " CG=" << mCenterGround << std::endl;
 
 cPt3dr aV = aCam->Center() - mCenterGround;
 
 StdOut()  << " I " << Cos(aV,aCam->AxeI())
           << " J " << Cos(aV,aCam->AxeI())
           << " K " << Cos(aV,aCam->AxeK())
-	  << " \n";
+      << " \n";
 
-	StdOut() << "Vis " <<  aCam->IsVisible(mCenterGround) << std::endl;
+    StdOut() << "Vis " <<  aCam->IsVisible(mCenterGround) << std::endl;
 }
 
 void cCamSimul::BenchPoseRel2Cam
@@ -871,7 +887,7 @@ void cCamSimul::BenchPoseRel2Cam
                   cMatEssential aMatNoise(aSetD,*aSysL1,aKMax);
 
                   delete aSysL1;
-	    
+
                  if (0)
                  {
                      StdOut() << "Cpt=" << aCpt
@@ -888,12 +904,12 @@ void cCamSimul::BenchPoseRel2Cam
                       aCptPbL1++;
                }
                delete aCamSim;
-	       if (BUGME) 
-	       {
+           if (BUGME)
+           {
 
                    StdOut() << "***************************************************" << std::endl;
                    getchar();
-	       }
+           }
             }
         }
     }

@@ -19,7 +19,7 @@ cSpecMMVII_Appli::cSpecMMVII_Appli
     tMMVII_AppliAllocator anAlloc,
     const std::string & aComment,
     const tVaF     & aFeatures,
-    const tVaDT    & aInputs,   
+    const tVaDT    & aInputs,
     const tVaDT    & aOutputs  ,
     const std::string & aNameFile
 
@@ -70,7 +70,7 @@ int cSpecMMVII_Appli::AllocExecuteDestruct(const std::vector<std::string> & aVAr
         anAppli->InitParam(nullptr);
 
         //  MPD : put it after InitParam, else seed modif does not work
-        //  Force random creation, just after allocation, because it may need 
+        //  Force random creation, just after allocation, because it may need
         if (aCptCallIntern==1)
         {
            OpenRandom();
@@ -85,7 +85,7 @@ int cSpecMMVII_Appli::AllocExecuteDestruct(const std::vector<std::string> & aVAr
         {
             CloseRandom();
         }
-	anAppli->ToDoBeforeDestruction();
+    anAppli->ToDoBeforeDestruction();
     }
     cMemManager::CheckRestoration(aMemoState);
     MMVII_INTERNAL_ASSERT_always(cMemCountable::NbObjLive()==aNbObjLive,"Mem check obj not killed");
@@ -155,7 +155,7 @@ bool CmpCmd(cSpecMMVII_Appli * aCM1,cSpecMMVII_Appli * aCM2)
 std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
 {
    if (TheVecAll.size() == 0)
-   {    
+   {
         TheVecAll.push_back(&TheSpecBench);
         TheVecAll.push_back(&TheSpecTestCpp11);
         TheVecAll.push_back(&TheSpecMPDTest);
@@ -234,10 +234,10 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpec_MMVII_CloudClip);
         TheVecAll.push_back(&TheSpec_MMVII_Cloud2Ply);
         TheVecAll.push_back(&TheSpecTestLidarRevEng);
-	{
+    {
             TheVecAll.push_back(&TheSpec_MMVII_CloudColorate);
             TheVecAll.push_back(&TheSpec_MMVII_CloudImProj);
-	}
+    }
         TheVecAll.push_back(&TheSpec_ImportM32);
         //TheVecAll.push_back(&TheSpecTopoComp);
         TheVecAll.push_back(&TheSpecGenArgsSpec);
@@ -285,10 +285,11 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
 
         TheVecAll.push_back(&TheSpecAppliBenchAPBI);
         TheVecAll.push_back(&TheSpec_EpipGeom);
-        
+        TheVecAll.push_back(&TheSpec_SimulEpip);
+
         std::sort(TheVecAll.begin(),TheVecAll.end(),CmpCmd);
    }
-   
+
    return TheVecAll;
 }
 
@@ -301,7 +302,7 @@ const std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::VecAll()
 
 cSpecMMVII_Appli*  cSpecMMVII_Appli::SpecOfName(const std::string & aNameCom,bool SVP)
 {
-    
+
    for (const auto & aSpec : VecAll())
    {
       if (UCaseEqual(aSpec->Name(),aNameCom))
