@@ -2,10 +2,11 @@
 #include "MMVII_PCSens.h"
 #include "cMMVII_Appli.h"
 #include "MMVII_Geom3D.h"
+#include "MMVII_Matrix.h"
 
 namespace MMVII
 {
-const std::vector<std::string> TargetLoc = {"ul","ur","md","ll","lr"};
+const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
 
     class cAppli_CheckBoardTargetRefine : public cMMVII_Appli//heritage de cMMVII_Appli
     {
@@ -21,26 +22,35 @@ const std::vector<std::string> TargetLoc = {"ul","ur","md","ll","lr"};
             int Exe() override;
 
             //--spec. methods
-            int doVisu(const std::string & aImName);
+            int doVisu(const cSensorCamPC * aCam);
             int doPredict(const std::string & aImName);
-            cSetMesPtOf1Im doAffInv(const std::string & aImName);
+            void doAffInv(const cSensorCamPC * aCam);
+            void doReproj(const std::string & aCode);
             std::vector<std::string> MissingTargetsNames(const cSetMesPtOf1Im & aFoundTargets);
             cSetMesPtOf1Im MissingTargetsPredict(const std::string & aImName, const std::vector<std::string> & aVMissingTargetsNames);
             void drawTarget(cSetMesPtOf1Im & aSetOfMes2D, bool isInit);
             void resetInitTargetPts();
-            void doBundle(cSensorCamPC * aCam);
-
+            void doBundle(const cSensorCamPC * aCam);
+            std::vector<cPt3dr> getVMotifMes3D(std::list<std::string> lNamesPts);
+            cSimilitud3D<cPt3dr> doSimil3D(std::vector<cPt3dr> &aVPtsIn, std::vector<cPt3dr> &aVPtsOut);
+            /*
+             *
+             */
             std::string mSpecImIn;
             int mRes;
             bool mShow; //show details
             bool mVisu; //visualisation
+            std::set <std::string> mIntersectedCodes;
             cRGBImage * mCurrVisuIm;
             cSetMesGnd3D mInSet3D;
             std::vector<cPt2dr> mInitTargetPts;
             cSetMesPtOf1Im mExtendedSetOfMes2D;
             cSetMesGnd3D mExtendedSetOfBundles;
             cSetMesGnd3D mExtendedSetOfMes3D;
-            std::map<cSensorCamPC *, cSetMesGnd3D> mMImSetOfBundles;
+            std::map<const cSensorCamPC *,cSetMesPtOf1Im> mMImExtendedSetOfMes2D;
+            std::vector<std::map<std::string,cSetMesGnd3D>> mVMExtendedSetOfMes3D;
+            //cSetMesGnd3D mMotifSetOfMes3D;
+            std::map<const cSensorCamPC *, cSetMesGnd3D> mMImSetOfBundles;
 
 
             //----stolen to cCheckBoardTargetExtract
@@ -92,47 +102,59 @@ const std::vector<std::string> TargetLoc = {"ul","ur","md","ll","lr"};
 
     int cAppli_CheckBoardTargetRefine::Exe()
     {
-        //FINAL OUTPUT = temporary set of "fake" 2d mes
-        // TO DO : add HasGCPMesIm facility to mPhProj or defined here
+        /*
+         * first task is to iterate on images and product useful informations:
+         *  ->if a target has not been detected compute projection in the image
+         *    based on image's pose -> results goes to a "a priori" 2d measures
+         *    file
+         *    -->doPredict
+         *  ->for each detected target compute bundle to extended target points
+         *    (=corners points and middle point projected to image from affinity
+         *    mapping from pattern to image plan
+         *    -->doAffInv & doBundle
+         *
+         * second task is to iterate on targets and compute mapping from pattern
+         * to space based on useful informations we computed earlier:
+         *  -> first we gather 2d/3d correspondances from all images in which we
+         *     were able to compute them
+         *  -> then we adjust a 3d similarity giving us a the searched mapping
+         */
+
+        // PROPOSALS :
+            // HasGCPMesIm facility to mPhProj
+            // GetMeasures(aCode) to cSetMesGnd3D
 
         mPhProj.FinishInit();
 
         //·0·> iterates on images
-            //gets the first set
-        std::vector<std::string> aVIm = VectMainSet(0);
+
+        std::vector<std::string> aVIm = VectMainSet(0);//gets the first set
 
         //·1·>loads global input
             //creates & fills 3d mes. set
         mInSet3D=mPhProj.LoadGCP3DFromFolder(mPhProj.DPGndPt3D().DirIn());
         std::vector<cSetMesGnd3D> aVExtendedSetOfBundles;
 
-        StdOut() << "1·>>Prédiction des cibles non détectées" << std::endl;
         for (const auto & aImName:aVIm)
         {
             StdOut() << aImName << std::endl;
             cSensorCamPC * aCam = mPhProj.ReadCamPC(aImName, true);
 
-            //·2->prediction of missing targets
-            doPredict(aImName);
-
-            //·4->inverse affinity projection for each target in each image
+            doPredict(aImName);//prediction of missing targets
             //what about void methods and clearing sets at each iteration?
-            mExtendedSetOfMes2D=doAffInv(aImName);
-            doBundle(aCam);
-            //mPhProj.DPOrient().DirOut();
-            //·3->res. visualisation
-            if (mVisu) doVisu(aImName);
-        }
+            doAffInv(aCam);//inv. affinity projection
+            doBundle(aCam);//cam. to target bundle computation
 
-        StdOut() << "2·>>Intersection de points motifs sur les cibles détectées" << std::endl;
+            if (mVisu) doVisu(aCam);//visualisation
+        }
 
         for (std::string const & aCode:mInSet3D.ListOfNames())
         {
-            std::vector<std::map<cSensorCamPC *,std::vector<cPt3dr>>> aVCodeMImBundles;//to store Bundle for each im
+            std::vector<std::map<const cSensorCamPC *,std::vector<cPt3dr>>> aVCodeMImBundles;//to store Bundle for each im
 
             for (const auto & aCam:mMImSetOfBundles)
             {
-                std::map<cSensorCamPC *,std::vector<cPt3dr>> aMCodeImBundles;
+                std::map<const cSensorCamPC *,std::vector<cPt3dr>> aMCodeImBundles;
                 bool isFirst=true;
                 for (cMes1Gnd3D const & aBundle:aCam.second.Measures())
                 {
@@ -144,7 +166,8 @@ const std::vector<std::string> TargetLoc = {"ul","ur","md","ll","lr"};
                 }
                 if (!isFirst) aVCodeMImBundles.push_back(aMCodeImBundles);
             }
-
+            cSetMesGnd3D aExtendedSetOfMes3D;
+            std::vector<cPt3dr> aVExtendedMes3D;
             for (decltype(mInitTargetPts.size()) ix=0; ix<mInitTargetPts.size(); ++ix)
             {
                 std::vector<tSeg3dr> aVPtBundles;
@@ -158,22 +181,78 @@ const std::vector<std::string> TargetLoc = {"ul","ur","md","ll","lr"};
                 }
                 if (aVPtBundles.size() >= 2){
                     cPt3dr a3DCorresp = BundleInters(aVPtBundles);
-                    //StdOut() << "3d point" << aCode << ix << a3DCorresp << std::endl;
-                    mExtendedSetOfMes3D.AddMeasure3D(cMes1Gnd3D(a3DCorresp, aCode+TargetLoc[ix]));
+                    mExtendedSetOfMes3D.AddMeasure3D(cMes1Gnd3D(a3DCorresp, aCode+TargetLoc[ix]));//juste pour faciliter l'enregistrement --> a supp plus tard
+                    aExtendedSetOfMes3D.AddMeasure3D(cMes1Gnd3D(a3DCorresp, aCode+TargetLoc[ix]));
+                    aVExtendedMes3D.push_back(a3DCorresp);
+                    //plutot faire un vecteur de mes3d par code pour simplifier
                 }else{
                     StdOut() << aCode << "not enough bundles:"<< aVPtBundles.size() << std::endl;
                 }
             }
+            mVMExtendedSetOfMes3D.push_back({{aCode,aExtendedSetOfMes3D}});
+
+            if (mShow)
+            {
+                doReproj(aCode);
+            }
+
+
+            if (!aVExtendedMes3D.empty())
+            {
+                std::vector<cPt3dr> aVMotifMes3D = getVMotifMes3D(mExtendedSetOfMes3D.ListOfNames());
+                StdOut() << aVMotifMes3D<<std::endl;
+                StdOut() << aVExtendedMes3D<<std::endl;
+                cSimilitud3D<tREAL8> aSimil;
+                double aRes2=0;
+                StdOut()<<"LS simil. refine:";
+                aSimil = aSimil.StdGlobEstimate(aVMotifMes3D,aVExtendedMes3D,&aRes2,nullptr,cParamCtrlOpt::Default());
+                StdOut()<<aCode<<"|"<<aSimil.Scale()<<"--"<<aSimil.Tr()<<std::endl;
+            }
+
         }
         mPhProj.SaveGCP3D(mExtendedSetOfMes3D, mPhProj.DPGndPt3D().DirOut());
+        //then save it in file SaveInFile(aVSavE,cSaveExtrEllipe::NameFile(mPhProj,aSetM,false));
         return EXIT_SUCCESS;
     }
 
-    void cAppli_CheckBoardTargetRefine::doBundle(cSensorCamPC * aCam)
+    void cAppli_CheckBoardTargetRefine::doReproj(const std::string & aCode)
+    {
+        for (auto aCam:mMImExtendedSetOfMes2D)
+        {
+            //StdOut()<<aCam.first->NameImage()<<std::endl;
+            int ix=0;
+            cPt2dr aRes;
+            for (const auto & aMes:aCam.second.Measures())
+            {
+                if (aMes.mNamePt==aCode)
+                {
+                    aRes+=(aMes.mPt-aCam.first->Ground2Image(mExtendedSetOfMes3D.GetMeasureOfNamePt(aCode+TargetLoc[ix]).mPt));
+                    ++ix;
+                }
+            }
+            if (ix!=0) StdOut()<<aCode<< " : "<<Norm2(aRes)/ix<<" px res."<<std::endl;
+        }
+    }
+
+    std::vector<cPt3dr> cAppli_CheckBoardTargetRefine::getVMotifMes3D(std::list<std::string> lNamesPts)
+    {
+        std::vector<cPt3dr> aVMes3D;
+        for (const auto & aNamePt:lNamesPts)
+        {
+            std::string loc = aNamePt.substr(aNamePt.size()-2,aNamePt.size()-1);
+            int ix = find(TargetLoc.begin(),TargetLoc.end(),loc) - TargetLoc.begin();
+            aVMes3D.push_back(cPt3dr(mInitTargetPts[ix].x(),
+                                     mInitTargetPts[ix].y(),
+                                     0));
+        }
+        return aVMes3D;
+    }
+
+    void cAppli_CheckBoardTargetRefine::doBundle(const cSensorCamPC * aCam)
     {
         cSetMesGnd3D aExtendedSetOfBundles;
 
-        for (auto const & aMes:mExtendedSetOfMes2D.Measures())
+        for (auto const & aMes:mMImExtendedSetOfMes2D[aCam].Measures())
         {
             tSeg3dr aBundle = aCam->Image2Bundle(aMes.mPt);
             aExtendedSetOfBundles.AddMeasure3D(cMes1Gnd3D(aBundle.V12(), aMes.mNamePt));
@@ -181,12 +260,11 @@ const std::vector<std::string> TargetLoc = {"ul","ur","md","ll","lr"};
         mMImSetOfBundles[aCam] = aExtendedSetOfBundles;
     }
 
-    cSetMesPtOf1Im cAppli_CheckBoardTargetRefine::doAffInv(const std::string & aImName)
+    void cAppli_CheckBoardTargetRefine::doAffInv(const cSensorCamPC * aCam)
     {
         //load 2d Mes im attributes
-        cSetMesPtOf1Im aSetOfMes2D = mPhProj.LoadMeasureIm(aImName);
+        cSetMesPtOf1Im aSetOfMes2D = mPhProj.LoadMeasureIm(aCam->NameImage());
         cSetMesPtOf1Im aExtendedSetOfMes2D;
-        //std::vector<cPt2dr> tmpRes;
         std::vector<cSaveExtrEllipe>aVSavedEllipses;
         ReadFromFile(aVSavedEllipses, cSaveExtrEllipe::NameFile(mPhProj, aSetOfMes2D, true));
 
@@ -199,18 +277,20 @@ const std::vector<std::string> TargetLoc = {"ul","ur","md","ll","lr"};
                                                          aSavedEllipse.mNameCode + "", 0.1));
             }
         }
-        return aExtendedSetOfMes2D;
+
+        mMImExtendedSetOfMes2D[aCam] = aExtendedSetOfMes2D;
     };
 
     void cAppli_CheckBoardTargetRefine::resetInitTargetPts()
     {
         mInitTargetPts={cPt2dr(0,0), cPt2dr(mRes-1,0),
-                          cPt2dr(((mRes-1)/2), (mRes-1)/2),
+                          //cPt2dr(((mRes-1)/2), (mRes-1)/2),
                           cPt2dr(0,mRes-1),cPt2dr(mRes-1,mRes-1)};
     }
 
     int cAppli_CheckBoardTargetRefine::doPredict(const std::string & aImName)
     {
+        StdOut()<<"doPredict :";
     //·1->loads curr. img. input/output
         auto aFoundTargets = mPhProj.LoadMeasureImFromFolder(mPhProj.DPGndPt2D().DirIn(), aImName);
     //·2->filter mes2D that have not been detected
@@ -218,9 +298,10 @@ const std::vector<std::string> TargetLoc = {"ul","ur","md","ll","lr"};
     //·3->loads filtered 3D points & compute 2D projection (=prediction)
         if (aVMissingTargetsNames.empty())
         {
-            StdOut() << "No missing targets" << std::endl;
+            StdOut() << "no missing targets" << std::endl;
             return 0;
         }
+        StdOut()<<aVMissingTargetsNames.size()<<" targets predicted"<<std::endl;
         cSetMesPtOf1Im aSetOfPredictions = MissingTargetsPredict(aImName, aVMissingTargetsNames);
         mPhProj.SaveMeasureIm(aSetOfPredictions);
     //·4->for each target find affinity parameters & compute correspondances
@@ -270,26 +351,26 @@ const std::vector<std::string> TargetLoc = {"ul","ur","md","ll","lr"};
 
     /* Visualisation methods */
 
-    int cAppli_CheckBoardTargetRefine::doVisu(const std::string & aImName)
+    int cAppli_CheckBoardTargetRefine::doVisu(const cSensorCamPC * aCam)
     {
-        cRGBImage aIm = cRGBImage::FromFile(aImName);
+        cRGBImage aIm = cRGBImage::FromFile(aCam->NameImage());
         mCurrVisuIm = & aIm;
-        if (mPhProj.HasMeasureImFolder(mPhProj.DPGndPt2D().DirOut(), aImName))
+        if (mPhProj.HasMeasureImFolder(mPhProj.DPGndPt2D().DirOut(), aCam->NameImage()))
         {
-            cSetMesPtOf1Im aSetOfNewMes2D = mPhProj.LoadMeasureImFromFolder(mPhProj.DPGndPt2D().DirOut(), aImName);
+            cSetMesPtOf1Im aSetOfNewMes2D = mPhProj.LoadMeasureImFromFolder(mPhProj.DPGndPt2D().DirOut(), aCam->NameImage());
             drawTarget(aSetOfNewMes2D, false);//draw initial targets
         }
-        if (mPhProj.HasMeasureImFolder(mPhProj.DPGndPt2D().DirIn(), aImName))
+        if (mPhProj.HasMeasureImFolder(mPhProj.DPGndPt2D().DirIn(), aCam->NameImage()))
         {
-            cSetMesPtOf1Im aSetOfInitMes2D = mPhProj.LoadMeasureImFromFolder(mPhProj.DPGndPt2D().DirIn(), aImName);
+            cSetMesPtOf1Im aSetOfInitMes2D = mPhProj.LoadMeasureImFromFolder(mPhProj.DPGndPt2D().DirIn(), aCam->NameImage());
             drawTarget(aSetOfInitMes2D, true);//draw new targets
         }
-        for (auto aMes : mExtendedSetOfMes2D.Measures())
+        for (const auto & aMes:mMImExtendedSetOfMes2D[aCam].Measures())
         {
             //StdOut() << "drawing mes:" << aMes.mPt << "--" << aMes.mNamePt<<std::endl;
             mCurrVisuIm->DrawCircle(cRGBImage::Cyan, aMes.mPt, 1);
         }
-        mCurrVisuIm->ToJpgFileDeZoom(NameVisu(aImName, "Ref"), 1, {"QUALITY=90"});
+        mCurrVisuIm->ToJpgFileDeZoom(NameVisu(aCam->NameImage(), "Ref"), 1, {"QUALITY=90"});
 
         return 0;
     }
@@ -312,6 +393,34 @@ const std::vector<std::string> TargetLoc = {"ul","ur","md","ll","lr"};
         }
     }
 
+    /*
+    cSimilitud3D<cPt3dr> cAppli_CheckBoardTargetRefine::doSimil3D(std::vector<cPt3dr> &aVPtsA, std::vector<cPt3dr> &aVPtsB)
+    {
+        if (aVPtsA.size()!=aVPtsB.size()) return cSimilitud3D<cPt3dr>();
+        cDenseMatrix<tREAL8> aXA(aVPtsA.size(),3), aXB(aVPtsB.size(),3);
+
+        for (decltype(aVPtsA.size()) ix=0; ix<aVPtsA.size(); ++ix)
+        {
+            SetLine(ix,aXA,aVPtsA[ix]);
+            SetLine(ix,aXB,aVPtsB[ix]);
+        }
+
+        cPt3dr aBarXA;
+        cPt3dr aCol;
+
+        for (int i=0;i<3;++i)
+        {
+            GetCol(aCol,aXA,i);
+            1/aXA.Sz()[0]*(SumElem(aCol.l));
+        }
+
+
+
+        //calc. barycentres
+        //cPt3dr aBarA = GetCol(cPtxd<Type,Dim> &,const cDenseMatrix<Type> &,int aCol)
+    }
+
+    */
     //----stolen to cCheckBoardTargetExtract
     std::string cAppli_CheckBoardTargetRefine::NameVisu(const std::string & aDestIm, const std::string & aPref, const std::string aPost)
     {
