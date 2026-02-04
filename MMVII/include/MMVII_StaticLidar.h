@@ -24,6 +24,7 @@ tREAL8 toMinusPiPlusPi(tREAL8 aAng, tREAL8 aOffset = 0.);
 class cStaticLidarImporter
 {
     friend class cAppli_ImportStaticScan;
+    friend class cAppli_ImportStaticScanOld;
 public:
     cStaticLidarImporter();
     void readPlyPoints(std::string aPlyFileName);
@@ -40,6 +41,7 @@ public:
     bool HasSpherical() const {return mHasSpherical;}
     bool HasRowCol() const {return mHasRowCol;}
     bool NoMiss() const {return mNoMiss;}
+    bool AllPointsReturn() const {return mAllPointsReturn;}
     bool IsStructured() const {return mIsStrucured;}
     int NbCol() const {return mNbCol;}
     int NbLine() const {return mNbLine;}
@@ -83,7 +85,8 @@ protected:
     bool mHasSpherical; //< in original read data
     bool mHasRowCol;    //< in original read data
 
-    bool mNoMiss; // seems to be full
+    bool mNoMiss; // seems to be full (even if some points are (0,0,0)
+    bool mAllPointsReturn; // some points are (0,0,0) => no angle!
     bool mIsStrucured;
     tPoseR mReadPose;
     tREAL8 mDistMinToExist;
@@ -99,6 +102,7 @@ protected:
 class cStaticLidar: public cSensorCamPC
 {
     friend class cAppli_ImportStaticScan;
+    friend class cAppli_ImportStaticScanOld;
     friend class cStaticLidarImporter;
 public :
 

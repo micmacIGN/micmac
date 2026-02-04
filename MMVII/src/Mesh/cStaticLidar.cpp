@@ -43,7 +43,7 @@ tREAL8 toMinusPiPlusPi(tREAL8 aAng, tREAL8 aOffset)
 }
 
 cStaticLidarImporter::cStaticLidarImporter() :
-    mNoMiss(false), mIsStrucured(false),
+    mHasRowCol(false), mNoMiss(false), mAllPointsReturn(false), mIsStrucured(false),
     mReadPose(tPoseR::Identity()), mDistMinToExist(1e-5),
     mNbCol            (0),
     mNbLine           (0),
@@ -200,6 +200,7 @@ void cStaticLidarImporter::readPtxPoints(std::string aPtxFileName)
         mHasRowCol = true; // directly computed
         mIsStrucured = true;
         mNoMiss = false;
+        mAllPointsReturn = false;
 
         aPtxFile >> mNbCol;
         aPtxFile >> mNbLine;
@@ -292,7 +293,6 @@ bool cStaticLidarImporter::read(const std::string & aName, bool OkNone, bool aFo
         mHasIntensity = true;
     }
 
-
     StdOut() << "Read data: ";
     if (HasCartesian())
         StdOut() << mVectPtsXYZ.size() << " cartesian points";
@@ -333,6 +333,7 @@ void cStaticLidarImporter::convertToThetaPhiDist()
 {
     StdOut() << "convertToThetaPhiDist\n";
     mNoMiss = false;
+    mAllPointsReturn = false;
     mVectPtsTPD.resize(mVectPtsXYZ.size()); // all points in theta-phi-dist
     size_t aNbPtsNul = 0;
     for (size_t i=0; i<mVectPtsTPD.size(); ++i)
@@ -343,6 +344,7 @@ void cStaticLidarImporter::convertToThetaPhiDist()
     }
     StdOut() << aNbPtsNul << " null points\n";
     mNoMiss = mIsStrucured || (aNbPtsNul>0);
+    mAllPointsReturn = (aNbPtsNul==0);
 }
 
 
@@ -350,6 +352,7 @@ void cStaticLidarImporter::convertToXYZ()
 {
     StdOut() << "convertToXYZ\n";
     mNoMiss = false;
+    mAllPointsReturn = false;
     mVectPtsXYZ.resize(mVectPtsTPD.size());
     size_t aNbPtsNul = 0;
     for (size_t i=0; i<mVectPtsTPD.size(); ++i)
@@ -360,6 +363,7 @@ void cStaticLidarImporter::convertToXYZ()
     }
     StdOut() << aNbPtsNul << " null points\n";
     mNoMiss = mIsStrucured || (aNbPtsNul>0);
+    mAllPointsReturn = (aNbPtsNul==0);
 }
 
 void cStaticLidarImporter::ComputeRotInput2Raster(std::string aTransfoIJK)
@@ -411,6 +415,9 @@ bool cStaticLidarImporter::checkLineCol()
         isOk = false;
     if ((*aLineMinIt<0) || (*aLineMaxIt>mNbLine-1))
         isOk = false;
+    StdOut() << "checkLineCol: " << *aColMinIt << " " << *aColMaxIt
+             << " " << *aLineMinIt << " " << *aLineMaxIt
+             << " " << mNbCol << " " << mNbLine << "\n";
     MMVII_INTERNAL_ASSERT_tiny(isOk,"Error: checkLineCol");
     mNbCol = *aColMaxIt + 1;
     mNbLine = *aLineMaxIt + 1;
@@ -464,44 +471,51 @@ void cStaticLidarImporter::decimXY(const cPt2di & aDecimXY)
 {
     if (aDecimXY==cPt2di(1,1))
         return;
-
+    StdOut() << "decimXY\n";
     MMVII_INTERNAL_ASSERT_tiny(HasRowCol(),"Error: ComputeRotInput2Raster needs row/col");
 
     size_t aNewNbPts = mVectPtsTPD.size() / aDecimXY.x() / aDecimXY.y() + 1; // ???
-    std::vector<int> aNewVectPtsLine(aNewNbPts);
-    std::vector<int> aNewVectPtsCol(aNewNbPts);
-    std::vector<cPt3dr> aNewVectPtsXYZ(aNewNbPts);
-    std::vector<tREAL8> aNewVectPtsIntens(aNewNbPts);
-    std::vector<cPt3dr> aNewVectPtsTPD(aNewNbPts);
+    std::vector<int> aNewVectPtsLine;
+    aNewVectPtsLine.reserve(aNewNbPts);
+    std::vector<int> aNewVectPtsCol;
+    aNewVectPtsCol.reserve(aNewNbPts);
+    std::vector<cPt3dr> aNewVectPtsXYZ;
+    aNewVectPtsXYZ.reserve(aNewNbPts);
+    std::vector<tREAL8> aNewVectPtsIntens;
+    aNewVectPtsIntens.reserve(aNewNbPts);
+    std::vector<cPt3dr> aNewVectPtsTPD;
+    aNewVectPtsTPD.reserve(aNewNbPts);
     size_t j = 0;
     for (size_t i=0; i<mVectPtsTPD.size(); ++i)
     {
         if (((mVectPtsLine[i] % aDecimXY.y()) == 0)
             && ((mVectPtsCol[i] % aDecimXY.x()) == 0))
         {
-            aNewVectPtsLine[j] = mVectPtsLine[i] / aDecimXY.y();
-            aNewVectPtsCol[j] = mVectPtsCol[i] / aDecimXY.x();
-            aNewVectPtsXYZ[j] = mVectPtsXYZ[i];
-            aNewVectPtsIntens[j] = mVectPtsIntens[i];
-            aNewVectPtsTPD[j] = mVectPtsTPD[i];
+            aNewVectPtsLine.push_back(mVectPtsLine[i] / aDecimXY.y());
+            aNewVectPtsCol.push_back(mVectPtsCol[i] / aDecimXY.x());
+            aNewVectPtsXYZ.push_back(mVectPtsXYZ[i]);
+            aNewVectPtsIntens.push_back(mVectPtsIntens[i]);
+            aNewVectPtsTPD.push_back(mVectPtsTPD[i]);
 
-            if (j<10)
+            /*if (mVectPtsCol[i]==0)
             {
                 std::cout<<i<<" "<<j<<" "<<aNewVectPtsLine[j]<<" "<<mVectPtsLine[i]<<" "<<aDecimXY.y()
-                          <<" "<<aNewVectPtsCol[j]<<" "<<mVectPtsCol[i]<<" "<<aDecimXY.x()<<"\n";
-            }
+                          <<" "<<aNewVectPtsCol[j]<<" "<<mVectPtsCol[i]<<" "<<aDecimXY.x()
+                          <<aNewVectPtsXYZ[j]<<" "<<aNewVectPtsTPD[j]<<"\n";
+            }*/
             ++j;
         }
     }
     StdOut() << "decim " <<  mVectPtsTPD.size() << " " << aNewNbPts << " " << j << "\n";
     StdOut() << "avant " <<  mThetaStep << " " << mPhiStep << " " << "\n";
-    MMVII_INTERNAL_ASSERT_tiny(aNewNbPts==j,"Error in decimation");
+    StdOut() << "size " <<  mNbCol << " " << mNbLine << " " << "\n";
+    //MMVII_INTERNAL_ASSERT_tiny(aNewNbPts==j,"Error in decimation");
 
     mThetaStep *= aDecimXY.x();
     mPhiStep *= aDecimXY.y();
 
-    mNbCol /= aDecimXY.x();
-    mNbLine /= aDecimXY.y();
+    mNbCol = (mNbCol + aDecimXY.x() - 1) / aDecimXY.x(); // if original size is 6991, decim 2 => 3495, but last was 6990 => 3495
+    mNbLine = (mNbLine + aDecimXY.y() - 1) / aDecimXY.y();
 
     std::swap(aNewVectPtsLine, mVectPtsLine);
     std::swap(aNewVectPtsCol, mVectPtsCol);
@@ -510,6 +524,7 @@ void cStaticLidarImporter::decimXY(const cPt2di & aDecimXY)
     std::swap(aNewVectPtsTPD, mVectPtsTPD);
 
     StdOut() << "après " <<  mThetaStep << " " << mPhiStep << " " << "\n";
+    StdOut() << "size " <<  mNbCol << " " << mNbLine << " " << "\n";
     StdOut() << "=> " <<  mVectPtsTPD.size() << "\n";
 }
 
@@ -997,7 +1012,7 @@ void cStaticLidar::MaskBuffer(const cStaticLidarImporter &aSL_importer, tREAL8 a
             {
                 for (int il = l - aRadPx; il <= l + aRadPx; ++il)
                 {
-                    if ((il<0) || (il>aSL_importer.NbLine())) continue;
+                    if ((il<0) || (il>=aSL_importer.NbLine())) continue;
                     if (aLinesFull[il]) continue;
                     //tREAL8 phi = lToPhiApprox(il, aSL_importer.PhiStart(), aSL_importer.PhiStep());
                     tREAL8 phi = InternalCalib()->DirBundle({0.,(double)l}).y();
@@ -1018,7 +1033,7 @@ void cStaticLidar::MaskBuffer(const cStaticLidarImporter &aSL_importer, tREAL8 a
                             if (icc>aSL_importer.NbCol())
                                 icc -= (aSL_importer.NbCol()+1);
                         }
-                        if ((icc<0)||(icc>aSL_importer.NbCol()))
+                        if ((icc<0)||(icc>=aSL_importer.NbCol()))
                             continue;
                         aMaskBufImData.SetV(cPt2di(icc, il), 0);
                     }
@@ -1141,6 +1156,7 @@ void cStaticLidar::MakePatches
      int    aSzMin
      ) const
 {
+    StdOut() << "MakePatches\n";
     MMVII_INTERNAL_ASSERT_tiny(mAreRastersReady, "Error: rasters not ready");
     auto & aRasterDistData = mRasterDistance->DIm();
     auto & aRasterMaskData = mRasterMask->DIm();

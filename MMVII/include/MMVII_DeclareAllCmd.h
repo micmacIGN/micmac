@@ -87,6 +87,7 @@ extern cSpecMMVII_Appli  TheSpec_ImportOBS;
 extern cSpecMMVII_Appli  TheSpec_ImportORGI;
 extern cSpecMMVII_Appli  TheSpec_ImportAiconCamera;
 extern cSpecMMVII_Appli  TheSpec_ImportStaticScan;
+extern cSpecMMVII_Appli  TheSpec_ImportStaticScanOld;
 extern cSpecMMVII_Appli  TheSpec_ImportTxtCloud;
 extern cSpecMMVII_Appli  TheSpec_MMVII_CloudClip;
 extern cSpecMMVII_Appli  TheSpec_MMVII_Cloud2Ply;
