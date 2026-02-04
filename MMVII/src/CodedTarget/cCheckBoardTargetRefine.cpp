@@ -50,6 +50,7 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
             std::map<const cSensorCamPC *,cSetMesPtOf1Im> mMImExtendedSetOfMes2D;
             std::vector<std::map<std::string,cSetMesGnd3D>> mVMExtendedSetOfMes3D;
             //cSetMesGnd3D mMotifSetOfMes3D;
+            cSetTargetSim3D mSetTargetSim3D;
             std::map<const cSensorCamPC *, cSetMesGnd3D> mMImSetOfBundles;
 
 
@@ -93,6 +94,7 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
         cMMVII_Appli(aVArgs, aSpec),
         mRes (600),
         mCurrVisuIm (nullptr),
+        mSetTargetSim3D ("ExtTargets"),
         mPhProj (*this)
 
     {
@@ -199,7 +201,7 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
 
             if (!aVExtendedMes3D.empty())
             {
-                std::vector<cPt3dr> aVMotifMes3D = getVMotifMes3D(mExtendedSetOfMes3D.ListOfNames());
+                std::vector<cPt3dr> aVMotifMes3D = getVMotifMes3D(aExtendedSetOfMes3D.ListOfNames());
                 StdOut() << aVMotifMes3D<<std::endl;
                 StdOut() << aVExtendedMes3D<<std::endl;
                 cSimilitud3D<tREAL8> aSimil;
@@ -207,11 +209,13 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
                 StdOut()<<"LS simil. refine:";
                 aSimil = aSimil.StdGlobEstimate(aVMotifMes3D,aVExtendedMes3D,&aRes2,nullptr,cParamCtrlOpt::Default());
                 StdOut()<<aCode<<"|"<<aSimil.Scale()<<"--"<<aSimil.Tr()<<std::endl;
+                mSetTargetSim3D.AddMeasure(cTargetSim3D(aCode,aSimil));
             }
 
         }
-        mPhProj.SaveGCP3D(mExtendedSetOfMes3D, mPhProj.DPGndPt3D().DirOut());
-        //then save it in file SaveInFile(aVSavE,cSaveExtrEllipe::NameFile(mPhProj,aSetM,false));
+
+        //mPhProj.SaveGCP3D(mExtendedSetOfMes3D, mPhProj.DPGndPt3D().DirOut());
+        SaveInFile(mSetTargetSim3D, cSetTargetSim3D::NameFile(mPhProj,mSetTargetSim3D.Name(),false));
         return EXIT_SUCCESS;
     }
 
