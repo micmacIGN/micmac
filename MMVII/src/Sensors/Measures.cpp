@@ -475,6 +475,16 @@ cSetTargetSim3D::cSetTargetSim3D(const std::string &aName):
 {
 }
 
+std::string cSetTargetSim3D::Name() {return mName;}
+
+std::string cSetTargetSim3D::NameFile(const cPhotogrammetricProject & aPhProj, std::string aName, bool Input)
+{
+    return  (Input ? aPhProj.DPGndPt3D().FullDirIn() : aPhProj.DPGndPt3D().FullDirOut())
+           + "Target3DSim-"
+           +  aName
+           + "."+ cMMVII_Appli::CurrentAppli().TaggedNameDefSerial();
+}
+
 void cSetTargetSim3D::AddData(const cAuxAr2007 &anAuxParam)
 {
     cAuxAr2007 anAux("SetTargetSim3D",anAuxParam);
@@ -482,10 +492,16 @@ void cSetTargetSim3D::AddData(const cAuxAr2007 &anAuxParam)
     MMVII::AddData(cAuxAr2007("Sims3D",anAux),mMeasures);
 }
 
+void cSetTargetSim3D::AddMeasure(cTargetSim3D aTarget)
+{
+    mMeasures.push_back(aTarget);
+}
+
 void AddData(const cAuxAr2007 &anAux, cSetTargetSim3D &aSet)
 {
     aSet.AddData(anAux);
 }
+
 
 /* ********************************************* */
 /*                                               */

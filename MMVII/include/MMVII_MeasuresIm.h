@@ -588,6 +588,8 @@ class cSetTargetSim3D
         cSetTargetSim3D(const std::string &aName);
         void AddMeasure(cTargetSim3D aTarget);
         void AddData(const cAuxAr2007 & anAux);
+        std::string Name();
+        static std::string NameFile(const cPhotogrammetricProject &aPhProj, std::string aName, bool Input);
     private:
         std::vector<cTargetSim3D> mMeasures;
         std::string mName;
