@@ -585,7 +585,6 @@ class cTargetSim3D
 class cSetTargetSim3D
 {
     public:
-        cSetTargetSim3D();
         cSetTargetSim3D(const std::string &aName);
         void AddMeasure(cTargetSim3D aTarget);
         void AddData(const cAuxAr2007 & anAux);

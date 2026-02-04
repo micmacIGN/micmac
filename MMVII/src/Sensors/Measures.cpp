@@ -447,6 +447,11 @@ cTargetSim3D::cTargetSim3D(const std::string &aCode, cSimilitud3D<tREAL8> aSim3D
 {
 }
 
+cTargetSim3D::cTargetSim3D() :
+    mCode ("???")
+{
+}
+
 void cTargetSim3D::AddData(const cAuxAr2007 &anAux)
 {
     MMVII::AddData(cAuxAr2007("TargetName",anAux),mCode);
@@ -464,10 +469,6 @@ void AddData(const cAuxAr2007 &anAux, cTargetSim3D &aSim3D)
 /*                                               */
 /* ********************************************* */
 
-cSetTargetSim3D::cSetTargetSim3D():
-    mName ("DEFAULT")
-{
-}
 
 cSetTargetSim3D::cSetTargetSim3D(const std::string &aName):
     mName (aName)
