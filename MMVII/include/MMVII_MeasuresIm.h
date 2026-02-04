@@ -4,6 +4,7 @@
 #include "MMVII_Ptxd.h"
 #include "MMVII_util_tpl.h"
 #include "MMVII_Geom2D.h"
+#include "MMVII_Geom3D.h"
 
 namespace MMVII
 {
@@ -568,8 +569,30 @@ class cLinesAntiParal1Im
 };
 void AddData(const cAuxAr2007 & anAux,cLinesAntiParal1Im & anEx);
 
+/** Classes to handle theorical target to real target 3D similarity **/
 
+class cTargetSim3D
+{
+    public :
+        cTargetSim3D();
+        cTargetSim3D(std::string aCode, cSimilitud3D<tREAL8> aSim3D);
+        void AddData(const cAuxAr2007 & anAux);
+    private :
+        std::string mCode;
+        cSimilitud3D<tREAL8> mSim3D;
+};
 
+class cSetTargetSim3D
+{
+    public:
+        cSetTargetSim3D();
+        void AddMeasure(cTargetSim3D aTarget);
+        void AddData(const cAuxAr2007 & anAux);
+    private:
+        std::vector<cTargetSim3D> mMeasures;
+        std::string mName;
+};
+void AddData(const cAuxAr2007 &anAux, cSetTargetSim3D &anEx);
 };
 
 #endif  //  _MMVII_MEASURES_IM_H_

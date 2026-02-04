@@ -437,6 +437,25 @@ void AddData(const  cAuxAr2007 & anAux,cMesIm1Pt & aMes)
 
 /* ********************************************* */
 /*                                               */
+/*             cTargetSim3D                      */
+/*                                               */
+/* ********************************************* */
+
+cTargetSim3D::cTargetSim3D(std::string aCode, cSimilitud3D<tREAL8> aSim3D) :
+    mCode (aCode),
+    mSim3D (aSim3D)
+{
+}
+
+void cTargetSim3D::AddData(const cAuxAr2007 &anAux)
+{
+    MMVII::AddData(cAuxAr2007("Name",anAux),mCode);
+    MMVII::AddData(cAuxAr2007("Sim3D",anAux),mSim3D);
+}
+
+
+/* ********************************************* */
+/*                                               */
 /*             cSetMesPtOf1Im                    */
 /*                                               */
 /* ********************************************* */

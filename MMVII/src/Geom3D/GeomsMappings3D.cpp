@@ -782,11 +782,12 @@ template <class Type> cIsometry3D<Type> cIsometry3D<Type>::Centroid(const std::v
    return tTypeMap ( tPt(aTr.x(),aTr.y(),aTr.z()) ,aRot);
 }
 
-void AddData(const cAuxAr2007 & anAux,tRotR & aRot)
+template <class Type>
+void AddData(const cAuxAr2007 & anAux, cRotation3D<Type> &aRot)
 {
-     cPt3dr aI = aRot.AxeI();
-     cPt3dr aJ = aRot.AxeJ();
-     cPt3dr aK = aRot.AxeK();
+     auto aI = aRot.AxeI();
+     auto aJ = aRot.AxeJ();
+     auto aK = aRot.AxeK();
 
      cAuxAr2007 aAuxRot("RotMatrix",anAux);
      MMVII::AddData(cAuxAr2007("AxeI",aAuxRot),aI);
@@ -795,9 +796,10 @@ void AddData(const cAuxAr2007 & anAux,tRotR & aRot)
 
      if (anAux.Input())
      {
-         aRot = tRotR(MatFromCols(aI,aJ,aK),false);
+         aRot = cRotation3D<Type>(MatFromCols(aI,aJ,aK),false);
      }
 }
+
 void AddData(const cAuxAr2007 & anAux,tPoseR & aPose)
 {
      // StdOut() << "AddDataAddData anAux,tPoseR\n";
@@ -927,7 +929,22 @@ template <class Type> cSimilitud3D<Type> cSimilitud3D<Type>::RandomSim3D(Type aL
            );
 }
 
+template <class Type> void cSimilitud3D<Type>::AddData(const cAuxAr2007 &anAux)
+{
+    MMVII::AddData(cAuxAr2007("Scale",anAux),mScale);
+    MMVII::AddData(cAuxAr2007("Tr",anAux),mTr);
+    MMVII::AddData(cAuxAr2007("Rot",anAux),mRot);
 
+    /*if (anAux.Ar().Input())
+    {
+        *this = cSimilitud3D<Type>(mScale,mTr,mRot);
+    }*/
+}
+
+void AddData(const cAuxAr2007 &anAux, tSim3dR &aSim3D)
+{
+    aSim3D.AddData(anAux);
+}
 
 template <class Type> cIsometry3D<Type>    TransfoPose(const cSimilitud3D<Type> & aSim,const cIsometry3D<Type> & aR)
 {
@@ -1365,7 +1382,8 @@ template  cRotation3D<tREAL8>  ToReal8(const cRotation3D<TYPE>  & aRot);\
 template  cIsometry3D<tREAL8>  ToReal8(const cIsometry3D<TYPE>  & anIsom);\
 template class  cSimilitud3D<TYPE>;\
 template class  cIsometry3D<TYPE>;\
-template class  cRotation3D<TYPE>;
+template class  cRotation3D<TYPE>;\
+template void AddData(const  cAuxAr2007 & anAux,cRotation3D<TYPE>&);
 
 /*
 template  cRotation3D<TYPE>  cRotation3D<TYPE>::CompleteRON(const tPt & );\

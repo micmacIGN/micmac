@@ -222,8 +222,11 @@ template <class Type> class cRotation3D
        cDenseMatrix<Type>  mMat;
 };
 
-typedef cRotation3D<tREAL8> tRotR; 
-void AddData(const  cAuxAr2007 & anAux,tRotR&);
+typedef cRotation3D<tREAL8> tRotR;
+
+template <class Type>
+void AddData(const  cAuxAr2007 & anAux,cRotation3D<Type>&);
+
 
 
 /**  Class for 3D "affine" rotation of vector
@@ -399,12 +402,17 @@ template <class Type> class cSimilitud3D
       ///  evaluate from a vec [TrX,TrY,ScX,ScY], typycally result of mean square
       static tTypeMap  FromParam(const cDenseVect<Type> &);
 
+      void AddData(const cAuxAr2007 &anAux);
+
     private :
        tTypeElem          mScale;
        tPt                mTr;
        cRotation3D<Type>  mRot;
+
 };
 typedef cSimilitud3D<tREAL8>  tSim3dR;
+void AddData(const cAuxAr2007 &anAux, tSim3dR &aSim3D);
+
 template <class Type> cIsometry3D<Type>    TransfoPose(const cSimilitud3D<Type> & aSim,const cIsometry3D<Type> & aR);
 
 /// V1 and V2 being pose "identic" but in different repair, compute the transfer similitude that best align
