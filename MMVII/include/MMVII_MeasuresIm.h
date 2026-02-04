@@ -575,8 +575,8 @@ class cTargetSim3D
 {
     public :
         cTargetSim3D();
-        cTargetSim3D(std::string aCode, cSimilitud3D<tREAL8> aSim3D);
-        void AddData(const cAuxAr2007 & anAux);
+        cTargetSim3D(const std::string &aCode, cSimilitud3D<tREAL8> aSim3D);
+        void AddData(const cAuxAr2007 &anAux);
     private :
         std::string mCode;
         cSimilitud3D<tREAL8> mSim3D;
@@ -586,6 +586,7 @@ class cSetTargetSim3D
 {
     public:
         cSetTargetSim3D();
+        cSetTargetSim3D(const std::string &aName);
         void AddMeasure(cTargetSim3D aTarget);
         void AddData(const cAuxAr2007 & anAux);
     private:

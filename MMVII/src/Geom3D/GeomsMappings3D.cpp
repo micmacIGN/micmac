@@ -785,6 +785,11 @@ template <class Type> cIsometry3D<Type> cIsometry3D<Type>::Centroid(const std::v
 template <class Type>
 void AddData(const cAuxAr2007 & anAux, cRotation3D<Type> &aRot)
 {
+    MMVII_INTERNAL_ASSERT_always(
+        tElemNumTrait<Type>::TyNum() == eTyNums::eTN_REAL8,
+        "Matrix serialization only allowed for tREAL8"
+    )
+
      auto aI = aRot.AxeI();
      auto aJ = aRot.AxeJ();
      auto aK = aRot.AxeK();
@@ -935,10 +940,10 @@ template <class Type> void cSimilitud3D<Type>::AddData(const cAuxAr2007 &anAux)
     MMVII::AddData(cAuxAr2007("Tr",anAux),mTr);
     MMVII::AddData(cAuxAr2007("Rot",anAux),mRot);
 
-    /*if (anAux.Ar().Input())
+    if (anAux.Ar().Input())
     {
         *this = cSimilitud3D<Type>(mScale,mTr,mRot);
-    }*/
+    }
 }
 
 void AddData(const cAuxAr2007 &anAux, tSim3dR &aSim3D)

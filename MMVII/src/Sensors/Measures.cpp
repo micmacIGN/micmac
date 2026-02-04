@@ -441,7 +441,7 @@ void AddData(const  cAuxAr2007 & anAux,cMesIm1Pt & aMes)
 /*                                               */
 /* ********************************************* */
 
-cTargetSim3D::cTargetSim3D(std::string aCode, cSimilitud3D<tREAL8> aSim3D) :
+cTargetSim3D::cTargetSim3D(const std::string &aCode, cSimilitud3D<tREAL8> aSim3D) :
     mCode (aCode),
     mSim3D (aSim3D)
 {
@@ -449,10 +449,42 @@ cTargetSim3D::cTargetSim3D(std::string aCode, cSimilitud3D<tREAL8> aSim3D) :
 
 void cTargetSim3D::AddData(const cAuxAr2007 &anAux)
 {
-    MMVII::AddData(cAuxAr2007("Name",anAux),mCode);
+    MMVII::AddData(cAuxAr2007("TargetName",anAux),mCode);
     MMVII::AddData(cAuxAr2007("Sim3D",anAux),mSim3D);
 }
 
+void AddData(const cAuxAr2007 &anAux, cTargetSim3D &aSim3D)
+{
+    aSim3D.AddData(anAux);
+}
+
+/* ********************************************* */
+/*                                               */
+/*             cSetTargetSim3D                   */
+/*                                               */
+/* ********************************************* */
+
+cSetTargetSim3D::cSetTargetSim3D():
+    mName ("DEFAULT")
+{
+}
+
+cSetTargetSim3D::cSetTargetSim3D(const std::string &aName):
+    mName (aName)
+{
+}
+
+void cSetTargetSim3D::AddData(const cAuxAr2007 &anAuxParam)
+{
+    cAuxAr2007 anAux("SetTargetSim3D",anAuxParam);
+    MMVII::AddData(cAuxAr2007("SetName",anAux),mName);
+    MMVII::AddData(cAuxAr2007("Sims3D",anAux),mMeasures);
+}
+
+void AddData(const cAuxAr2007 &anAux, cSetTargetSim3D &aSet)
+{
+    aSet.AddData(anAux);
+}
 
 /* ********************************************* */
 /*                                               */
