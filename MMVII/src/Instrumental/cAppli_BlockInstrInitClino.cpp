@@ -42,7 +42,10 @@ class cAppli_BlockInstrInitClino : public cMMVII_Appli,
         void DoOneClino(int aK);
 
         cPt1dr  Value(const cPt2dr&) const override ;
+
+        tREAL8 ValueOfRot(const tRotR& aR) const;
         cPt1dr  Value(const cPt3dr&) const override ;
+
 
         cPt3dr  P2toP3(const cPt2dr&) const;
         tRotR   P3toRot(const cPt3dr&) const;
@@ -137,6 +140,13 @@ tREAL8 cAppli_BlockInstrInitClino::Ang4Show(tREAL8 anAng) const
 }
   // ========================  3D optimisation ==========================
 
+/*
+tREAL8 cAppli_BlockInstrInitClino::ValueOfRot(const tRotR& aR) const
+{
+
+}
+*/
+
 cPt1dr  cAppli_BlockInstrInitClino::Value(const cPt3dr& aWPK) const
 {
     tRotR aR = P3toRot(aWPK);
@@ -145,6 +155,9 @@ cPt1dr  cAppli_BlockInstrInitClino::Value(const cPt3dr& aWPK) const
 
     return cPt1dr((aRes1+aRes2)/2.0);
 }
+
+
+
 
 tRotR  cAppli_BlockInstrInitClino::P3toRot(const cPt3dr& aWPK) const
 {

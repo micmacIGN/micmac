@@ -447,14 +447,17 @@ void cPS_CompPose::TestOneHypoth
     tREAL8 aNbM1 = 0.0; FakeUseIt(aNbM1);
     tREAL8 aNbM2 = 0.0; FakeUseIt(aNbM2);
     std::vector<cPt3dr> aVecPt;
+    int aNbBundleParal = 0;
 
      for (size_t aK=0 ; aK<mCurNbPts ; aK++)
      {
          cPt3dr aPE1 = aRE1.Value(mCurV1->at(aK));
          cPt3dr aPE2 = aRE2.Value(mCurV2->at(aK));
 
+         // mesaure if the bundles are parallel
          tREAL8 aDistDir = DistDirLine(aPE1,aPE2);
 
+         // if not paral an intersection can be computed
          if (aDistDir>1e-6)
          {
             tSegComp3dr aSeg1(cPt3dr(0,0,0),aPE1);
@@ -499,10 +502,20 @@ void cPS_CompPose::TestOneHypoth
                }
             }
          }
+         else
+         {
+             aNbBundleParal++;
+         }
      }
 
      if (aVecPt.size()<3)
-        return;
+     {
+         if (mCurParam)
+         {
+            StdOut() << "    ****** NB BunPar " << aNbBundleParal << " on " << mCurNbPts << "\n";
+         }
+         return;
+     }
 
      auto [aPlane,aRes] =  cPlane3D::RansacEstimate(aVecPt,true,100);
 
@@ -515,34 +528,41 @@ void cPS_CompPose::TestOneHypoth
 
 
      tREAL8 aScorePos = (aNbM1+aNbM2) / (2.0* mCurV1->size());
-     if (mCurParam && (aScorePos<1e-4))
+     if (mCurParam)
      {
-        StdOut()  <<  "PooOs:= "
-                  <<  ((aScorePos<1e-4)  ? " *** " : "     ")
-                  <<  " " << (isSameSide ? "==" : "!!")
-                  <<  ( isZP0 ? "+" : "-")
-                  <<  ( isZP1 ? "+" : "-") << " "
-                  << aNbM1 << " " << aNbM2
-                  <<  " N=" << aPlane.AxeK().y()
-                  << " On: " << aScorePos << " CPT=" << aCptSol ;
-         StdOut() << "\n";
-
-         if (mCurParam->mModeEpip && (aScorePos<1e-4))
+         if (aScorePos<1e-4)
          {
-            for (int aY=0 ; aY<3 ; aY++)
-            {
-                StdOut() <<  "                      ";
-                ShowMatL3(aRE1.Mat(),aY);
-                StdOut() << "   |||   ";
-                ShowMatL3(aRE2.Mat(),aY);
-                StdOut()  << "\n";
-            }
-            StdOut() << " VVV=" << aVecPt[0] << "\n";
-                  // StdOut()  << aRE1.AxeI() <<  aRE1.AxeJ() << aRE1.AxeK() << "\n";
-                  // StdOut()  << aRE2.AxeI() <<  aRE2.AxeJ() << aRE2.AxeK() << "\n";
+             StdOut()  <<  "PooOs:= "
+                        << " SignB= " << aSignBase
+                        <<  ((aScorePos<1e-4)  ? " *** " : "     ")
+                         <<  " " << (isSameSide ? "==" : "!!")
+                          <<  ( isZP0 ? "+" : "-")
+                           <<  ( isZP1 ? "+" : "-") << " "
+                            << aNbM1 << " " << aNbM2
+                            <<  " N=" << aPlane.AxeK().y()
+                             << " On: " << aScorePos << " CPT=" << aCptSol ;
+             StdOut() << "\n";
+
+             if (mCurParam->mModeEpip && (aScorePos<1e-4))
+             {
+                 for (int aY=0 ; aY<3 ; aY++)
+                 {
+                     StdOut() <<  "                      ";
+                     ShowMatL3(aRE1.Mat(),aY);
+                     StdOut() << "   |||   ";
+                     ShowMatL3(aRE2.Mat(),aY);
+                     StdOut()  << "\n";
+                 }
+                 StdOut() << " VVV=" << aVecPt[0] << "\n";
+                 // StdOut()  << aRE1.AxeI() <<  aRE1.AxeJ() << aRE1.AxeK() << "\n";
+                 // StdOut()  << aRE2.AxeI() <<  aRE2.AxeJ() << aRE2.AxeK() << "\n";
+             }
+         }
+         else
+         {
+             // StdOut()  << " Nbumber Minus -> " << aNbM1  << " " << aNbM2 << "\n";
          }
     }
-
 }
 
 cPS_CompPose::cPS_CompPose(cSetHomogCpleDir & aSetCple,const  cPSC_PB * aBenchParam)

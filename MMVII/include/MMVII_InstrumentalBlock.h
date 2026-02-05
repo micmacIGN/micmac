@@ -532,6 +532,7 @@ class   cIrbComp_Block : public cMemCheck
        /// call previous by using std measure on phproj
        void SetClinoValues(bool OkNewTimeS=false);
 
+       /// return the average of score of all clinos loaded
        tREAL8 ScoreDirClino(const cPt3dr& aDir,size_t aKClino) const;
 
     private :
