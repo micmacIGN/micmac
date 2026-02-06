@@ -86,15 +86,14 @@ static void pyb_init_PerspCamIntrCalib(py::module_ &m)
             .def("degreevisibility", &tPCIC::DegreeVisibility,"pt3dr"_a, DOC(MMVII_cPerspCamIntrCalib, DegreeVisibility))
             .def("degreeVisibilityOnImFrame", &tPCIC::DegreeVisibilityOnImFrame,"pt2dr"_a, DOC(MMVII_cPerspCamIntrCalib, DegreeVisibilityOnImFrame))
 
-            .def("mapPProj2Im", &tPCIC::MapPProj2Im, DOC(MMVII_cDataPerspCamIntrCalib, MapPProj2Im))
+            .def("mapPProj2Im", py::overload_cast<>(&tPCIC::MapPProj2Im, py::const_), DOC(MMVII_cDataPerspCamIntrCalib, MapPProj2Im))
 
             .def("dir_Proj",&tPCIC::Dir_Proj,  py::return_value_policy::reference_internal, DOC(MMVII_cPerspCamIntrCalib,Dir_Proj) )
             .def("dir_Dist",&tPCIC::Dir_Dist,  py::return_value_policy::reference_internal, DOC(MMVII_cPerspCamIntrCalib,Dir_Dist) )
             .def("inv_Proj",&tPCIC::Inv_Proj,  py::return_value_policy::reference_internal, DOC(MMVII_cPerspCamIntrCalib,Inv_Proj) )
             .def("dir_DistInvertible",&tPCIC::Dir_DistInvertible,  py::return_value_policy::reference_internal, DOC(MMVII_cPerspCamIntrCalib,Dir_DistInvertible) )
 
-            .def("ransacPoseEstimSpaceResection",[](tPCIC& calib, const cSet2D3D & aSet0,size_t aNbTriplet, bool Real8=true, int aNbPtsMeasures=-1 ){return calib.RansacPoseEstimSpaceResection(aSet0, aNbTriplet);},py::arg("aSet0"),py::arg("nbTriplet"),py::arg("real8")=true,py::arg("nbPtsMeasures")=-1,
-DOC(MMVII_cPerspCamIntrCalib,RansacPoseEstimSpaceResection) )
+            .def("ransacPoseEstimSpaceResection", &tPCIC::RansacPoseEstimSpaceResection, DOC(MMVII_cPerspCamIntrCalib,RansacPoseEstimSpaceResection) )
 
             .def("infoParam",[](tPCIC &c) {
                 cGetAdrInfoParam<tREAL8> aGAIP(".*",c,true);
