@@ -1,5 +1,6 @@
 #include "cMMVII_Appli.h"
 #include "MMVII_PCSens.h"
+#include "cPolyXY_N.h"
 
 #include <vector>
 
@@ -11,215 +12,6 @@
 
 namespace MMVII
 {
-// /////////////////////////////////// POLY
-template<typename T>
-class cPolyXY_N
-{
-public:
-    explicit cPolyXY_N(int degree);
-    explicit cPolyXY_N(std::initializer_list<T> aVK);
-    explicit cPolyXY_N(const std::vector<T>& aVK);
-
-    T operator()(const T& x, const T& y);
-    T operator()(const cPtxd<T,2> aPt);
-
-    const T& K(int i, int j) const;
-    T& K(int i, int j);
-    const std::vector<T>& VK() const;
-    void SetVK(const std::vector<T>& aVK);
-
-    int Degree() const;
-    int NbCoeffs() const;
-
-    void ResetFit();
-    void AddFixedK(int i, int j, const T& k);
-    void AddObs(const T& x, const T& y, const T& v, const T& aWeight=1);
-    void AddObs(const cPtxd<T,2> aPt, const T& v, const T& aWeight=1);
-    void Fit();
-    T VarCurSol() const;
-
-private:
-    int idx(int i, int j);
-    int mDegree;
-    std::vector<T> mVK;
-    std::unique_ptr<cLeasSqtAA<T>> mLeastSq;
-    std::map<std::pair<int,int>, T> mFixedK;
-};
-
-
-template<typename T>
-cPolyXY_N<T>::cPolyXY_N(int degree)
-: mDegree(degree)
-, mVK((degree+1) * (degree+2) / 2)
-{
-}
-
-template<typename T>
-cPolyXY_N<T>::cPolyXY_N(std::initializer_list<T> aVK)
-    : mDegree(static_cast<int>(std::sqrt(aVK.size()*2)) - 1)
-    , mVK(aVK)
-{
-    MMVII_INTERNAL_ASSERT_medium((mDegree+1)*(mDegree+2)/2 == (int)aVK.size(),"Incorrect vector for cPolyXY_N coefficients");
-}
-
-template<typename T>
-cPolyXY_N<T>::cPolyXY_N(const std::vector<T>& aVK)
-    : mDegree(static_cast<int>(std::sqrt(aVK.size()*2)) - 1)
-    , mVK(aVK)
-{
-    MMVII_INTERNAL_ASSERT_medium((mDegree+1)*(mDegree+2)/2 == (int)aVK.size(),"Incorrect vector for cPolyXY_N coefficients");
-}
-
-template<typename T>
-T cPolyXY_N<T>::operator()(const T &x, const T &y)
-{
-    T X_n;
-    T Y_n;
-    T result;
-    int n;
-
-    X_n = 1;            // X^0
-    n = 0;
-    result = T{};
-    for (int i=0; i<=mDegree; i++) {
-        Y_n = 1;        // Y^0
-        for (int j=0; j<=mDegree-i; j++) {
-            result += mVK[n] * X_n * Y_n;
-            Y_n *= y;   // Y^(j+1)
-            n++;
-        }
-        X_n *= x;       // X^(i+1)
-    }
-    return result;
-}
-
-template<typename T>
-T cPolyXY_N<T>::operator()(const cPtxd<T, 2> aPt)
-{
-    return this->operator()(aPt.x(),aPt.y());
-}
-
-template<typename T>
-const T &cPolyXY_N<T>::K(int i, int j) const
-{
-    return mVK[idx(i,j)];
-}
-
-template<typename T>
-T& cPolyXY_N<T>::K(int i, int j)
-{
-    return mVK[idx(i,j)];
-}
-
-template<typename T>
-const std::vector<T> &cPolyXY_N<T>::VK() const
-{
-    return mVK;
-}
-
-template<typename T>
-void cPolyXY_N<T>::SetVK(const std::vector<T>& aVK)
-{
-    MMVII_INTERNAL_ASSERT_medium(aVK.size() == mVK.size(),"Incorrect vector for cPolyXY_N coefficients");
-    mVK = aVK;
-}
-
-template<typename T>
-int cPolyXY_N<T>::Degree() const
-{
-    return mDegree;
-}
-
-template<typename T>
-int cPolyXY_N<T>::NbCoeffs() const
-{
-    return mVK.size();
-}
-
-
-template<typename T>
-void cPolyXY_N<T>::ResetFit()
-{
-    mLeastSq.reset();
-    mFixedK.clear();
-}
-
-template<typename T>
-void cPolyXY_N<T>::AddFixedK(int i, int j, const T &k)
-{
-    MMVII_INTERNAL_ASSERT_medium(i>=0 && j>=0 && i+j<=mDegree,"Bad usage of cPolyXY_N::AddFixedK()");
-    MMVII_INTERNAL_ASSERT_medium(! mLeastSq,"Can't add fixed K after obs in cPolyXY_N::AddFixedK()");
-    mFixedK.insert_or_assign(std::make_pair(i,j),k);
-}
-
-template<typename T>
-void cPolyXY_N<T>::AddObs(const T &x, const T &y, const T &v, const T& aWeight)
-{
-    if (! mLeastSq)
-        mLeastSq = std::make_unique<cLeasSqtAA<T>>(NbCoeffs() - mFixedK.size());
-    cDenseVect<T> coeffs(NbCoeffs() - mFixedK.size());
-    int n = 0;
-    T aDiffObs = 0;
-    T X_n = 1;
-    for (int i=0; i<=mDegree; i++) {
-        T Y_n = 1;
-        for (int j=0; j<=mDegree-i; j++) {
-            auto itFixedK = mFixedK.find({i,j});
-            if ( itFixedK == mFixedK.end()) {
-                coeffs(n) = X_n * Y_n;
-                n++;
-            } else {
-                aDiffObs += itFixedK->second * X_n * Y_n;
-            }
-            Y_n *= y;
-        }
-        X_n *= x;
-    }
-    mLeastSq->PublicAddObservation(aWeight,coeffs, v - aDiffObs);
-}
-
-template<typename T>
-void cPolyXY_N<T>::AddObs(const cPtxd<T, 2> aPt, const T &v, const T &aWeight)
-{
-    AddObs(aPt.x(),aPt.y(),v,aWeight);
-}
-
-template<typename T>
-void cPolyXY_N<T>::Fit()
-{
-    auto aVK = mLeastSq->PublicSolve();
-    int n=0;
-    int m=0;
-    for (int i=0; i<= mDegree; i++) {
-        for (int j=0; j<=mDegree-i; j++) {
-            auto itFixedK = mFixedK.find({i,j});
-            if ( itFixedK == mFixedK.end()) {
-                mVK[n] = aVK(m);
-                m++;
-            } else {
-                mVK[n] = itFixedK->second;
-            }
-            n++;
-        }
-    }
-}
-
-template<typename T>
-T cPolyXY_N<T>::VarCurSol() const
-{
-    return mLeastSq->VarCurSol();
-}
-
-template<typename T>
-int cPolyXY_N<T>::idx(int i, int j)
-{
-    MMVII_INTERNAL_ASSERT_medium(i>=0 && j>=0 && i+j<=mDegree,"Bad usage of cPolyXY_N");
-    return j + ((mDegree + 1) * (mDegree + 2) - (mDegree - i + 1) * (mDegree - i + 2)) / 2;
-}
-
-// /////////////////////////////////// END POLY
-
-
 
 class cAppli_EpipGeom : public cMMVII_Appli
 {
@@ -237,8 +29,17 @@ private :
         const cRect2 &aRect2,
         const cSensorImage *aSensor2,
         double aZ
-        );
+        ) const;
 
+    std::tuple<cPt2dr, cPt2dr, cPt2dr, cPt2dr, cSetHomogCpleIm> GenerateData(const cSensorImage *aSensor1, const cSensorImage *aSensor2) const;
+
+    std::pair<cPt2dr, cPt2dr> GenerateData(
+        const cRect2 &aRect1,
+        const cSensorImage *aSensor1,
+        const cRect2 &aRect2,
+        const cSensorImage *aSensor2,
+        const cSetHomogCpleIm &aSetHomogCpleIm
+        ) const;
     cPhotogrammetricProject  mPhProj;
     std::string  mImName1;
     std::string  mImName2;
@@ -272,12 +73,12 @@ int cAppli_EpipGeom::Exe()
     if (! IsInit(&mDegreeInv))
         mDegreeInv = mDegree + 4;
 #if 0
-    cPolyXY_N<double> P(mDegre);
+    cPolyXY_N<double> P(mDegree);
 
-    cHCompatList l;
+    cSetHomogCpleIm h;
     for (double x = -3.0; x<=3.0; x+= 0.1) {
         for (double y = -3.0; y<=3.0; y+= 0.1) {
-            l.push_back({cPt2dr(x,y),cPt2dr(x,f(x,y))});
+            h.Add(cHomogCpleIm(cPt2dr(x,y),cPt2dr(x,f(x,y))));
         }
     }
 /*
@@ -287,8 +88,8 @@ int cAppli_EpipGeom::Exe()
     PSin.AddFixedK(0,1,1.0);
 */
 
-    for (const auto& pair : l) {
-        P.AddObs(pair.p1, pair.p2.y());
+    for (const auto& pair : h.SetH()) {
+        P.AddObs(pair.mP1, pair.mP2.y());
     }
     P.Fit();
     printf("P var %lf\n",P.VarCurSol());
@@ -299,9 +100,9 @@ int cAppli_EpipGeom::Exe()
         StdOut() << std::setw(11) << po << " " << std::setw(11) << v << " " << std::setw(11) << v - po  << " " << p << "\n";
     }
 
-    cPolyXY_N<double> Q(mDegreInv);
-    for (auto& pair : l) {
-        Q.AddObs(pair.p1.x(),P(pair.p1),pair.p1.y());
+    cPolyXY_N<double> Q(mDegreeInv);
+    for (auto& pair : h.SetH()) {
+        Q.AddObs(pair.mP1.x(),P(pair.mP1),pair.mP1.y());
     }
     Q.Fit();
     printf("Q var %lf\n",Q.VarCurSol());
@@ -321,12 +122,12 @@ int cAppli_EpipGeom::Exe()
     mSens2 = mPhProj.ReadSensor(mImName2,true);
 */
     auto aCaptSize = cPt2di(2000,1500);
-    auto aImRect1 = cRect2(cPt2di(0,0),aCaptSize);
-    auto aImRect2 = cRect2(cPt2di(0,0),aCaptSize);
+//    auto aImRect1 = cRect2(cPt2di(0,0),aCaptSize);
+//    auto aImRect2 = cRect2(cPt2di(0,0),aCaptSize);
 
 
     cPt3dr aCenterGround(10.0,5.0,20.0);
-    cCamSimul aCamSimul(aCenterGround,110,200);
+    cCamSimul aCamSimul(aCenterGround,10,20);
     auto aCalibStenope = cPerspCamIntrCalib::SimpleCalib("Stenopee",aCaptSize,1.0);
     aCamSimul.AddCam(aCalibStenope,false);
     aCamSimul.AddCam(aCalibStenope,false);
@@ -334,16 +135,36 @@ int cAppli_EpipGeom::Exe()
     const auto *mSens2 = aCamSimul.listCam()[1];
 
     auto p1 = mSens1->Ground2Image(aCenterGround);
-    auto p2 = mSens2->Ground2Image(aCenterGround);
-    StdOut() << "Center gound in image: " << p1 << "  " << p2 << std::endl;
+    auto b1 = mSens1->Image2Bundle(p1);
+    auto c1 = b1.P1() + (b1.P2() - b1.P1())*Norm2(b1.P1() - aCenterGround);
+    auto c1p = b1.P1() + (b1.P2() - b1.P1())*(Norm2(b1.P1() - aCenterGround) + 1);
+
+    auto P1 = mSens1->Ground2ImageAndDepth(aCenterGround);
+    auto C1 = mSens1->ImageAndDepth2Ground(P1);
+    auto C1p = mSens1->ImageAndDepth2Ground(P1+cPt3dr(0,0,1));
+
+    auto p2 = mSens2->Ground2ImageAndDepth(aCenterGround);
+    auto c2 = mSens2->ImageAndDepth2Ground(p2);
+    auto c2p = mSens2->ImageAndDepth2Ground(p2+cPt3dr(0,0,1));
+
+    StdOut() << "GroundCenter in image: " << p1 << "  " << P1 << std::endl;
+    StdOut() << "GroundCenter: " << aCenterGround <<  "  " << c1 << "  " << C1 << std::endl;
+    StdOut() << "GroundCenter': " << aCenterGround <<  "  " << c1p << "  " << C1p << std::endl;
+
+    StdOut() << "GroundCenter in image: " << p1 << "  " << p2 << std::endl;
+    StdOut() << "GroundCenter: " << aCenterGround <<  "  " << c1 << "  " << c2 << std::endl;
+    StdOut() << "GroundCenter': " << aCenterGround <<  "  " << c1p << "  " << c2p << std::endl;
 
     auto z1 = Norm2(mSens1->Center() - aCenterGround);
     auto z2 = Norm2(mSens2->Center() - aCenterGround);
 
     StdOut() << "Z: " << z1 << "," << z2 << std::endl;
 
-    auto [centre1,dir2,List1] = GenerateData(aImRect1, mSens1, aImRect2, mSens2, z1);
-    auto [centre2,dir1,List2] = GenerateData(aImRect2, mSens2, aImRect1, mSens1, z2);
+//    auto [centre1,dir2,List1] = GenerateData(aImRect1, mSens1, aImRect2, mSens2, z1);
+//    auto [centre2,dir1,List2] = GenerateData(aImRect2, mSens2, aImRect1, mSens1, z2);
+
+    auto [centre1,centre2, dir1, dir2, List1] = GenerateData(mSens1, mSens2);
+    auto List2 = List1;
 
     StdOut() << "Centre1, dir1: " << centre1 << " " << dir1 << " " << Norm2(dir1) << std::endl;
     StdOut() << "Centre2, dir2: " << centre2 << "," << dir2 << " " << Norm2(dir2) << std::endl;
@@ -363,10 +184,10 @@ int cAppli_EpipGeom::Exe()
     }
 
     // pair.p1 from Im2 and pair.p2 from Im1
-    for (auto& pair : List2.SetH()) {
-        pair.mP1 = (pair.mP1 - centre2) / dir2;
-        pair.mP2 = (pair.mP2 - centre1) / dir1;
-    }
+//    for (auto& pair : List2.SetH()) {
+//        pair.mP1 = (pair.mP1 - centre2) / dir2;
+//        pair.mP2 = (pair.mP2 - centre1) / dir1;
+//    }
 
 /*
     std::cout <<  "Norm List p1,p2: " << std::endl;
@@ -453,17 +274,78 @@ std::tuple<cPt2dr, cPt2dr, cSetHomogCpleIm> cAppli_EpipGeom::GenerateData(
     const cRect2& aRect2,
     const cSensorImage *aSensor2,
     double aZ
-    )
+    ) const
 {
     // TODOCM: Determiner min & max Z (stenopee, RPC)
     // TODOCM: X & Y pas trop pres des bords ?
 
-    auto aMinZ = aZ - 20.0;
-    auto aMaxZ = aZ + 20.0;
     cSetHomogCpleIm aSetHomogCpleIm;
     auto c1 = cPt2dr(0,0);
     auto d2  = cPt2dr(0,0);
+
+    auto C1 = cPt2dr(1000,750);
+    auto C2 = cPt2dr(1000,750);
+
+    auto inter_g = aSensor1->PInterBundle(cHomogCpleIm(C1,C2),*aSensor2);
+    auto inter_i = aSensor1->Ground2ImageAndDepth(inter_g);
+    aZ = inter_i.z();
+    auto aMinZ = aZ - 10;
+    auto aMaxZ = aZ + 10;
+
+    StdOut() << "aZ : " << aZ << " " << aSensor1->ImageAndDepth2Ground(inter_i) << "\n";
+
     int t = 0;
+    unsigned n = 0;
+    double deltaZ = (aMaxZ - aMinZ) / mNbZ;
+    int deltaX = aRect1.Sz().x() / mNbXY;
+    int deltaY = aRect1.Sz().y() / mNbXY;
+
+    for (int x = aRect1.P0().x(); x < aRect1.P1().x(); x += deltaX) {
+        for (int y = aRect1.P0().y(); y < aRect1.P1().y(); y += deltaY) {
+            auto p1 = cPt2dr(x,y);
+            for (double z = aMinZ; z < aMaxZ; z += deltaZ) {
+                t++;
+                auto p2 = aSensor2->Ground2Image(aSensor1->ImageAndDepth2Ground(p1,z));
+                if (! aRect2.InsideBL(p2))
+                    continue;
+                auto p2p = aSensor2->Ground2Image(aSensor1->ImageAndDepth2Ground(p1,z+deltaZ));
+                if (! aRect2.InsideBL(p2p))
+                    continue;
+                n ++;
+                aSetHomogCpleIm.Add(cHomogCpleIm(p1,p2));
+                c1 += p1;
+                d2 += VUnit(p2p - p2);
+            }
+        }
+    }
+    c1 = c1 / double(n);
+    d2 = d2 / double(n);
+
+    std::cout << n << "/" << t << std::endl;
+
+    return {c1,d2,std::move(aSetHomogCpleIm)};
+}
+
+std::pair<cPt2dr, cPt2dr> cAppli_EpipGeom::GenerateData(
+    const cRect2& aRect1,
+    const cSensorImage *aSensor1,
+    const cRect2& aRect2,
+    const cSensorImage *aSensor2,
+    const cSetHomogCpleIm &aSetHomogCpleIm
+    ) const
+{
+    // TODOCM: Determiner min & max Z (stenopee, RPC)
+    // TODOCM: X & Y pas trop pres des bords ?
+
+    auto c1 = cPt2dr(0,0);
+    auto c2  = cPt2dr(0,0);
+    auto d2  = cPt2dr(0,0);
+    for (const auto& aHomog : aSetHomogCpleIm.SetH()) {
+        c1 += aHomog.mP1;
+        c2 += aHomog.mP2;
+//        tPt3dr aResult = aSensor1->PInterBundle(aHomog,*aSensor2);
+    }
+/*    int t = 0;
     unsigned n = 0;
     double deltaZ = (aMaxZ - aMinZ) / mNbZ;
     int deltaX = aRect1.Sz().x() / mNbXY;
@@ -485,7 +367,7 @@ std::tuple<cPt2dr, cPt2dr, cSetHomogCpleIm> cAppli_EpipGeom::GenerateData(
                 aSetHomogCpleIm.Add(cHomogCpleIm(p1,p2));
                 c1 += p1;
                 auto v2 = p2p - p2;
-                d2 += v2 / Norm2(v2);
+                d2 += VUnit(v2);
             }
         }
     }
@@ -493,10 +375,91 @@ std::tuple<cPt2dr, cPt2dr, cSetHomogCpleIm> cAppli_EpipGeom::GenerateData(
     d2 = d2 / double(n);
 
     std::cout << n << "/" << t << std::endl;
-
-    return {c1,d2,std::move(aSetHomogCpleIm)};
+*/
+    return {c1,d2};
 }
 
+static cPt3dr GenGround(const cSensorImage *aSensor1,const cSensorImage *aSensor2)
+{
+    for (int aKTest=0 ; aKTest< 10000 ; aKTest++)
+    {
+       tPt2dr aPIm1 = aSensor1->RandomVisiblePIm();
+       tPt2dr aPIm2 = aSensor2->RandomVisiblePIm();
+
+       tPt3dr aResult = aSensor1->PInterBundle(cHomogCpleIm(aPIm1,aPIm2),*aSensor2);
+       if ( aSensor1->IsVisible(aResult)  && aSensor2->IsVisible(aResult))
+       {
+           return aResult;
+       }
+    }
+
+    MMVII_INTERNAL_ERROR("Cannot compute RandomVisiblePGround");
+    return tPt3dr(0.0,0.0,0.0);
+}
+
+std::tuple<cPt2dr, cPt2dr,cPt2dr, cPt2dr, cSetHomogCpleIm> cAppli_EpipGeom::GenerateData(
+    const cSensorImage *aSensor1,
+    const cSensorImage *aSensor2
+    ) const
+{
+    cSetHomogCpleIm aSetHomogCpleIm;
+    for (int i=0; i < 10000; i++) {
+        auto aPtGround = GenGround(aSensor1,aSensor2);
+        aSetHomogCpleIm.Add(cHomogCpleIm(aSensor1->Ground2Image(aPtGround),aSensor2->Ground2Image(aPtGround)));
+    }
+    auto c1 = cPt2dr(0,0);
+    auto c2 = cPt2dr(0,0);
+    auto d1 = cPt2dr(0,0);
+    auto d2 = cPt2dr(0,0);
+    double stheta2 =0;
+    double vtheta2 =0;
+    double stheta1 =0;
+    double vtheta1 =0;
+
+    for (const auto &aHPair : aSetHomogCpleIm.SetH()) {
+        c1 += aHPair.mP1;
+        c2 += aHPair.mP2;
+        tPt3dr aPtInter= aSensor1->PInterBundle(aHPair,*aSensor2);
+
+        auto p1i3 = aSensor1->Ground2ImageAndDepth(aPtInter);
+        auto p2i2 = aSensor2->Ground2Image(aSensor1->ImageAndDepth2Ground(p1i3 + cPt3dr(0,0,-1)));
+        auto v2 = aHPair.mP2 - p2i2;
+        d2 += VUnit(v2);
+        auto theta = std::atan2(v2.y(),v2.x());
+        stheta2 += theta;
+        vtheta2 += theta*theta;
+        p2i2 = aSensor2->Ground2Image(aSensor1->ImageAndDepth2Ground(p1i3 + cPt3dr(0,0,1)));
+        v2 = p2i2 - aHPair.mP2;
+        d2 += VUnit(v2);
+        stheta2 += theta;
+        vtheta2 += theta*theta;
+
+        auto p2i3 = aSensor2->Ground2ImageAndDepth(aPtInter);
+        auto p1i2 = aSensor1->Ground2Image(aSensor2->ImageAndDepth2Ground(p2i3 + cPt3dr(0,0,-1)));
+        auto v1 = aHPair.mP1 - p1i2;
+        d1 += VUnit(v1);
+        theta = std::atan2(v1.y(),v1.x());
+        stheta1 += theta;
+        vtheta1 += theta*theta;
+        p1i2 = aSensor2->Ground2Image(aSensor1->ImageAndDepth2Ground(p2i3 + cPt3dr(0,0,1)));
+        v1 = p1i2 - aHPair.mP1;
+        d1 += VUnit(v1);
+        theta = std::atan2(v1.y(),v1.x());
+        stheta1 += theta;
+        vtheta1 += theta*theta;
+    }
+
+    auto n = (double)aSetHomogCpleIm.SetH().size() * 2;
+    c1 = c1 / n;
+    c2 = c2 / n;
+    d1 = d1 / n;
+    d2 = d2 / n;
+
+
+    StdOut() << "Theta1 : " << stheta1 / n << " Sig: " << sqrt((vtheta1 - (stheta1*stheta1) / n) /n) << "\n";
+    StdOut() << "Theta2 : " << stheta2 / n << " Sig: " << sqrt((vtheta2 - (stheta2*stheta2) / n) /n) << "\n";
+    return std::tuple(c1,c2,d1,d2,aSetHomogCpleIm);
+}
 
 /* ==================================================== */
 
@@ -515,92 +478,6 @@ cSpecMMVII_Appli  TheSpec_EpipGeom
       {eApDT::Orient},
       __FILE__
 );
-}
-
-/* ======================================================================================================== */
-/* ======================================================================================================== */
-/* ======================================================================================================== */
-#include "MMVII_PCSens.h"
-
-namespace  MMVII {
-
-class cAppli_SimulEpip : public cMMVII_Appli
-{
-public :
-
-    cAppli_SimulEpip(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli &);
-    int Exe() override;
-    cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override;
-    cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override;
-
-private :
-    int CreateCam(const std::string& aNameImage);
-    std::string  mImName1;
-    std::string  mImName2;
-    cPt2di mSize = cPt2di(2000,2000);
-    tREAL8 mFocale = 2000;
-    cPerspCamIntrCalib *mCalibStenope;
-};
-
-cAppli_SimulEpip::cAppli_SimulEpip (
-    const std::vector<std::string> &  aVArgs,
-    const cSpecMMVII_Appli & aSpec
-    )
-    : cMMVII_Appli  (aVArgs,aSpec)
-{
-}
-
-int cAppli_SimulEpip::CreateCam(const std::string& aNameImage)
-{
-    cSensorCamPC::tPose aPose;
-    cSensorCamPC Cam(aNameImage,aPose,mCalibStenope);
-    return 0;
-}
-
-int cAppli_SimulEpip::Exe()
-{
-
-    return 0;
-}
-
-cCollecSpecArg2007 & cAppli_SimulEpip::ArgObl(cCollecSpecArg2007 & anArgObl)
-{
-    return anArgObl
-           << Arg2007(mImName1,"name first image",{eTA2007::FileImage})
-           << Arg2007(mImName2,"name second image",{eTA2007::FileImage})
-        ;
-}
-
-
-cCollecSpecArg2007 & cAppli_SimulEpip::ArgOpt(cCollecSpecArg2007 & anArgOpt)
-{
-
-    return anArgOpt
-//           << AOpt2007(mDegree,"Degree","Poly degree",{eTA2007::HDV})
-    ;
-}
-
-
-
-/* ==================================================== */
-
-tMMVII_UnikPApli Alloc_SimulEpip(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec)
-{
-   return tMMVII_UnikPApli(new cAppli_SimulEpip(aVArgs,aSpec));
-}
-
-cSpecMMVII_Appli  TheSpec_SimulEpip
-(
-     "EpipSimul",
-      Alloc_SimulEpip,
-      "Create simulated dataset for EpipGeom",
-      {eApF::Test},
-      {eApDT::Orient},
-      {eApDT::Orient},
-      __FILE__
-);
-
-
 
 }; // MMVII
 
