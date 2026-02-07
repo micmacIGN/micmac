@@ -58,6 +58,14 @@ public :
     tPt fromGeoG(const tPt &aPtInGeoG) const; //< uses mPJ_GeoC2Geog
 
     virtual cRotation3D<tREAL8> getRot2Vertical(const tPt &)   const; //< get rotation from SysCo origin to vertical at point
+    /// extact local vertical, can be sufficient as getRot2Vertical can be superfluous
+    virtual tPt getUpDirVert(const tPt &)   const; 
+
+    //======= Manip of Cste-Vertical system, allow some low level optimization in case =====
+    virtual void SetVertical(const tPt &)   ;  /// defaut Erreur
+    virtual tPt  getCsteUpDirVert() const;  /// acces to cste value
+    virtual bool isVerticalCste()   const;  /// Used to check befor previous methods
+
     virtual tREAL8 getRadiusApprox(const tPt &in) const; //< approximate earth total curvature radius at a point
     virtual tREAL8 getDistHzApprox(const tPt & aPtA, const tPt & aPtB) const; //< approximate horizontal distance (along ellipsoid) from one point to an other
     virtual const tPoseR *getTranfo2GeoC() const;

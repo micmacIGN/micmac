@@ -39,8 +39,9 @@ void cIrbComp_Cam1::Init(cSensorCamPC * aCamPC,bool Adopt)
 }
 
 bool cIrbComp_Cam1::IsInit() const {return mCamPC!=nullptr;}
-  cSensorCamPC * cIrbComp_Cam1::CamPC() const {return mCamPC;}
-tPoseR  cIrbComp_Cam1::Pose() const {return mCamPC->Pose();}
+   cSensorCamPC * cIrbComp_Cam1::CamPC() const  {return mCamPC;}
+
+ tPoseR  cIrbComp_Cam1::Pose() const  {return mCamPC->Pose();}
 std::string cIrbComp_Cam1::NameIm() const{return mCamPC->NameImage();}
 
 tPoseR cIrbComp_Cam1::PosBInSysA(const cIrbComp_Cam1 & aCamB) const
@@ -82,6 +83,17 @@ cIrbComp_Cam1 & cIrbComp_CamSet::KthCam(int aK)
 {
     return  mVCompPoses.at(aK);
 }
+const cIrbComp_Cam1 & cIrbComp_CamSet::KthCam(int aK) const
+{
+    return  mVCompPoses.at(aK);
+}
+
+
+const cIrbComp_Cam1 & cIrbComp_CamSet::CamMaster() const
+{
+    return KthCam(mBlock.CalBlock().SetCams().NumMaster());
+}
+
 
 
 cSensorCamPC *  cIrbComp_CamSet::SingleCamPoseInstr(bool OkNot1) const
@@ -94,7 +106,7 @@ cSensorCamPC *  cIrbComp_CamSet::SingleCamPoseInstr(bool OkNot1) const
     }
 
     return  mVCompPoses.at(aVIndex.at(0)).CamPC();
-}
+    }
 
 /* *************************************************************** */
 /*                                                                 */

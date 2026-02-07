@@ -207,18 +207,12 @@ void cIrbComp_TimeS::ComputePoseInstrument(const std::vector<int>& aSetNumCam,bo
 tREAL8 cIrbComp_TimeS::ScoreDirClino(const cPt3dr& aDirClino,size_t aKClino) const
 {
     cPt3dr aDirLoc = mPoseInstr.Rot().Inverse(aDirClino);
-    // cPt3dr aDirLoc = mPoseInstr.Rot().Value(aDirClino);
-/*
-    StdOut () << " aKClino " << aKClino << " " << mSetClino.NbMeasure() << "\n";
-    std::abs(aDirLoc.z() - std::sin(mSetClino.KthMeasure(aKClino).Angle()) );
-    StdOut() << " ScoreDirClino " << __LINE__ << "\n";
-*/
+    cPt3dr aVertical = mCompBlock.VerticalOfTimes(*this);
 
-    return std::abs(aDirLoc.z() - std::sin(mSetClino.KthMeasure(aKClino).Angle()) );
-
-    // return std::abs(aDirLoc.z() - mSetClino.KthMeasure(aKClino).Angle() );
-
+//    StdOut() << "VVVeeev " << aVertical<< "\n";
+    return std::abs(Scal(aDirLoc,aVertical) - std::sin(mSetClino.KthMeasure(aKClino).Angle()) );
 }
+
 
 
 
@@ -232,9 +226,11 @@ tREAL8 cIrbComp_TimeS::ScoreDirClino(const cPt3dr& aDirClino,size_t aKClino) con
 
 
 cIrbComp_Block::cIrbComp_Block( cIrbCal_Block * aCalBlock,bool IsAdopted) :
-   mCalBlock   (aCalBlock),
+   mOriSysCo     (nullptr),
+   mIsVertCste   (false),
+   mCalBlock     (aCalBlock),
    mCalIsAdopted (IsAdopted),
-   mPhProj (nullptr)
+   mPhProj       (nullptr)
 {
 }
 
@@ -298,6 +294,22 @@ void cIrbComp_Block::AddImagePose(cSensorCamPC * aCamPC,bool okImNotInBloc,bool 
 
     // StdOut() << " III=" << aNameIm << " CCC=" << aNameCal << " Ptr=" << aTimeS << "\n";
     aDataTS.mSetCams.AddImagePose(aCInRBoI->Num(),aCamPC,Adopt);
+
+    // if not done, we can read the coord system of orientation
+    if (mOriSysCo.get()==nullptr)
+    {
+        mOriSysCo = PhProj().CurSysCoOri();
+        mIsVertCste = mOriSysCo->isVerticalCste(); // possible acceleration
+        if (mIsVertCste)
+            mCsteVert =  mOriSysCo->getCsteUpDirVert();
+    }
+}
+
+void  cIrbComp_Block::SetVerticalCste(const cPt3dr &aVertical)
+{
+    mIsVertCste = true;
+    mCsteVert = aVertical;
+    OriSysCo().SetVertical(aVertical);
 }
 
 void cIrbComp_Block::AddImagePose(const std::string & aNameIm,bool  okImNotInBloc, bool usePoseOfCalib)
@@ -444,14 +456,31 @@ typename cIrbComp_Block::tResCompCal cIrbComp_Block::ComputeCalibCamsInit(int aK
 }
 
 
+
+
     //  -------------------------- "Accessors"  --------------------------------------------------------
    
 const cIrbCal_CamSet &  cIrbComp_Block::SetOfCalibCams() const { return mCalBlock->SetCams(); }
-const cPhotogrammetricProject & cIrbComp_Block::PhProj()
+const cPhotogrammetricProject & cIrbComp_Block::PhProj() const
 {
     MMVII_INTERNAL_ASSERT_strong(mPhProj,"No PhProj for cIrbComp_Block");
     return *mPhProj;
 }
+
+const cSysCo & cIrbComp_Block::OriSysCo() const
+{
+    MMVII_INTERNAL_ASSERT_strong(mOriSysCo.get(),"No PhProj for cIrbComp_Block");
+    return *mOriSysCo;
+}
+
+cSysCo & cIrbComp_Block::OriSysCo()
+{
+    MMVII_INTERNAL_ASSERT_strong(mOriSysCo.get(),"No PhProj for cIrbComp_Block");
+    return *mOriSysCo;
+}
+
+
+
 const cIrbCal_Block & cIrbComp_Block::CalBlock() const {return *mCalBlock;}
 cIrbCal_Block & cIrbComp_Block::CalBlock() {return *mCalBlock;}
 size_t  cIrbComp_Block::NbCams() const  {return SetOfCalibCams().NbCams();}
@@ -474,6 +503,14 @@ tREAL8 cIrbComp_Block::ScoreDirClino(const cPt3dr& aDir,size_t aKClino) const
      return aWAvg.Average();
 }
 
+cPt3dr   cIrbComp_Block::VerticalOfTimes(const   cIrbComp_TimeS & aTS) const
+{
+    if (mIsVertCste)
+        return mCsteVert;
+
+    cPt3dr aC =    aTS.SetCams().CamMaster().CamPC()->Center();
+    return OriSysCo().getUpDirVert(aC);
+}
 
 /* *************************************************************** */
 /*                                                                 */

@@ -784,7 +784,6 @@ template <const int Dim>  const std::vector<std::vector<cPtxd<int,Dim>>> & TabGr
 
 
 
-
 /*
 template <class Type> std::ostream & operator << (std::ostream & OS,const cPtxd<Type,1> &aP)
 { return  OS << "[" << aP.x() << "]"; }
