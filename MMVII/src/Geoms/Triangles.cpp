@@ -184,6 +184,15 @@ template <class Type,const int Dim> Type cTriangle<Type,Dim>::MinDist() const
 
 
 
+/*
+template <class Type,const int Dim> Type cTriangle<Type,4>::Area() const 
+{
+    MMVII_INTERNAL_ERROR("cTriangle:Area for dim 4");
+   return 0.0;
+}
+*/
+
+
 
 
 template <class Type,const int Dim> Type cTriangle<Type,Dim>::Area() const
@@ -764,6 +773,8 @@ INSTANTIATE_TRI(tREAL8)
 INSTANTIATE_TRI(tREAL16)
 
 template class cTriangle<tREAL8,1>;
+template class cTriangle<tREAL8,4>;
+template class cTriangle<tREAL8,5>;
 
 /*
 template class cTriangulation<tREAL8,2>;

@@ -429,10 +429,10 @@ class cIrbComp_CamSet  : public cMemCheck
           cSensorCamPC * SingleCamPoseInstr(bool OkNot1=false) const ;
 
     private :
-         cIrbComp_CamSet(const cIrbComp_CamSet &) = delete;
+       //  cIrbComp_CamSet(const cIrbComp_CamSet &) = delete;
 
          void AddImagePose(int anIndex,cSensorCamPC * aCamPC,bool Adopt);
-         const cIrbComp_Block &      mBlock;
+         const cIrbComp_Block *      mBlock;
          std::vector<cIrbComp_Cam1>  mVCompPoses;
 };
 
@@ -464,7 +464,7 @@ class   cIrbComp_TimeS : public cMemCheck
     public :
          friend cIrbComp_Block;
 
-         cIrbComp_TimeS (const cIrbComp_Block &);
+         cIrbComp_TimeS (const cIrbComp_Block &,const std::string & anIdent);
          const cIrbComp_CamSet & SetCams() const;  //< Accessor
           cIrbComp_CamSet & SetCams();  //< Accessor
           const cIrbComp_ClinoSet & SetClino() const;
@@ -480,14 +480,15 @@ class   cIrbComp_TimeS : public cMemCheck
          tREAL8 ScoreDirClino(const cPt3dr& aDir,size_t aKClino) const;
 
     private :
-         cIrbComp_TimeS(const cIrbComp_TimeS&) = delete;
-         const cIrbComp_Block &            mCompBlock;
+         //cIrbComp_TimeS(const cIrbComp_TimeS&) = delete;
+         const cIrbComp_Block *            mCompBlock;
          cIrbComp_CamSet                   mSetCams;
          cIrbComp_ClinoSet                 mSetClino;
 
          /** Not sure which role will play the notion of "pose of the instrument"*/
          bool                              mPoseInstrIsInit;
          tPoseR                            mPoseInstr;
+         std::string                       mIdent;
 };
 
 ///  class for using a rigid bloc in computation (calibration/compensation)

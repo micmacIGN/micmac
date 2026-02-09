@@ -24,8 +24,8 @@ namespace MMVII
 
 class cAppli_BlockInstrInitClino : public cMMVII_Appli,
                                    public cDataMapping<tREAL8,2,1>,
-                                   public cDataMapping<tREAL8,3,1>
- //                                  public cDataMapping<tREAL8,3,1>
+                                   public cDataMapping<tREAL8,3,1>,
+                                   public cDataMapping<tREAL8,5,1>
 
 {
      public :
@@ -62,8 +62,11 @@ class cAppli_BlockInstrInitClino : public cMMVII_Appli,
         // =============  Methods for 2 orthogonal clino + Vertical ====================
 
         tREAL8 ValueOfVerticalAnd2OthogClino(const tRotR& aR,const cPt3dr & aVertical) const;
+        void InitVerticalAnd2OthogClino(const cPt2di & aK1K2);
+        cPt1dr  Value(const cPtxd<tREAL8,5>&) const override ;
 
 
+        std::pair<tRotR,cPt3dr>  P5toRotP3(const cPtxd<tREAL8,5>& aPt) const;
         cPt3dr  P2toP3(const cPt2dr&) const;
         tRotR   P3toRot(const cPt3dr&) const;
 
@@ -74,7 +77,8 @@ class cAppli_BlockInstrInitClino : public cMMVII_Appli,
 
         // ------------- Optionnal parameters ----------------
         std::string               mNameBloc;     //< name of the bloc inside the
-        int                       mNbSS;         //< Number of sample of sphere (in each face of cube)
+        int                       mNbSamp1Cl;     //< Number of sample of sphere for 1 clino (in each face of cube)
+        int                       mNbSVert;      //< Nb Sample Vert&Rot, in case we guess vertical
         std::vector<cPt2di>       mPairOrthog;   //< vector of orthog if we change (more for test)
         eTyUnitAngle              mUnitShow;     //< Unity for print result
         bool                      mReSetSigma;   //< do we use sigma
@@ -92,8 +96,8 @@ class cAppli_BlockInstrInitClino : public cMMVII_Appli,
         int                       mK2CurC;        //<                      , Index of Clin2
 
         tRotR                     mAxes2Orthog;    //< code 2 pair of orthog clino as a rotation
-        tRotR                     mAxes1Clino;     //< code 1 Clino and its 2 orthog compl
-
+        tRotR                     mAxes1Clino;     //< code 1 Clino and its 2 orthog compl or code for Vertical
+        // tRotR                     mAxesVertical;   //< code vertical and its 2 orthog compl
 
         std::vector<int>          mNumPoseInstr;  //< Num cams used for pose estimation of instrument
         std::vector<bool>         mInPairOrthog;  //< Is the clino used in a pair (unused 4 now)
@@ -105,6 +109,8 @@ class cAppli_BlockInstrInitClino : public cMMVII_Appli,
         cWeightAv<tREAL8,tREAL8>  mAvgClinGlob;
         std::vector<tREAL8>       mScoreClinoGlob;
         std::vector<cPt3dr>       mDirClinoGlob;
+
+        cPt3dr                    mVertApriori;
 
 
 };
@@ -120,7 +126,8 @@ cAppli_BlockInstrInitClino::cAppli_BlockInstrInitClino
     mPhProj      (*this),
 
     mNameBloc    (cIrbCal_Block::theDefaultName),
-    mNbSS        (100),
+    mNbSamp1Cl   (100),
+    mNbSVert     (7),
     mUnitShow    (eTyUnitAngle::eUA_DMgon),
     mReSetSigma  (true),
     mBlock       (nullptr),
@@ -146,12 +153,12 @@ cCollecSpecArg2007 & cAppli_BlockInstrInitClino::ArgOpt(cCollecSpecArg2007 & anA
 {
 	return anArgOpt
             << AOpt2007(mNameBloc,"NameBloc","Name of bloc to calib ",{{eTA2007::HDV}})
-            << AOpt2007(mNbSS,"NbSS","Number of sample on the sphere ",{{eTA2007::HDV}})
+            << AOpt2007(mNbSamp1Cl,"NbSS","Number of sample on the sphere ",{{eTA2007::HDV}})
             << AOpt2007(mNumPoseInstr,"NPI","Num of cams used  for estimate pose of intsrument")
             << AOpt2007(mPairOrthog,"PairOrthog","Pair of orthogonal camera (if reset)")
             << AOpt2007(mUnitShow,"USA","Unity Show Angles",{AC_ListVal<eTyUnitAngle>(),{eTA2007::HDV}})
             << AOpt2007(mReSetSigma,"ResetSigma","Do we use sigma",{{eTA2007::HDV}})
-
+            << AOpt2007(mVertApriori,"Vert0","A priori vertical => we compte both clino & vert")
     ;
 }
 
@@ -164,13 +171,90 @@ tREAL8 cAppli_BlockInstrInitClino::Ang4Show(tREAL8 anAng) const
 
 // ========================  5D optimisation ==========================
 
-tREAL8 cAppli_BlockInstrInitClino::ValueOfVerticalAnd2OthogClino(const tRotR& aR2Clin,const cPt3dr & aVertical) const
+tREAL8 cAppli_BlockInstrInitClino::ValueOfVerticalAnd2OthogClino
+      (
+        const tRotR& aR2Clin,
+        const cPt3dr & aVertical
+       ) const
 {
     mBlock->SetVerticalCste(VUnit(aVertical));
 
     return ValueOf2OthogClino(aR2Clin);
 }
 
+std::pair<tRotR,cPt3dr>  cAppli_BlockInstrInitClino::P5toRotP3(const cPtxd<tREAL8,5>& aPt) const
+{
+    cPt3dr aWPK(aPt.x(),aPt.y(),aPt.z());
+    cPt2dr aDVert(aPt.t(),aPt.u());
+
+    return std::pair<tRotR,cPt3dr>(P3toRot(aWPK), P2toP3(aDVert));
+
+}
+
+cPt1dr  cAppli_BlockInstrInitClino::Value(const cPtxd<tREAL8,5>& aPt5d) const
+{
+    auto [aR2Clin,aVertical] = P5toRotP3(aPt5d);
+    return cPt1dr(ValueOfVerticalAnd2OthogClino(aR2Clin,aVertical));
+}
+
+
+
+void cAppli_BlockInstrInitClino::InitVerticalAnd2OthogClino(const cPt2di & aK1K2)
+{
+    mK1CurC = aK1K2.x();
+    mK2CurC = aK1K2.y();
+
+    cSampleQuat     aSQuat(mNbSVert,true);
+    cSampleSphere3D aSSph(mNbSVert);
+
+    cWeightAv<tREAL8,tREAL8> anAv;
+    cWhichMin<cPt2di,tREAL8> aWMin;
+
+    for (int aKQ=0 ; aKQ<(int)aSQuat.NbRot() ; aKQ++)
+    {
+        tRotR aRot2Clino = aSQuat.KthRot(aKQ);
+        for (int aKV=0 ; aKV<aSSph.NbSamples() ; aKV++)
+        {
+            cPt3dr aVertical = aSSph.KthPt(aKV);
+            tREAL8 aScore = ValueOfVerticalAnd2OthogClino(aRot2Clino,aVertical);
+            anAv.Add(1.0,aScore);
+            aWMin.Add(cPt2di(aKQ,aKV),aScore);
+        }
+    }
+
+    cPt2di aIndexMin = aWMin.IndexExtre();
+    mAxes2Orthog = aSQuat.KthRot(aIndexMin.x());
+    cPt3dr aVertInit = aSSph.KthPt(aIndexMin.y());
+    mAxes1Clino = tRotR::CompleteRON(aVertInit);
+
+    cOptimByStep<5> anOptim(*this,true,1.0);
+    auto [aScMin,aPt5Min] = anOptim.Optim(cPtxd<tREAL8,5>(0,0,0,0,0),2.0/mNbSamp1Cl,1e-8,1/sqrt(2.0));
+
+    auto [aR2ClinFine,aVertFine] = P5toRotP3(aPt5Min);
+
+    if (Scal(mVertApriori,aVertFine) < 0)
+    {
+        tRotR aRInv(-aR2ClinFine.AxeI(),-aR2ClinFine.AxeJ(),aR2ClinFine.AxeK(),false);
+
+        aR2ClinFine  = aRInv;
+        aVertFine    = - aVertFine;
+    }
+
+    StdOut() << " SCORE=" << ValueOfVerticalAnd2OthogClino(aR2ClinFine,aVertFine)
+             << " Vert=" << aVertFine
+             << " Clino1=" <<   aR2ClinFine.AxeI()
+             << " Clino2=" <<  aR2ClinFine.AxeJ()
+             << "\n";
+/*
+    StdOut() << " ** SCORES, Min: " << aWMin.ValExtre()
+            << " ; Av: " << anAv.Average()
+            << " CONVERG=" << Ang4Show(aScMin)
+             <<  " CHECK=" << ValueOfVerticalAnd2OthogClino(aR2ClinFine,aVertFine)
+            << " Vert=" << aVertFine
+            << "\n";
+            */
+    //getchar();
+}
 
 // ========================  3D optimisation ==========================
 
@@ -211,7 +295,7 @@ void cAppli_BlockInstrInitClino::Process2OrthogClino(const cPt2di & aK1K2)
     //tREAL8 anAng = std::abs(AbsAngleTrnk(aP1,aP2)-M_PI/2.0) ;
 
     cOptimByStep<3> anOptim(*this,true,1.0);
-    auto [aScMin,aPt3Min] = anOptim.Optim(cPt3dr(0,0,0),2.0/mNbSS,1e-8,1/sqrt(2.0));
+    auto [aScMin,aPt3Min] = anOptim.Optim(cPt3dr(0,0,0),2.0/mNbSamp1Cl,1e-8,1/sqrt(2.0));
 
     mAxes2Orthog = P3toRot(aPt3Min);
 
@@ -243,7 +327,7 @@ cPt1dr  cAppli_BlockInstrInitClino::Value(const cPt2dr&aP2) const
 void cAppli_BlockInstrInitClino::Process1ClinoIndep(int aK)
 {
     mKCurClino = aK;
-    cSampleSphere3D aSSph(mNbSS);
+    cSampleSphere3D aSSph(mNbSamp1Cl);
 
     //==== [1]  Compute an initial solution by parsing the sphere discretization =============
     cWhichMin<cPt3dr,tREAL8> aWMin(cPt3dr(0,0,1),1e10);
@@ -266,9 +350,8 @@ void cAppli_BlockInstrInitClino::Process1ClinoIndep(int aK)
     for (auto aStep : {0.8,0.6,0.4,0.3})
     {
        cOptimByStep<2> anOptim(*this,true,1.0,2);
-       auto [aScLocMin,aPt2Min] = anOptim.Optim(cPt2dr(0,0),2.0/mNbSS,1e-6,aStep);
+       auto [aScLocMin,aPt2Min] = anOptim.Optim(cPt2dr(0,0),2.0/mNbSamp1Cl,1e-6,aStep);
        aScMin = aScLocMin;
-               StdOut() << "SCCC=" <<  Ang4Show(aScMin) << "\n";
        mAxes1Clino = tRotR::CompleteRON(P2toP3(aPt2Min));
     }
 
@@ -342,7 +425,9 @@ int cAppli_BlockInstrInitClino::Exe()
     mInPairOrthog.resize(mNbClino,false);
 
     if (IsInit(&mNumPoseInstr))
+    {
        mCalBlock->SetCams().SetNumPoseInstr(mNumPoseInstr);
+    }
 
 
     //  add all the camera
@@ -352,20 +437,12 @@ int cAppli_BlockInstrInitClino::Exe()
     }
 
     mBlock->SetVerticalCste(cPt3dr(0,0,1));
-    StdOut() << "DEFFFF " <<  mBlock->OriSysCo().Def() << "\n";
+  //  StdOut() << "DEFFFF " <<  mBlock->OriSysCo().Def() << "\n";
             // << " "<<   mBlock->OriSysCo().<< "\n";
 
 
     mBlock->ComputePoseInstrument();
     mBlock->SetClinoValues();
-
-    for (int aKC=0 ; aKC<(int)mSetClinos->NbClino() ; aKC++)
-        Process1ClinoIndep(aKC);
-
-    mScoreClinoGlob = mScoreClinoIndep;
-    mDirClinoGlob   = mDirClinoIndep;
-
-    mPhProj.SaveRigBoI(mBlock->CalBlock());
 
     if (!IsInit(&mPairOrthog))
     {
@@ -378,6 +455,23 @@ int cAppli_BlockInstrInitClino::Exe()
                 mPairOrthog.push_back(cPt2di(aK1,aK2));
         }
     }
+
+    if (IsInit(&mVertApriori))
+    {
+        for (const auto aPt: mPairOrthog)
+        {
+           InitVerticalAnd2OthogClino(aPt);
+        }
+    }
+
+
+    for (int aKC=0 ; aKC<(int)mSetClinos->NbClino() ; aKC++)
+        Process1ClinoIndep(aKC);
+
+    mScoreClinoGlob = mScoreClinoIndep;
+    mDirClinoGlob   = mDirClinoIndep;
+
+   // mPhProj.SaveRigBoI(mBlock->CalBlock());
 
     for (const auto aPt: mPairOrthog)
     {

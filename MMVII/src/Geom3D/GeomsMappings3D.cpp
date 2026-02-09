@@ -1165,6 +1165,12 @@ tREAL8 cSampleQuat::Int2Coord(int aK) const
     return   (aK*2+1-(int)mNbStep) / double(mNbStep);
 }
 
+tRotR  cSampleQuat::KthRot(int aKQ) const
+{
+    MMVII_INTERNAL_ASSERT_always(m4R,"cSampleQuat::KthRot NoRot");
+    return  tRotR (Quat2MatrRot(KthQuat(aKQ)),false);
+}
+
 cPt4dr  cSampleQuat::KthQuat(int aK) const
 {
    //  NbRot = 8 *  NbStep ^ 3

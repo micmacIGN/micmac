@@ -58,7 +58,7 @@ tPoseR cIrbComp_Cam1::PosBInSysA(const cIrbComp_Cam1 & aCamB) const
 /* *************************************************************** */
 
 cIrbComp_CamSet::cIrbComp_CamSet(const cIrbComp_Block & aCompBlock) :
-    mBlock          (aCompBlock),
+    mBlock          (&aCompBlock),
     mVCompPoses     (aCompBlock.SetOfCalibCams().NbCams())
 {
 }
@@ -91,14 +91,14 @@ const cIrbComp_Cam1 & cIrbComp_CamSet::KthCam(int aK) const
 
 const cIrbComp_Cam1 & cIrbComp_CamSet::CamMaster() const
 {
-    return KthCam(mBlock.CalBlock().SetCams().NumMaster());
+    return KthCam(mBlock->CalBlock().SetCams().NumMaster());
 }
 
 
 
 cSensorCamPC *  cIrbComp_CamSet::SingleCamPoseInstr(bool OkNot1) const
 {
-    std::vector<int> aVIndex =  mBlock.CalBlock().SetCams().NumPoseInstr() ;
+    std::vector<int> aVIndex =  mBlock->CalBlock().SetCams().NumPoseInstr() ;
     if (aVIndex.size()!=1)
     {
         MMVII_INTERNAL_ASSERT_strong( OkNot1,"SingleCamPoseInstr not size 1");
@@ -278,6 +278,8 @@ void AddData(const  cAuxAr2007 & anAux,cIrbCal_CamSet & aCams)
 void cIrbCal_CamSet::SetNumPoseInstr (const std::vector<int> & aVNums)
 {
      mNumsPoseInstr = aVNums;
+
+     //StdOut() << "mNumsPoseInstrmNumsPoseInstr " << mNumsPoseInstr << "\n";
 }
 
 std::vector<int>  cIrbCal_CamSet::NumPoseInstr() const
@@ -286,7 +288,6 @@ std::vector<int>  cIrbCal_CamSet::NumPoseInstr() const
    if (mNumsPoseInstr.empty())
    {
       for (size_t aK=0 ; aK<mVCams.size() ; aK++)         // Correct -1 => master
-
           aRes.push_back(aK);
    }
    else

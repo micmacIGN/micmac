@@ -575,6 +575,7 @@ class cSampleQuat
 
 
          cPt4dr  KthQuat(int aK) const; ///< Main method return the number of rot
+         tRotR   KthRot(int aK) const;
          size_t NbRot() const;  ///< Accessor
          size_t NbStep() const;  ///< Accessor
 

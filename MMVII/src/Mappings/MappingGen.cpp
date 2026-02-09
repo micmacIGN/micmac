@@ -403,9 +403,6 @@ template <class Type,const int DimIn,const int DimOut>
 
 
 
-
-
-
 template <class Type,const int DimIn,const int DimOut>
       cTriangle<Type,DimOut> cDataMapping<Type,DimIn,DimOut>::TriValue(const cTriangle<Type,DimIn> &aTriIn) const
 {
@@ -546,6 +543,7 @@ INSTANCE_ONE_DIM_MAPPING(3)
 // INSTANCE_ONE_DIM_MAPPING(4)
 INSTANCE_TWO_DIM_MAPPING(3,1)
 
+template class cDataMapping<double,5,1>;
 /* ============================================= */
 /* ============================================= */
 /* ====                                      === */       
