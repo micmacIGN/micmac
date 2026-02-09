@@ -571,30 +571,30 @@ void AddData(const cAuxAr2007 & anAux,cLinesAntiParal1Im & anEx);
 
 /** Classes to handle theorical target to real target 3D similarity **/
 
-class cTargetSim3D
+class cTargetMap
 {
     public :
-        cTargetSim3D();
-        cTargetSim3D(const std::string &aCode, cSimilitud3D<tREAL8> aSim3D);
+        cTargetMap();
+        cTargetMap(const std::string &aCode, cSimilitud3D<tREAL8> aSim3D);
         void AddData(const cAuxAr2007 &anAux);
-    private :
         std::string mCode;
-        cSimilitud3D<tREAL8> mSim3D;
+        cSimilitud3D<tREAL8> mMap;
 };
 
-class cSetTargetSim3D
+class cSetTargetMap
 {
     public:
-        cSetTargetSim3D(const std::string &aName);
-        void AddMeasure(cTargetSim3D aTarget);
+        cSetTargetMap(const std::string &aName);
+        void AddTargetMap(cTargetMap aTargetMap);
+        const cTargetMap* GetMapOfCode(const std::string &aCode);
         void AddData(const cAuxAr2007 & anAux);
         std::string Name();
         static std::string NameFile(const cPhotogrammetricProject &aPhProj, std::string aName, bool Input);
     private:
-        std::vector<cTargetSim3D> mMeasures;
+        std::vector<cTargetMap> mTargetMappings;
         std::string mName;
 };
-void AddData(const cAuxAr2007 &anAux, cSetTargetSim3D &anEx);
+void AddData(const cAuxAr2007 &anAux, cSetTargetMap &anEx);
 };
 
 #endif  //  _MMVII_MEASURES_IM_H_

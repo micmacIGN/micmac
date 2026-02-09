@@ -277,8 +277,8 @@ class cSetMesGndPt;
 class cVecTiePMul;
 class cTiePMul;
 
-class cTargetSim3D;
-class cSetTargetSim3D;
+class cTargetMap;
+class cSetTargetMap;
 
 // MMVII_Radiom.h
 class cImageRadiomData;  ///< store data used for radiometric equalisation

@@ -33,13 +33,14 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
             void doBundle(const cSensorCamPC * aCam);
             std::vector<cPt3dr> getVMotifMes3D(std::list<std::string> lNamesPts);
             cSimilitud3D<cPt3dr> doSimil3D(std::vector<cPt3dr> &aVPtsIn, std::vector<cPt3dr> &aVPtsOut);
-            std::map<std::string, cSimilitud3D<tREAL8>> computeTargets2WorldMappings();
+            //std::map<std::string, cSimilitud3D<tREAL8>> computeTargets2WorldMappings();
+            cSetTargetMap computeTargets2WorldMappings();
             std::map<std::string, std::vector<cPt3dr>> computeTargetsWorldBasePoints();
             cPt2dr world2Target(const std::string& aTargetCode, const cPt3dr& aWorldPt);
             cPt3dr target2World(const std::string& aTargetCode, const cPt2dr& aTargetPt);
             std::vector<cPt2dr> get2DBasePoints();
             std::vector<cPt3dr> get3DBasePoints();
-            void doBench();
+            void doPseudoBench();
 
             /*
              *
@@ -49,16 +50,18 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
             int mRes;
             bool mShow; //show details
             bool mVisu; //visualisation
-            std::map<std::string, cSimilitud3D<tREAL8>> mTargets2WorldMappings;
+            cSetTargetMap mTargets2WorldMappings;
             std::set <std::string> mIntersectedCodes;
             cRGBImage * mCurrVisuIm;
+            std::string mCurrImName;
+            std::string mCurrTgtCode;
             cSetMesGnd3D mMeasuredTargets;
             std::vector<cPt2dr> mInitTargetPts;
             cSetMesPtOf1Im mExtendedSetOfMes2D;
             cSetMesGnd3D mExtendedSetOfBundles;
             cSetMesGnd3D mExtendedSetOfMes3D;
             std::map<const cSensorCamPC *,cSetMesPtOf1Im> mMImExtendedSetOfMes2D;
-            cSetTargetSim3D mSetTargetSim3D;
+            //cSetTargetSim3D mSetTargetSim3D;
             std::map<const cSensorCamPC *, cSetMesGnd3D> mMImSetOfBundles;
 
 
@@ -101,8 +104,8 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
                                                                 const cSpecMMVII_Appli & aSpec):
         cMMVII_Appli(aVArgs, aSpec),
         mRes (600),
+        mTargets2WorldMappings (""),
         mCurrVisuIm (nullptr),
-        mSetTargetSim3D ("ExtTargets"),
         mPhProj (*this)
 
     {
@@ -156,8 +159,10 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
         mMeasuredTargets = mPhProj.LoadGCP3DFromFolder(mPhProj.DPGndPt3D().DirIn());
 
         mTargets2WorldMappings = computeTargets2WorldMappings();
+        SaveInFile(mTargets2WorldMappings, cSetTargetMap::NameFile(mPhProj, mTargets2WorldMappings.Name(), false));
 
-        //doBench();
+
+        doPseudoBench();
 
         /*
             doPredict(aImName);//prediction of missing targets
@@ -233,7 +238,7 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
         return EXIT_SUCCESS;
     }
 
-    void cAppli_CheckBoardTargetRefine::doBench()
+    void cAppli_CheckBoardTargetRefine::doPseudoBench()
     {
         for (auto aPt:mMeasuredTargets.Measures())
         {
@@ -242,11 +247,11 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
         }
     }
 
-    std::map<std::string, cSimilitud3D<tREAL8>> cAppli_CheckBoardTargetRefine::computeTargets2WorldMappings()
+    cSetTargetMap cAppli_CheckBoardTargetRefine::computeTargets2WorldMappings()
     {
         std::map<std::string, std::vector<cPt3dr>> aMTargetsWorldBasePoints = computeTargetsWorldBasePoints();
         //then adjust
-        std::map<std::string, cSimilitud3D<tREAL8>> aMTarget2WorldMappings;
+        cSetTargetMap aTarget2WorldMappings(mPhProj.DPGndPt3D().DirOut());
 
         for (const auto& aTgtWrldBsePts:aMTargetsWorldBasePoints)
         {
@@ -255,12 +260,12 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
             cSimilitud3D<tREAL8> aTgt2WrldMap;
             aTgt2WrldMap = aTgt2WrldMap.StdGlobEstimate(get3DBasePoints(), aTgtWrldBsePts.second,
                                                         &aRes, nullptr, cParamCtrlOpt::Default());
-            aMTarget2WorldMappings[aTgtCode] = aTgt2WrldMap;
+            aTarget2WorldMappings.AddTargetMap(cTargetMap(aTgtCode, aTgt2WrldMap));
             StdOut() << "Input pts: " << get2DBasePoints() << " Output pts: " << aTgtWrldBsePts.second << std::endl;
             StdOut() << "3D Simil. Adjust. Res. " << aTgtCode << " --> " << aRes << std::endl;
         }
 
-        return aMTarget2WorldMappings;
+        return aTarget2WorldMappings;
     }
 
     std::map<std::string, std::vector<cPt3dr>> cAppli_CheckBoardTargetRefine::computeTargetsWorldBasePoints()
@@ -324,14 +329,14 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
     {
         cPt3dr aTgt0Pt(aTargetPt.x(), aTargetPt.y(), 0);
         cPt3dr aWrldPt;
-        cSimilitud3D<tREAL8>& aTgt2WrldMap = mTargets2WorldMappings[aTargetCode];
-        return aTgt2WrldMap.DiffInOut(aTgt0Pt, aWrldPt);
+        auto aTgt2WrldMap = mTargets2WorldMappings.GetMapOfCode(aTargetCode);
+        return aTgt2WrldMap->mMap.DiffInOut(aTgt0Pt, aWrldPt);
     }
 
     cPt2dr cAppli_CheckBoardTargetRefine::world2Target(const std::string& aTargetCode, const cPt3dr& aWorldPt)
     {
-        cSimilitud3D<tREAL8>& aTgt2WrldMap = mTargets2WorldMappings[aTargetCode];
-        cPt3dr aTgt0Pt = aTgt2WrldMap.Inverse(aWorldPt);
+        auto aTgt2WrldMap = mTargets2WorldMappings.GetMapOfCode(aTargetCode);
+        cPt3dr aTgt0Pt = aTgt2WrldMap->mMap.Inverse(aWorldPt);
         return cPt2dr(aTgt0Pt.x(), aTgt0Pt.y());
     }
 

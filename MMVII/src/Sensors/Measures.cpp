@@ -437,69 +437,74 @@ void AddData(const  cAuxAr2007 & anAux,cMesIm1Pt & aMes)
 
 /* ********************************************* */
 /*                                               */
-/*             cTargetSim3D                      */
+/*             cTargetMap                        */
 /*                                               */
 /* ********************************************* */
 
-cTargetSim3D::cTargetSim3D(const std::string &aCode, cSimilitud3D<tREAL8> aSim3D) :
+cTargetMap::cTargetMap(const std::string &aCode, cSimilitud3D<tREAL8> aSim3D) :
     mCode (aCode),
-    mSim3D (aSim3D)
+    mMap (aSim3D)
 {
 }
 
-cTargetSim3D::cTargetSim3D() :
+cTargetMap::cTargetMap() :
     mCode ("???")
 {
 }
 
-void cTargetSim3D::AddData(const cAuxAr2007 &anAux)
+void cTargetMap::AddData(const cAuxAr2007& anAux)
 {
-    MMVII::AddData(cAuxAr2007("TargetName",anAux),mCode);
-    MMVII::AddData(cAuxAr2007("Sim3D",anAux),mSim3D);
+    MMVII::AddData(cAuxAr2007("TargetName", anAux), mCode);
+    MMVII::AddData(cAuxAr2007("TargetMap", anAux), mMap);
 }
 
-void AddData(const cAuxAr2007 &anAux, cTargetSim3D &aSim3D)
+void AddData(const cAuxAr2007& anAux, cTargetMap& aSim3D)
 {
     aSim3D.AddData(anAux);
 }
 
 /* ********************************************* */
 /*                                               */
-/*             cSetTargetSim3D                   */
+/*             cSetTargetMap                     */
 /*                                               */
 /* ********************************************* */
 
 
-cSetTargetSim3D::cSetTargetSim3D(const std::string &aName):
+cSetTargetMap::cSetTargetMap(const std::string &aName):
     mName (aName)
 {
 }
 
-std::string cSetTargetSim3D::Name() {return mName;}
+std::string cSetTargetMap::Name() {return mName;}
 
-std::string cSetTargetSim3D::NameFile(const cPhotogrammetricProject & aPhProj, std::string aName, bool Input)
+std::string cSetTargetMap::NameFile(const cPhotogrammetricProject & aPhProj, std::string aName, bool Input)
 {
     return  (Input ? aPhProj.DPGndPt3D().FullDirIn() : aPhProj.DPGndPt3D().FullDirOut())
-           + "Target3DSim-"
+           + "TargetAttrib-"
            +  aName
            + "."+ cMMVII_Appli::CurrentAppli().TaggedNameDefSerial();
 }
 
-void cSetTargetSim3D::AddData(const cAuxAr2007 &anAuxParam)
+void cSetTargetMap::AddData(const cAuxAr2007 &anAux)
 {
-    cAuxAr2007 anAux("SetTargetSim3D",anAuxParam);
-    MMVII::AddData(cAuxAr2007("SetName",anAux),mName);
-    MMVII::AddData(cAuxAr2007("Sims3D",anAux),mMeasures);
+    MMVII::AddData(cAuxAr2007("TargetMappings",anAux), mTargetMappings);
 }
 
-void cSetTargetSim3D::AddMeasure(cTargetSim3D aTarget)
+void cSetTargetMap::AddTargetMap(cTargetMap aTargetMap)
 {
-    mMeasures.push_back(aTarget);
+    mTargetMappings.push_back(aTargetMap);
 }
 
-void AddData(const cAuxAr2007 &anAux, cSetTargetSim3D &aSet)
+void AddData(const cAuxAr2007 &anAux, cSetTargetMap &aSet)
 {
     aSet.AddData(anAux);
+}
+
+const cTargetMap* cSetTargetMap::GetMapOfCode(const std::string &aCode)
+{
+    for (const auto& aMap : mTargetMappings)
+        if (aMap.mCode==aCode) return  &aMap;
+    return nullptr;
 }
 
 
