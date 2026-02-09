@@ -503,6 +503,7 @@ protected :
          const cData1ImLidPhgr &  aData,
          int                     aKPt
          ) override;
+    cStdWeighterResidual mWeighter;
 
     std::vector<cStaticLidarBAData> mVScans;      ///< vector of raster representations of lidar
 };

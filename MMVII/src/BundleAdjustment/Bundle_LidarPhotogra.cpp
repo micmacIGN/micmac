@@ -578,10 +578,18 @@ void  cBA_LidarPhotogra::Add1Patch(tREAL8 aWeight,const std::vector<cPt3dr> & aV
 
 cBA_LidarLidarRaster::cBA_LidarLidarRaster(cPhotogrammetricProject * aPhProj,
                                            cMMVII_BundleAdj& aBA, const std::vector<std::string>& aParam) :
-    cBA_LidarBase(aPhProj, aBA, aParam)
+    cBA_LidarBase(aPhProj, aBA, aParam), mWeighter({1,2,10},0)
 {
     mEq = EqEqLidarLidar (true,1);
-    init(aParam, 1, 2);
+    std::vector<std::string> aParamBis = aParam;
+    // if interpolator is empty, force linear
+    if (aParamBis.size() < 3)
+        aParamBis.resize(3);
+    if (aParamBis.at(2).empty())
+    {
+        aParamBis[2] = "Linear";
+    }
+    init(aParamBis, 1, 2);
 
     //read scans files from directory corresponding to pattern in aParam.at(1)
     auto aVScanNames = mPhProj->GetStaticLidarNames(aParam.at(0));
@@ -721,14 +729,13 @@ void cBA_LidarLidarRaster::AddPatchDist
 {
     // read the solver now, because was not initialized at creation
     cResolSysNonLinear<tREAL8> *  aSys = mBA.Sys();
-
     // parse the data of the patch
     for (const auto & aData : aVData)
     {
         std::vector<int>       aVIndUk;
         std::vector<tREAL8>    aVObs;
         SetVUkVObs (aPGround,&aVIndUk,aVObs,aData,0);
-        aSys->CalcAndAddObs(mEq,aVIndUk,aVObs,aWeight);
+        aSys->CalcAndAddObs(mEq,aVIndUk,aVObs,mWeighter);
     }
 }
 
