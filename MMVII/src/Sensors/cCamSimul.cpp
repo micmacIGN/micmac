@@ -188,7 +188,7 @@ class cPS_CompPose
         ///  Compute the 3D homog matrix
         static cDenseMatrix<tREAL8>   ComputeMatHom3D(cSetHomogCpleDir &,const  cPSC_PB *);
 
-        void TestOneHypoth(cResulSVDDecomp<tREAL8>& aSvdH,const cPt3dr&ABL,int SignB,const cPt3dr & aSignD);
+        bool TestOneHypoth(cResulSVDDecomp<tREAL8>& aSvdH,const cPt3dr&ABL,int SignB,const cPt3dr & aSignD);
 
         /// generate a point of view by randomizing Theta
         static    cPt3dr RandPointOfView(const cPt2dr & aRhoZ);
@@ -280,12 +280,13 @@ cSetHomogCpleDir cPS_CompPose::SimulateDirAny(const cPt2dr & aRhoZ1,const cPt2dr
 
 
     // be sure that that Center Cams are above Interv of Z
-    aIntZ = std::min(aIntZ,std::min(std::abs(aC1.z()),std::abs(aC2.z()))*0.75);
+    aIntZ = std::min(aIntZ,std::min(std::abs(aC1.z()),std::abs(aC2.z()))*0.5);
 
     for (int aK=0 ; aK<100 ; aK++)
     {
+        cPt2dr aPPlane = cPt2dr::PRandInSphere();
         // the planer comp of point are generate in the circle unit
-        cPt3dr aPGround = TP3z(cPt2dr::PRandInSphere(),aIntZ*RandUnif_C());
+        cPt3dr aPGround = TP3z(aPPlane,aIntZ*aPPlane.y());
 
         aVDir1.push_back(aR1.Value(VUnit(aPGround-aC1)));
         aVDir2.push_back(aR2.Value(VUnit(aPGround-aC2)));
@@ -372,7 +373,7 @@ cDenseMatrix<tREAL8>
     const std::vector<cPt3dr>* mCurV2 = aSetCple.VDir1();
  */
 
-void cPS_CompPose::TestOneHypoth
+bool cPS_CompPose::TestOneHypoth
      (
         cResulSVDDecomp<tREAL8>& aSvdH,  // SVD of 3D-Homograhy
         const cPt3dr & anABL,            // Value for A,B and lamda
@@ -514,7 +515,7 @@ void cPS_CompPose::TestOneHypoth
          {
             StdOut() << "    ****** NB BunPar " << aNbBundleParal << " on " << mCurNbPts << "\n";
          }
-         return;
+         return false;
      }
 
      auto [aPlane,aRes] =  cPlane3D::RansacEstimate(aVecPt,true,100);
@@ -524,7 +525,7 @@ void cPS_CompPose::TestOneHypoth
      bool isZP0 = aC0.z() > 0;
      bool isZP1 = aC1.z() > 0;
 
-     bool   isSameSide = (isZP0==isZP1) ;
+     bool   isSameSide = (isZP0==isZP1) ; FakeUseIt(isSameSide);
 
 
      tREAL8 aScorePos = (aNbM1+aNbM2) / (2.0* mCurV1->size());
@@ -532,8 +533,9 @@ void cPS_CompPose::TestOneHypoth
      {
          if (aScorePos<1e-4)
          {
+
              StdOut()  <<  "PooOs:= "
-                        << " SignB= " << aSignBase
+                        << " SignB= " << aSignBase  << " SD=" <<  aSignDiag
                         <<  ((aScorePos<1e-4)  ? " *** " : "     ")
                          <<  " " << (isSameSide ? "==" : "!!")
                           <<  ( isZP0 ? "+" : "-")
@@ -543,8 +545,10 @@ void cPS_CompPose::TestOneHypoth
                              << " On: " << aScorePos << " CPT=" << aCptSol ;
              StdOut() << "\n";
 
+
              if (mCurParam->mModeEpip && (aScorePos<1e-4))
              {
+                 /*
                  for (int aY=0 ; aY<3 ; aY++)
                  {
                      StdOut() <<  "                      ";
@@ -552,17 +556,37 @@ void cPS_CompPose::TestOneHypoth
                      StdOut() << "   |||   ";
                      ShowMatL3(aRE2.Mat(),aY);
                      StdOut()  << "\n";
-                 }
-                 StdOut() << " VVV=" << aVecPt[0] << "\n";
+                 }*/
+              //   StdOut() << " VVV=" << aVecPt[0] << "\n";
+
+//                 tPoseR aP1()
+           //      cPt3dr aPE1 = aRE1.Value(mCurV1->at(aK));
+           //     cPt3dr aPE2 = aRE2.Value(mCurV2->at(aK));
+
+
+                  tPoseR aPC1toE1(cPt3dr(0,0,0),aRE1);
+                  tPoseR aPE1toE2(aBase,tRotR::Identity());
+                  tPoseR aPC2toE2(cPt3dr(0,0,0),aRE2);
+
+                  //                  C2 <-E2               E2 <-E1    E1 <- C1
+                  tPoseR aPC1toC2 =aPC2toE2.MapInverse() * aPE1toE2 * aPC1toE1;
+
+
+                   StdOut() << " ######## TR12=" << aPC1toC2.Tr()  << aSignDiag << "####### \n";
+
                  // StdOut()  << aRE1.AxeI() <<  aRE1.AxeJ() << aRE1.AxeK() << "\n";
                  // StdOut()  << aRE2.AxeI() <<  aRE2.AxeJ() << aRE2.AxeK() << "\n";
+
+                   return true;
              }
          }
          else
          {
              // StdOut()  << " Nbumber Minus -> " << aNbM1  << " " << aNbM2 << "\n";
          }
+
     }
+     return false;
 }
 
 cPS_CompPose::cPS_CompPose(cSetHomogCpleDir & aSetCple,const  cPSC_PB * aBenchParam)
@@ -655,14 +679,17 @@ cPS_CompPose::cPS_CompPose(cSetHomogCpleDir & aSetCple,const  cPSC_PB * aBenchPa
      }
 
 
-     std::vector<cPt3dr> aVPtsSign{{1,1,1},{1,-1,-1},{-1,1,-1},{-1,-1,1}};
+     //std::vector<cPt3dr> aVPtsSign{{1,1,1},{1,-1,-1},{-1,1,-1},{-1,-1,1}};
+     std::vector<cPt3dr> aVPtsSign{{1,1,1}};
+
+     int aNbSol= 0;
      for (int aSignBase =-1 ; aSignBase<=1 ; aSignBase+=2)
      {
          for (const auto & anABL : aVABL)
          {
               for (const auto & aPtSignDiag : aVPtsSign)
               {
-                  TestOneHypoth
+                  aNbSol += TestOneHypoth
                   (
                       aSvdH,
                       anABL,
@@ -672,7 +699,11 @@ cPS_CompPose::cPS_CompPose(cSetHomogCpleDir & aSetCple,const  cPSC_PB * aBenchPa
               }
          }
     }
-    if (mCurParam)
+
+    StdOut() << "------------ " <<  aNbSol << " -------------------------------------------------\n";
+    if (aNbSol>=2)
+        getchar();
+    if (0&& mCurParam)
     {
          StdOut() << "----------------------------------------" << mCurParam->mMsg << mCurParam->mMsg  << mCurParam->mMsg  <<" \n";
          if (0&&UserIsMPD())
@@ -926,7 +957,7 @@ void cCamSimul::BenchPoseRel2Cam
         }
     }
 
-    if (0)
+    if (1)
     {
        for (int aNbTest=0 ; aNbTest < 100 ; aNbTest++)
        {
@@ -939,13 +970,15 @@ void cCamSimul::BenchPoseRel2Cam
 
                 cSetHomogCpleDir aSetCple = cPS_CompPose::SimulateDirAny( cPt2dr(aRho1,aZ1),cPt2dr(aRho2,aZ2),0.0);
                 std::string aMsg = (aSign>0) ? "++++++++++" : "-----------" ;
-                cPSC_PB aParam((aSign>0) ? "++++++++++" : "-----------");
+                cPSC_PB aParam((aSign>0) ? "++++++++++" : "-----------",true);
                 cPS_CompPose aPsC(aSetCple,&aParam);
            }
+
+            // getchar();
        }
     }
 
-    if (1)
+    if (0)
     {
         // Z  Steep  Rho Sens
 
@@ -974,6 +1007,7 @@ void cCamSimul::BenchPoseRel2Cam
 
            cPSC_PB aParam("EpipInit:"+ToStr(aV),true);
            cPS_CompPose aPsC(aSetCple,&aParam);
+           getchar();
        }
     }
     /*
