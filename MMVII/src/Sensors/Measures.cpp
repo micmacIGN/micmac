@@ -452,6 +452,8 @@ cTargetMap::cTargetMap() :
 {
 }
 
+cSimilitud3D<tREAL8> cTargetMap::getMap(){return mMap;}
+
 void cTargetMap::AddData(const cAuxAr2007& anAux)
 {
     MMVII::AddData(cAuxAr2007("TargetName", anAux), mCode);
@@ -505,6 +507,15 @@ const cTargetMap* cSetTargetMap::GetMapOfCode(const std::string &aCode)
     for (const auto& aMap : mTargetMappings)
         if (aMap.mCode==aCode) return  &aMap;
     return nullptr;
+}
+
+std::list<std::string> cSetTargetMap::ListOfCodes()
+{
+    std::list<std::string> aRes;
+    for (const auto& aMap:mTargetMappings)
+        aRes.push_back(aMap.mCode);
+
+    return aRes;
 }
 
 

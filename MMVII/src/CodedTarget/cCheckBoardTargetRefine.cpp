@@ -1,4 +1,5 @@
 //#include "MMVII_Sensor.h"
+#include "CodedTarget.h"
 #include "MMVII_PCSens.h"
 #include "cMMVII_Appli.h"
 #include "MMVII_Geom3D.h"
@@ -13,10 +14,12 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
         public:
             cAppli_CheckBoardTargetRefine(const std::vector<std::string> & aVArgs,
                                           const cSpecMMVII_Appli & aSpec);
-            typedef tREAL4 tElem;
-            typedef cIm2D<tElem> tIm;
+            typedef tREAL8 tElem;
+            typedef cIm2D<tU_INT1> tIm;
             typedef cDataIm2D<tElem> tDIm;
             typedef cSegment<tREAL8,3> tSeg3dr;
+            typedef cTplBox<double,2>  cBox2dr;
+
 
         private:
             int Exe() override;
@@ -26,6 +29,8 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
             int doPredict(const std::string & aImName);
             void doAffInv(const cSensorCamPC * aCam);
             void doReproj(const std::string & aCode);
+            cBox2dr doTargetRefine(bool& isOk);
+            cBox2dr doCurrImageTgtExtent(bool& isOk);
             std::vector<std::string> MissingTargetsNames(const cSetMesPtOf1Im & aFoundTargets);
             cSetMesPtOf1Im MissingTargetsPredict(const std::string & aImName, const std::vector<std::string> & aVMissingTargetsNames);
             void drawTarget(cSetMesPtOf1Im & aSetOfMes2D, bool isInit);
@@ -37,10 +42,13 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
             cSetTargetMap computeTargets2WorldMappings();
             std::map<std::string, std::vector<cPt3dr>> computeTargetsWorldBasePoints();
             cPt2dr world2Target(const std::string& aTargetCode, const cPt3dr& aWorldPt);
+            std::vector<cPt3dr> target2World(const std::string& aTargetCode, std::vector<cPt2dr>& aVWorldPt);
             cPt3dr target2World(const std::string& aTargetCode, const cPt2dr& aTargetPt);
             std::vector<cPt2dr> get2DBasePoints();
             std::vector<cPt3dr> get3DBasePoints();
+            std::vector<cPt3dr> get3DTargetCorners(std::string& aCode);
             void doPseudoBench();
+            tIm doTargetSample(cBox2dr& aExtent);
 
             /*
              *
@@ -53,7 +61,7 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
             cSetTargetMap mTargets2WorldMappings;
             std::set <std::string> mIntersectedCodes;
             cRGBImage * mCurrVisuIm;
-            std::string mCurrImName;
+            cSensorCamPC* mCurrCam;
             std::string mCurrTgtCode;
             cSetMesGnd3D mMeasuredTargets;
             std::vector<cPt2dr> mInitTargetPts;
@@ -63,6 +71,7 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
             std::map<const cSensorCamPC *,cSetMesPtOf1Im> mMImExtendedSetOfMes2D;
             //cSetTargetSim3D mSetTargetSim3D;
             std::map<const cSensorCamPC *, cSetMesGnd3D> mMImSetOfBundles;
+            cFullSpecifTarget* mFullSpec;
 
 
             //----stolen to cCheckBoardTargetExtract
@@ -147,7 +156,7 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
             // GetMeasures(aCode) to cSetMesGnd3D
 
         mPhProj.FinishInit();
-
+        mFullSpec = cFullSpecifTarget::CreateFromFile("./IGNIndoor_Nbb14_Freq2_Hamm4_Run2_3_FullSpecif.xml");
         std::vector<std::string> aVIm = VectMainSet(0);//gets the first set
 
         for (const auto& aImName:aVIm)
@@ -161,80 +170,35 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
         mTargets2WorldMappings = computeTargets2WorldMappings();
         SaveInFile(mTargets2WorldMappings, cSetTargetMap::NameFile(mPhProj, mTargets2WorldMappings.Name(), false));
 
-
-        doPseudoBench();
-
-        /*
-            doPredict(aImName);//prediction of missing targets
-            doAffInv(aCam);//inv. affinity projection
-            doBundle(aCam);//cam. to target bundle computation
-
-            if (mVisu) doVisu(aCam);//visualisation
-
-
-        for (std::string const & aCode:mInSet3D.ListOfNames())
+        for (const auto& aCam:mVCams)
         {
-            std::vector<std::map<const cSensorCamPC *,std::vector<cPt3dr>>> aVCodeMImBundles;//to store Bundle for each im
+            mCurrCam = aCam;
+            auto aCodes = mTargets2WorldMappings.ListOfCodes();
 
-            for (const auto & aCam:mMImSetOfBundles)
+            //cRGBImage aIm = cRGBImage::FromFile(mCurrCam->NameImage());
+
+            for (const auto& aTgt:aCodes)
             {
-                std::map<const cSensorCamPC *,std::vector<cPt3dr>> aMCodeImBundles;
-                bool isFirst=true;
-                for (cMes1Gnd3D const & aBundle:aCam.second.Measures())
+                mCurrTgtCode = aTgt;
+                bool isOk;
+                //auto aBox = doTargetRefine(isOk);
+                doTargetRefine(isOk);
+                /*if(isOk)
                 {
-                    if (aBundle.mNamePt==aCode && isFirst)
-                    {
-                        isFirst=false;
-                        aMCodeImBundles[aCam.first] = {aBundle.mPt};
-                    } else if (aBundle.mNamePt==aCode) aMCodeImBundles[aCam.first].push_back(aBundle.mPt);
-                }
-                if (!isFirst) aVCodeMImBundles.push_back(aMCodeImBundles);
-            }
-            cSetMesGnd3D aExtendedSetOfMes3D;
-            std::vector<cPt3dr> aVExtendedMes3D;
-            for (decltype(mInitTargetPts.size()) ix=0; ix<mInitTargetPts.size(); ++ix)
-            {
-                std::vector<tSeg3dr> aVPtBundles;
-                for (auto const & aMImBundles:aVCodeMImBundles)
-                {
-                    for (auto const & aCam:aMImBundles)
-                    {
-                        aVPtBundles.push_back(tSeg3dr(aCam.first->Center(),
-                                                      aCam.first->Center()+aCam.second[ix]));
-                    }
-                }
-                if (aVPtBundles.size() >= 2){
-                    cPt3dr a3DCorresp = BundleInters(aVPtBundles);
-                    mExtendedSetOfMes3D.AddMeasure3D(cMes1Gnd3D(a3DCorresp, aCode+TargetLoc[ix]));//juste pour faciliter l'enregistrement --> a supp plus tard
-                    aExtendedSetOfMes3D.AddMeasure3D(cMes1Gnd3D(a3DCorresp, aCode+TargetLoc[ix]));
-                    aVExtendedMes3D.push_back(a3DCorresp);
-                    //plutot faire un vecteur de mes3d par code pour simplifier
-                }else{
-                    StdOut() << aCode << "not enough bundles:"<< aVPtBundles.size() << std::endl;
-                }
-            }
+                    aIm.SetRGBBorderRectWithAlpha(ToI(aBox.Middle()),Norm2(aBox.Sz())/2,10,cRGBImage::Orange,0.1);//0.1 means final opacity = 1-0.1
+                    aIm.DrawCircle(cRGBImage::Green, aBox.P0(), 4);
+                    aIm.DrawCircle(cRGBImage::Red, aBox.P1(), 4);
+                }*/
 
-            if (mShow)
-            {
-                doReproj(aCode);
+                StdOut() << isOk << aCam->NameImage() << std::endl;
             }
+            //aIm.ToJpgFileDeZoom(NameVisu(mCurrCam->NameImage(), "Ref"), 1, {"QUALITY=90"});
 
-            if (!aVExtendedMes3D.empty())
-            {
-                std::vector<cPt3dr> aVMotifMes3D = getVMotifMes3D(aExtendedSetOfMes3D.ListOfNames());
-                StdOut() << aVMotifMes3D<<std::endl;
-                StdOut() << aVExtendedMes3D<<std::endl;
-                cSimilitud3D<tREAL8> aSimil;
-                double aRes2=0;
-                //StdOut()<<"LS simil. refine:";
-                aSimil = aSimil.StdGlobEstimate(aVMotifMes3D,aVExtendedMes3D,&aRes2,nullptr,cParamCtrlOpt::Default());
-                StdOut()<<"Target n°"<<aCode<<" : "<<aRes2<<std::endl;
-                mSetTargetSim3D.AddMeasure(cTargetSim3D(aCode,aSimil));
-            }
+
         }
 
-        SaveInFile(mSetTargetSim3D,cSetTargetSim3D::NameFile(mPhProj,mSetTargetSim3D.Name(),false));
-        */
+        //doPseudoBench();
+
         return EXIT_SUCCESS;
     }
 
@@ -246,6 +210,10 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
             StdOut() << aPt.mNamePt << " target coords. : " << aTgtPt << std::endl;
         }
     }
+
+    /*
+     * From here clean refacted methods
+     */
 
     cSetTargetMap cAppli_CheckBoardTargetRefine::computeTargets2WorldMappings()
     {
@@ -333,6 +301,16 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
         return aTgt2WrldMap->mMap.DiffInOut(aTgt0Pt, aWrldPt);
     }
 
+    std::vector<cPt3dr> cAppli_CheckBoardTargetRefine::target2World(const std::string& aTargetCode, std::vector<cPt2dr>& aVWorldPt)
+    {
+        std::vector<cPt3dr> aVRes;
+        for (auto aPt:aVWorldPt)
+        {
+            aVRes.push_back(target2World(aTargetCode, aPt));
+        }
+        return aVRes;
+    }
+
     cPt2dr cAppli_CheckBoardTargetRefine::world2Target(const std::string& aTargetCode, const cPt3dr& aWorldPt)
     {
         auto aTgt2WrldMap = mTargets2WorldMappings.GetMapOfCode(aTargetCode);
@@ -340,6 +318,101 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
         return cPt2dr(aTgt0Pt.x(), aTgt0Pt.y());
     }
 
+    std::vector<cPt2dr> cAppli_CheckBoardTargetRefine::get2DBasePoints()
+    {
+        return {cPt2dr(0,0), cPt2dr(mRes-1,0),
+                cPt2dr(0,mRes-1),cPt2dr(mRes-1,mRes-1)};
+    }
+
+    std::vector<cPt3dr> cAppli_CheckBoardTargetRefine::get3DBasePoints()
+    {
+        return {cPt3dr(0,0,0), cPt3dr(mRes-1,0,0),
+                cPt3dr(0,mRes-1,0),cPt3dr(mRes-1,mRes-1,0)};
+    }
+
+    std::vector<cPt3dr> cAppli_CheckBoardTargetRefine::get3DTargetCorners(std::string& aCode)
+    {
+        std::vector<cPt3dr> aRes;
+        auto aVBasePts = get2DBasePoints();
+        for (const auto& aTgtPt:aVBasePts)
+        {
+            auto aWrlPt = target2World(aCode, aTgtPt);
+            aRes.push_back(aWrlPt);
+        }
+        return aRes;
+    }
+
+    /*
+     * From here ~ temp. methods to refact/delete (should begin by doSmthg.)
+     */
+
+    cBox2dr cAppli_CheckBoardTargetRefine::doTargetRefine(bool& isOk)
+    {
+        cBox2dr aExtent = doCurrImageTgtExtent(isOk);
+        //
+
+        if (isOk)
+        {
+            doTargetSample(aExtent);
+
+        }
+        return cBox2dr::Empty();
+    }
+
+    cBox2dr cAppli_CheckBoardTargetRefine::doCurrImageTgtExtent(bool& isOk)
+    {
+        auto aVBasePts = get2DBasePoints();
+        auto aVWrldBasePts = target2World(mCurrTgtCode, aVBasePts);
+        std::vector<tREAL8> aVXImBasePts;
+        std::vector<tREAL8> aVYImBasePts;
+
+        for (const auto& aWrldPt:aVWrldBasePts) {
+            auto aImPt = mCurrCam->Ground2Image(aWrldPt);
+            aVXImBasePts.push_back(aImPt[0]);
+            aVYImBasePts.push_back(aImPt[1]);
+        }
+
+        auto minMaxVX = minmax_element(aVXImBasePts.begin(), aVXImBasePts.end());
+        auto minMaxVY = minmax_element(aVYImBasePts.begin(), aVYImBasePts.end());
+
+        cPt2dr aImUL = cPt2dr(*minMaxVX.first, *minMaxVY.first);
+        cPt2dr aImLR = cPt2dr(*minMaxVX.second, *minMaxVY.second);
+
+        if (mCurrCam->IsVisibleOnImFrame(aImUL) && mCurrCam->IsVisibleOnImFrame(aImLR))
+        {
+            isOk = true;
+            return cBox2dr(aImUL,aImLR);
+        }
+        isOk = false;
+        return cBox2dr::Empty();
+   }
+
+    cIm2D<tU_INT1> cAppli_CheckBoardTargetRefine::doTargetSample(cBox2dr& aExtent)
+   {
+        cPt2dr& aImOffSet = aExtent.P0ByRef();
+        tIm aIm(ToI(aExtent.Sz()));
+        auto& aDim = aIm.DIm();
+        auto aVTgt3DPts = get3DTargetCorners(mCurrTgtCode);
+        cPlane3D aTgtPlane = cPlane3D::From3Point(aVTgt3DPts[0], aVTgt3DPts[1], aVTgt3DPts[2]);
+        auto aCode = mFullSpec->EncodingFromName(mCurrTgtCode);
+        tIm aImTgt = mFullSpec->OneImTarget(*aCode);
+        auto aRect2 = cRect2(cPt2di(0,0), ToI(aExtent.Dilate(-1.0).Sz()));
+        for (const auto & aPix : aRect2)
+        {
+            cPt3dr aWrldPix = mCurrCam->Image2PlaneInter(aTgtPlane, ToR(aPix)+aImOffSet);
+            cPt2dr aTgtPix = world2Target(mCurrTgtCode, aWrldPix);
+            tU_INT1 aV;
+            if (aImTgt.DIm().Inside(ToI(aTgtPix)))
+            {
+                aV = aImTgt.DIm().GetV(ToI(aTgtPix));
+            }
+            else {aV = 0;}
+            aDim.SetV(aPix, aV);
+        }
+        aDim.ToFile(NameVisu(mCurrCam->NameImage(), "Tgt" + mCurrTgtCode));
+        //SaveInFile(aIm, );
+        return aIm;
+    }
 
     void cAppli_CheckBoardTargetRefine::doReproj(const std::string & aCode)
     {
@@ -413,17 +486,7 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
                           cPt2dr(0,mRes-1),cPt2dr(mRes-1,mRes-1)};
     }
 
-    std::vector<cPt2dr> cAppli_CheckBoardTargetRefine::get2DBasePoints()
-    {
-        return {cPt2dr(0,0), cPt2dr(mRes-1,0),
-                cPt2dr(0,mRes-1),cPt2dr(mRes-1,mRes-1)};
-    }
 
-    std::vector<cPt3dr> cAppli_CheckBoardTargetRefine::get3DBasePoints()
-    {
-        return {cPt3dr(0,0,0), cPt3dr(mRes-1,0,0),
-                cPt3dr(0,mRes-1,0),cPt3dr(mRes-1,mRes-1,0)};
-    }
 /*
     int cAppli_CheckBoardTargetRefine::doPredict(const std::string & aImName)
     {

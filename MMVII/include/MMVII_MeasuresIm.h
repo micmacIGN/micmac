@@ -577,6 +577,7 @@ class cTargetMap
         cTargetMap();
         cTargetMap(const std::string &aCode, cSimilitud3D<tREAL8> aSim3D);
         void AddData(const cAuxAr2007 &anAux);
+        cSimilitud3D<tREAL8> getMap();
         std::string mCode;
         cSimilitud3D<tREAL8> mMap;
 };
@@ -589,6 +590,7 @@ class cSetTargetMap
         const cTargetMap* GetMapOfCode(const std::string &aCode);
         void AddData(const cAuxAr2007 & anAux);
         std::string Name();
+        std::list<std::string> ListOfCodes();
         static std::string NameFile(const cPhotogrammetricProject &aPhProj, std::string aName, bool Input);
     private:
         std::vector<cTargetMap> mTargetMappings;
