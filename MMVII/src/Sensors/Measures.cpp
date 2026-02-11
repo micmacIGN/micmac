@@ -330,7 +330,7 @@ void cSetMesGndPt::ExtractMes1Im(cSet2D3D&  aS23,const std::string &aNameIm,bool
     for (size_t aKp=0 ;  aKp<mMesGCP3D.size() ; aKp++)
     {
          const cPt2dr * aP2 = mMesImOfPt[aKp].PtOfIm(aNumIm);
-	 if (aP2)
+         if (aP2)
             aS23.AddPair(*aP2,mMesGCP3D[aKp].mPt);
     }
 }
@@ -853,6 +853,8 @@ void cSet2D3D::AddPair(const cPt2dr& aPIm,const cPt3dr& aPGround,double aWeight)
 
 
 const cSet2D3D::tCont2D3D &  cSet2D3D::Pairs() const { return mPairs;}
+cSet2D3D::tCont2D3D &  cSet2D3D::Pairs() { return mPairs;}
+
 
 const cWeightedPair2D3D &  cSet2D3D::KthPair(int aK) const {return mPairs.at(aK);}
 size_t cSet2D3D::NbPair() const {return mPairs.size();}

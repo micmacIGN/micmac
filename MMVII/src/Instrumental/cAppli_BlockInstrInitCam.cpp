@@ -36,8 +36,9 @@ class cAppli_BlockInstrInitCam : public cMMVII_Appli
      private :
         cPhotogrammetricProject   mPhProj;
         std::string               mSpecImIn;
-        cIrbComp_Block *           mBlock;
-        std::string               mNameBloc;
+        cIrbComp_Block *          mBlock;
+        std::string               mNameBloc;  //< name of the bloc inside the
+        bool                      mAvgSigma;  //< Do we average sigma of pairs
 };
 
 
@@ -45,7 +46,8 @@ cAppli_BlockInstrInitCam::cAppli_BlockInstrInitCam(const std::vector<std::string
     cMMVII_Appli (aVArgs,aSpec),
     mPhProj      (*this),
     mBlock       (nullptr),
-    mNameBloc    (cIrbCal_Block::theDefaultName)
+    mNameBloc    (cIrbCal_Block::theDefaultName),
+    mAvgSigma    (true)
 {
 }
 
@@ -63,21 +65,20 @@ cCollecSpecArg2007 & cAppli_BlockInstrInitCam::ArgOpt(cCollecSpecArg2007 & anArg
 {
 	return anArgOpt
             << AOpt2007(mNameBloc,"NameBloc","Name of bloc to calib ",{{eTA2007::HDV}})
+            << AOpt2007(mAvgSigma,"AvgSigma","Do we average the sigma init",{{eTA2007::HDV}})
         ;
 }
 
 int cAppli_BlockInstrInitCam::Exe()
 {
     mPhProj.FinishInit();
+
     // read an existing bloc from std folder
     mBlock = new cIrbComp_Block(mPhProj,mNameBloc);
     size_t aNbCam = mBlock->NbCams();
 
     //  add all the camera
-    for (const auto & aNameIm :  VectMainSet(0))
-    {
-       mBlock->AddImagePose(aNameIm);
-    }
+     mBlock->AddImagesPoses(VectMainSet(0));
 
     //  initialize the sigma of each pair of cams & compute the score of each cam
     std::vector<tREAL8>  aVScoreCam(aNbCam,0.0); // Cumultated score
@@ -87,14 +88,17 @@ int cAppli_BlockInstrInitCam::Exe()
         {
             if (aKC1!=aKC2)
             {
-               const auto & aPair = mBlock->ComputeCalibCamsInit(aKC1,aKC2); // Pose + sigma
-               aVScoreCam.at(aKC1) += aPair.second.SigmaGlob();
-               aVScoreCam.at(aKC2) += aPair.second.SigmaGlob();
+               const auto & aSg_Pose_Sigm = mBlock->ComputeCalibCamsInit(aKC1,aKC2); // Pose + sigma
+               tREAL8 aSigG = std::get<tREAL8>(aSg_Pose_Sigm);
+               aVScoreCam.at(aKC1) += aSigG;
+               aVScoreCam.at(aKC2) += aSigG;
                mBlock->CalBlock().AddSigma
                (
                    mBlock->CalBlock().SetCams().KthCam(aKC1).NameCal(),
+                   eTyInstr::eCamera,
                    mBlock->CalBlock().SetCams().KthCam(aKC2).NameCal(),
-                   aPair.second
+                   eTyInstr::eCamera,
+                   std::get<cIrb_SigmaInstr>(aSg_Pose_Sigm)
                );
             }
         }
@@ -103,20 +107,32 @@ int cAppli_BlockInstrInitCam::Exe()
     // compute num of master
     cWhichMin<size_t,tREAL8> aMinK;
     for (size_t aKC1 = 0 ; aKC1<aNbCam ; aKC1++)
+    {
         aMinK.Add(aKC1,aVScoreCam.at(aKC1));
+    }
     int aNumMaster = aMinK.IndexExtre();
 
     mBlock->CalBlock().SetCams().SetNumMaster(aNumMaster);
     StdOut() << " NUM-MASTER " << aNumMaster << "\n";
 
+
     //  initialise the relative pose in the ARBITRARY coord syst of master cam
     for (size_t aKC1=0 ; aKC1<aNbCam ; aKC1++)
     {
-        const auto & [aPose,aSigma] = mBlock->ComputeCalibCamsInit(aNumMaster,aKC1);
-        mBlock->CalBlock().SetCams().KthCam(aKC1).SetPose(aPose);
+        const auto & aSg_Pose_Sigm = mBlock->ComputeCalibCamsInit(aNumMaster,aKC1);
+        mBlock->CalBlock().SetCams().KthCam(aKC1).SetPose(std::get<tPoseR>(aSg_Pose_Sigm));           
     }
 
+    mBlock->CalBlock().ShowDescr(eTyInstr::eCamera);
+    //const std::map<std::string,cIrb_Desc1Intsr> & DescrIndiv() const;
+
+
+
+    if (mAvgSigma)
+       mBlock->CalBlock().AvgSigma();
+
     mPhProj.SaveRigBoI(mBlock->CalBlock());
+
     delete mBlock;
 
     return EXIT_SUCCESS;

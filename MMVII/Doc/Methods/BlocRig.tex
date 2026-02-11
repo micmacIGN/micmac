@@ -1,0 +1,83 @@
+\chapter{Modelization of Bloc Rigid of instrument}
+
+
+%-----------------------------------------------------
+%-----------------------------------------------------
+%-----------------------------------------------------
+
+\section{Introduction}
+
+In this chapter we describe how rigid bloc of instrument are handled in \PPP. In this approach
+we try to have a unified description of all type of instrument that can be embeded
+together in a rigid block. The type of instrument under consideration are :
+
+\begin{itemize}
+   \item   camera ;
+   \item   clinometers ;
+   \item   targets ;
+   \item   GNSS ;
+   \item   IMU;
+   \item   others ?
+\end{itemize}
+
+At the time being, the implementation if far from complete and we have 
+the following restriction :
+
+\begin{itemize}
+   \item   only camera and clinometers are handleds
+   \item   a block must contain at least one camera  (btw, what would be the interest of a clinometers only block);
+   \item   the system can handle a single block (not a hard constraint, just need to give access to mutiple block, an to have data
+           to check the implementation...)
+\end{itemize}
+
+
+
+%-----------------------------------------------------
+%-----------------------------------------------------
+%-----------------------------------------------------
+
+\section{Formalisation}
+
+\subsection{Equation between instrument}
+
+
+Let $k_1$ and $k_2$ be $2$ instrument,
+
+
+
+
+
+\subsection{Repair of the block}
+
+For each bloc $k$ we have an unknown pose  $(R_k,C_k)$,
+
+
+
+%-----------------------------------------------------
+\subsection{Targets}
+
+Targets can be a block of rigid target  alone , for example
+if we have one (or several) pannel of target as used in CERN data-set, and simultaneously 
+some target in word coordinates, we can no longer  consider that the panel is "the" system
+of coordinates and we have to introduce multiple coordinate system.
+
+Another case of use, is when we "stick" targets on a camera (the so called 
+"arroseur arros\'e" or "bitter bit").
+
+
+
+%-----------------------------------------------------
+%-----------------------------------------------------
+%-----------------------------------------------------
+
+\section{User's point of view}
+
+%-----------------------------------------------------
+%-----------------------------------------------------
+%-----------------------------------------------------
+
+\section{Programmer's point of view}
+
+
+
+

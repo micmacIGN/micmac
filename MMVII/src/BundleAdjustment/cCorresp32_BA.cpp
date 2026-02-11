@@ -82,10 +82,9 @@ void cCorresp32_BA::OneIteration()
 
      for (const auto & aCorresp : mSetCorresp.Pairs())
      {
-// StdOut() << "aCorrespaCorrespaCorrespaCorresp  " << aCorresp.mP2 << " " << aCorresp.mP3 << "\n";
+        //  StdOut() << "WWWWW " << aCorresp.mWeight << "\n";
          if (mSensor->PairIsVisible(aCorresp))
-	 {
-// StdOut() << "aBA.OneIterationaBA.OneIterationaBA.OneIterationaBA.OneIterationaBA.OneIterationaBA.OneIteration\n";
+         {
             // structure for points substistion, in mode test they are free
             cSetIORSNL_SameTmp<tREAL8>   aStrSubst
                                          (
@@ -103,11 +102,13 @@ void cCorresp32_BA::OneIteration()
             // "observation" of equation  : PTIm (real obs) + Cur-Rotation (Rot = Axiator*CurRot : to avoid guimbal-lock)
             std::vector<double> aVObs = aCorresp.mP2.ToStdVector(); //  Add X-Im, Y-Im in obs
 
-	    mSensor->PushOwnObsColinearity(aVObs,aCorresp.mP3); // For PC cam dd all matrix coeff og current rot
+            mSensor->PushOwnObsColinearity(aVObs,aCorresp.mP3); // For PC cam dd all matrix coeff og current rot
 
-            mSys->AddEq2Subst(aStrSubst,mEqColinearity,aVIndGlob,aVObs);
+            // StdOut() << "WWWWWWWWWWWWW=" << aCorresp.mWeight << "\n";
+            cResidualWeighter<tREAL8> aWeighter(aCorresp.mWeight);
+            mSys->AddEq2Subst(aStrSubst,mEqColinearity,aVIndGlob,aVObs,aWeighter);
             mSys->AddObsWithTmpUK(aStrSubst);
-	 }
+         }
          else
          { 
                // StdOut() << "Hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh " <<  aCorresp.mP2 << "\n";

@@ -72,7 +72,7 @@ int cAppli_MMV2_MesIm_2_MMV1::Exe()
         if(mPhProj.HasMeasureIm(aCImage))
         {
             //MicMac v1
-		    cMesureAppuiFlottant1Im aMAF;
+            cMesureAppuiFlottant1Im aMAF;
             aMAF.NameIm() = aCImage;
 
             //retreive set of measure in an image
@@ -87,37 +87,37 @@ int cAppli_MMV2_MesIm_2_MMV1::Exe()
             
             //retreive vector of measure of a point in an image
             for(const auto & aMes : aSet.Measures())
-		    {
-			    std::string aGcpName = aMes.mNamePt;
+            {
+                std::string aGcpName = aMes.mNamePt;
                 if (!(mFiltNONE && (aGcpName.substr(0, 4) == "NONE")))
                 {
-				    cPt2dr aPtIm = aMes.mPt;
-				
-				    //MicMac v1
-				    cOneMesureAF1I aOAF1I;
-				    Pt2dr aPt;
-				    aPt.x = aPtIm.x();
-				    aPt.y = aPtIm.y();
-				    aOAF1I.NamePt() = aGcpName;
-				    aOAF1I.PtIm() = aPt;
+                    cPt2dr aPtIm = aMes.mPt;
+                
+                    //MicMac v1
+                    cOneMesureAF1I aOAF1I;
+                    Pt2dr aPt;
+                    aPt.x = aPtIm.x();
+                    aPt.y = aPtIm.y();
+                    aOAF1I.NamePt() = aGcpName;
+                    aOAF1I.PtIm() = aPt;
 
-				    if(mShow)
-				    {
-				        std::cout << aMAF.NameIm() << "," << aGcpName << "," << aPtIm.x() << "," << aPtIm.y() << std::endl;
-				    }
-				
-				    //add to the dico
-				    aMAF.OneMesureAF1I().push_back(aOAF1I);
+                    if(mShow)
+                    {
+                        std::cout << aMAF.NameIm() << "," << aGcpName << "," << aPtIm.x() << "," << aPtIm.y() << std::endl;
+                    }
+                
+                    //add to the dico
+                    aMAF.OneMesureAF1I().push_back(aOAF1I);
                 }
-		    }
-		
-		    //append to the dico
-		    aDico.MesureAppuiFlottant1Im().push_back(aMAF);
+                    }
+
+            //append to the dico
+            aDico.MesureAppuiFlottant1Im().push_back(aMAF);
         }
-	}
-	
-	//write image measure in MicMac v1 .xml format
-	MakeFileXML(aDico,mNameFile);
+    }
+
+    //write image measure in MicMac v1 .xml format
+    MakeFileXML(aDico,mNameFile);
 #else //  (MMVII_KEEP_LIBRARY_MMV1)
      StdOut()  << " \n\n";
      StdOut()  << " ********************************************************************************************************\n";

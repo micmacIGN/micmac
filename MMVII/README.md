@@ -91,11 +91,6 @@ Under Linux (Ubuntu) distribution the installation procedure is as follows:
 	echo 'export PATH=/home/src/micmac/MMVII/bin:$PATH' >> ~/.bashrc
 	```
 
-- Optional: to use libe57format
-   - clone, compile and install as explained in https://github.com/asmaloney/libE57Format
-   - in MMVII cmake, set USE_LIBE57FORMAT then fill LIBE57_INCLUDE_DIR and LIBE57_LIBRARY with the E57-install/ data.
-
-
 ## Windows
 Under Windows the installation procedure is as follows:
 

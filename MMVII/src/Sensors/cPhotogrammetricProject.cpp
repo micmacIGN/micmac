@@ -11,7 +11,6 @@
 #include "MMVII_PoseTriplet.h"
 #include "MMVII_InstrumentalBlock.h"
 
-
 /**
    \file  cPhotogrammetricProject.cpp
 
@@ -760,15 +759,24 @@ std::string  cPhotogrammetricProject::FullDirCalibOut() const
    return mDPOrient.FullDirOut();
 }
 
-cPerspCamIntrCalib *   cPhotogrammetricProject::InternalCalibFromStdName(const std::string aNameIm,bool isRemanent) const
+cPerspCamIntrCalib *   cPhotogrammetricProject::InternalCalibFromStdNameCalib
+                       (
+                             const std::string aLocalNameCalib,
+                             bool isRemanent
+                       ) const
 {
     if (mDPOrient.DirInIsNONE())
        return nullptr;
 
-    std::string aNameCalib = FullDirCalibIn() + StdNameCalibOfImage(aNameIm) + "." + TaggedNameDefSerial();
-    cPerspCamIntrCalib * aCalib = cPerspCamIntrCalib::FromFile(aNameCalib,isRemanent);
+    std::string aFullNameCalib = FullDirCalibIn() + aLocalNameCalib + "." + TaggedNameDefSerial();
+    cPerspCamIntrCalib * aCalib = cPerspCamIntrCalib::FromFile(aFullNameCalib,isRemanent);
 
     return aCalib;
+}
+
+cPerspCamIntrCalib *   cPhotogrammetricProject::InternalCalibFromStdName(const std::string aNameIm,bool isRemanent) const
+{
+    return InternalCalibFromStdNameCalib(StdNameCalibOfImage(aNameIm),isRemanent);
 }
 
         //  =============  Masks =================
@@ -1293,11 +1301,22 @@ cBlocOfCamera * cPhotogrammetricProject::ReadUnikBlocCam() const
     return *(aListBloc.begin());
 }
 
+//  =============  Static Lidar  =================
+
+cStaticLidar * cPhotogrammetricProject::ReadStaticLidar(const cDirsPhProj& aDP, const std::string &aScanName, bool ToDeleteAutom) const
+{
+    aDP.AssertDirInIsInit();
+    std::string aScanFileName  =  aDP.FullDirIn() + aScanName;
+    std::string aCalibFileName  =  aDP.FullDirIn() + cStaticLidar::CalibPrefixName() + aScanName;
+    cStaticLidar * aScan =  cStaticLidar::FromFile(aCalibFileName, aScanFileName, aDP.FullDirIn());
+
+    if (ToDeleteAutom)
+       cMMVII_Appli::AddObj2DelAtEnd(aScan);
+    return aScan;
+}
+
 
 //  =============  Topo Mes  =================
-
-               // TOPO
-
 
 void   cPhotogrammetricProject::SaveTopoMes(const cBA_Topo & aBATopo) const
 {
@@ -1335,9 +1354,11 @@ cTripletSet * cPhotogrammetricProject::ReadTriplets() const
 
         //  =============  Instrument bloc =================
 
+static const std::string  PREFIX_RIG_BL = "FileRB_";
+
 std::string   cPhotogrammetricProject::NameRigBoI(const std::string & aName,bool isIn) const
 {
-    return DPBlockInstr().FullDirInOut(isIn) + aName + "." + GlobTaggedNameDefSerial();
+    return DPBlockInstr().FullDirInOut(isIn) + PREFIX_RIG_BL + aName + "." + GlobTaggedNameDefSerial();
 }
 
 cIrbCal_Block *  cPhotogrammetricProject::ReadRigBoI(const std::string & aName,bool SVP) const
@@ -1362,6 +1383,22 @@ void   cPhotogrammetricProject::SaveRigBoI(const cIrbCal_Block & aBloc) const
       SaveInFile(aBloc,NameRigBoI(aBloc.NameBloc(),IO::Out));
 }
 
+std::vector<std::string>  cPhotogrammetricProject::ListBlockExisting() const
+{
+    std::vector<std::string> aRes;
+
+    std::vector<std::string>  aVec =  GetFilesFromDir
+                                    (
+                                        DPBlockInstr().FullDirIn(),
+                                        AllocRegex(PREFIX_RIG_BL + ".*" + "." + GlobTaggedNameDefSerial())
+                                     );
+
+    for (const auto & aName : aVec)
+    {
+        aRes.push_back(LastPrefix(aName).substr(PREFIX_RIG_BL.length()));
+    }
+    return aRes;
+}
 
 
 

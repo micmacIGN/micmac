@@ -282,10 +282,10 @@ void cAppliTestStaticLidarRevEng::ComputeLines()
        }
    */
 
-       MMVII_INTERNAL_ASSERT_User_UndefE(mSLI.MaxLine()+1==(int)mNbPhi,"Incoherent MaxLine/NbPhi");
+       MMVII_INTERNAL_ASSERT_User_UndefE(mSLI.NbLine()==(int)mNbPhi,"Incoherent MaxLine/NbPhi");
        MMVII_INTERNAL_ASSERT_User_UndefE(mNbPhi==aStatLongLine.Min(),"Incoherent Min Stat Line");
        MMVII_INTERNAL_ASSERT_User_UndefE(mNbPhi==aStatLongLine.Max(),"Incoherent Max Stat Line");
-       MMVII_INTERNAL_ASSERT_User_UndefE(mSLI.MaxCol()+1==(int)mNbTeta,"Incoherent Max Col/NbTeta");
+       MMVII_INTERNAL_ASSERT_User_UndefE(mSLI.NbCol()==(int)mNbTeta,"Incoherent Max Col/NbTeta");
    }
 
    if (mShow)

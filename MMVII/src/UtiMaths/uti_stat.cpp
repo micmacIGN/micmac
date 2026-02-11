@@ -459,6 +459,18 @@ template <class TypeWeight,class TypeVal> cWeightAv<TypeWeight,TypeVal>::cWeight
 {
 }
 
+template <class TypeWeight,class TypeVal> void cWeightAv<TypeWeight,TypeVal>::AddData(const cAuxAr2007 & anAux)
+{
+    MMVII::AddData(cAuxAr2007("SumW",anAux),mSW);
+    MMVII::AddData(cAuxAr2007("SumVW",anAux),mSVW);
+    MMVII::AddData(cAuxAr2007("Nb",anAux),mNb);
+}
+
+template <class TypeWeight,class TypeVal>  void AddData(const cAuxAr2007 & anAux,cWeightAv<TypeWeight,TypeVal>& aWAvg)
+{
+   aWAvg.AddData(anAux);
+}
+
 template <class TypeWeight,class TypeVal> void cWeightAv<TypeWeight,TypeVal>::Reset()
 {
    mSW = 0;
@@ -485,6 +497,13 @@ template <class TypeWeight,class TypeVal> void cWeightAv<TypeWeight,TypeVal>::Ad
    mSW += aWeight;
    mSVW += aVal * aWeight;
    mNb++;
+}
+
+template <class TypeWeight,class TypeVal> void cWeightAv<TypeWeight,TypeVal>::Add(const cWeightAv<TypeWeight,TypeVal> & aWA2)
+{
+    mSW  += aWA2.mSW;
+    mSVW += aWA2.mSVW;
+    mNb  += aWA2.mNb;
 }
 
 template <class TypeWeight,class TypeVal> TypeVal cWeightAv<TypeWeight,TypeVal>::Average() const
@@ -519,6 +538,10 @@ template <class Type> Type Average(const std::vector<Type> & aVec)
 {
    return Average(aVec.data(),aVec.size());
 }
+
+
+
+
 
 
 /* *************************************** */
@@ -584,6 +607,14 @@ cStdStatRes::cStdStatRes() :
 {
 }
 
+cStdStatRes::cStdStatRes(const std::vector<tREAL8> & aVecR) :
+    cStdStatRes()
+{
+    for (const auto & aVal : aVecR)
+       Add(aVal);
+}
+
+
 void cStdStatRes::Add(tREAL8 aVal)
 {
      mVRes.push_back(aVal);
@@ -602,6 +633,27 @@ tREAL8  cStdStatRes::Min() const {return mBounds.VMin();}
 tREAL8  cStdStatRes::Max() const {return mBounds.VMax();}
 int     cStdStatRes::NbMeasures() const {return mVRes.size();}
 const std::vector<tREAL8>  & cStdStatRes::VRes() const {return mVRes;}
+
+
+tREAL8  cStdStatRes::ErrAtKth(int aK) const {return IKthVal(mVRes,aK) ;}
+tREAL8  cStdStatRes::ErrAtKthLast(int aK) const
+{
+   return ErrAtKth(mVRes.size() - (aK+1));
+}
+
+
+int cStdStatRes::IndVal(tREAL8 aV,bool SVP) const
+{
+    for (size_t aK=0 ; aK<mVRes.size() ; aK++)
+        if (mVRes.at(aK) == aV)
+            return aK;
+    MMVII_INTERNAL_ASSERT_strong(SVP,"Cannot find value in  cStdStatRes::IndVal");
+    return -1;
+}
+int cStdStatRes::IndMax() const
+{
+    return IndVal(Max());
+}
 
 
 tREAL8  cStdStatRes::UBDevStd(tREAL8 aDef) const
@@ -886,6 +938,7 @@ template class cSymMeasure<TYPE>;\
 template class cMatIner2Var<TYPE>;\
 template  class cComputeStdDev<TYPE>;\
 template class cWeightAv<TYPE,TYPE>;\
+template   void AddData(const cAuxAr2007 & anAux,cWeightAv<TYPE,TYPE>& aWAvg);\
 template  cMatIner2Var<double> StatFromImageDist(const cDataIm2D<TYPE> & aIm);\
 template TYPE Average(const std::vector<TYPE> & aVec);\
 template TYPE Average(const TYPE * aTab,size_t aNb);

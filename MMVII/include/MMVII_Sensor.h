@@ -39,6 +39,7 @@ class  cGlobCalculMetaDataProject;
 class  cBA_Topo;
 class  cBA_GCP;
 class  cTripletSet;
+class  cStaticLidar;
 
 /**  helper for cPixelDomain, as the cPixelDomain must be serialisable we must separate the
  * minimal data for description, with def contructor from the more "sophisticated" object  */
@@ -100,11 +101,13 @@ class cSensorImage  :   public cObj2DelAtEnd,
 	  ///  Position in [0 1]^ 2
           cPt2dr RelativePosition(const cPt2dr &) const ;
 
-	  /// Generate a random point visible on 2 image , algo : generate 2 random point and comppute bundle inter
-	  cPt3dr RandomVisiblePGround(const cSensorImage &,int aNbTestMax=10000,bool * OK =nullptr ) const;
+	  /** Generate a random point visible on 2 image , algo : generate 2 random point and comppute bundle inter
+	  */
+	  cPt3dr RandomVisiblePGround(const cSensorImage &,int aNbTestMax=10000,bool * OK =nullptr,tREAL8 * aZ=nullptr ) const;
 	  /// reproject RandomVisiblePGround
 	  cHomogCpleIm RandomVisibleCple(const cSensorImage &,int aNbTestMax=10000,bool * OK =nullptr ) const;
-
+      /// Idem but force the value of Z
+      cHomogCpleIm RandomVisibleCple(tREAL8 aZ,const cSensorImage &,int aNbTestMax=10000,bool * OK =nullptr ) const;
 
 	 // =================   Image <-->  Ground  mappings  ===========================
 	 
@@ -258,6 +261,13 @@ class cSensorImage  :   public cObj2DelAtEnd,
          const cSensorCamPC * UserGetSensorCamPC() const;
          cSensorCamPC * UserGetSensorCamPC() ;
 
+         /// Read the generic image (if not already done)
+         cDataGenUnTypedIm<2> & LoadImage();
+         /// Was the image already loaded
+         bool ImageIsLoaded() const;
+         /// Accesors  to
+         //  cDataGenUnTypedIm<2> & GetImage();
+
      private :
           cSensorImage(const cSensorImage &) = delete;
 
@@ -269,7 +279,11 @@ class cSensorImage  :   public cObj2DelAtEnd,
 								
 	 // static std::map<std::string,cSensorImage*>  mDicoSensor;
 	 // static int                                  mNum;
+
+     cDataGenUnTypedIm<2> *                         mImage; ///< By default nullptr,
+     bool                                           mOwnsImage; ///< Do we have to delete the image
 };
+
 
 
 /**  Interfac to make sensor a 3d-mapping, using Ground2ImageAndDepth function */
@@ -546,6 +560,10 @@ class cPhotogrammetricProject
 	  ///  compute the standard name of calibration before reading it
 	  cPerspCamIntrCalib *  InternalCalibFromStdName (const std::string aNameIm,bool isRemanent=true) const;
 
+      /// compute the calibration from the name of the file
+      cPerspCamIntrCalib *  InternalCalibFromStdNameCalib (const std::string aNameIm,bool isRemanent=true) const;
+
+
     //===================================================================
     //==================   ORIENTATION OF TRIPLETS    ==================
     //===================================================================
@@ -782,6 +800,7 @@ class cPhotogrammetricProject
 	 /// read a new bloc from existing name, if SVP and dont exist return block empty, else error
 	 cIrbCal_Block*  ReadRigBoI(const std::string &,bool SVP=false) const; 
 	 void   SaveRigBoI(const cIrbCal_Block &) const;
+     std::vector<std::string>  ListBlockExisting() const;
 
          //===================================================================
          //==================   Topo Mes           =========================
@@ -796,7 +815,7 @@ class cPhotogrammetricProject
      //==================   Static Lidar         =========================
      //===================================================================
 
-     std::vector<std::string> ReadStaticLidar() const;
+     cStaticLidar * ReadStaticLidar(const cDirsPhProj& aDP,const std::string &aScanName, bool ToDeleteAutom) const; ///< Create Static Lidar
 
          //==================   Camera Data Base     =========================
 

@@ -130,6 +130,12 @@ template <> inline  bool cPixBox<4>::InsideBL(const cPtxd<double,4> & aP) const
           && (aP.t() >= tBox::mP0.t()) &&  ((aP.t()+1) <  tBox::mP1.t())
     ;
 }
+template <> inline  bool cPixBox<5>::InsideBL(const cPtxd<double,5> & aP) const
+{
+   // need it for linking reason, but not sure it will ever used, to see
+   MMVII_INTERNAL_ERROR("No cPixBox<5>::InsideBL");
+   return false;
+}
 
 
 
@@ -287,6 +293,18 @@ template <> inline cPixBoxIterator<3> &  cPixBoxIterator<3>::operator ++()
     return *this;
 }
 
+template <> inline cPixBoxIterator<4> &  cPixBoxIterator<4>::operator ++() 
+{
+   // need it for linking reason, but not sure it will ever used, to see
+   MMVII_INTERNAL_ERROR("No cPixBoxIterator<4>::operator ++");
+   return *this;
+}
+template <> inline cPixBoxIterator<5> &  cPixBoxIterator<5>::operator ++() 
+{
+   // need it for linking reason, but not sure it will ever used, to see
+   MMVII_INTERNAL_ERROR("No cPixBoxIterator<4>::operator ++");
+   return *this;
+}
 
 
 ///  Abstract class allowing to manipulate images independanlty of their type
@@ -310,6 +328,9 @@ template <const int Dim> class cDataGenUnTypedIm : public cPixBox<Dim>,
 ;
         cDataGenUnTypedIm(const cPtxd<int,Dim> & aP0,const cPtxd<int,Dim> & aP1);
 
+        virtual ~cDataGenUnTypedIm() {};
+
+
          
            // Get Value, integer coordinates
                 /// Pixel -> Integrer Value
@@ -324,6 +345,11 @@ template <const int Dim> class cDataGenUnTypedIm : public cPixBox<Dim>,
 
         virtual double GetVBL(const  tPixR & aP) const  = 0;
 };
+
+/// Specfy the box, if EmptyBox full file
+cDataGenUnTypedIm<2> * ReadIm2DGen(const std::string &aName, cBox2di );
+/// Read full file
+cDataGenUnTypedIm<2> * ReadIm2DGen(const std::string &aName);
 
 
 ///  Classes for   ram-image containg a given type of pixel

@@ -31,6 +31,11 @@ template <class Type> inline cPtxd<Type,3> PSymXY (const cPtxd<Type,3> & aP)
     return cPtxd<Type,3>(aP.y(),aP.x(),aP.z());
 }
 
+//  Cylindric coordinates, 
+cPt3dr Cart2Cyl(const cPt3dr & aPtCart);
+cPt3dr Cyl2Cart(const cPt3dr & aPtspher);
+
+
 
 ///< compute determinant  as A.(B ^ C)
 template <class T>  T  Determinant (const cPtxd<T,3> &,const cPtxd<T,3> & aP2,const cPtxd<T,3> & aP3);
@@ -366,8 +371,12 @@ template <class Type> class cSimilitud3D
        const tPt & Tr() const {return mTr;}  ///< Accessor
        const Type & Scale() const {return mScale;}  ///< Accessor
 
-       tPt   Value(const tPt & aPt) const  {return mTr + mRot.Value(aPt)*mScale;}
-       tPt   Inverse(const tPt & aPt) const {return mRot.Inverse((aPt-mTr)/mScale) ;}  // Work as M tM = Id
+
+       tPt   VecValue(const tPt & aPt) const  {return  mRot.Value(aPt)*mScale;}
+       tPt   VecInverse(const tPt & aPt) const {return mRot.Inverse((aPt)/mScale) ;}
+
+       tPt   Value(const tPt & aPt) const  {return mTr + VecValue(aPt);}
+       tPt   Inverse(const tPt & aPt) const {return VecInverse(aPt-mTr) ;}  // Work as M tM = Id
 
        // ********************************************************************************************
        // **********************  MAP ESTIMATION *****************************************************
@@ -481,6 +490,9 @@ class cPlane3D
          static std::pair<cPlane3D,tREAL8> RansacEstimate(const std::vector<cPt3dr> & aP0,bool AvgOrMax,int aNbTest=-1,tREAL8 aRegulMinTri =1e-3);
 	 /// Return the indexes of the "best" plane
          static std::pair<cPt3di,tREAL8>  IndexRansacEstimate(const std::vector<cPt3dr> & aP0,bool AvgOrMax,int aNbTest=-1,tREAL8 aRegulMinTri =1e-3);
+
+     /// Return a plane estimate by least-square
+         static std::pair<cPlane3D,tREAL8> LSQEstimate(const std::vector<cPt3dr> & aP0,const std::vector<tREAL8>* =nullptr);
 
 	 ///   Avegrage distance 
 	 tREAL8 AvgDist(const std::vector<cPt3dr> &) const;

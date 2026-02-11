@@ -21,8 +21,6 @@ First, compile MMv1 and MMv2.
 
 Then, in 'apib11' directory and the correct Python virtual environment:
 
-    export CC=/usr/bin/clang
-    export CXX=/usr/bin/clang++
     pip wheel . --no-deps -w dist/
 
 

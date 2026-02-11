@@ -174,6 +174,15 @@ template<class T1,class T2,int Dim>
         aI1.GetRDL(aK) += aI2.GetRDL(aK) ;
 }
 
+template<class T1,class T2,int Dim>
+   void AddMulIn(cDataTypedIm<T1,Dim> & aI1,const cDataTypedIm<T2,Dim> & aI2,const T2 & aMul)
+{
+   aI1.AssertSameArea(aI2);
+
+   for (int aK=0 ; aK<aI1.NbElem() ; aK++)
+       aI1.GetRDL(aK) += aI2.GetRDL(aK) * aMul ;
+}
+
 template<class T1,class T2,class T3>  
    cIm2D<T1> AddImage(T1* /*Type specifier*/ ,const cIm2D<T2> & aI2,const cIm2D<T3> & aI3)
 {

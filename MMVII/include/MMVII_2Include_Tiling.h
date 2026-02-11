@@ -6,7 +6,10 @@
 
 namespace MMVII
 {
-
+/** \brief : file for indexation by tiling
+ *  \file : MMVII_2Include_Tiling.h
+ *
+ */
 template <const int Dim> class cTilingIndex;
 template <class Type>  class  cTiling ;
 

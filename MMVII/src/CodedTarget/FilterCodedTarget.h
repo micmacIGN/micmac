@@ -368,6 +368,8 @@ template <class Type> class cOptimSymetryOnImage : public cDataMapping<tREAL8,2,
 
            const cPt2dr & C0() const {return mC0;} ///< Accessor
 
+           const  std::vector<cPt2dr> &   PtsOpt() const {return mPtsOpt;}
+
            /// Constructor memorize parameters and initializd mPtsOpt empty
            cOptimSymetryOnImage(const cPt2dr & aC0,const tDIm & ,const cDiffInterpolator1D &);
            /// Add a pts in mPtsOpt

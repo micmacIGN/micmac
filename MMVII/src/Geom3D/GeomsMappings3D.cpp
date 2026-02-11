@@ -309,6 +309,7 @@ template <class Type> cRotation3D<Type>  cRotation3D<Type>::CompleteRON(const tP
 template <class Type> cRotation3D<Type>  cRotation3D<Type>::RotFromAxiator(const tPt & anAxe)
 {
      Type aNorm = Norm2(anAxe);
+     // if too small, normalisation would be unstable and approximation by MatProdVect will be enough accurate
      if (aNorm<1e-5)
      {
          cDenseMatrix<Type>  aMW =  cDenseMatrix<Type>::Identity(3) + MatProdVect(anAxe);
@@ -766,6 +767,13 @@ template <class Type> cIsometry3D<tREAL8>  ToReal8(const cIsometry3D<Type>  & an
 
 template <class Type> cIsometry3D<Type> cIsometry3D<Type>::Centroid(const std::vector<tTypeMap> & aVI,const std::vector<Type> & aVW)
 {
+   MMVII_INTERNAL_ASSERT_always
+   (
+       tElemNumTrait<Type>::TyNum() == eTyNums::eTN_REAL8,
+               "JMM's test"
+   );
+
+
    std::vector<tRot> aVRot;
    std::vector<tPt> aVTr;
 
@@ -1378,11 +1386,14 @@ template  cRotation3D<TYPE> cRotation3D<TYPE>::RandomRot();
 template <class Type> cRotation3D<Type>  cRotation3D<Type>::CompleteRON(const tPt & aP0Init)
 */
 
+#define MMVII_INSTANTIATE_REAL16 true
 
 MACRO_INSTATIATE_PTXD(tREAL4)
 MACRO_INSTATIATE_PTXD(tREAL8)
-MACRO_INSTATIATE_PTXD(tREAL16)
 
+#if (MMVII_INSTANTIATE_REAL16)
+MACRO_INSTATIATE_PTXD(tREAL16)
+#endif
 
 
 };

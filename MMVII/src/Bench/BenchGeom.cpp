@@ -6,6 +6,112 @@
 namespace MMVII
 {
 
+
+template<const int Dim> void DimBenchLsqVariety(int aDimSE)
+{
+    bool Show = false;
+    typedef cPtxd<int,Dim> tPtI;
+    typedef cPtxd<tREAL8,Dim> tPtR;
+
+   // tSim3dR aSim =  tSim3dR::RandomSim3D(10,10);
+   // const tRotR & aRot = aSim.Rot() ;
+
+    tDMatR aMat = tDMatR::RandomOrthogMatrix(Dim);
+    tPtR aCenter = tPtR::PRandC() * 10.0;
+    tREAL8 aScale = RandInInterval(0.1,3.0);
+    int aDistMax= 2;
+
+    std::vector<tPtR> aVPt;
+    for (const auto & aPI :  cPixBox(tPtI::PCste(-aDistMax),tPtI::PCste(aDistMax+1)))
+    {
+        tPtR aPR;
+        for (int aD=0 ; aD<Dim ; aD++)
+            aPR[aD] = aPI[aD] * (1+aD);
+        aPR = aCenter + aMat*aPR * aScale;
+        aVPt.push_back(aPR);
+    }
+
+   cAffineSpace<Dim> aAfSp =  cAffineSpace<Dim>::LstSqEstimate(aVPt,aDimSE);
+
+   for (int aDimS=0 ; aDimS<aDimSE ; aDimS++)
+   {
+        tPtR aVSp =  aAfSp.VecSp().at(aDimS);
+        tPtR aVComp = aMat*(tPtR::P1Coord(Dim-1-aDimS,1.0));
+        aVComp =     aVSp.OrientInSameDir(aVComp)  ;
+
+        if (Show)
+        {
+            StdOut() << " [V1=" <<  aVSp  <<  " V2=  " <<aVComp  << "]\n";
+        }
+        MMVII_INTERNAL_ASSERT_bench(Norm2(aVSp-aVComp)<1e-7,"Diff distl");
+
+   }
+
+   if (Show)
+   {
+      StdOut()   << " Tr=" << aCenter  << "  C=" << aAfSp.P0()-aCenter << "-----\n\n";
+   }
+
+   MMVII_INTERNAL_ASSERT_bench(Norm2(aAfSp.P0()-aCenter)<1e-7,"Diff distl");
+}
+
+void BenchLsqVariety()
+{
+   for (int aK=0 ; aK<10 ; aK++)
+   {
+
+       DimBenchLsqVariety<2>(1);
+       DimBenchLsqVariety<2>(2);
+
+       DimBenchLsqVariety<3>(1);
+       DimBenchLsqVariety<3>(2);
+       DimBenchLsqVariety<3>(3);
+   }
+}
+
+// template <const int Dim> class cFit
+
+//  Test the "OrthogonalizePair" function that make ortognal 2 vecteur with minimal def, do it with
+// 3d as with cross product we have an easy check
+
+void Bench_OrthogonalizePair(const cPt3dr& aP1, const cPt3dr & aP2)
+{
+    auto [aQ1,aQ2] = OrthogonalizePair(aP1,aP2);
+
+    // the normal to plane must be equal between old & new (i.e planes are equal)
+    tREAL8 aDifN =  Norm2(VUnit(aP1^aP2) - VUnit(aQ1^aQ2));
+    MMVII_INTERNAL_ASSERT_bench(aDifN<1e-10,"Bench_OrthogonalizePair Normal");
+
+    // the new vector must be orthogonal ....
+    tREAL8 aScal = Scal(aQ1,aQ2);
+    MMVII_INTERNAL_ASSERT_bench(aScal<1e-10,"Bench_OrthogonalizePair Scal");
+
+    // the new vectors must be to equal distance
+    tREAL8 aD1 = Norm2(VUnit(aP1)-aQ1);
+    tREAL8 aD2 = Norm2(VUnit(aP2)-aQ2);
+    MMVII_INTERNAL_ASSERT_bench(std::abs(aD1-aD2)<1e-10,"Diff distl");
+
+    // check d(P1,Q2)=d(P2,Q1) may be redundant
+    tREAL8 aD12 = Norm2(VUnit(aP1)-aQ2);
+    tREAL8 aD21 = Norm2(VUnit(aP2)-aQ1);
+    MMVII_INTERNAL_ASSERT_bench( RelativeDifference(aD12,aD21)<1e-10,"Order distl");
+}
+
+void Bench_OrthogonalizePair()
+{
+   for (int aK=0 ; aK<100 ; aK++)
+   {
+       cPt3dr aP1 = cPt3dr::PRand();
+       while (Norm2(aP1)<1e-1)
+           aP1 = cPt3dr::PRand();
+        cPt3dr aP2 = cPt3dr::PRand();
+        while  ((Norm2(aP2)<1e-1) || (AbsAngleTrnk(aP1,aP2)<1e-2))
+             aP2 = cPt3dr::PRand();
+        Bench_OrthogonalizePair(aP1,aP2);
+   }
+
+}
+
 template<class Type> void TplBenchRotation3D(cParamExeBench & aParam)
 {
 
@@ -276,7 +382,8 @@ void BenchRotation3DReal8()
          for (int aKIter=0 ; aKIter<5; aKIter++)
          {
              cPt3dr  W = aPUK.ValAxiatorFixRot(aRTarget);
-             aPUK.Omega() = W;
+             //aPUK.Omega() = W;
+             aPUK.SetOmega(W);
              aPUK.OnUpdate();
          }
          tREAL8 aD =  aRTarget.Mat().L2Dist(aPUK.Pose().Rot().Mat()) ;
@@ -734,6 +841,8 @@ void BenchGeom(cParamExeBench & aParam)
 {
     if (! aParam.NewBench("Geom")) return;
 
+    BenchLsqVariety();
+    Bench_OrthogonalizePair();
     BenchSeg2D();
 
     BenchSampleQuat();

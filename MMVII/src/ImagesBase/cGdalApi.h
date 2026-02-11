@@ -1,10 +1,11 @@
 #ifndef CGDALAPI_H
 #define CGDALAPI_H
 
-#include <MMVII_enums.h>
-#include <MMVII_Error.h>
-#include <MMVII_Ptxd.h>
-#include <MMVII_Image2D.h>
+#include "MMVII_Sys.h"
+#include "MMVII_enums.h"
+#include "MMVII_Error.h"
+#include "MMVII_Ptxd.h"
+#include "MMVII_Image2D.h"
 
 #include <string>
 #include <gdal_priv.h>
@@ -97,6 +98,8 @@ private:
 /****************************************************
  * PRIVATE
 *****************************************************/
+
+
 /*******************************************
  * GDalIO
  * Helper class that does the real IO
@@ -162,6 +165,7 @@ public:
             mGdalDataset = cGdalApi::OpenDataset(aDF.Name(), aMode==IoMode::Read ? GA_ReadOnly : GA_Update, cGdalApi::eOnError::RaiseError);
         }
 
+        FileLock gdalLock;
         if (aMode == IoMode::Read) {
             if (mGdalNbChan == mNbImg && mNbImg != 0) {
                 GdalReadNtoN(aVecImV2,aRectIm,aRectFile,aDyn);     // file N -> N img channels
@@ -173,6 +177,8 @@ public:
                 MMVII_INTERNAL_ERROR("Gdal read: Images vector size: " + std::to_string(mNbImg) + ", file channels: " + std::to_string(mGdalNbChan) + " (" + aName + ")");
             }
         } else {
+            if (! notUpdatable)
+                gdalLock.lock(aName);
             if (mGdalNbChan == mNbImg && mNbImg != 0) {
                 GdalWriteNtoN(aVecImV2,aRectIm,aRectFile,aDyn);     // img N -> N file channels
             } else if (mGdalNbChan != 0 && mNbImg == 1) {
@@ -192,6 +198,7 @@ public:
             cGdalApi::CloseDataset(mFinalDataset);
         }
         cGdalApi::CloseDataset(mGdalDataset);
+        gdalLock.unlock();
     }
 
 private:
@@ -200,15 +207,17 @@ private:
     class GDalBuffer
     {
     public:
-        GDalBuffer(const cRect2& aRectIm, int nbChan=1)
+        explicit GDalBuffer(const cRect2& aRectIm, int nbChan=1)
             : mBuffer(nbChan)
             , mRectIm(aRectIm)
         {
             auto aSize = sizeof(TypeFile)*aRectIm.Sz().x()*aRectIm.Sz().y();
-            for (auto& aBuf : mBuffer)
+            std::generate(mBuffer.begin(), mBuffer.end(),[aSize](){return static_cast<TypeFile*>(cMemManager::Calloc(1,aSize));});
+/*            for (auto& aBuf : mBuffer)
             {
-                aBuf = (TypeFile*) cMemManager::Calloc(1,aSize);
+                aBuf = static_cast<TypeFile*>(cMemManager::Calloc(1,aSize));
             }
+*/
         }
         ~GDalBuffer()
         {

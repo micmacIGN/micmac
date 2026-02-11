@@ -569,6 +569,7 @@ void  cAppliCheckBoardTargetExtract::DoExport()
 
              cEllipse anEl = aCdtM.Ell().Scale(aCdtM.mScale);
              cSaveExtrEllipe aSEE(anEl,aCdtM.mBlack,aCdtM.mWhite,aCode);
+             aSEE.mAffIm2Ref = aCdtM.AffIm2Mod();
              aVSavE.push_back(aSEE);
              //  cSaveExtrEllipe anESave(*anEE,aCode);
          }

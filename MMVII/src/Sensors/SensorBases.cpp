@@ -62,12 +62,16 @@ tREAL8 cPixelDomain::DegreeVisibility(const cPt2dr & aP) const
 cSensorImage::cSensorImage(const std::string & aNameImage)  :
      mNameImage               (aNameImage),
      mEqColinearity           (nullptr),
-     mEqCIsInit               (false)
+     mEqCIsInit               (false),
+     mImage                   (nullptr),
+     mOwnsImage               (false)
 {
 }
 
 cSensorImage::~cSensorImage()
 {
+    if (mOwnsImage)
+        delete mImage;
 }
 
 
@@ -318,7 +322,7 @@ tPt2dr  cSensorImage::RelativePosition(const tPt2dr & aPt) const
 }
 
 
-tPt3dr cSensorImage::RandomVisiblePGround(const cSensorImage & other,int aNbTestMax,bool * isOk ) const
+tPt3dr cSensorImage::RandomVisiblePGround(const cSensorImage & other,int aNbTestMax,bool * isOk,tREAL8 * aZ ) const
 {
 
     if (isOk!=nullptr ) *isOk= false;
@@ -329,12 +333,17 @@ tPt3dr cSensorImage::RandomVisiblePGround(const cSensorImage & other,int aNbTest
        tPt2dr aPIm2 = other.RandomVisiblePIm();
 
        tPt3dr aResult = PInterBundle(cHomogCpleIm(aPIm1,aPIm2),other);
+       if (aZ!=nullptr)
+       {
+           aResult.z() = *aZ;
+       }
+
 
 // StdOut() << aPIm1 << aPIm2 << aResult << aResult << std::endl;
        if ( this->IsVisible(aResult)  && other.IsVisible(aResult))
        {
            if (isOk!=nullptr) *isOk= true;
-	   return aResult;
+           return aResult;
        }
     }
 
@@ -348,6 +357,12 @@ tPt3dr cSensorImage::RandomVisiblePGround(const cSensorImage & other,int aNbTest
 cHomogCpleIm cSensorImage::RandomVisibleCple(const cSensorImage & other,int aNbTestMax,bool * isOk) const
 {
     tPt3dr aPGr = RandomVisiblePGround(other,aNbTestMax,isOk);
+    return cHomogCpleIm(this->Ground2Image(aPGr),other.Ground2Image(aPGr));
+}
+
+cHomogCpleIm cSensorImage::RandomVisibleCple(tREAL8 aZ,const cSensorImage & other,int aNbTestMax,bool * isOk) const
+{
+    tPt3dr aPGr = RandomVisiblePGround(other,aNbTestMax,isOk,&aZ);
     return cHomogCpleIm(this->Ground2Image(aPGr),other.Ground2Image(aPGr));
 }
 
@@ -525,7 +540,20 @@ const cSensorCamPC * cSensorImage::UserGetSensorCamPC() const
     return const_cast<cSensorImage*>(this)->UserGetSensorCamPC();
 }
 
+cDataGenUnTypedIm<2> & cSensorImage::LoadImage()
+{
+    if (!mImage)
+    {
+        mImage = ReadIm2DGen(mNameImage);
+        mOwnsImage = true;
+    }
+    return *mImage;
+}
 
+bool cSensorImage::ImageIsLoaded() const
+{
+    return mImage;
+}
 
 /* ******************************************************* */
 /*                                                         */

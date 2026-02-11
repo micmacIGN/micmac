@@ -1,0 +1,6 @@
+MMVII ImportStaticScan scan1_frame_2.ply Scan1 St1 Sc1 Vert=0 Structured=1 Transfo="-jk-i" PoseXYZ="pose_scan1.xyz"
+MMVII ImportStaticScan scan2_frame_2.ply Scan1 St2 Sc1 Vert=0 Structured=1 Transfo="-jk-i" PoseXYZ="pose_scan2.xyz"
+MMVII ImportStaticScan scan3_frame_2.ply Scan1 St3 Sc1 Vert=0 Structured=1 Transfo="-jk-i" PoseXYZ="pose_scan3.xyz"
+MMVII ImportStaticScan scan4_frame_2.ply Scan1 St4 Sc1 Vert=0 Structured=1 Transfo="-jk-i" PoseXYZ="pose_scan4.xyz"
+MMVII ImportStaticScan scan5_frame_2.ply Scan1 St5 Sc1 Vert=0 Structured=1 Transfo="-jk-i" PoseXYZ="pose_scan5.xyz"
+

@@ -24,14 +24,17 @@ namespace MMVII
 /*                                                                  */
 /* **************************************************************** */
 
-cSetMeasureClino::cSetMeasureClino(const std::string &aPatMatch,const std::string & aPatReplace,const std::vector<std::string> & aVNames) :
-      mNamesClino  (aVNames),
-      mPatMatch    (aPatMatch),
-      mPatReplace  (aPatReplace)
+cSetMeasureClino::cSetMeasureClino (const std::vector<std::string> & aVNames) :
+// (const std::string &aPatMatch)
+//,const std::string & aPatReplace,const std::vector<std::string> & aVNames) :
+      mNamesClino  (aVNames)
+//,      mPatMatch    (aPatMatch),
+//      mPatReplace  (aPatReplace)
 {
 }
        
-cSetMeasureClino::cSetMeasureClino()
+cSetMeasureClino::cSetMeasureClino() :
+    cSetMeasureClino( std::vector<std::string>{})
 {
 }
 
@@ -42,8 +45,8 @@ const std::vector<cOneMesureClino>&  cSetMeasureClino::SetMeasures() const {retu
 
 void cSetMeasureClino::AddData(const  cAuxAr2007 & anAux)
 {
-    MMVII::AddData(cAuxAr2007("PatMatch",anAux),mPatMatch);
-    MMVII::AddData(cAuxAr2007("PatReplace",anAux),mPatReplace);
+  //  MMVII::AddData(cAuxAr2007("PatMatch",anAux),mPatMatch);
+  //  MMVII::AddData(cAuxAr2007("PatReplace",anAux),mPatReplace);
     MMVII::AddData(cAuxAr2007("NamesClino",anAux),mNamesClino);
     MMVII::AddData(cAuxAr2007("SetMeasures",anAux),mSetMeasures);
 }
@@ -65,13 +68,13 @@ void cSetMeasureClino::Add1Mesures(const cOneMesureClino & aMes)
        }
        else if (mNamesClino.size() !=  aMes.Angles().size()) // else check coherence
        {
-	   MMVII_UnclasseUsEr("Incoherence between number of angles and name");
+           MMVII_UnclasseUsEr("Incoherence between number of angles and name");
        }
    }
    else  // else, check size coherence between different clino values
    {
        if (mSetMeasures.back().Angles().size() != aMes.Angles().size())
-	   MMVII_UnclasseUsEr("Variable size in name clino");
+           MMVII_UnclasseUsEr("Variable size in name clino");
    }
    mSetMeasures.push_back(aMes);
 }
@@ -81,10 +84,26 @@ void cSetMeasureClino::SetNames(const  std::vector<std::string> & aVNames)
     mNamesClino = aVNames;
 }
 
+/*
 std::string cSetMeasureClino::NameOfIm(const cOneMesureClino &  aMes) const
 {
 	return ReplacePattern(mPatMatch,mPatReplace,aMes.Ident());
 }
+*/
+
+std::string cSetMeasureClino::ClinoDeprecatedNameOfImage(const cOneMesureClino&) const
+{
+    MMVII_INTERNAL_ERROR("ClinoDeprecatedNameOfImage");
+    return "";
+}
+
+const  cOneMesureClino * cSetMeasureClino::ClinoDeprecatedMeasureOfImage(const std::string & aNameIm) const
+{
+    MMVII_INTERNAL_ERROR("ClinoDeprecatedNameOfImage");
+    return nullptr;
+}
+
+
 
 void cSetMeasureClino::FilterByPatIdent(const std::string & aPat)
 {
@@ -104,17 +123,20 @@ const  cOneMesureClino *  cSetMeasureClino::MeasureOfId(const std::string & anId
    return nullptr;
 }
 
-const  cOneMesureClino *  cSetMeasureClino::MeasureOfImage(const std::string & aNameImage,bool SVP) const
+void cSetMeasureClino::Merge(const cSetMeasureClino& anOld)
 {
-
-   for (const auto & aMes : mSetMeasures)
-   {
-        if (NameOfIm(aMes) == aNameImage)
-           return & aMes;
-   }
-
-   MMVII_INTERNAL_ASSERT_strong(SVP,"Could not get measure clino for Id="+aNameImage);
-   return nullptr;
+    if (mNamesClino != anOld.mNamesClino)
+    {
+         MMVII_UnclasseUsEr ("Different names in cSetMeasureClino::Merge");
+    }
+    for (const auto & anOldM : anOld.SetMeasures())
+    {
+        const  cOneMesureClino *  aNewM =  MeasureOfId(anOldM.Ident(),true);
+        if (aNewM == nullptr)
+        {
+            Add1Mesures(anOldM);
+        }
+    }
 }
 
 
@@ -190,13 +212,15 @@ class cAppli_ImportClino : public cMMVII_Appli
 	// Mandatory Arg
 	std::string              mNameFile;
 	std::string              mFormat;
-	std::vector<std::string> mPrePost;
+    // std::vector<std::string> mPrePost;
 
 	// Optionall Arg
 	cNRFS_ParamRead            mParamRead;
-	std::vector<cPt2di>        mIndCosCorrec;
-	std::vector<tREAL8>        mFactMult;
+    //std::vector<cPt2di>        mIndCosCorrec;
+    // std::vector<tREAL8>        mFactMult;
 	std::vector<std::string>   mChgId;
+    int                        mOffsetIdent;    ///< Offset to add to ident
+    eModeFusionData            mModeFusionData; // Mode Fusion if data already exist
 
 
 	//   Format specif
@@ -207,12 +231,14 @@ class cAppli_ImportClino : public cMMVII_Appli
 	std::string              mSpecFormatMand;
 	std::string              mSpecFormatTot;
 
-        size_t                   mNbDig; ///< Number minimal of digits
+    size_t                   mNbDig; ///< Number minimal of digits
 };
 
 cAppli_ImportClino::cAppli_ImportClino(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
    cMMVII_Appli    (aVArgs,aSpec),
    mPhProj         (*this),
+   mOffsetIdent    (0),
+   mModeFusionData (eModeFusionData::eMerge),
    mNameFieldIm    ("Im"),
    mNameFieldAngle ("A"),
    mNameFieldSigma ("S"),
@@ -227,12 +253,10 @@ cAppli_ImportClino::cAppli_ImportClino(const std::vector<std::string> & aVArgs,c
 cCollecSpecArg2007 & cAppli_ImportClino::ArgObl(cCollecSpecArg2007 & anArgObl) 
 {
     return anArgObl
-	      <<  Arg2007(mNameFile ,"Name of Input File",{eTA2007::FileAny})
-	      // <<  Arg2007(mFormat   ,"Format of file as for in spec :  \"" + mSpecFormatTot + "\"")
-	      <<  Arg2007(mFormat   ,cNewReadFilesStruct::MsgFormat(mSpecFormatTot))
+              <<  Arg2007(mNameFile ,"Name of Input File",{eTA2007::FileAny})
+              <<  Arg2007(mFormat   ,cNewReadFilesStruct::MsgFormat(mSpecFormatTot))
               <<  mPhProj.DPMeasuresClino().ArgDirOutMand()
-	      <<  Arg2007(mPrePost  ,"Pre/Post to add to image",{{eTA2007::ISizeV,"[2,2]"}} )
-           ;
+        ;
 }
 
 cCollecSpecArg2007 & cAppli_ImportClino::ArgOpt(cCollecSpecArg2007 & anArgOpt) 
@@ -240,11 +264,10 @@ cCollecSpecArg2007 & cAppli_ImportClino::ArgOpt(cCollecSpecArg2007 & anArgOpt)
     mParamRead.AddArgOpt(anArgOpt);
 
     return      anArgOpt
-	     << AOpt2007(mIndCosCorrec,"ICC","Indexes for cosinus corrections")
-	     << AOpt2007(mNbDig,"NbDig","Fix the number of digit for identifier")
-	     << AOpt2007(mFactMult,"FactMult","Multiplier of measures M -> M * (1.0 + Value)")
-	     << AOpt2007(mChgId,"ChgId","Change Id [Pat,Name], for ex \"[0(.*),1\\$1]\"  0017->1017",{{eTA2007::ISizeV,"[2,2]"}})
-
+              << AOpt2007(mOffsetIdent,"OffsetId","Offset to add to the ide")
+              << AOpt2007(mNbDig,"NbDig","Fix the number of digit for identifier")
+              << AOpt2007(mModeFusionData,"MF","Mode of Fusion if already exist",{AC_ListVal<eModeFusionData>()})
+              << AOpt2007(mChgId,"ChgId","Change Id [Pat,Name], for ex \"[0(.*),1\\$1]\"  0017->1017",{{eTA2007::ISizeV,"[2,2]"}})
     ;
 }
 
@@ -255,12 +278,21 @@ std::string ToFixSize(const std::string & aName,size_t aSize,char aPref = '0')
    return std::string(aSize-aName.size(),aPref) + aName;
 }
 
+std::string StrAddInt(const std::string & aS0,int aAdd)
+{
+   int aI0 =  cStrIO<int>::FromStr(aS0);
+
+   return cStrIO<int>::ToStr(aI0+aAdd);
+}
+
+
 int cAppli_ImportClino::Exe()
 {
     mPhProj.FinishInit();
 
     // Read file
     cNewReadFilesStruct aNRFS;
+    // Add specific rules for reading INT/FLOAT/STRING , here "A" is a name of angles
     aNRFS.SetPatternAddType({"^$",mNameFieldAngle,"^$"});
     aNRFS.SetFormat(mFormat,mSpecFormatMand,mSpecFormatTot);
     aNRFS.ReadFile(mNameFile,mParamRead);
@@ -280,86 +312,91 @@ int cAppli_ImportClino::Exe()
     }
 
     // Create set, 
-    cSetMeasureClino aSetM("^(.*)$", mPrePost.at(0)+"$&"+mPrePost.at(1) );
+    cSetMeasureClino aSetM;
 
     std::vector<std::string> aVNames;
     for (size_t aKL=0 ; aKL<aNRFS.NbLineRead() ; aKL++)  // parse all lines
     {
-         std::string aNameIdent =  aNRFS.GetValue<std::string>(mNameFieldIm,aKL);
+        std::string aNameIdent =  aNRFS.GetValue<std::string>(mNameFieldIm,aKL);
 
-         // for case where name is an int on fix digit but 0 have been omited (pb with CERN data)
-         if (IsInit(&mNbDig))
-            aNameIdent = ToFixSize(aNameIdent,mNbDig) ;
+        if (IsInit(&mOffsetIdent))
+        {
+           aNameIdent =  StrAddInt(aNameIdent,mOffsetIdent);
+        }
+        // for case where name is an int on fix digit but 0 have been omited (pb with CERN data)
+        if (IsInit(&mNbDig))
+           aNameIdent = ToFixSize(aNameIdent,mNbDig) ;
 
-         ChgName(mChgId,aNameIdent);
+        ChgName(mChgId,aNameIdent);
 
-	 if (aNbNameC!=0)
-	 {
-	     for (size_t aKN=0 ; aKN<aNbNameC ; aKN++)
-	     {
-                 std::string aNameC = aNRFS.GetKthValue<std::string>(mNameFieldNClino,aKL,aKN);
+        if (aNbNameC!=0)
+        {
+            for (size_t aKN=0 ; aKN<aNbNameC ; aKN++)
+            {
+                std::string aNameC = aNRFS.GetKthValue<std::string>(mNameFieldNClino,aKL,aKN);
 
-		 if (aKL==0)
-		 {
-		    StdOut() << "NAME CLINO=" << aNameC << "\n";
-		    aVNames.push_back(aNameC);
-		 }
-		 else
-		 {
+                if (aKL==0)
+                {
+                   StdOut() << "NAME CLINO=" << aNameC << "\n";
+                   aVNames.push_back(aNameC);
+                }
+                else
+                {
                     MMVII_INTERNAL_ASSERT_User_UndefE(aNameC==aVNames.at(aKN),"Variable names of clino");
-		 }
+                }
 	     }
+
 	     if (aKL==0)
-                aSetM.SetNames(aVNames);
+            aSetM.SetNames(aVNames);
 	 }
 
 	 // extract angles & sigma
 	 std::vector<tREAL8> aVAngles;
 	 std::optional<std::vector<tREAL8>>  aVSigma;
 	 if (aNbSigma!=0) 
-            aVSigma = std::vector<tREAL8>();
+        aVSigma = std::vector<tREAL8>();
 	 for (size_t aKA=0 ; aKA<aNbAngle ; aKA++)
 	 {
-             aVAngles.push_back(aNRFS.GetKthValue<tREAL8>(mNameFieldAngle,aKL,aKA));
+         aVAngles.push_back(aNRFS.GetKthValue<tREAL8>(mNameFieldAngle,aKL,aKA));
 	     if (aNbSigma!=0)
-                aVSigma->push_back(aNRFS.GetKthValue<tREAL8>(mNameFieldSigma,aKL,aKA));
-
+             aVSigma->push_back(aNRFS.GetKthValue<tREAL8>(mNameFieldSigma,aKL,aKA));
 	 }
-
-	 // eventually do a cosinus correction
-	 if (IsInit(&mIndCosCorrec))
-         {
-             tREAL8 aExp = -1.0;
-             for (const auto &  aP : mIndCosCorrec)
-	     {
-                 tREAL8  aA1 = aVAngles.at(aP.x());
-                 tREAL8  aA2 = aVAngles.at(aP.y());
-		 aVAngles.at(aP.x()) = aA1 * std::pow(std::cos(aA2),aExp);
-		 aVAngles.at(aP.y()) = aA2 * std::pow(std::cos(aA1),aExp);
-	     }
-         }
-
-	 if (IsInit(&mFactMult))
-         {
-             MMVII_INTERNAL_ASSERT_User_UndefE(mFactMult.size()==aVAngles.size(),"Size of multiplier != number of clino");
-             for (size_t aK=0 ; aK<aVAngles.size() ; aK++)
-                 aVAngles.at(aK) *= (1.0+mFactMult.at(aK));
-         }
 
 	 // create the measure
          cOneMesureClino aMesClino(aNameIdent,aVAngles,aVSigma);
 
-	 // check if ident->name generate an existing file, if not generate a warning
-	 std::string aNameFile = aSetM.NameOfIm(aMesClino);
-	 if (! ExistFile(aNameFile))
-	 {
-              MMVII_USER_WARNING("Some file dont exist, (for ex : "+ aNameFile + ")");
-	 }
-
 	 // add the measure to set
 	 aSetM.Add1Mesures(aMesClino);
+    }
+
+    std::string aNameOut = mPhProj.NameFileMeasuresClino(false);
+    if (ExistFile(aNameOut))
+    {
+       cSetMeasureClino aSetOld;
+       ReadFromFile(aSetOld,aNameOut);
+       switch (mModeFusionData)
+       {
+            case eModeFusionData::eDoNothing :
+                 aSetM = aSetOld;
+                 break;
+
+            case eModeFusionData::eOverWrite :
+                 break;
+
+             case eModeFusionData::eMerge :
+                  aSetM.Merge(aSetOld);
+                  break;
+
+            default :
+                  MMVII_INTERNAL_ERROR("Measure already exist");
+            ;
+       }
+    }
+    else
+    {
 
     }
+    //if (mPhProj.NameFileMeasuresClino(false)
 
     // save result in standard file
     mPhProj.SaveMeasureClino(aSetM);
@@ -371,8 +408,8 @@ std::vector<std::string>  cAppli_ImportClino::Samples() const
 {
    return 
    {
-       "MMVII ImportClino Data-Input/ClinoValue.txt \"Im AS AS AS AS\" CernInit \"[043_,.tif]\"  ICC=[[0,3],[1,2]]",
-       "MMVII ImportMeasuresClino Data-Input/ClinoMeasures.txt \"Im NAS NAS NAS NAS\" Measure0    [,,]"
+       "MMVII ImportClino Data-Input/ClinoValue.txt \"Im AS AS AS AS\" CernInit   ICC=[[0,3],[1,2]]",
+       "MMVII ImportMeasuresClino Data-Input/ClinoMeasures.txt \"Im NAS NAS NAS NAS\" Measure0   "
    };
 }
 

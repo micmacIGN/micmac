@@ -913,12 +913,12 @@ cPerspCamIntrCalib * cPerspCamIntrCalib::RandomCalib(eProjPC aTypeProj,int aKDeg
 	                                 cDataPerspCamIntrCalib
 	                                 (
 	                                       "BenchCam",
-                                                aTypeProj,
-						aDegDir.at(aKDeg),
+                                            aTypeProj,
+                                            aDegDir.at(aKDeg),
 	                                        std::vector<double>(),
 	                                        cMapPProj2Im(aFoc,aPP),
 	                                        cDataPixelDomain(aSz),
-						aDegInv.at(aKDeg),
+                                            aDegInv.at(aKDeg),
 	                                        100
 	                                 )
                                 );
@@ -1101,6 +1101,8 @@ void BenchImAndZ()
 
 void BenchCentralePerspective(cParamExeBench & aParam)
 {
+    if (! aParam.NewBench("CentralPersp")) return;
+
     BenchAiconCamera();
 
    // Test the accuracy of tabulation on dist/undist
@@ -1150,8 +1152,6 @@ void BenchCentralePerspective(cParamExeBench & aParam)
 
 
     BenchCentralePerspective(aParam,eProjPC::eOrthoGraphik);
-
-    if (! aParam.NewBench("CentralPersp")) return;
 
     BenchStenopeSat();
     BenchImAndZ();
