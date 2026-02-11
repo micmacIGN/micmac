@@ -139,9 +139,6 @@ cIrbCal_Cam1::cIrbCal_Cam1()  :
 
 void cIrbCal_Cam1::UnInit()
 {
- //  delete mPoseInBlock;
-
-   //  StdOut() << "cIrbCal_Cam1::UnInitcIrbCal_Cam1::UnInitcIrbCal_Cam1::UnInit\n"; getchar();
     mPoseInBlock = nullptr;
     mIsInit = false;
 }
@@ -228,7 +225,6 @@ cPerspCamIntrCalib *  cIrbCal_Cam1::IntrCalib(const cPhotogrammetricProject * aP
    if (mIntrCalib==nullptr)
    {
        mIntrCalib = aPhProj->InternalCalibFromStdNameCalib(mNameCal);
-      //  StdOut() << " mIntrCalibmIntrCalib " << mIntrCalib->F() << "\n";
    }
    return mIntrCalib;
 }
@@ -278,8 +274,6 @@ void AddData(const  cAuxAr2007 & anAux,cIrbCal_CamSet & aCams)
 void cIrbCal_CamSet::SetNumPoseInstr (const std::vector<int> & aVNums)
 {
      mNumsPoseInstr = aVNums;
-
-     //StdOut() << "mNumsPoseInstrmNumsPoseInstr " << mNumsPoseInstr << "\n";
 }
 
 std::vector<int>  cIrbCal_CamSet::NumPoseInstr() const
@@ -333,7 +327,6 @@ void cIrbCal_CamSet::AddCam
    cIrbCal_Cam1 aNewCam (aNum,aNameCalib,aTimeStamp,aPatImSel);
    // in case already exist, we may ovewrite (multiple edit)
 
-   //StdOut() << "ADDDDDD=" << aCam << "\n";
    if (aCam)
    {
        MMVII_INTERNAL_ASSERT_strong(OkAlreadyExist,"cIrbCal_Block::AddCam, cal already exist for " + aNameCalib);

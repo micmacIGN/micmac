@@ -110,10 +110,15 @@ int cAppli_BlockInstrInitCam::Exe()
     {
         aMinK.Add(aKC1,aVScoreCam.at(aKC1));
     }
-    int aNumMaster = aMinK.IndexExtre();
 
-    mBlock->CalBlock().SetCams().SetNumMaster(aNumMaster);
-    StdOut() << " NUM-MASTER " << aNumMaster << "\n";
+    int aNumMaster = mBlock->CalBlock().SetCams().NumMaster();
+    if (aNumMaster<0)
+    {
+        aNumMaster = aMinK.IndexExtre();
+
+        mBlock->CalBlock().SetCams().SetNumMaster(aNumMaster);
+        StdOut() << " NUM-MASTER " << aNumMaster << "\n";
+    }
 
 
     //  initialise the relative pose in the ARBITRARY coord syst of master cam

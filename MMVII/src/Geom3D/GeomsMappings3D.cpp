@@ -1021,8 +1021,8 @@ template <class Type>  cSimilitud3D<Type>   cSimilitud3D<Type>::FromParam(const 
 /*                                                   */
 /* ************************************************* */
 
-cSampleSphere3D::cSampleSphere3D(int aNbStep) :
-   mSHC(3,aNbStep)
+cSampleSphere3D::cSampleSphere3D(int aNbStep,bool isProj) :
+   mSHC(3,aNbStep,isProj)
 {
 }
 

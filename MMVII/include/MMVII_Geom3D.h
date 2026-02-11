@@ -625,7 +625,8 @@ class cSampleHyperCube
 class cSampleSphere3D
 {
    public :
-      cSampleSphere3D(int aNbStep);
+      cSampleSphere3D(int aNbStep,bool isProj=false);
+
       cPt3dr KthPt(int aK) const;
       int NbSamples() const;
    private :

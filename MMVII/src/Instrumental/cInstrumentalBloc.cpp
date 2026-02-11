@@ -37,8 +37,6 @@ cIrb_SigmaInstr::cIrb_SigmaInstr(tREAL8 aWTr,tREAL8 aWRot,tREAL8 aSigTr,tREAL8 a
 
 void cIrb_SigmaInstr::AddData(const  cAuxAr2007 & anAux)
 {
- //   StdOut() << "cIrb_SigmaInstr::AddData " << mAvgSigTr.Nb() << " " << mAvgSigRot.Nb() << "\n";
-
     MMVII::AddData(cAuxAr2007("Tr",anAux) ,mAvgSigTr);
     if (mAvgSigTr.SW() > 0)
        anAux.Ar().AddComment("SigTr="+ToStr(mAvgSigTr.Average()));
@@ -188,14 +186,11 @@ void cIrbComp_TimeS::ComputePoseInstrument(const std::vector<int>& aSetNumCam,bo
              tPoseR aPoseCam2Cal = aCalCams.PoseInBlock();
              tPoseR aPosWord2Cal = aPoseCam2Cal*aPoseCam2Word.MapInverse();
 
-           //  StdOut()  << "    * PPPppPPp " << aPosWord2Cal.Tr() << " " << aPosWord2Cal.Rot().ToWPK() << "\n";
-
              aVWeight.push_back(1/aSig2);
              aVPose.push_back(aPosWord2Cal);
 
          }
     }
-//    StdOut() << " ============================================================\n";
     if (! aVWeight.empty())
     {
         mPoseInstrIsInit = true;
@@ -213,7 +208,7 @@ tREAL8 cIrbComp_TimeS::ScoreDirClino(const cPt3dr& aDirClino,size_t aKClino) con
     cPt3dr aVertical = mCompBlock->VerticalOfTimes(*this);
 
     {
-       static bool  First=true;
+       static bool  First=false;
        if (First)
        {
            First = false;
@@ -225,7 +220,6 @@ tREAL8 cIrbComp_TimeS::ScoreDirClino(const cPt3dr& aDirClino,size_t aKClino) con
        }
     }
 
-//    StdOut() << "VVVeeev " << aVertical<< "\n";
     return std::abs(Scal(aDirLoc,aVertical) - std::sin(mSetClino.KthMeasure(aKClino).Angle()) );
 }
 
@@ -394,8 +388,6 @@ void cIrbComp_Block::SetClinoValues(bool OkNewTimeS)
 void cIrbComp_Block::ComputePoseInstrument(bool SVP)
 {
     std::vector<int> aSetNumCam = SetOfCalibCams().NumPoseInstr();
-
-StdOut() << "cIrbComp_Block::ComputePoseInstrument= " << aSetNumCam << "\n";
 
     for (auto & [aTimes,aDataTS] : mDataTS)
         aDataTS.ComputePoseInstrument(aSetNumCam,SVP);
@@ -741,7 +733,6 @@ void cIrbCal_Block::SetSigmaIndiv(const  std::map<tNamePair,cIrb_SigmaInstr> & a
     {
         NC_DescrIndiv(aCple.V1()).AddNewSigma(aSig);
         NC_DescrIndiv(aCple.V2()).AddNewSigma(aSig);
-        //StdOut() << " TTRRR=" << NC_DescrIndiv(aCple.V1()).Sigma().SigmaTr() << "\n";
     }
 }
 
