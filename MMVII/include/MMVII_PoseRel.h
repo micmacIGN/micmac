@@ -110,6 +110,8 @@ int   MatEss_GetKMax(const cSetHomogCpleDir & aSetD,tREAL8 aWeightStab,bool Show
 
 tPoseR  PoseRelFrom2RotAndBase(const cPt3dr &,const tRotR& aR2E1,const tRotR & aR2E2);
 
+
+
 };
 #endif // _MMVII_POSE_REL_H_
 

@@ -224,6 +224,14 @@ template <class Type> class cRotation3D
 
 typedef cRotation3D<tREAL8> tRotR; 
 void AddData(const  cAuxAr2007 & anAux,tRotR&);
+/** Make aq "pretty print" of line aY of matrice Rot,  assume |coeffs| <=1,
+ * print them as int, assure a "perfect" allignment */
+void PP_1Line_MatRot(const cMatrix<tREAL8> & aMat,int aY,size_t aNbChar=4);
+
+/// Make a pretty print of full matric
+void PP_Full_MatRot(const cMatrix<tREAL8> & aMat,size_t aNbChar=4);
+
+
 
 
 /**  Class for 3D "affine" rotation of vector

@@ -566,6 +566,34 @@ template <class Type> cPtxd<Type,3>  cRotation3D<Type>::ToWPK() const
     U D tV X =0   U0 t.q D(U0) = 0   , Ker => U0 = tV X,    X = V U0
 */
 
+
+/// Make a "pretty print" of line aY of matrice aMat
+void PP_1Line_MatRot(const cMatrix<tREAL8> & aMat,int aY,size_t aNbChar)
+{
+    for (int aX = 0 ; aX<aMat.Sz().x() ; aX++)
+    {
+        // 2 char left, one for sign, one for blank
+        int aV =  round_ni(aMat.V_GetElem(aX,aY)*std::pow(10.0,aNbChar-2));
+        std::string aS = ToStr(aV);
+        aS = aS.substr(0,aNbChar);
+        while (aS.size()<aNbChar)
+            aS = " " + aS;
+        StdOut() << aS << " ";
+    }
+}
+
+/// Make a pretty print of full matric
+void PP_Full_MatRot(const cMatrix<tREAL8> & aMat,size_t aNbChar)
+{
+    for (int aY = 0 ; aY<aMat.Sz().y() ; aY++)
+    {
+        PP_1Line_MatRot(aMat,aY,aNbChar);
+        StdOut() << "\n";
+    }
+
+}
+
+
 /* ************************************************* */
 /*                                                   */
 /*               cIsometry3D<Type>                   */
