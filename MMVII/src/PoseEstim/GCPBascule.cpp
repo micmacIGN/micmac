@@ -60,8 +60,10 @@ cAppli_GCPBascule::cAppli_GCPBascule(const std::vector<std::string> & aVArgs, co
 
 void cAppli_GCPBascule::AddData(const cAuxAr2007 & anAuxInit)
 {
-    cAuxAr2007 anAux("Simlitude3D",anAuxInit);
+    cAuxAr2007 anAux("3D-Similarity",anAuxInit);
     MMVII::AddData(cAuxAr2007("Scale",anAux),mScale);
+    MMVII::AddData(cAuxAr2007("Translation",anAux),mTr);
+    MMVII::AddData(cAuxAr2007("Rotation",anAux),mRot);
 }
 
 void AddData(const cAuxAr2007 & anAuxInit, cAppli_GCPBascule & aAppliBascule)
@@ -115,7 +117,7 @@ int cAppli_GCPBascule::Exe()
             
             if(mShow)
             {
-                StdOut() << "Name = " << aInMes.mNamePt << " Orig_Frame = " << aInMes.mPt << " Target_Frame = " << aOutMes.mPt << "\n";
+                StdOut() << "Name = " << aInMes.mNamePt << " Origin_Frame = " << aInMes.mPt << " Target_Frame = " << aOutMes.mPt << "\n";
             }
 
         }
@@ -124,7 +126,7 @@ int cAppli_GCPBascule::Exe()
     //we need at least 3 correspondences
     if(aInSet.Measures().size() < 3)
     {
-        StdOut() << "Not enough points ! " << "\n";
+        StdOut() << "Not enough points (the minimum is 3) ! " << "\n";
         return EXIT_FAILURE;
     }
 
@@ -140,10 +142,10 @@ int cAppli_GCPBascule::Exe()
 
     if(mShow)
     {
-        StdOut() << "Sim residual = " << mRes2 << "\n";
-        StdOut() << "Scale = "        << mSim.Scale() << "\n";
-        StdOut() << "Translation = "  << mSim.Tr() << "\n";
-        StdOut() << "Rotation = "     << mSim.Rot().Mat() << "\n";
+        StdOut() << "Similarity residual = " << mRes2 << "\n";
+        StdOut() << "Similarity scale = "        << mSim.Scale() << "\n";
+        StdOut() << "Similarity translation = "  << mSim.Tr() << "\n";
+        StdOut() << "Similarity rotation = "     << mSim.Rot().Mat() << "\n";
     }
     
     //apply similarity to input ori
@@ -209,8 +211,12 @@ int cAppli_GCPBascule::Exe()
 
         //save file
         SaveInFile(*this,aNameFile);
-
-        StdOut() << "Similarity parameters wrote to file : " << aNameFile << "\n";
+        
+        if(mShow)
+        {
+            StdOut() << "Similarity parameters wrote to file : " << aNameFile << "\n";
+        }
+        
     }
 
     
