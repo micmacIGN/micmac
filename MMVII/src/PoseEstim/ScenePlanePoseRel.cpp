@@ -45,12 +45,8 @@ class cPS_CompPose
         /** generate pair 3D of direction that can correpond to coherent camera, can be more
          "extremate" than with camera, can simulate for example two side of plane.
          */
-         static cSetHomogCpleDir SimulateDirAny
-                                 (
-                                      const cPt2dr & aRhoZ1,  // Rho and Z for center 1 (teta random)
-                                      const cPt2dr & aRhoZ2,  // Rho and Z for center 2 (teta random)
-                                      tREAL8 aIntZ            // Interval of Z (may be adjusted)
-                                 );
+         static tResSimul SimulateDirAny(tREAL8 aEps,tREAL8 aDistPlane,bool isSameSide); // Steep of plane, may be adjusted
+
 
          /** generate pair of direction the correspond to camera already in epipolar config, more for
              debugin than for check */
@@ -69,10 +65,12 @@ class cPS_CompPose
         bool TestOneHypoth(cResulSVDDecomp<tREAL8>& aSvdH,const cPt3dr&ABL,int SignB,const cPt3dr & aSignD);
 
         /// generate a point of view by randomizing Theta
-        static    cPt3dr RandPointOfView(const cPt2dr & aRhoZ);
+       // static    cPt3dr RandPointOfView(const cPt2dr & aRhoZ);
+        static    cPt3dr RandPointOfView(int aSign,tREAL8 aDPlane);
 
 
-        static void SetPt( cDenseVect<tREAL8>&,size_t aIndex,const cPt3dr&,tREAL8 aMul);
+        /// Utilitary : transferate "Pt" in "Vect" at offset "Index" muliplied by "Mul"
+        static void SetPt( cDenseVect<tREAL8>& aVect,size_t aIndex,const cPt3dr& aPt,tREAL8 aMul);
 
 
         const std::vector<cPt3dr>* mCurV1 ;
@@ -84,6 +82,9 @@ class cPS_CompPose
         tREAL8                     mHM_Det;
         tREAL8                     mHM_Tr2;
         tREAL8                     mHM_Tr4;
+
+        size_t                     mNbSolTested; ///< number of sol we try
+        size_t                     mNbSolOk;     ///< number of sol possible at end
 };
 
 
@@ -186,11 +187,13 @@ class cPS_CompPose
  */
 
 
-
+/*
 cPt3dr cPS_CompPose::RandPointOfView(const cPt2dr & aRhoZ)
 {
     return Cyl2Cart(cPt3dr(aRhoZ.x(),RandUnif_Angle(),aRhoZ.y()));
 }
+*/
+
 
 
 cSetHomogCpleDir cPS_CompPose::SimulateDirEpip
@@ -247,41 +250,73 @@ cSetHomogCpleDir cPS_CompPose::SimulateDirEpip
      return cSetHomogCpleDir(aVDir1,aVDir2);
 }
 
-cSetHomogCpleDir cPS_CompPose::SimulateDirAny(const cPt2dr & aRhoZ1,const cPt2dr & aRhoZ2,tREAL8 aIntZ)
-{
-    std::vector<cPt3dr>  aVDir1; // store directions 1
-    std::vector<cPt3dr>  aVDir2; // store directions 2
 
-    cPt3dr aC1 = RandPointOfView(aRhoZ1); // "Center" of cam1
-    cPt3dr aC2 = RandPointOfView(aRhoZ2); // "Center" of cam2
-    // for now, avoid degenerate case (later will also force it)
-    while (Norm2(aC1-aC2)<1e-2)
-         aC2 = RandPointOfView(aRhoZ2);
+/**
+ *  Generate random center using spherical cordinates
+ *
+ */
+
+cPt3dr cPS_CompPose::RandPointOfView(int aSign,tREAL8 aDPlane)
+{
+    // any value  in [0,2PI]
+    tREAL8 aTeta =  RandUnif_Angle();
+    // any value, far enough from equator
+    tREAL8 aPhi = (1.0-std::sqrt(RandInInterval(0.0,1.0))) * (M_PI/2.0);
+    // value in [0.1,20] with non uniform distrib, privilegiat low values
+    tREAL8 aRho =  std::pow(RandUnif_0_1(),4.0) * 20.0;
+
+    cPt3dr aP = spher2cart(cPt3dr(aTeta,aPhi,aRho));
+    aP.z() = std::max(aP.z(),aDPlane) * aSign;
+
+    return aP;
+}
+
+
+/**
+ * @brief cPS_CompPose::SimulateDirAny
+ *    Generate pairs of bundle for planar estimation in (possibly) complicate situtation.  Method :
+ *
+ *    [1]  Consider  plane P of equation Z = 0 generate random ground points (X,Y,0) in a circle unit
+ *    [2]  Generate random view point C1,C2 :
+ *             # assure  d(C1,C2) > Epsilon
+ *             # and C1,C2 not in P
+ *             # sign control
+ *        This can generate some extreme case
+ *
+ * @param aSteepZ
+ * @return
+ */
+
+cPS_CompPose::tResSimul cPS_CompPose::SimulateDirAny(tREAL8 aEpsilon,tREAL8 aDistPlane,bool SameSide)
+{
+    tREAL8 aSign = SameSide ? 1 : -1;
+
+    cPt3dr aC1 = RandPointOfView(1,aDistPlane);
+    cPt3dr aC2 = aC1;
+    while (Norm2(aC1-aC2)<aEpsilon)
+         aC2 = RandPointOfView(aSign,aDistPlane);
+
 
     tRotR aR1 = tRotR::RandomRot();       // Global rotation applied to dir 1
     tRotR aR2 = tRotR::RandomRot();       // Global rotation applied to dir 2
 
-
-    // be sure that that Center Cams are above Interv of Z
-    aIntZ = std::min
-            (
-                aIntZ,
-                std::min(std::abs(aC1.z()),std::abs(aC2.z()))*0.5
-            );
-
+    std::vector<cPt3dr>  aVDir1; // store directions 1
+    std::vector<cPt3dr>  aVDir2; // store directions 2
     for (int aK=0 ; aK<100 ; aK++)
     {
         cPt2dr aPPlane = cPt2dr::PRandInSphere();
         // the planer comp of point are generate in the circle unit
-        cPt3dr aPGround = TP3z(aPPlane,aIntZ*aPPlane.y());
+        cPt3dr aPGround = TP3z(aPPlane, 0.0);
 
         aVDir1.push_back(aR1.Value(VUnit(aPGround-aC1)));
         aVDir2.push_back(aR2.Value(VUnit(aPGround-aC2)));
     }
 
-
-    return cSetHomogCpleDir(aVDir1,aVDir2);
+    cPSC_PB aPSC("Any",false);
+    return tResSimul(aPSC,cSetHomogCpleDir(aVDir1,aVDir2));
 }
+
+
 
 void cPS_CompPose::SetPt( cDenseVect<tREAL8>& aVect,size_t aIndex,const cPt3dr& aPt,tREAL8 aMul)
 {
@@ -314,12 +349,12 @@ cDenseMatrix<tREAL8>
 
          //  Add the equation L1.P1 z2 - L3.P1 x2 = 0
          SetPt(aVect,0,aP1,aP2.z());
-         SetPt(aVect,3,aP1,0);
+         SetPt(aVect,3,aP1,0); // 0 => reset, P1 will be unused
          SetPt(aVect,6,aP1,-aP2.x());
          aSys.PublicAddObservation(1.0,aVect,0.0);
 
          // Add the equation  L2.P1 z2 - L3.P1 y2 = 0
-         SetPt(aVect,0,aP1,0);
+         SetPt(aVect,0,aP1,0);  // reset, P1 will be unused
          SetPt(aVect,3,aP1,aP2.z());
          SetPt(aVect,6,aP1,-aP2.y());
          aSys.PublicAddObservation(1.0,aVect,0.0);
@@ -368,6 +403,8 @@ bool cPS_CompPose::TestOneHypoth
         const cPt3dr & aSignDiag         // sign of diagonal
      )
 {
+    mNbSolTested++;
+
     static int aCptSol=0;  // Debug counter
     aCptSol++;
     //StdOut() << " CPTSOL=" << aCptSol << "\n";
@@ -516,9 +553,11 @@ bool cPS_CompPose::TestOneHypoth
 
 
      tREAL8 aScorePos = (aNbM1+aNbM2) / (2.0* mCurV1->size());
+
+
      if (mCurParam)
      {
-         if (aScorePos<1e-4)
+         if (true) //  aScorePos<1e-4)
          {
 
              StdOut()  <<  "PooOs:= "
@@ -564,8 +603,10 @@ bool cPS_CompPose::TestOneHypoth
                  // StdOut()  << aRE1.AxeI() <<  aRE1.AxeJ() << aRE1.AxeK() << "\n";
                  // StdOut()  << aRE2.AxeI() <<  aRE2.AxeJ() << aRE2.AxeK() << "\n";
 
-                   return true;
+
              }
+             mNbSolOk++;
+             return true;
          }
          else
          {
@@ -576,7 +617,9 @@ bool cPS_CompPose::TestOneHypoth
      return false;
 }
 
-cPS_CompPose::cPS_CompPose(cSetHomogCpleDir & aSetCple,const  cPSC_PB * aBenchParam)
+cPS_CompPose::cPS_CompPose(cSetHomogCpleDir & aSetCple,const  cPSC_PB * aBenchParam) :
+    mNbSolTested (0),
+    mNbSolOk     (0)
 {
     // const std::vector<cPt3dr>& aV1 = aSetCple.VDir1();
    // const std::vector<cPt3dr>& aV2 = aSetCple.VDir2();
@@ -688,7 +731,7 @@ cPS_CompPose::cPS_CompPose(cSetHomogCpleDir & aSetCple,const  cPSC_PB * aBenchPa
     }
 
     StdOut() << "------------ " <<  aNbSol << " -------------------------------------------------\n";
-    // if (aNbSol>=2) getchar();
+     if (aNbSol == 0) getchar();
     if (0&& mCurParam)
     {
          StdOut() << "----------------------------------------" << mCurParam->mMsg << mCurParam->mMsg  << mCurParam->mMsg  <<" \n";
@@ -704,19 +747,22 @@ void BenchMEP_Coplan()
 
     if (1)
     {
+        /* In this test we generate random bundle
+         */
        for (int aNbTest=0 ; aNbTest < 100 ; aNbTest++)
        {
             for (int aSign =  1 ; aSign<= 1 ; aSign+=2)
             {
+                /*
                 tREAL8 aRho1 = RandUnif_0_1() * 2.0;
                 tREAL8 aRho2 = RandUnif_0_1() * 2.0;
                 tREAL8 aZ1 = 0.1 + RandUnif_0_1() * 2.0;
                 tREAL8 aZ2 = aSign*(0.1 + RandUnif_0_1() * 2.0);
-
-                cSetHomogCpleDir aSetCple = cPS_CompPose::SimulateDirAny( cPt2dr(aRho1,aZ1),cPt2dr(aRho2,aZ2),0.0);
-                std::string aMsg = (aSign>0) ? "++++++++++" : "-----------" ;
-                cPSC_PB aParam((aSign>0) ? "++++++++++" : "-----------",true);
-                cPS_CompPose aPsC(aSetCple,&aParam);
+*/
+                cPS_CompPose::tResSimul aRes = cPS_CompPose::SimulateDirAny(1e-2,0.1,true);
+               // std::string aMsg = (aSign>0) ? "++++++++++" : "-----------" ;
+                 // cPSC_PB aParam((aSign>0) ? "++++++++++" : "-----------",true);
+                cPS_CompPose aPsC(aRes.second,&aRes.first);
            }
 
             // getchar();
