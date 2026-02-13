@@ -589,6 +589,7 @@ cCalculator<double> * cSensorCamPC::CreateEqColinearity(bool WithDerives,int aSz
 cCalculator<double> * cSensorCamPC::CreateEqColinearityOnBundle(bool WithDerives,int aSzBuf,bool ReUse)
 {
     return EqColinearityOnBundle(WithDerives,aSzBuf,ReUse);
+}
 
 cCalculator<double> * cSensorCamPC::EqProjSeg()
 {
