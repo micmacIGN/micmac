@@ -677,15 +677,10 @@ class cSensorCamPC : public cSensorImage
          void PutUknowsInSetInterval() override ;  // add the interval on udpate
          void OnUpdate() override;                 // "reaction" after linear update
 
-<<<<<<< HEAD
 	 /// contain itself + internal calib
 	 std::vector<tPtrOUK>  GetAllUK() override;
      /// contain itself
      std::vector<tPtrOUK>  GetAllUKPose() ;
-=======
-     /// contain itself + internal calib
-     std::vector<tPtrOUK>  GetAllUK() override;
->>>>>>> origin/master
 
      /// retur
      void  FillGetAdrInfoParam(cGetAdrInfoParam<tREAL8> &) override;
