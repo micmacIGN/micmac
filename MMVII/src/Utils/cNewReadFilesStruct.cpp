@@ -58,7 +58,7 @@ void   cNRFS_ParamRead::AddArgOpt(cCollecSpecArg2007 & anArgOpt)
     anArgOpt
             <<  AOpt2007(mL0,"NumL0","Num of first line to read",{eTA2007::HDV})
             <<  AOpt2007(mLLast,"NumLast","Num of last line to read (-1 if at end of file)",{eTA2007::HDV})
-            <<  AOpt2007(mComment,"Comment","Carac for comment")
+            <<  AOpt2007(mComment,"Comment","Carac for comment",{eTA2007::HDV})
             <<  AOpt2007(mNoDupLine,"NoDupL","Supress duplicated lines")
     ;
 }
@@ -232,7 +232,7 @@ void  cNewReadFilesStruct::ParseFormat(bool isSpec,const std::string & aFormat,s
         {
             aC++;
 	}
-	else if (*aC==0) // if we reach end of car whil skeeping white : end of game
+	else if (*aC==0) // if we reach end of car whil skipping white : end of game
 	{
              return;
 	}
@@ -291,11 +291,11 @@ void cNewReadFilesStruct::ReadFile(const std::string & aNameFile,const  cNRFS_Pa
     while (std::getline(infile, line))
     {
          size_t aHashCode = HashValue(line,true);
-         // must we skeep the line for duplicata reason
+         // must we skip the line for duplicata reason
          bool toSkip4Dupl = aParam.NoDupLine() && MapBoolFind(aSetHCode,aHashCode);
 
 
-         if ((aNumL>=aParam.L0()) && (aNumL< aParam.LLast())  && (!toSkip4Dupl) )
+         if ((aNumL>=aParam.L0()) && ((aNumL< aParam.LLast()) || (aParam.LLast()<0))   && (!toSkip4Dupl) )
 	 {
              const char * aC = line.c_str();
              bool  GoOn = true;
@@ -390,10 +390,10 @@ cPt3dr cNewReadFilesStruct::GetPt3dr_XYZ(size_t aKL,const std::string & aPost) c
 
 std::string  cNewReadFilesStruct::MsgFormat(const std::string & aFormat)
 {
-    return   "Format of file, according to specification :  " 
+    return   "Format of file, according to specification: "
            + Quote(aFormat)  
-           + " ( SkeepField=\"" + TheNameUnused + "\""  
-           + " ; SkeepEndOfLine=\"" + TheNameBla + "\")"  
+           + " (\"" + TheNameUnused + "\" to skip one field"
+           + ", \"" + TheNameBla + "\" to skip the rest of the line)"
     ;
 }
 

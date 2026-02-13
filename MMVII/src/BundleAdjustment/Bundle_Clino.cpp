@@ -16,7 +16,7 @@ namespace MMVII
             mWeights[aVClinoName[aK]] = aVWeights[aK];
         }
     }
-    
+
 
     void cClinoMes1Cam::pushClinoObs(std::vector<double> & aVObs, const std::string aClinoName)
     {
@@ -90,9 +90,9 @@ namespace MMVII
     (
         const cPhotogrammetricProject *aPhProj
     ):
-        mPhProj  (aPhProj),
-        mEqBlUK  (EqClinoBloc(true,1,true)),
-        mEqBlUKRot  (EqClinoRot(true,1,true))     
+        mPhProj    (aPhProj),
+        mEqBlUK    (Old_EqClinoBloc(true,1,true)),
+        mEqBlUKRot (Old_EqClinoRot(true,1,true))
     {
         if (mPhProj)
         {
@@ -115,7 +115,7 @@ namespace MMVII
 
         for (auto aOneMesureClino : aSMC.SetMeasures())
         {
-            std::string aNameIm = aSMC.NameOfIm(aOneMesureClino);
+            std::string aNameIm = aSMC.ClinoDeprecatedNameOfImage(aOneMesureClino);
             cSensorCamPC * aCam = mPhProj->ReadCamPC(aNameIm,true,true);
             if (aCam != nullptr)
             {
@@ -387,18 +387,21 @@ namespace MMVII
     void cBA_Clino::Save()
     {
         // Save relative orientations between clino and reference camera
+        MMVII_INTERNAL_ERROR("cBA_Clino::Save  being reengeneredd ....");
         
+/*
         std::vector<cOneCalibClino> aVCalibClino;
         for (auto & [aClinoName, aClinoWithUK] : mClinosWithUK)
         {
             cOneCalibClino aOneCalibClino = cOneCalibClino(aClinoName);
-            aOneCalibClino.mRot = aClinoWithUK.Rot();
+            aOneCalibClino.SetRot(aClinoWithUK.Rot());
             aOneCalibClino.mCameraName = mCameraName;
             aVCalibClino.push_back(aOneCalibClino);
         }
         
         cCalibSetClino aCalibSetClino = cCalibSetClino(mCameraName, aVCalibClino);
         mPhProj->SaveClino(aCalibSetClino);
+*/
     }
 
     void cBA_Clino::addClinoMes1Cam(const cClinoMes1Cam & aClinoMes1Cam)

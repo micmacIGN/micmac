@@ -101,15 +101,49 @@ cEllipse::cEllipse(const cPt2dr & aCenter,tREAL8 aRay) :
 {
 }
 
+cEllipse cEllipse::Scale(tREAL8 aScale) const
+{
+    return cEllipse(Center()*aScale,TetaGa(),LGa()*aScale,LSa()*aScale);
+}
+
+
+/*
+template <class Type> void AddDataAsStdVect(const cAuxAr2007 & anAux,cDenseVect<Type>& aDenseV)
+{
+     std::vector<Type> aStdV;
+     if (anAux.Input())
+     {
+        MMVII::AddData(anAux,aStdV);
+	aDenseV = cDenseVect<Type>(aStdV);
+     }
+     else
+     {
+        aStdV = aDenseV.ToStdVect();
+        MMVII::AddData(anAux,aStdV);
+     }
+}
+*/
+
+
 void cEllipse::AddData(const  cAuxAr2007 & anAux)
 {
      AssertOk();
-     MMVII::AddData(cAuxAr2007("Vect",anAux),mV);
+     AddDataAsStdVect(anAux,mV);
+     //  MMVII::AddData(cAuxAr2007("Vect",anAux),mV);
      MMVII::AddData(cAuxAr2007("C0",anAux),mC0);
+     //  MMVII::AddData(cAuxAr2007("C0",anAux),mC0);
+     {
+         cAuxAr2007 anAuxGeom("GeomForComment",anAux);
+	 MMVII::AddData(cAuxAr2007("LengthGreatAxe",anAuxGeom),mLGa);
+	 MMVII::AddData(cAuxAr2007("LengthSmallAxe",anAuxGeom),mLSa);
+	 MMVII::AddData(cAuxAr2007("DirGreatAxe",anAuxGeom),mVGa);
+         anAuxGeom.Ar().AddComment("GA=" + ToStr(mLGa) + " SA=" + ToStr(mLSa));
+     }
      if (anAux.Input())
      {
           *this = cEllipse(mV,mC0);
      }
+
 }
 
 void AddData(const  cAuxAr2007 & anAux,cEllipse & anEl)

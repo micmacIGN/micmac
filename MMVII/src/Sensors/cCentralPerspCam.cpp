@@ -216,7 +216,8 @@ cPerspCamIntrCalib::cPerspCamIntrCalib(const cDataPerspCamIntrCalib & aData) :
                                )
 		         ),
     mInvIsUpToDate       (false),
-    mTabulDUD            (nullptr)
+    mTabulDUD            (nullptr),
+    mEqProjSeg           (nullptr)
 {
     mVTmpCopyParams.clear();
 }
@@ -253,9 +254,9 @@ cPerspCamIntrCalib * cPerspCamIntrCalib::FromFile(const std::string & aName,bool
 {
     cPerspCamIntrCalib * aCalib = nullptr;
     if (Remanent) 
-       aCalib = RemanentObjectFromFile<cPerspCamIntrCalib,cDataPerspCamIntrCalib>(aName);
+       aCalib = RemanentNewObjectFromFile<cPerspCamIntrCalib,cDataPerspCamIntrCalib>(aName);
     else
-       aCalib =  ObjectFromFile<cPerspCamIntrCalib,cDataPerspCamIntrCalib>(aName);
+       aCalib =  NewObjectFromFile<cPerspCamIntrCalib,cDataPerspCamIntrCalib>(aName);
 
     std::string aNameWithFile = LastPrefix( FileOfPath(aName)) ;
     if (aNameWithFile != aCalib->Name())
@@ -352,7 +353,6 @@ void cPerspCamIntrCalib::UpdateLSQDistIfRequired() const
 
 cPt2dr cPerspCamIntrCalib::PtSeedInv() const
 {
-// static int aCpt=0 ; aCpt++;
      /**  Regarding the seed :
       *      - if we put at PP we have problem if PP is outside image (like with shift lense camera)
       *      - if we put it in midle with have problem with orthographik camera if midle is outside definition
@@ -374,8 +374,6 @@ cPt2dr cPerspCamIntrCalib::PtSeedInv() const
      // StdOut() << "PSEED "  << aPProj<< " " << aCpt << std::endl;
      return aPProj;
 }
-
-static cPt2dr  PBug(233.2,2576.5);
 
 
 std::vector<cPt2dr>  cPerspCamIntrCalib::PtsSampledOnSensor(int aNbByDim,bool InPixel) const
@@ -414,7 +412,7 @@ std::vector<cPt2dr>  cPerspCamIntrCalib::PtsSampledOnSensor(int aNbByDim,bool In
 const  std::vector<cPt2dr> &  cPerspCamIntrCalib::Values(tVecOut & aV3 ,const tVecIn & aV0 ) const 
 {
   // StdOut() <<  "VALUUUUUU \n";
-     static tVecOut aV1,aV2;
+     thread_local static tVecOut aV1,aV2;
      mDir_Proj->Values(aV1,aV0);
      mDir_Dist->Values(aV2,aV1);
      mMapPProj2Im.Values(aV3,aV2);
@@ -489,7 +487,7 @@ const  std::vector<cPt3dr> &  cPerspCamIntrCalib::DirBundles(tVecIn & aV3 ,const
      UpdateLSQDistIfRequired(); // Updtate inverse by least square
      CheckBeforeInverse(aV0);   // Check that V0 is inversible, nothing done in release
 
-     static tVecOut aV1,aV2;
+     thread_local static tVecOut aV1,aV2;
      mMapIm2PProj.Values(aV1,aV0);
      mDist_DirInvertible->Inverses(aV2,aV1);
      mInv_Proj->Values(aV3,aV2);
@@ -608,8 +606,24 @@ void  cPerspCamIntrCalib::FillGetAdrInfoParam(cGetAdrInfoParam<tREAL8> & aGAIP)
 
 cCalculator<double> * cPerspCamIntrCalib::EqColinearity(bool WithDerives,int aSzBuf,bool ReUse)
 {
-    return EqColinearityCamPPC(mTypeProj,mDir_Degr,WithDerives,aSzBuf,ReUse,mIsFraserMode);
+    return EqColinearityCamPPC(mTypeProj,mDir_Degr,WithDerives,aSzBuf,ReUse,mIsFraserMode,eTypeEqCol::ePt);
 }
+
+cCalculator<double> * cPerspCamIntrCalib::EqProjSeg(bool WithDerives,int aSzBuf,bool ReUse)
+{
+    return EqColinearityCamPPC(mTypeProj,mDir_Degr,WithDerives,aSzBuf,ReUse,mIsFraserMode,eTypeEqCol::eLine);
+}
+
+cCalculator<double> *  cPerspCamIntrCalib::SetAndGet_EqProjSeg()
+{
+   if (mEqProjSeg==nullptr)
+      mEqProjSeg = EqProjSeg(true,10,true);
+
+  return mEqProjSeg;
+}
+
+
+
       //   ----  Accessor  to distorsion ----------------
 
 const std::vector<double> & cPerspCamIntrCalib::VParamDist() const 
@@ -842,6 +856,10 @@ void cPerspCamIntrCalib::InitRandom(double aAmpl)
      UpdateLSQDistInv ();
 }
  
+cPerspCamIntrCalib * cPerspCamIntrCalib::SimpleCalib(const std::string & aName,cPt2di aSz,tREAL8 aFocal)
+{
+   return SimpleCalib(aName,eProjPC::eStenope,aSz,cPt3dr(aSz.x()/2.0,aSz.y()/2.0,aFocal),cPt3di(0,0,0));
+}
 
 cPerspCamIntrCalib * cPerspCamIntrCalib::SimpleCalib
                      (
@@ -870,6 +888,7 @@ cPerspCamIntrCalib * cPerspCamIntrCalib::SimpleCalib
 
 
 
+// cPerspCamIntrCalib * aCalib = cPerspCamIntrCalib::RandomCalib(eProjPC::eStenope,aNumDist,WithDist ? 0.01 : 0.1);
 cPerspCamIntrCalib * cPerspCamIntrCalib::RandomCalib(eProjPC aTypeProj,int aKDeg,tREAL8 anAmpl)
 {
 
@@ -894,12 +913,12 @@ cPerspCamIntrCalib * cPerspCamIntrCalib::RandomCalib(eProjPC aTypeProj,int aKDeg
 	                                 cDataPerspCamIntrCalib
 	                                 (
 	                                       "BenchCam",
-                                                aTypeProj,
-						aDegDir.at(aKDeg),
+                                            aTypeProj,
+                                            aDegDir.at(aKDeg),
 	                                        std::vector<double>(),
 	                                        cMapPProj2Im(aFoc,aPP),
 	                                        cDataPixelDomain(aSz),
-						aDegInv.at(aKDeg),
+                                            aDegInv.at(aKDeg),
 	                                        100
 	                                 )
                                 );
@@ -929,7 +948,7 @@ tSeg2dr  cPerspCamIntrCalib::ExtenSegUndistIncluded
       std::vector<cPt2dr> aVPts;
       for (tREAL8 aSign : {-1.0,1.0})
       {
-          cPt2dr aPt = aSegInit.PMil();
+          cPt2dr aPt = aSegInit.Middle();
           cPt2dr aTgt = VUnit(aSegInit.V12()) * aSign;
 	  tREAL8 aStep= aStepInitRel * Norm2(SzPix());
 	  while (aStep >= aStepEnd)
@@ -999,7 +1018,6 @@ tProjImAndGrad  cPerspCamIntrCalib::DiffGround2Im(const cPt3dr & aPGround) const
 
 void cPerspCamIntrCalib::Bench_CalcDiff()
 {
-   [[maybe_unused]] static int aCpt=0; aCpt++;
    if (mTypeProj!=eProjPC::eStenope)
       return;
    cSensorCamPC aCamId("toto.tif",tPoseR::Identity(),this);
@@ -1051,6 +1069,8 @@ void BenchCentralePerspective(cParamExeBench & aParam,eProjPC aTypeProj)
 
        delete aCam;
     }
+    BenchCamOrtho();
+
 }
 
 void BenchImAndZ()
@@ -1081,6 +1101,9 @@ void BenchImAndZ()
 
 void BenchCentralePerspective(cParamExeBench & aParam)
 {
+    if (! aParam.NewBench("CentralPersp")) return;
+
+    BenchAiconCamera();
 
    // Test the accuracy of tabulation on dist/undist
    for (int aKTest =0 ; aKTest <100; aKTest++)
@@ -1088,6 +1111,23 @@ void BenchCentralePerspective(cParamExeBench & aParam)
        int aNumDist = aKTest%4;
        bool WithDist = (aNumDist==1) || (aNumDist==2);
        cPerspCamIntrCalib * aCalib = cPerspCamIntrCalib::RandomCalib(eProjPC::eStenope,aNumDist,WithDist ? 0.01 : 0.1);
+
+       if  (aNumDist==0)
+       {
+
+	   tPoseR aPose = tPoseR::RandomIsom3D(100.0);
+	   cSensorCamPC aCam("BenchResol",aPose,aCalib);
+
+           for (int aK=0 ; aK<10 ; aK++)
+           {
+	       tREAL8 aDepth = RandInInterval(1,10.);
+	       cPt3dr  aPGr = aCam.RandomVisiblePGround(aDepth,aDepth);
+               // StdOut() << "JJJJJ " << aCam.InternalCalib()->F()  << "  P=" << aPGr << " D=" << aDepth << "\n";
+	       tREAL8 aDiff =  RelativeDifference(aCam.Gen_GroundSamplingDistance(aPGr) , aDepth/aCam.InternalCalib()->F()) ;
+	       MMVII_INTERNAL_ASSERT_bench(std::abs(aDiff)<1e-5,"aCam.GroundSamplingDistance");
+           }
+	   // getchar();
+       }
        
        int aNb = 50 + (11*aKTest) % 50;
        cTabuMapInv<2>*   aTabul = aCalib->AllocTabulDUD(aNb);
@@ -1112,8 +1152,6 @@ void BenchCentralePerspective(cParamExeBench & aParam)
 
 
     BenchCentralePerspective(aParam,eProjPC::eOrthoGraphik);
-
-    if (! aParam.NewBench("CentralPersp")) return;
 
     BenchStenopeSat();
     BenchImAndZ();

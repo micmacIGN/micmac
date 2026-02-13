@@ -107,7 +107,8 @@ void cMMVII_BundleAdj::OneItere_TieP(const cBA_TieP& aBA_TieP)
        }
 
    }
-   StdOut() <<  "  # " << aBA_TieP.mName << ": Weighted Residual=" << aWeigthedRes.Average() << std::endl; 
+   StdOut() <<  "  # " << aBA_TieP.mName << ": Weighted Residual=" << aWeigthedRes.Average()
+            << " (" << aWeigthedRes.Nb() << " obs)" << std::endl;
 }
 
 void cMMVII_BundleAdj::OneItere_TieP()

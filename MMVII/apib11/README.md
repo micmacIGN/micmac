@@ -7,11 +7,11 @@ Dependencies
 
 As admin:
 
-    apt install python3-pip doxygen
+    apt install python3-pip doxygen clang-tools llvm-dev
 
-As user:
+In the Python virtual environment used for compilation:
 
-    pip3 install pybind11 wheel numpy
+    pip3 install pybind11[global] setuptools build
 
 
 Compilation
@@ -19,16 +19,16 @@ Compilation
 
 First, compile MMv1 and MMv2.
 
-Then, in 'apib11' directory:
+Then, in 'apib11' directory and the correct Python virtual environment:
 
-    make
+    pip wheel . --no-deps -w dist/
 
-The module can be used from this directory without installation (this local version has priority to installed modules).
 
 Installation
 ------------
 
-    make install
+    pip install --force-reinstall dist/mmvii*.whl
+
 
 Distribution
 ------------
@@ -47,7 +47,6 @@ Upgrade pip if needed:
     python3 -m pip install --upgrade pip
 
 
-
 Usage
 -----
 
@@ -58,7 +57,6 @@ Usage
 The built-in Python help system can be used to have information about the API.
 
 See 'examples' directory for use cases.
-
 
 
 Binding Conventions

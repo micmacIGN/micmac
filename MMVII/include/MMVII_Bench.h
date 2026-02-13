@@ -35,7 +35,7 @@ class cAppliBenchAnswer
 class cParamExeBench
 {
     public :
-         cParamExeBench(const std::string & aPattern,const std::string & aBugKey,int aLevInit,bool Show);
+         cParamExeBench(const std::string & aPattern,const std::string & aPatRefut,const std::string & aBugKey,int aLevInit,bool Show);
 
          bool  NewBench(const std::string & aName,bool ExactMatch=false); ///< Memo the name, Indicate if the bench is executed, 
          bool  GenerateBug(const std::string & aKey);
@@ -62,6 +62,7 @@ class cParamExeBench
          int                       mNbExe;
          std::string               mName;    ///< Exact Name for exact select
          tNameSelector             mPattern;    ///< Pattern for select bench
+         tNameSelector             mPatternRefut;    ///< Pattern for refutation of a  bench
          std::string               mBugKey;
 };
 
@@ -98,6 +99,9 @@ void BenchSysCo(cParamExeBench & aParam); ///< SysCo
 
 void BenchTopoComp(cParamExeBench & aParam); ///< Topo compensation
 
+void BenchTSL(cParamExeBench & aParam); ///< Static lidar
+
+
 // void cAppli_MMVII_Bench::Bench_0000_String(); => Bench on string-split
 void BenchSerialization(cParamExeBench & aParam,const std::string & aDirOut,const std::string & aDirIn); ///< Bench on seriaization function
 
@@ -115,6 +119,7 @@ void BenchExtre(cParamExeBench & aParam);  ///< Test Extremum computations, refi
 void BenchStat(cParamExeBench & aParam);
 
 void BenchGlobImage(cParamExeBench & aParam); ///< Global bench on image
+void BenchAPBI(cParamExeBench & aParam);
 void BenchFilterImage1(cParamExeBench & aParam);
 void BenchFilterLinear(cParamExeBench & aParam);
 void BenchGeom(cParamExeBench & aParam);
@@ -125,6 +130,8 @@ void BenchMapping(cParamExeBench & aParam);
 void BenchInvertMapping(cParamExeBench & aParam);
 void BenchSymDerMap(cParamExeBench & aParam);
 void BenchLeastSqMap(cParamExeBench & aParam);
+void BenchManifold(cParamExeBench & aParam);
+
 
 void BenchDelaunay(cParamExeBench & aParam);
 void BenchTri2D(cParamExeBench & aParam);
@@ -144,6 +151,9 @@ void BenchSSRNL(cParamExeBench & aParam);  // Syst Sur Resol Non Linear
 void BenchDeformIm(cParamExeBench & aParam); // using image in non-linear least square system
 void BenchMeshDev(cParamExeBench & aParam);  // bench  devlopment  (on devlopable surface)
 void BenchCentralePerspective(cParamExeBench & aParam); // test on implementation of central perstective model
+void BenchCamOrtho();
+void BenchAiconCamera();
+
 void BenchCentralePerspective_ImportV1(cParamExeBench & aParam); // test on importation cam-V1
 
 void BenchL1Solver(cParamExeBench & aParam); /// test that L1 solver is ok

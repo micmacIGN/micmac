@@ -190,6 +190,7 @@ template <class Type>  cIm2D<Type>::cIm2D(const cBox2di & aBox,const cDataFileIm
 
 template <class Type>  cIm2D<Type> cIm2D<Type>::FromFile(const std::string & aName)
 {
+  //  StdOut() << "cIm2D<Type>::FromFile> cIm2D<Type>::FromFile " << aName << "\n";
    cDataFileIm2D  aFileIm = cDataFileIm2D::Create(aName,eForceGray::Yes);
    cIm2D<Type> aRes(aFileIm.Sz());
    aRes.Read(aFileIm,cPt2di(0,0));
@@ -376,13 +377,13 @@ template<class TypeEl> bool  cAppliParseBoxIm<TypeEl>::TopCallParallTile() const
    return  mParalTiles && (!InsideParalRecall());
 }
 
-template<class TypeEl> void  cAppliParseBoxIm<TypeEl>::APBI_ExecAll()
+template<class TypeEl> void  cAppliParseBoxIm<TypeEl>::APBI_ExecAll(bool Silence)
 {
      mDFI2d = cDataFileIm2D::Create(mNameIm,mIsGray);
      if (APBI_TestMode())
      {
         LoadI(CurBoxIn());
-	mAppli.ExeOnParsedBox();
+        mAppli.ExeOnParsedBox();
         return;
      }
      AssertNotInParsing();
@@ -408,12 +409,12 @@ template<class TypeEl> void  cAppliParseBoxIm<TypeEl>::APBI_ExecAll()
             {
                 mCurPixIndex = aPixI;
                 LoadI(CurBoxIn());
-	        mAppli.ExeOnParsedBox();
+                mAppli.ExeOnParsedBox();
             }
          }
      }
      mParseBox = nullptr ;   // No longer inside parsing
-     mAppli.ExeComParal(aLComParal);
+     mAppli.ExeComParal(aLComParal,Silence);
 }
 
 template<class TypeEl> const std::string & cAppliParseBoxIm<TypeEl>::APBI_NameIm() const

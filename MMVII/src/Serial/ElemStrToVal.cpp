@@ -215,6 +215,7 @@ template<> cE2Str<eTA2007>::tMapE2Str cE2Str<eTA2007>::mE2S
                 {eTA2007::FileDirProj,"FDP"},
                 {eTA2007::FileImage,"Im"},
                 {eTA2007::FileCloud,"Cloud"},
+                {eTA2007::FileDmp,"Dmp"},
                 {eTA2007::File3DRegion,"3DReg"},
                 {eTA2007::FileTagged,"FileTagged"},
                 {eTA2007::FileTxt,"FileText"},
@@ -233,9 +234,12 @@ template<> cE2Str<eTA2007>::tMapE2Str cE2Str<eTA2007>::mE2S
                 {eTA2007::ObjCoordWorld,"ObjCoordWorld"},
                 {eTA2007::TieP,"TieP"},
                 {eTA2007::MulTieP,"MulTieP"},
+                {eTA2007::InstrBlock,"InstrBlock"},
                 {eTA2007::RigBlock,"RigBlock"},
                 {eTA2007::Clino,"Clino"},
+                {eTA2007::TypeInstr,"Instrum"},
                 {eTA2007::MeasureClino,"MeasureClino"},
+                {eTA2007::StaticLidar,"StaticLidar"},
                 {eTA2007::Topo,"Topo"},
                 {eTA2007::SysCo,"SysCo"},
                 {eTA2007::Input,"In"},
@@ -263,7 +267,9 @@ template<> cE2Str<eApF>::tMapE2Str cE2Str<eApF>::mE2S
                 {eApF::ImProc,"ImProc"},
                 {eApF::Radiometry,"Radiometry"},
                 {eApF::Ori,"Ori"},
+                {eApF::Clino,"Clino"},
                 {eApF::SysCo,"SysCo"},
+                {eApF::BlockInstr,"BlockInstr"},
                 {eApF::Match,"Match"},
                 {eApF::GCP,"GCP"},
                 {eApF::Lines,"Lines"},
@@ -281,8 +287,10 @@ template<> cE2Str<eApF>::tMapE2Str cE2Str<eApF>::mE2S
 template<> cE2Str<eApDT>::tMapE2Str cE2Str<eApDT>::mE2S
            {
                 {eApDT::Ori,"Ori"},
+                {eApDT::Clino,"Clino"},
                 {eApDT::PCar,"PCar"},
                 {eApDT::TieP,"TieP"},
+                {eApDT::BlockInstr,"BlockInstr"},
                 {eApDT::ObjMesInstr,"ObjMesInstr"},
                 {eApDT::ObjCoordWorld,"ObjCoordWorld"},
                 {eApDT::Lines,"Lines"},
@@ -291,6 +299,8 @@ template<> cE2Str<eApDT>::tMapE2Str cE2Str<eApDT>::mE2S
                 {eApDT::SysCo,"SysCo"},
                 {eApDT::Radiom,"Radiom"},
                 {eApDT::Ply,"Ply"},
+                {eApDT::MMVIICloud,"MMVIICloud"},
+                {eApDT::StaticScan,"StaticScan"},
                 {eApDT::Topo,"Topo"},
                 {eApDT::None,"None"},
                 {eApDT::ToDef,"ToDef"},
@@ -398,7 +408,32 @@ template<> cE2Str<eTyUnitAngle>::tMapE2Str cE2Str<eTyUnitAngle>::mE2S
            {
                 {eTyUnitAngle::eUA_radian,"radian"},
                 {eTyUnitAngle::eUA_degree,"degree"},
-                {eTyUnitAngle::eUA_gon,"gon"}
+                {eTyUnitAngle::eUA_gon,"gon"},
+                {eTyUnitAngle::eUA_DMgon,"DMgon"}
+           };
+
+template<> cE2Str<eTyClino>::tMapE2Str cE2Str<eTyClino>::mE2S
+           {
+                {eTyClino::ePendulum,"Pendulum"},
+                {eTyClino::eSpring,"Spring"}
+           };
+
+template<> cE2Str<eModeFusionData>::tMapE2Str cE2Str<eModeFusionData>::mE2S
+           {
+                {eModeFusionData::eMerge,"Merge"},
+                {eModeFusionData::eOverWrite,"OverWrite"},
+                {eModeFusionData::eDoNothing,"DoNothing"},
+                {eModeFusionData::eError,"Error"}
+           };
+
+
+template<> cE2Str<eTyInstr>::tMapE2Str cE2Str<eTyInstr>::mE2S
+           {
+                {eTyInstr::eCamera,"Camera"},
+                {eTyInstr::eClino,"Clino"},
+                {eTyInstr::eGNSS,"GNSS"},
+                {eTyInstr::eIMU,"IMU"},
+                {eTyInstr::eTarget,"Target"},
            };
 
 template<> cE2Str<eModeTestPropCov>::tMapE2Str cE2Str<eModeTestPropCov>::mE2S
@@ -651,6 +686,9 @@ void BenchEnum(cParamExeBench & aParam)
     TplBenchEnum<eFormatSensor>();
     TplBenchEnum<eModeSSR>();
     TplBenchEnum<eImatchCrit>();
+    TplBenchEnum<eTyClino>();
+    TplBenchEnum<eTyInstr>();
+
 
     aParam.EndBench();
 }
@@ -976,7 +1014,7 @@ MACRO_INSTANTIATE_ARG2007(cBox3dr)
 /*                                      */
 /* ==================================== */
 
-static char BufStrIO[1000];
+thread_local static char BufStrIO[1000];
 
 //  vector<int>  => [1,2,3]
 
@@ -1163,6 +1201,10 @@ MACRO_INSTANTITATE_STRIO_CPTXD(int,3)
 MACRO_INSTANTITATE_STRIO_CPTXD(double,3)
 
 
+MACRO_INSTANTITATE_STRIO_CPTXD(int,4)
+MACRO_INSTANTITATE_STRIO_CPTXD(double,4)
+MACRO_INSTANTITATE_STRIO_CPTXD(int,5)
+MACRO_INSTANTITATE_STRIO_CPTXD(double,5)
 
 
 
@@ -1251,6 +1293,10 @@ MACRO_INSTANTITATE_STRIO_ENUM(eTAAr,"TypeAAr")
 MACRO_INSTANTITATE_STRIO_ENUM(eTA2007,"TA2007")
 MACRO_INSTANTITATE_STRIO_ENUM(eTySC,"TySC")
 MACRO_INSTANTITATE_STRIO_ENUM(eTyUnitAngle,"AngleUnit")
+MACRO_INSTANTITATE_STRIO_ENUM(eModeFusionData,"ModeFusionData")
+MACRO_INSTANTITATE_STRIO_ENUM(eTyClino,"TypeClino")
+MACRO_INSTANTITATE_STRIO_ENUM(eTyInstr,"TypeInstr")
+
 
 MACRO_INSTANTITATE_STRIO_ENUM(eTypeSensor,"TypeSensor")
 MACRO_INSTANTITATE_STRIO_ENUM(eFormatSensor,"FormatSensor")
@@ -1353,6 +1399,11 @@ template <>  int cStrIO<int>::FromStr(const std::string & aStr)
     return anI;
 }
 template <>  const std::string cStrIO<int>::msNameType = "int";
+template <>  const std::string cStrIO<tINT2>::msNameType = "int2";
+template <>  const std::string cStrIO<tU_INT1>::msNameType = "u_int1";
+template <>  const std::string cStrIO<tREAL4>::msNameType = "float";
+
+
 
 std::string ToStr(int aVal,int aSzMin)
 {
@@ -1423,7 +1474,11 @@ template <>  std::string cStrIO<double>::ToStr(const double & aD)
 template <>  double cStrIO<double>::FromStr(const std::string & aStr)
 {
     double anI;
-    sscanf(aStr.c_str(),"%lf",&anI);
+    int aNb = sscanf(aStr.c_str(),"%lf",&anI);
+    if (aNb==0)
+    {
+        MMVII_INTERNAL_ASSERT_User((aNb!=0),eTyUEr::eBadInt,"String=["+ aStr +"] is not a valid double")
+    }
     return anI;
 }
 template <>  const std::string cStrIO<double>::msNameType = "double";
@@ -1469,5 +1524,7 @@ template <>  std::string cStrIO<std::string>::FromStr(const std::string & aStr)
 }
 
 template <>  const std::string cStrIO<std::string>::msNameType = "string";
+
+
 
 };

@@ -162,7 +162,7 @@ std::vector<tREAL8> cTopoObs::getVals() const
             cPt3dr* aPtTo = mBA_Topo->getPoint(mPtsNames[1]).getPt();
             //Phi_from
             auto aPtFromGeoG = aSysCo->toGeoG(*aPtFrom);
-            auto aPhiFrom = aPtFromGeoG.y()/AngleInRad(eTyUnitAngle::eUA_degree);
+            auto aPhiFrom = aPtFromGeoG.y()/AngleFromRad(eTyUnitAngle::eUA_degree);
             vals.push_back(aPhiFrom);
             //M_from = a*sqrt(1-e*e*sin(phi)*sin(phi))
             auto aPtFromM = aSysCo->getEllipsoid_a()
@@ -170,7 +170,7 @@ std::vector<tREAL8> cTopoObs::getVals() const
             vals.push_back(aPtFromM);
             //Phi_to
             auto aPtToGeoG = aSysCo->toGeoG(*aPtTo);
-            auto aPhiTo = aPtToGeoG.y()/AngleInRad(eTyUnitAngle::eUA_degree);
+            auto aPhiTo = aPtToGeoG.y()/AngleFromRad(eTyUnitAngle::eUA_degree);
             vals.push_back(aPhiTo);
             //M_To = a*sqrt(1-e*e*sin(phi)*sin(phi))
             auto aPtToM = aSysCo->getEllipsoid_a()

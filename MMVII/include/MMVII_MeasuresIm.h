@@ -65,6 +65,8 @@ struct cSet2D3D : public cMemCheck
          void AddPair(const cPt2dr&,const cPt3dr&,double aWeight=1.0);
 
          const tCont2D3D &  Pairs() const;
+          tCont2D3D &  Pairs() ;
+
 	 const tPair &  KthPair(int aK) const;
 	 size_t NbPair() const;
          void  Clear() ;
@@ -193,6 +195,9 @@ class cSetMesGnd3D : public cMemCheck
 
           const std::vector<cMes1Gnd3D> &   Measures() const;  ///< Accessor
 	  static  const std::string ThePrefixFiles;
+          // return null ptr if not found
+          const cMes1Gnd3D * GetAdrMeasureOfNamePt(const std::string& aName,bool SVP=false) const;
+          const cMes1Gnd3D & GetMeasureOfNamePt(const std::string& aName) const;
 
       std::list<std::string>  ListOfNames() const;
       std::map<std::string, cSetMesGnd3D> SplitPerOutDir(const std::string &aDefaultOutName="") const; // default out name for measures without cMes3DDirInfo
@@ -421,6 +426,9 @@ class cComputeMergeMulTieP : public cMemCheck
 	     bool WithImageIndex = false
         );
 
+        /// Construct a sub-structure corresponing to the name selected
+        cComputeMergeMulTieP(const cComputeMergeMulTieP&,const  std::vector<std::string> & aVNamesSelected);
+
         const std::vector<cSensorImage *> &  VSensors() const;  ///< Accessor, error if empty
         /// Data allow to iterate on multiple points
         const std::map<tConfigIm,cVal1ConfTPM> &  Pts() const;
@@ -539,7 +547,10 @@ class cOneLineAntiParal
      public :
           cOneLineAntiParal();
 
+          std::string NameLine() const; // return "" if optional not init
+
           std::string mNameIm;
+          std::optional<std::string> mNameLine;
           tSeg2dr mSeg;
           tREAL8  mAngDif;
           tREAL8  mWidth;

@@ -1,6 +1,6 @@
 #include "MMVII_memory.h"
 #include "cMMVII_Appli.h"
-
+#include <typeinfo>
 
 namespace MMVII
 {
@@ -84,14 +84,25 @@ void cMemManager::CheckRestoration(const cMemState & aState)
         const std::vector<bool> * aVF = cMemCountable::AdrTheVectFreeed();
 	if (aVF)
 	{
+           const std::vector<const cMemCountable*> *  aVObj = cMemCountable::AdrTheVectObjects();
 	   bool First=true;
 	   for (size_t aK=0 ; aK<aVF->size() ; aK++)
 	   {
                if ((!aVF->at(aK)) && First)
-		{
-                   std::cout <<   "========================== Ident of Non Freed object  " << aK << "\n";
-		   First=false;
-		}
+               {
+                  std::cout <<   "========================== Ident of Non Freed object  " << aK << "\n";
+		  First=false;
+               }
+               if (aVObj->at(aK))
+               {
+                  static std::set<std::string> aSetNameType;
+                  std::string aNameType = typeid(*aVObj->at(aK)).name() ;
+                  if (! MapBoolFind(aSetNameType,aNameType))
+                  {
+                     aSetNameType.insert(aNameType);
+                     std::cout <<   "========================== type of  Non Freed object   " << aNameType << "\n";
+                  }
+               }
 	   }
 	}
 
@@ -130,14 +141,15 @@ static const int32_t  rubbish  = 0xFEDCBAEF;
 static const unsigned char maj_octet = 0xE7;
 
 // Because some object are never destroyed
-bool cMemManager::TheActiveMemoryCount = true;
-void cMemManager::SetActiveMemoryCount(bool aVal)
+int cMemManager::TheCptUnActiveMemoryCount = 0;
+void cMemManager::SetActiveMemoryCount(bool isActive)
 {
-    TheActiveMemoryCount = aVal;
+    TheCptUnActiveMemoryCount +=  (isActive ? -1 : +1);
+    MMVII_INTERNAL_ASSERT_always(TheCptUnActiveMemoryCount>=0,"Bad SetActiveMemoryCount");
 }
 bool cMemManager::IsActiveMemoryCount()
 {
-    return TheActiveMemoryCount;
+    return TheCptUnActiveMemoryCount == 0;
 }
 
 void * cMemManager::Calloc(size_t nmemb, size_t size)
@@ -161,7 +173,7 @@ void * cMemManager::Calloc(size_t nmemb, size_t size)
          rubbish;
 
      aRes64 [-2]  = aNbOct;     // Taille de la zone en  octet
-     aRes32[-2]   = TheActiveMemoryCount ? maj_32A1 : maj_32A0 ;   // majic nunmber
+     aRes32[-2]   = IsActiveMemoryCount() ? maj_32A1 : maj_32A0 ;   // majic nunmber
      aRes32[-1]   = maj_32B;   // majic nunmber
      aRes32[aNb4]  = maj_32C;   // majic number
      aRes32[aNb4+1] = maj_32D;
@@ -176,7 +188,7 @@ void * cMemManager::Calloc(size_t nmemb, size_t size)
           }
      }
 
-     if (TheActiveMemoryCount)
+     if (IsActiveMemoryCount())
      {
          mState.mCheckNb ++;
          mState.mCheckSize +=  aNbOct;
@@ -261,9 +273,12 @@ int     cMemCountable::TheCptObj = 0;
 int  cMemCountable::TheNumObjTagged = -1;
 #if (The_MMVII_DebugLevel >= The_MMVII_DebugLevel_InternalError_micro)
 std::vector<bool>  cMemCountable::TheVectFreeed;
+std::vector<const cMemCountable*>  cMemCountable::TheVectObjects;
 const std::vector<bool> * cMemCountable::AdrTheVectFreeed() {return &TheVectFreeed;}
+const std::vector<const cMemCountable*> * cMemCountable::AdrTheVectObjects() {return &TheVectObjects;}
 #else
 const std::vector<bool> * cMemCountable::AdrTheVectFreeed() {return nullptr;}
+const std::vector<const cMemCountable*> * cMemCountable::AdrTheVectObjects() {return nullptr;}
 #endif
 
 void  cMemCountable::SetTaggedObjectAtCreation(int aNum)

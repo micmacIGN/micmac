@@ -304,7 +304,7 @@ void cImReprojImg::write(std::string filename)
     else
         ELISE_COPY
         (
-            mImgR->all_pts(),
+            mImgG->all_pts(),
             mImgG->in(),
             Tiff_Im(
                 filename.c_str() ).out()

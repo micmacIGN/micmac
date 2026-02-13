@@ -308,7 +308,7 @@ template <class Type> class cResolSysNonLinear : public cREAL8_RSNL
               Generally, IF we use tVPtr_SUR , we will have a single value, but for bench its
               convenient to have several values
            */
-          const tDVect  &    SolveUpdateReset(const Type & aLVM =0.0,tVPtr_SUR AfterCstr = {},tVPtr_SUR AfterLVM = {}) ;
+          const tDVect  &    SolveUpdateReset(const Type & aLVM =0.0,tVPtr_SUR AfterCstr = {},tVPtr_SUR AfterLVM = {}, bool calcCond=false) ;
 
 
 	  cREAL8_RSNL::tDVect      R_SolveUpdateReset(const tREAL8& = 0.0) override ;
@@ -363,7 +363,8 @@ template <class Type> class cResolSysNonLinear : public cREAL8_RSNL
 	   void  SetFrozenVarCurVal(tObjWUk & anObj,const cPtxd<Type,2> & aPt);  ///< Froze aPt that must belong to anObj
 	   void  SetFrozenAllCurrentValues(tObjWUk & anObj);  ///< Froze all the value beloning to an anObj
 
-	   void  SetFrozenFromPat(tObjWUk & anObj,const std::string& , bool Frozen);  ///< Froze all the value beloning to an anObj
+	   /// Froze/Free all the value beloning to an anObj; if Weight>0 Frozen must  be set to false, else error
+	   void  SetFrozenFromPat(tObjWUk & anObj,const std::string& , bool Frozen,tREAL8 aWeight=-1);  
 
            void AddObservationLinear(const Type& aWeight,const cDenseVect<Type> & aCoeff,const Type &  aRHS)  ;
            void AddObservationLinear(const Type& aWeight,const cSparseVect<Type> & aCoeff,const Type &  aRHS) ;
@@ -372,7 +373,9 @@ template <class Type> class cResolSysNonLinear : public cREAL8_RSNL
 	   void  SetUnFrozenVar(tObjWUk & anObj,const  Type & aVal); ///< Unfreeze the value, that must belong to anObj
 
 	   int   GetNbObs() const;                    ///< get number of observations (last iteration if after reset, or current number if after AddObs)
-	   int   GetCurNbObs() const;      ///< get number of observations 
+	   int   GetCurNbObs() const;      ///< get number of observations
+
+          Type GetCond() const;      ///< get system condition number
 
           void  AddConstr(const tSVect & aVect,const Type & aCste,bool OnlyIfFirstIter=true);
           void SupressAllConstr();
@@ -1079,6 +1082,7 @@ class cVectorUK :  public cObjWithUnkowns<tREAL8>,
       ~cVectorUK();
       void PutUknowsInSetInterval() override;
       const tVect & Vect() const ; ///< Accessor
+      tVect & Vect()  ; ///< Accessor
       void  FillGetAdrInfoParam(cGetAdrInfoParam<tREAL8> &) override;
 
    private :

@@ -7,6 +7,7 @@
 #include "MMVII_BundleAdj.h"
 #include "MMVII_Clino.h"
 #include "MMVII_SysSurR.h"
+#include "MMVII_StaticLidar.h"
 
 using namespace NS_SymbolicDerivative;
 namespace MMVII
@@ -20,6 +21,8 @@ class cBA_GCP;
 class cBA_Clino;
 class cBA_BlocRig;
 
+class cUK_Line3D_4BA;
+class cBA_BlockInstr;
 
 /**  "Standard" weighting classes, used the following formula
  *
@@ -342,21 +345,19 @@ class cBA_LidarPhotogra
 {
     public :
        /// constructor, take the global bundle struct + one vector of param
-       cBA_LidarPhotogra(cMMVII_BundleAdj&,const std::vector<std::string> & aParam);
+       cBA_LidarPhotogra(cPhotogrammetricProject *aPhProj, cMMVII_BundleAdj&, const std::vector<std::string> & aParam);
        /// destuctor, free interopaltor, calculator ....
-       ~cBA_LidarPhotogra();
+       virtual ~cBA_LidarPhotogra();
 
-       /// add observation with weigh W
-       void AddObs(tREAL8 aW);
+       /// add observation
+       virtual void AddObs() = 0;
 
        const std::vector<std::vector<cSensorCamPC *>> & VSCams() const  {return mVSCams;}
 
-    private :
+    protected :
        /**  Add observation for 1 Patch of point */
        void Add1Patch(tREAL8 aW,const std::vector<cPt3dr> & aPatch);
        void Add1PatchMulScale(tREAL8 aWeight, const std::vector<cPt3dr> & aVPatchGr, int aNbS);
-       void Add1PatchNotOccluded(tREAL8 aWeight,const std::vector<cPt3dr> & aVPatchGr,
-                                 const int id_,std::vector<cIm2D<tU_INT4>> & Masqs);
        void EvaluatePlanarDisplacements(std::vector<std::string> & aVecOrthoNames,
                                         std::vector<tREAL8 *> & aVecTransforms,
                                         bool isStandalone);
@@ -381,23 +382,20 @@ class cBA_LidarPhotogra
             int                     aKPt
        );
 
-
-
-
-
+       cPhotogrammetricProject *      mPhProj;         // Photogrammetric project
        cMMVII_BundleAdj&              mBA;             ///< The global bundle adj structure
        eImatchCrit                    mModeSim;        ///< type of similarity used
-       cTriangulation3D<tREAL4>       mTri;            ///< Triangulation, in fact used only for points 
        cDiffInterpolator1D *          mInterp;         ///< Interpolator, used to extract  Value & Grad of images
        cCalculator<double>  *         mEqLidPhgr;      ///< Calculator used for constrain the pose from image obs
        std::vector<cSensorCamPC *>    mVCam;           ///< Vector of central perspective camera
        std::vector<cIm2D<tU_INT1>>    mVIms;           ///< Vector of images associated to each cam
        std::vector<std::vector<cSensorCamPC * >>   mVSCams;   /// < Cameras to handle multi scale cameras
        cWeightAv<tREAL8,tREAL8>       mLastResidual;   ///< Accumulate the radiometric residual
-       std::vector<std::vector<int> >   mLPatches;       ///< set of 3D patches
+       std::list<std::vector<int> >   mLPatchesI;       ///< set of 3D patches
        bool                           mPertRad;        ///< do we pertubate the radiometry (simulation & test)
        bool                           mPreselectPatches ; ///< are patches selected before or not ? no need to auto/inter corr
        size_t                         mNbPointByPatch; ///< (approximate) required number of point /patch
+
        tREAL8 mCurrentCorrelVal=0.0;
        cWeightAv<tREAL8,tREAL8> mAverageDeltaX;
        cWeightAv<tREAL8,tREAL8> mAverageDeltaY;
@@ -410,6 +408,49 @@ class cBA_LidarPhotogra
        tREAL8 mThresholdAcceptCorrel;
        cDataIm2D<tREAL8> * mDImQualityMap;
        cDataIm2D<tREAL8> * mDImQualityMapY;
+       double                         mWeight;          ///< weight for observations
+       size_t                         mNbUsedPoints;   ///< number of lidar used points
+       size_t                         mNbUsedObs;      ///< number of lidar obs used
+};
+
+
+
+class cBA_LidarPhotograTri : public cBA_LidarPhotogra
+{
+public :
+    /// constructor, take the global bundle struct + one vector of param
+    cBA_LidarPhotograTri(cPhotogrammetricProject *aPhProj, cMMVII_BundleAdj&, const std::vector<std::string> & aParam);
+    /// destuctor, free interopaltor, calculator ....
+    virtual ~cBA_LidarPhotograTri();
+
+    /// add observation
+    virtual void AddObs() override;
+private :
+    cTriangulation3D<tREAL4> *     mTri;            ///< Triangulation, in fact used only for points
+    std::list<std::vector<int>>    mLPatchesI;      ///< set of patches as index in Tri, consituted by 3D points in a lidar scan
+};
+
+
+// record all data for each scan raster
+struct cStaticLidarBAData
+{
+    std::string                    mName;
+    cStaticLidar *                 mLidarRaster;   //< raster representations of lidar
+    std::list<std::set<cPt2di>>    mLPatchesP;      //< set of patches as px in raster, consituted by 3D points in a lidar scan
+};
+
+class cBA_LidarPhotograRaster : public cBA_LidarPhotogra
+{
+public :
+    /// constructor, take the global bundle struct + one vector of param
+    cBA_LidarPhotograRaster(cPhotogrammetricProject *aPhProj, cMMVII_BundleAdj&, const std::vector<std::string> & aParam);
+    /// destuctor, free interopaltor, calculator ....
+    virtual ~cBA_LidarPhotograRaster();
+
+    /// add observation
+    virtual void AddObs() override;
+private :
+    std::vector<cStaticLidarBAData> mVLidarData;      ///< vector of raster representations of lidar
 };
 
 
@@ -454,14 +495,16 @@ class cMMVII_BundleAdj
           void AddGCP2D(cMes2DDirInfo * aMesDirInfo, cSetMesPtOf1Im & aSetMesIm, cSensorImage* aSens, eLevelCheck aOnNonExistGCP=eLevelCheck::Warning, bool verbose=true);
           cBA_GCP& getGCP() { return mGCP;}
 
-          ///  ============  Add Lidar/Photogra ===============
+          ///  ============  Add Lidar/Photogra ===============          void AddLineAdjust(const std::vector<std::string> &);
+
           void Add1AdjLidarPhotogra(const std::vector<std::string> &);
+          void Add1AdjLidarPhoto(const std::vector<std::string> &);
 
 	  ///  ============  Add multiple tie point ============
 	  void AddMTieP(const std::string & aName,cComputeMergeMulTieP  * aMTP,const cStdWeighterResidual & aWIm);
 
           /// One iteration : add all measure + constraint + Least Square Solve/Udpate/Init
-          void OneIteration(tREAL8 aLVM=0.0,bool isLastIter=false);
+          void OneIteration(tREAL8 aLVM=0.0, bool isLastIter=false, bool doShowCond=false);
 
           const std::vector<cSensorImage *> &  VSIm() const ;  ///< Accessor
           const std::vector<cSensorCamPC *> &  VSCPC() const;   ///< Accessor
@@ -471,6 +514,7 @@ class cMMVII_BundleAdj
 	  //  =========  control object free/frozen ===================
 
 	  void SetParamFrozenCalib(const std::string & aPattern);
+	  void SetParamFreeCalib(const std::vector<std::vector<std::string>> & aPattern);
 	  void SetViscosity(const tREAL8& aViscTr,const tREAL8& aViscAngle);
 	  void SetFrozenCenters(const std::string & aPattern);
 	  void SetFrozenOrients(const std::string & aPattern);
@@ -478,17 +522,33 @@ class cMMVII_BundleAdj
           void SetSharedIntrinsicParams(const std::vector<std::string> &);
            
 
-	  void AddPoseViscosity();
-	  void AddConstrainteRefPose();
+          void AddPoseViscosity();
+          void AddConstrainteRefPose();
           void AddConstrainteRefPose(cSensorCamPC & aCam,cSensorCamPC & aCamRef);
 
+          //  ----------------  Line adjustment -------------------------------------
+          void AddLineAdjust(const std::vector<std::string> &);
+          void DeleteLineAdjust();
+          void IterAdjustOnLine();
 
-	  void SaveBlocRigid();
+          //  ----------------  Block of instrument (new version) -------------------------------------
+          void AddBlockInstr(const std::vector<std::vector<std::string>> &);
+          void AddClinoBlokcInstr(const std::vector<std::vector<std::string>> &);
+
+          void SetHardGaugeBlockInstr(); //< if "hard" gauge must be done outside equation
+          void IterOneBlockInstr();
+          // 0 None , 1 Empirical , 2 by covariance
+          void SaveBlockInstr();
+          void DeleteBlockInstr();
+
+
+
+          void SaveBlocRigid();
           void Save_newGCP3D();
           void SaveTopo();
 
           void Set_UC_UK(const std::vector<std::string> & aParam);
-	  void ShowUKNames(const std::vector<std::string> & aParam,cMMVII_Appli* =nullptr) ;
+          void ShowUKNames(const std::vector<std::string> & aParam, const std::string &aSuffix, cMMVII_Appli* =nullptr) ;
           // Save results of clino bundle adjustment
           void SaveClino();
           void  AddBenchSensor(cSensorCamPC *); // Add sensor, used in Bench Clino
@@ -496,6 +556,10 @@ class cMMVII_BundleAdj
           void setVerbose(bool aVerbose){mVerbose=aVerbose;}; // Print or not residuals
           
           cResolSysNonLinear<tREAL8> *  Sys();  /// Real object, will disapear when fully interfaced for mSys
+
+          cSetInterUK_MultipeObj<tREAL8> &   SetIntervUK();
+
+          cPhotogrammetricProject  &PhProj();
 
      private :
 
@@ -536,6 +600,8 @@ class cMMVII_BundleAdj
 	  // ================= Frozen/UnFrozen
 
 	  std::string  mPatParamFrozenCalib;  /// Pattern for name of paramater of internal calibration
+	  /// Pattern for parameters that are "finally" free,
+          std::vector<std::vector<std::string>> mPatternFreeCalib;
 	  std::string  mPatFrozenCenter;      /// Pattern for name of pose with frozen centers
 	  std::string  mPatFrozenOrient;      /// Pattern for name of pose with frozen centers
           std::string  mPatFrozenClinos;      /// Pattern for name of clino with frozen boresight
@@ -581,6 +647,8 @@ class cMMVII_BundleAdj
           std::vector<std::string>  mParam_UC_UK;
           std::vector<int>          mIndCompUC;
           cResult_UC_SUR<tREAL8>*   mRUCSUR;
+          std::vector<cUK_Line3D_4BA*>           mVecLineAdjust;
+          std::vector<cBA_BlockInstr *>          mVecBlockInstrAdj;
 };
 
 

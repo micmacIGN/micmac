@@ -39,6 +39,7 @@ class  cGlobCalculMetaDataProject;
 class  cBA_Topo;
 class  cBA_GCP;
 class  cTripletSet;
+class  cStaticLidar;
 
 /**  helper for cPixelDomain, as the cPixelDomain must be serialisable we must separate the
  * minimal data for description, with def contructor from the more "sophisticated" object  */
@@ -100,11 +101,13 @@ class cSensorImage  :   public cObj2DelAtEnd,
 	  ///  Position in [0 1]^ 2
           cPt2dr RelativePosition(const cPt2dr &) const ;
 
-	  /// Generate a random point visible on 2 image , algo : generate 2 random point and comppute bundle inter
-	  cPt3dr RandomVisiblePGround(const cSensorImage &,int aNbTestMax=10000,bool * OK =nullptr ) const;
+	  /** Generate a random point visible on 2 image , algo : generate 2 random point and comppute bundle inter
+	  */
+	  cPt3dr RandomVisiblePGround(const cSensorImage &,int aNbTestMax=10000,bool * OK =nullptr,tREAL8 * aZ=nullptr ) const;
 	  /// reproject RandomVisiblePGround
 	  cHomogCpleIm RandomVisibleCple(const cSensorImage &,int aNbTestMax=10000,bool * OK =nullptr ) const;
-
+      /// Idem but force the value of Z
+      cHomogCpleIm RandomVisibleCple(tREAL8 aZ,const cSensorImage &,int aNbTestMax=10000,bool * OK =nullptr ) const;
 
 	 // =================   Image <-->  Ground  mappings  ===========================
 	 
@@ -136,6 +139,10 @@ class cSensorImage  :   public cObj2DelAtEnd,
 	 /// Default error
 	 virtual cPt2dr GetIntervalZ() const;
 
+	 ///  return GSD for a given point, in plane fronto // (use Ground2ImageAndDepth)
+         tREAL8 Gen_GroundSamplingDistance(const cPt3dr &) const ;
+	 ///  return GSD for a given point, in plane X,Y // (use Ground2ImageAndZ) 
+         tREAL8 Horiz_GroundSamplingDistance(const cPt3dr &) const ;
 
 	 /// Compute 3D point by bundle intersection
 	  cPt3dr PInterBundle(const cHomogCpleIm & aCple,const cSensorImage &) const;
@@ -208,7 +215,7 @@ class cSensorImage  :   public cObj2DelAtEnd,
 	
 	 ///  For stenope camera return center, for other best approx
 	 virtual cPt3dr  PseudoCenterOfProj() const = 0;
-	 ///  For stenope camera return center, for other nullptr, default retunr null ptr, its not a stenoppe
+	 ///  For stenope camera return center, for other nullptr, default return null ptr, its not a stenope
 	 virtual const cPt3dr * CenterOfPC() const ;
 
 	 /// Return if any the center of footprint 
@@ -254,6 +261,13 @@ class cSensorImage  :   public cObj2DelAtEnd,
          const cSensorCamPC * UserGetSensorCamPC() const;
          cSensorCamPC * UserGetSensorCamPC() ;
 
+         /// Read the generic image (if not already done)
+         cDataGenUnTypedIm<2> & LoadImage();
+         /// Was the image already loaded
+         bool ImageIsLoaded() const;
+         /// Accesors  to
+         //  cDataGenUnTypedIm<2> & GetImage();
+
      private :
           cSensorImage(const cSensorImage &) = delete;
 
@@ -265,10 +279,15 @@ class cSensorImage  :   public cObj2DelAtEnd,
 								
 	 // static std::map<std::string,cSensorImage*>  mDicoSensor;
 	 // static int                                  mNum;
+
+     cDataGenUnTypedIm<2> *                         mImage; ///< By default nullptr,
+     bool                                           mOwnsImage; ///< Do we have to delete the image
 };
 
+
+
 /**  Interfac to make sensor a 3d-mapping, using Ground2ImageAndDepth function */
-class cSIMap_Ground2ImageAndProf : public cDataInvertibleMapping<tREAL8,3>
+class cSIMap_Ground2ImageAndProf : public tIMap_R3
 {
        public :
            cSIMap_Ground2ImageAndProf(cSensorImage *);
@@ -277,6 +296,19 @@ class cSIMap_Ground2ImageAndProf : public cDataInvertibleMapping<tREAL8,3>
        private :
            cSensorImage * mSI;
 };
+
+/**  Interfac to make sensor a 3d-mapping, using Ground2ImageAndZ function */
+class cSIMap_Ground2ImageAndZ : public tIMap_R3
+{
+       public :
+           cSIMap_Ground2ImageAndZ(cSensorImage *);
+	   cPt3dr Value(const cPt3dr &) const;   ///< 3D ->  2D+depth
+	   cPt3dr Inverse(const cPt3dr &) const;  ///< 2D+depth -> 3D
+       private :
+           cSensorImage * mSI;
+};
+
+
 
 /** represent the set of visible point of the camera */
 class cSetVisibility : public cDataBoundedSet<tREAL8,3>
@@ -386,7 +418,8 @@ class cDirsPhProj : public cMemCheck
           const std::string & DirLocOfMode() const;   ///< Accessor
 
 	  void SetDirOut(const std::string & aDirOut); ///< Modifier, for example to have defaut value to input
-	  bool  DirInIsInit() const;
+	  bool  DirInIsInit() const;  ///< Was initialized and not set to NONE
+	  bool  DirInIsNONE() const;  ///< Was initialized && Set to NONE
 	  bool  DirOutIsInit() const;
           void  AssertDirInIsInit() const;
           void  AssertDirOutIsInit() const;
@@ -442,7 +475,7 @@ class cPhotogrammetricProject
 	  const std::string & TaggedNameDefSerial() const; /// short to Appli.Nam...
 	  const std::string & VectNameDefSerial() const; /// short to Appli.Nam...
 	  cDirsPhProj &   DPOrient(); ///< Accessor
-      cDirsPhProj &   DPOriTriplets(); ///< Accessor
+          cDirsPhProj &   DPOriTriplets(); ///< Accessor
 	  cDirsPhProj &   DPRadiomData(); ///< Accessor
 	  cDirsPhProj &   DPRadiomModel(); ///< Accessor
 	  cDirsPhProj &   DPMeshDev(); ///< Accessor
@@ -452,10 +485,12 @@ class cPhotogrammetricProject
 	  cDirsPhProj &   DPMetaData();    ///<  Accessor
 	  cDirsPhProj &   DPTieP();    ///<  Accessor
 	  cDirsPhProj &   DPMulTieP();    ///<  Accessor
+	  cDirsPhProj &   DPBlockInstr();    ///<  Accessor  // RIGIDBLOC
 	  cDirsPhProj &   DPRigBloc();    ///<  Accessor  // RIGIDBLOC
 	  cDirsPhProj &   DPClinoMeters();    ///<  Accessor  // RIGIDBLOC
 	  cDirsPhProj &   DPTopoMes();    ///<  Accessor  // TOPO
 	  cDirsPhProj &   DPMeasuresClino();    ///<  Accessor  // RIGIDBLOC
+      cDirsPhProj &   DPStaticLidar();    ///<  Accessor  // STATIC LIDAR
 				    
 	  const cDirsPhProj &   DPOrient() const; ///< Accessor
       const cDirsPhProj &   DPOriTriplets() const; ///< Accessor
@@ -468,10 +503,12 @@ class cPhotogrammetricProject
 	  const cDirsPhProj &   DPMetaData() const;    ///<  Accessor
 	  const cDirsPhProj &   DPTieP() const;    ///<  Accessor
 	  const cDirsPhProj &   DPMulTieP() const;    ///<  Accessor
-	  const cDirsPhProj &   DPRigBloc() const;    ///<  Accessor  // RIGIDBLOC
-	  const cDirsPhProj &   DPClinoMeters() const;    ///<  Accessor  // RIGIDBLOC
-	  const cDirsPhProj &   DPTopoMes() const;    ///<  Accessor  // TOPO
-	  const cDirsPhProj &   DPMeasuresClino() const;    ///<  Accessor  // RIGIDBLOC
+	  const cDirsPhProj &   DPBlockInstr()const;    ///<  Accessor  
+	  const cDirsPhProj &   DPRigBloc() const;    ///<  Accessor  
+	  const cDirsPhProj &   DPClinoMeters() const;    ///<  Accessor 
+	  const cDirsPhProj &   DPTopoMes() const;    ///<  Accessor  
+	  const cDirsPhProj &   DPMeasuresClino() const;    ///<  Accessor
+          const cDirsPhProj &   DPStaticLidar() const;    ///<  Accessor
 
 
 	  // Sometime we need several dir of the same type, like "ReportPoseCmp", or RefPose in bundle
@@ -499,6 +536,9 @@ class cPhotogrammetricProject
 	  cSensorCamPC * ReadCamPC(const std::string &,bool ToDeleteAutom,bool SVP=false) const; ///< Create Camera using Input orientation
 	  cSensorCamPC * ReadCamPC(const cDirsPhProj&,const std::string &,bool ToDeleteAutom,bool SVP=false) const; ///< Create Camera using Input orientation
 
+           /// sometime we are only  interested by the pose of the camera
+           tPoseR ReadPoseCamPC(const std::string & aNameIm,bool * SVP=nullptr) const;
+
 
 	  /// Load a sensor, try different type (will add RPC , and others ?) use autom delete (dont need to delete it)
 	  void ReadSensor(const std::string &NameIm,cSensorImage* &,cSensorCamPC * &,bool ToDeleteAutom,bool SVP=false) const;
@@ -518,7 +558,11 @@ class cPhotogrammetricProject
 	  /// read Pose file  and extract the name of internal  calibration
           cPerspCamIntrCalib *  InternalCalibFromImage(const std::string &aNameIm) const;
 	  ///  compute the standard name of calibration before reading it
-	  cPerspCamIntrCalib *  InternalCalibFromStdName (const std::string aNameIm) const;
+	  cPerspCamIntrCalib *  InternalCalibFromStdName (const std::string aNameIm,bool isRemanent=true) const;
+
+      /// compute the calibration from the name of the file
+      cPerspCamIntrCalib *  InternalCalibFromStdNameCalib (const std::string aNameIm,bool isRemanent=true) const;
+
 
     //===================================================================
     //==================   ORIENTATION OF TRIPLETS    ==================
@@ -750,14 +794,29 @@ class cPhotogrammetricProject
 	 std::list<cBlocOfCamera *> ReadBlocCams() const;
 	 cBlocOfCamera *            ReadUnikBlocCam() const;
 	 void   SaveBlocCamera(const cBlocOfCamera &) const;
+              
+	       //  New formalisation
+	 std::string   NameRigBoI(const std::string &,bool isIn) const;
+	 /// read a new bloc from existing name, if SVP and dont exist return block empty, else error
+	 cIrbCal_Block*  ReadRigBoI(const std::string &,bool SVP=false) const; 
+	 void   SaveRigBoI(const cIrbCal_Block &) const;
+     std::vector<std::string>  ListBlockExisting() const;
 
-     //===================================================================
+         //===================================================================
          //==================   Topo Mes           =========================
 	 //===================================================================
 
 	         // TOPO
      std::vector<std::string> ReadTopoMes() const;
      void   SaveTopoMes(const cBA_Topo & aBATopo) const;
+
+
+     //===================================================================
+     //==================   Static Lidar         =========================
+     //===================================================================
+
+     cStaticLidar * ReadStaticLidar(const cDirsPhProj& aDP,const std::string &aScanName, bool ToDeleteAutom) const; ///< Create Static Lidar
+
          //==================   Camera Data Base     =========================
 
          void MakeCamDataBase();
@@ -784,7 +843,7 @@ class cPhotogrammetricProject
           cChangeSysCo          mChSysCo;
 
 	  cDirsPhProj     mDPOrient;
-      cDirsPhProj     mDPOriTriplets;         ///> For triplets of images
+          cDirsPhProj     mDPOriTriplets;         ///> For triplets of images
 	  cDirsPhProj     mDPRadiomData;
 	  cDirsPhProj     mDPRadiomModel;
 	  cDirsPhProj     mDPMeshDev;
@@ -794,11 +853,13 @@ class cPhotogrammetricProject
 	  cDirsPhProj     mDPTieP;            ///<  For Homologous point
 	  cDirsPhProj     mDPMulTieP;         ///<  For multiple Homologous point
 	  cDirsPhProj     mDPMetaData;
+	  cDirsPhProj     mDPBlockInstr;       // RIGIDBLOC
 	  cDirsPhProj     mDPRigBloc;         // RIGIDBLOC
           cDirsPhProj     mDPClinoMeters;      // +-  resulta of clino calib (boresight)
           cDirsPhProj     mDPMeasuresClino;     // measure (angles) of clino
           cDirsPhProj     mDPTopoMes;         // Topo
-					      //
+          cDirsPhProj     mDPStaticLidar;         // Static Lidar
+ 					      //
 
 	  std::vector<cDirsPhProj*> mDirAdded;
 	  mutable cGlobCalculMetaDataProject *  mGlobCalcMTD;

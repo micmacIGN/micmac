@@ -34,6 +34,7 @@ template <class Type,const int Dim>  cBijAffMapElem<Type,Dim> cBijAffMapElem<Typ
 template  class cBijAffMapElem<tREAL8,1>;
 template  class cBijAffMapElem<tREAL8,2>;
 template  class cBijAffMapElem<tREAL8,3>;
+// template  class cBijAffMapElem<tREAL8,4>;
 
 
 /* ============================================= */
@@ -118,6 +119,7 @@ template  class cInvertMappingFromElem<cSim2D<tREAL8>>;
 template  class cInvertMappingFromElem<cHomot2D<tREAL8>>;
 template  class cInvertMappingFromElem<cBijAffMapElem<tREAL8,2>>;
 template  class cInvertMappingFromElem<cBijAffMapElem<tREAL8,3>>;
+// template  class cInvertMappingFromElem<cBijAffMapElem<tREAL8,4>>;
 
 
 };

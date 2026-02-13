@@ -6,7 +6,10 @@
 
 namespace MMVII
 {
-
+/** \brief : file for indexation by tiling
+ *  \file : MMVII_2Include_Tiling.h
+ *
+ */
 template <const int Dim> class cTilingIndex;
 template <class Type>  class  cTiling ;
 
@@ -23,7 +26,15 @@ template <class Type>  class  cTiling ;
  *       Reaal Coordinate  in R^n -> index of tile in N^n -> linear index in N
  */
 
-template <const int Dim> class cTilingIndex : cMemCheck
+/*
+#if (The_MMVII_DebugLevel >= The_MMVII_DebugLevel_InternalError_micro)
+// dont understand why but generate an error :
+// error: deleted function ‘virtual MMVII::cTiling<MMVII::cPointSpInd<2> >::~cTiling()’ overriding non-deleted function
+template <const int Dim> class cTilingIndex  
+#else
+#endif
+*/
+template <const int Dim> class cTilingIndex  : public cMemCheck
 {
        public :
            typedef cPtxd<int,Dim>        tIPt;
@@ -335,15 +346,17 @@ template <const int TheDim> class cGeneratePointDiff
            tREAL8   mDistMin;
 };
 
+/** IF the object aVPt have been ordered in some decreasing order, this
+filter return a set of point that are local maxima in a neighbouhood of size aDist */
 
 template <class TypePrim,class TypeObj,class TypeCalcP2 >
     void IndexeseFilterMaxLoc
          (
-             TypePrim *,  // Type specifier
-             std::vector<int> & aVInd,
-             const std::vector<TypeObj> & aVPt,
-             const TypeCalcP2 & aCalc,
-             tREAL8 aDist
+             TypePrim *,                        // Type specifier parameter to instantiate template
+             std::vector<int> & aVInd,          // vector of index of result
+             const std::vector<TypeObj> & aVPt, // vector of objecr
+             const TypeCalcP2 & aCalc,          // Functor used to compute geometry of object
+             tREAL8 aDist                       // size of neighbourhood
          )
 {
     // compute box of points

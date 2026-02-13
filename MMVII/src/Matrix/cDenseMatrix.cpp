@@ -72,6 +72,16 @@ template <class Type> cDenseMatrix<Type> cDenseMatrix<Type>::Diag(const cDenseVe
     return aRes;
 }
 
+template <class Type> cDenseMatrix<Type> cDenseMatrix<Type>::MatPerm(const std::vector<int> & aPerm)
+{
+    cDenseMatrix<Type> aRes(aPerm.size(),eModeInitImage::eMIA_Null);
+    for (int aK=0 ; aK<(int)aPerm.size(); aK++)
+        aRes.SetElem(aK,aPerm.at(aK),1.0);
+
+    return aRes;
+}
+
+
 template <class Type> cDenseMatrix<Type> cDenseMatrix<Type>::FromLines(const std::vector<tDV> & aVV)
 {
     cDenseMatrix<Type>  aRes(aVV.at(0).Sz(),aVV.size());
@@ -487,8 +497,16 @@ template <class Type> void cDenseMatrix<Type>::Add_tAB(const tDV & aCol,const tD
 }
 template <class Type> void cDenseMatrix<Type>::Add_tAA(const tDV & aCol,bool OnlySup)
 {
-   TplAdd_tAA(*this,aCol,OnlySup);
+   //    StdOut() << "WeightedAdd_tAAWeightedAdd_tAAWeightedAdd_tAAWeightedAdd_tAAWeightedAdd_tAA\n";
+//   TplAdd_tAA(*this,aCol,OnlySup);
+   WeightedAdd_tAA(aCol,1.0,OnlySup);
 }
+
+template <class Type> void   cDenseMatrix<Type>::WeightedAdd_tAA(const tDV & aColLine,const tVal& aW,bool OnlySup)
+{
+   TplWeightedAdd_tAA(*this,aW,aColLine,OnlySup);
+}
+
 template <class Type> void cDenseMatrix<Type>::Sub_tAA(const tDV & aCol,bool OnlySup)
 {
    TplSub_tAA(*this,aCol,OnlySup);

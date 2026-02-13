@@ -445,7 +445,7 @@ std::string  Quote(const std::string & aStr)
    return aStr;
 }
 
-void SkeepWhite(const char * & aC)
+void SkipWhite(const char * & aC)
 {
     while (isspace(*aC)) 
          aC++;

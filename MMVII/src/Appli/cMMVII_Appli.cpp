@@ -350,6 +350,13 @@ void cMMVII_Appli::InitMMVIIDirs(const std::string& aMMVIIDir)
 }
 
 const std::vector<eSharedPO>    cMMVII_Appli::EmptyVSPO;  ///< Deafaut Vector  shared optional parameter
+bool cMMVII_Appli::mIsMultiThread = false;
+void cMMVII_Appli::SetMultiThread(bool isMuliThread)
+{
+   mIsMultiThread = isMuliThread;
+}
+bool cMMVII_Appli::IsMultiThread() {return mIsMultiThread;}
+
 
 
 /// This one is always std:: cout, to be used by StdOut and cMMVII_Appli::StdOut ONLY
@@ -482,7 +489,7 @@ void cMMVII_Appli::InitParam(cGenArgsSpecContext *aArgsSpecs)
       <<  AOpt2007(msWithWarning,GOP_WW,"Do we print warnings",aGlobHDV)
       <<  AOpt2007(mNbProcAllowed,GOP_NbProc,"Number of process allowed in parallelisation",aGlobHDV)
       <<  AOpt2007(aDP ,GOP_DirProj,"Project Directory",{eTA2007::DirProject,eTA2007::Global})
-      <<  AOpt2007(mParamStdOut,GOP_StdOut,"Redirection of Ouput (+File for add,"+ MMVII_NONE + "for no out)",aGlob)
+      <<  AOpt2007(mParamStdOut,GOP_StdOut,"Redirection of Ouput (+File for terminal and file output, 0File to reset file, "+ MMVII_NONE + " for no out)",aGlob)
       <<  AOpt2007(mLevelCall,GIP_LevCall," Level Of Call",aInternal)
       <<  AOpt2007(mKthCall,GIP_KthCall," Ordre Of Call when multiple call",aInternal)
       <<  AOpt2007(mPatternInitGMA,GIP_PatternGMA,"Initial pattern of global main appli ",aInternal)
@@ -630,7 +637,8 @@ void cMMVII_Appli::InitParam(cGenArgsSpecContext *aArgsSpecs)
   // First compute the directory of project that may influence all other computation
      // Try with Optional value
   {
-     bool HasDirProj=false;
+// StdOut() << " DDPP " << __LINE__ << " DP=" << mDirProject << "\n";
+      bool HasDirProj=false;
      for (size_t aK=0 ; aK<aNbArgTot; aK++)
      {
         if (aVSpec[aK]->HasType(eTA2007::DirProject))
@@ -641,6 +649,7 @@ void cMMVII_Appli::InitParam(cGenArgsSpecContext *aArgsSpecs)
            mDirProject = aVValues[aK];
         }
      }
+ //StdOut() << " DDPP " << __LINE__ << " DP=" << mDirProject << "\n";
 
   
      {
@@ -655,14 +664,18 @@ void cMMVII_Appli::InitParam(cGenArgsSpecContext *aArgsSpecs)
                else
                {
                   // More or less a limit case, dont know really what must be accepted
-                  aVValues[aK] = mDirProject + aVValues[aK];
-                  mDirProject = DirOfPath(aVValues[aK],false);
+             // MPD MODIF if HasDirProj was forced, it overrid potential FileDirProj
+                   aVValues[aK] = mDirProject + aVValues[aK];
+             //     mDirProject = DirOfPath(aVValues[aK],false);
                }
                HasFileDirProj = true;
             }
          }
      }
   }
+
+//StdOut() << " DDPP " << __LINE__ << " DP=" << mDirProject << "\n";
+
   // Add a "/" at end  if necessary
   MakeNameDir(mDirProject);
 
@@ -729,6 +742,8 @@ void cMMVII_Appli::InitParam(cGenArgsSpecContext *aArgsSpecs)
      {
          mFileStdOut.reset(new cMMVII_Ofs(aPSO,aModeAppend ? eFileModeOut::AppendText : eFileModeOut::CreateText));
          // separator between each process , to refine ... (date ? Id ?)
+         mFileStdOut->Ofs() << "  " << CommandOfMain().Com() << "\n";
+         mFileStdOut->Ofs() << "  begining at : " <<  StrDateCur() << "\n";
          mFileStdOut->Ofs() << "=============================================" << std::endl;
          mStdCout.Add(mFileStdOut->Ofs());
      }
@@ -773,6 +788,7 @@ void cMMVII_Appli::InitParam(cGenArgsSpecContext *aArgsSpecs)
       // XmlOfTag,
   }
 
+
   // Analyse the possible main patterns
   for (size_t aK=0 ; aK<aNbArgTot; aK++)
   {
@@ -789,7 +805,10 @@ void cMMVII_Appli::InitParam(cGenArgsSpecContext *aArgsSpecs)
          {
             // mVMainSets.at(aNum)= SetNameFromString(mDirProject+aVValues[aK],true);
             if (mExtandPattern)
-                mVMainSets.at(aNum)= SetNameFromString(mDirProject+FileOfPath(aVValues[aK],false),true);
+            {
+        // StdOut() << "LLLLLL=" << __LINE__  << mDirProject << "##" << aVValues[aK] << "\n";
+                 mVMainSets.at(aNum)= SetNameFromString(mDirProject+FileOfPath(aVValues[aK],false),true);
+            }
             else
             {
                 mVMainSets.at(aNum)=  tNameSet (eTySC::US);
@@ -825,7 +844,6 @@ void cMMVII_Appli::InitParam(cGenArgsSpecContext *aArgsSpecs)
                 // (if not doing this, arg will be the pattern (i.e ".*.tif") and the appli will fail to open that)
                 aVSpec.at(aK)->InitParam(UniqueStr(aNum));
             }
-            // StdOut() << "cAaaaPPlii  " <<  __LINE__ << ToVect(mVMainSets.at(aNum)) << "\n";
          }
          else
          {

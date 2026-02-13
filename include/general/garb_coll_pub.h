@@ -56,7 +56,7 @@ template <class Type>  class ElList :  public  PRC0
 {
    public :
 
-       ElList<Type>();
+       ElList();
 
        Type        car() const;  // Fatal error when empty
        ElList<Type>  cdr() const;  // Fatal error when empty
@@ -71,7 +71,7 @@ template <class Type>  class ElList :  public  PRC0
        INT                  card() const;
        void                 clear() {while(!empty()) pop();}
 
-      ElList<Type>(RC_Object*);
+      ElList(RC_Object*);
 };
 
 template <class Type>  class liste_phys : public RC_Object

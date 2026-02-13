@@ -2,6 +2,7 @@
 #include "MMVII_ReadFileStruct.h"
 #include "MMVII_util_tpl.h"
 #include "MMVII_PointCloud.h"
+#include "MMVII_Geom2D.h"
 
 
 /**
@@ -51,6 +52,8 @@ class cAppli_ImportTxtCloud : public cMMVII_Appli
         bool                     mOffsetIsP0;   ///< do we use First point as offset
 	tREAL8                   mRoundingOffset;
         std::string              mNameOut;
+        tREAL8                   mDensity;
+        tREAL8                   mRandCoord;  //  Coord randomization, to avoid some effect of rounding
 
 };
 
@@ -65,7 +68,8 @@ cAppli_ImportTxtCloud::cAppli_ImportTxtCloud(const std::vector<std::string> & aV
    mMode8B         (true),
    mOffset         (0,0,0),
    mOffsetIsP0     (false),
-   mRoundingOffset (1e4)
+   mRoundingOffset (1e4),
+   mRandCoord      (0.0)
 {
 }
 
@@ -83,23 +87,19 @@ cCollecSpecArg2007 & cAppli_ImportTxtCloud::ArgOpt(cCollecSpecArg2007 & anArgOpt
     mParamNSF.AddArgOpt(anArgOpt);
 
     return    anArgOpt
-           << AOpt2007(mOffset,"OffsetValue","Offset to add to pixels",{eTA2007::HDV})
+           << AOpt2007(mOffset,"OffsetValue","Offset to sub to points",{eTA2007::HDV})
            << AOpt2007(mOffsetIsP0,"OffsetIsP0","Use first points as offset (with some rounding)",{eTA2007::HDV})
            << AOpt2007(mRoundingOffset,"OffsetRounding","Value use for rounding when P0 is offset",{eTA2007::HDV})
            << AOpt2007(mMode8B,"Bytes8","Do we use 8/4 bytes for storing points",{eTA2007::HDV})
            << AOpt2007(mNameOut,"Out","Name of output, def=In+\".dmp\"")
-
+           << AOpt2007(mDensity,"Density","Theoretical number point/Surface, def computed")
+           << AOpt2007(mRandCoord,"RandCoord","Coordonates random amplitude (for ex 1e-2 if were cm rounded))")
     ;
 }
 
 
 int cAppli_ImportTxtCloud::Exe()
 {
-
-    //cTriangulation3D<tREAL8> aTT(mNameFile);
-    // StdOut() << "NB " << aTT.NbPts() << "\n";
-
-
     cNewReadFilesStruct aNRFS(mFormat,mSpecFormatMand,mSpecFormatTot);
     aNRFS.ReadFile(mNameFile,mParamNSF);
     if (!IsInit(&mNameOut))
@@ -107,6 +107,7 @@ int cAppli_ImportTxtCloud::Exe()
 
     cPointCloud aPC(mMode8B);
     aPC.SetOffset(mOffset);
+    bool isRandCoord = IsInit(&mRandCoord);
 
     for (size_t aK=0 ; aK<aNRFS.NbLineRead() ; aK++)
     {
@@ -117,9 +118,25 @@ int cAppli_ImportTxtCloud::Exe()
            mOffset = ToR(aOffsDiv) * mRoundingOffset;
            aPC.SetOffset(mOffset);
 	}
+        if (isRandCoord)
+        {
+           aPt +=  cPt3dr::PRandC() * (mRandCoord/2.0);
+        }
 
         aPC.AddPt(aPt);
     }
+    //cBox3dr aBox3d = aPC.Box();
+    //aPC.mBox2d = cBox2dr(Proj(aBox3d.P0()),Proj(aBox3d.P1()));
+
+    if (! IsInit(&mDensity))
+    {
+         mDensity = aPC.ComputeCurFineDensity();
+         StdOut() << "DENSITY=" << mDensity << "\n";
+    }
+    aPC.mDensity = mDensity;
+
+    StdOut() << "BOX " << aPC.Box2d() << " D=" << aPC.CurStdDensity() << "\n";
+
     SaveInFile(aPC,mNameOut);
 
     return EXIT_SUCCESS;
@@ -129,7 +146,7 @@ std::vector<std::string>  cAppli_ImportTxtCloud::Samples() const
 {
    return 
    {
-          // "MMVII ImportLine Data-Input/BlaAllLine.txt \"Im?X1Y1X2Y2SigmaBla\" CERNFils \"Comment=#\""
+         "MMVII ImportTxtCloud 18355_51565.ply \"XYZBla\" NumL0=30 Bytes8=false OffsetIsP0=true"
    };
 }
 
@@ -144,9 +161,9 @@ cSpecMMVII_Appli  TheSpec_ImportTxtCloud
      "ImportTxtCloud",
       Alloc_ImportTxtCloud,
       "Import/Convert cloud point in txt format (ply ...)",
-      {eApF::Lines},
-      {eApDT::Lines},
-      {eApDT::Lines},
+      {eApF::Cloud},
+      {eApDT::Ply},
+      {eApDT::MMVIICloud},
       __FILE__
 );
 

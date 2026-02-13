@@ -215,6 +215,7 @@ template <class Type,const int DimIn,const int DimOut>
                    cDataMapping<Type,DimIn,DimOut>::Values(tVecOut & aBufOut,const tVecIn & aVIn) const
 {
 /**/MACRO_CHECK_RECURS_BEGIN;
+    aBufOut.clear(); // MPD 18/05/2025, seems logical, but why not before ???
     for (const auto  & aP : aVIn)
         aBufOut.push_back(Value(aP));
 /**/MACRO_CHECK_RECURS_END;
@@ -252,9 +253,11 @@ template <class Type,const int DimIn,const int DimOut>
 #endif
 {
 #if (MAP_STATIC_BUF)
+   ASSERT_NO_MUTI_THREAD(); //in multi thread pb with SetActiveMemoryCount !!
+
    cMemManager::SetActiveMemoryCount(false);  // static vector of shared matrix will never be unallocated
-   static tVecJac  mJacReserve;
-   static tVecJac  mJacResult;
+   thread_local static tVecJac  mJacReserve;
+   thread_local static tVecJac  mJacResult;
 #endif
    while (mJacReserve.size()<aSz)
          mJacReserve.push_back(tJac(DimIn,DimOut));
@@ -540,6 +543,7 @@ INSTANCE_TWO_DIM_MAPPING(2,1);
 INSTANCE_ONE_DIM_MAPPING(1)
 INSTANCE_ONE_DIM_MAPPING(2)
 INSTANCE_ONE_DIM_MAPPING(3)
+// INSTANCE_ONE_DIM_MAPPING(4)
 INSTANCE_TWO_DIM_MAPPING(3,1)
 
 /* ============================================= */

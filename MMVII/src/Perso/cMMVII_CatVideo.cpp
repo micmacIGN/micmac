@@ -14,6 +14,24 @@ of concatenating video (in fact media mp4, mp3 ...).
 namespace MMVII
 {
 
+template <class T1>  class cTlpT1T2
+{
+   public :
+      template <class T2> void Test(const T2 & aT2);
+};
+
+template <class T1>  template <class T2>
+ void  cTlpT1T2<T1>::Test(const T2 & aT2)
+{
+   StdOut()  << " T2="  << aT2  << " T1="  << (T1) aT2 << "\n";
+}
+
+void Test_T1T2()
+{
+    cTlpT1T2<int> aTI;
+    aTI.Test(3.14);
+}
+
 
 /* ==================================================== */
 /*                                                      */

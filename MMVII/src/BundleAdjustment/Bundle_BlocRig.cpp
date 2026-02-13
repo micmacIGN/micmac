@@ -18,6 +18,11 @@ cBA_BlocRig::cBA_BlocRig
     mSigmaRat (aSigmaRat),
     mEqRatt  (aSigmaRat.empty() ? nullptr : EqBlocRig_RatE(true,1,true))
 {
+    if (mBlocs.empty())
+    {
+        // is the user enter a non existing bloc, we arrive here with a directory empty, probably an error
+        MMVII_UnclasseUsEr("No bloc found in rgid bloc");
+    }
     // push the weigth for the 3 equation on centers
     for (int aK=0 ; aK<3 ; aK++)
     {
@@ -116,7 +121,7 @@ void cBA_BlocRig::SetFrozenVar(cResolSysNonLinear<tREAL8> & aSys)
 	 // "knows" the association between its member and local integers, that's why
 	 // we pass object and members to do the job
          
-         aSys.SetFrozenVarCurVal(aMPose,aMPose.Center());
+         aSys.SetFrozenVarCurVal(aMPose,aMPose.Tr());
          aSys.SetFrozenVarCurVal(aMPose,aMPose.Omega());
 	 //
      }
@@ -162,7 +167,7 @@ cPt3dr cBA_BlocRig::OnePairAddRigidityEquation(size_t aKS,size_t aKBl1,size_t aK
     bool  ForJeanMimi = false;
     if (ForJeanMimi)
     {
-        aPBl2.PushIndexes(aVInd,aPBl2.Center());
+        aPBl2.PushIndexes(aVInd,aPBl2.Tr());
         aPBl2.PushIndexes(aVInd,aPBl2.Omega());
     }
     else

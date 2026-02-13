@@ -1,14 +1,6 @@
 #include "cMMVII_Appli.h"
 #include <clocale>
 #include "MMVII_Sys.h"
-/*
-
-Delaunay/delaunator : Copyright (c) 2018 Volodymyr Bilonenko  (MIT Licence)
-Ply/happly  Copyright (c) 2018 Nick Sharp
-eigen ...
-
-*/
-
 
 using namespace MMVII;
 

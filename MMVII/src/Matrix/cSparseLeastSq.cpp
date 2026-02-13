@@ -635,6 +635,9 @@ template<class Type> cDenseVect<Type> cSparseLeasSqtAA<Type>::SpecificSolve()
 {
    std::vector<cEigenTriplet<Type> > aVCoeff;            // list of non-zeros coefficients
    PutInTriplet(aVCoeff);
+   cDenseMatrix<Type> aDenseM = V_tAA();
+   cResulSymEigenValue<Type> aEig = aDenseM.SymEigenValue();
+
    return EigenSolveCholeskyarseFromV3(aVCoeff,mtARhs);
 }
 
@@ -649,13 +652,13 @@ template<class Type> void cSparseLeasSqtAA<Type>::PutInTriplet(std::vector<cEige
 
 template<class Type> cDenseMatrix<Type> cSparseLeasSqtAA<Type>::V_tAA() const
 {
-   cDenseMatrix<Type> aRes(this->mNbVar,eModeInitImage::eMIA_Null);
-   const_cast<cSparseLeasSqtAA<Type>*>(this)->PutBufererEqInNormalMatrix();
+   cDenseMatrix<Type> aRes(this->mNbVar,eModeInitImage::eMIA_Null); // result, init to null matrix
+   const_cast<cSparseLeasSqtAA<Type>*>(this)->PutBufererEqInNormalMatrix(); // transferate in matrix the result "bufferized"
 
    for (auto & aLine : mtAA)
    {
        std::vector<cEigenTriplet<Type> > aVCoeff;            // list of non-zeros coefficients
-       aLine->TransfertInTriplet(aVCoeff,this->mNbVar);
+       aLine->TransfertInTriplet(aVCoeff,this->mNbVar);      
        for (const auto & aTriplet : aVCoeff)
        {
           aRes.SetElem(aTriplet.col(),aTriplet.row(),aTriplet.value());

@@ -143,7 +143,7 @@ cPeople * cPeople::Read1(int anId)
 
 cPeople * cPeople::Read2(int anId)
 {
-   return SimpleRemanentObjectFromFile<cPeople>(NameFile(anId));
+   return SimpleRemanentNewObjectFromFile<cPeople>(NameFile(anId));
 }
 
 

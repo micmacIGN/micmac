@@ -193,15 +193,12 @@ class cMMVII_Ap_NameManip
         cMMVII_Ap_NameManip();
         ~cMMVII_Ap_NameManip();
 
+        static void InitLUT();
+
     protected :
-      
-        cCarLookUpTable *                       mCurLut; /// Lut use for Split , recycled each time
-        cGestObjetEmpruntable<cCarLookUpTable>  mGoClut; /// Memry ressource to allocate cCarLookUpTable
     private :
         // Avance jusqu'au premier char !=0 et Lut[cahr] !=0
-        const char * SkipLut(const char *,int aVal);
-        void GetCurLut();
-        void RendreCurLut();
+        const char * SkipLut(const cCarLookUpTable * aLut,const char *,int aVal);
 };
 
 
@@ -407,10 +404,20 @@ struct  cAttrReport
 };
 
 
+
 class cMMVII_Appli : public cMMVII_Ap_NameManip,
                      public cMMVII_Ap_CPU
 {
     public :
+
+        /// indicate that MMVII will be runing in multi-thread to avoid some specific "clash"
+        static void SetMultiThread(bool isMulti);
+
+	/// Has the multi thread modif been done
+        static bool IsMultiThread();
+
+	/// Used for code that can't work in current state  in multi thread mode
+	static void AssertNoMultiThread();
 
         typedef std::vector<eSharedPO>  tVSPO;
         /// Temporary; will add later a "real" warning mechanism, for now track existing
@@ -556,7 +563,14 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
 	virtual void OnCloseReport(int aNbLine,const std::string & anIdent,const std::string & aNameFile) const;
 
         /// Generate a new entry for report "anId",  IsMul -> indicate if we are in multi process (for merge at end)
-	void  InitReportCSV(const std::string &anId,const std::string & aPostfix,bool IsMul,const std::vector<std::string> & aHeader={});
+	void  InitReportCSV
+              (
+                  const std::string &anId,
+                  const std::string & aPostfix,
+                  bool IsMul,
+                  const std::vector<std::string> & aHeader={},
+                  bool  forceNewFile=true  // if "false" , use mode append, else create
+              );
 	//  void  AddTopReport(const std::string &anId,const std::string & VecMsg);
 
 
@@ -758,7 +772,14 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         std::string                        mReportSubDir;  ///< In case we want to write in separate subdir (like with GCP)
 
 	std::string                        mPatternInitGMA;
+        static bool                        mIsMultiThread;  /// memorize the multi thread state
 };
+
+#define ASSERT_NO_MUTI_THREAD() \
+{\
+   if (cMMVII_Appli::IsMultiThread())\
+	MMVII_INTERNAL_ERROR("Code cannot work in mode multi thread");\
+}
 
 /// Generate name of percentages for CSV
 std::vector<std::string> VInt2VStrPerc(const std::vector<int> &aVPerc);

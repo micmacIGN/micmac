@@ -163,7 +163,7 @@ cPerspCamIntrCalib * cV1PCConverter::AllocCalibV1
 )
 { 
      // If object already created
-     static std::map<std::string,cPerspCamIntrCalib *> TheMap;
+     thread_local static std::map<std::string,cPerspCamIntrCalib *> TheMap;
      cPerspCamIntrCalib * & aPersp = TheMap[aFullName];
 
      if (aPersp==0)
@@ -215,7 +215,7 @@ cSensorCamPC * cV1PCConverter::AllocSensorPCV1
 
 void BenchCentralePerspective_ImportCalibV1(cParamExeBench & aParam,const std::string & aName,bool HCG,bool  CenterFix,double aAccuracy)
 {
-static int aCpt=0; aCpt++;
+     thread_local static int aCpt=0; aCpt++;
 
      std::string aFullName = cMMVII_Appli::CurrentAppli().InputDirTestMMVII() + "Ori-MMV1" +  StringDirSeparator() + aName;
 

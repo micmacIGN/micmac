@@ -19,7 +19,7 @@
 
 /* ======================================== */
 /*                                          */
-/*     cOrderedPair<Type>                   */
+/*     cUnOrderedPair<Type>                   */
 /*                                          */
 /* ======================================== */
 
@@ -43,40 +43,42 @@ namespace MMVII
 
 static bool TheCmp4Op=false;
 
-template <class Type> const Type & cOrderedPair<Type>::Min4OP(const Type & aV1,const Type & aV2)
+template <class Type> const Type & cUnOrderedPair<Type>::Min4OP(const Type & aV1,const Type & aV2)
 {
     TheCmp4Op = (aV1<aV2);
     return TheCmp4Op ? aV1 : aV2; 
 }
 
-template <class Type>  cOrderedPair<Type>::cOrderedPair(const Type & aV1,const Type & aV2) :
+template <class Type>  cUnOrderedPair<Type>::cUnOrderedPair(const Type & aV1,const Type & aV2) :
    mV1 (Min4OP(aV1,aV2)),
    mV2 (TheCmp4Op?aV2:aV1)
 {
 }
 
-template <class Type>  cOrderedPair<Type>::cOrderedPair() 
+template <class Type>  cUnOrderedPair<Type>::cUnOrderedPair() 
 {
 }
 
-template <class Type>  bool cOrderedPair<Type>::operator < (const cOrderedPair<Type> & aP2) const
+template <class Type>  bool cUnOrderedPair<Type>::operator < (const cUnOrderedPair<Type> & aP2) const
 {
    if (mV1 < aP2.mV1) return true;
    if (mV1 > aP2.mV1) return false;
    if (mV2 < aP2.mV2) return true;
    return false;
 }
-template <class Type> bool cOrderedPair<Type>::operator == (const cOrderedPair<Type> & aP2) const
+template <class Type> bool cUnOrderedPair<Type>::operator == (const cUnOrderedPair<Type> & aP2) const
 {
   return (mV1 == aP2.mV1) && (mV2 == aP2.mV2);
 }
 
-template <class Type> const Type & cOrderedPair<Type>::V1() const {return  mV1;}
-template <class Type> const Type & cOrderedPair<Type>::V2() const {return  mV2;}
-template <class Type> Type & cOrderedPair<Type>::V1() {return  mV1;}
-template <class Type> Type & cOrderedPair<Type>::V2() {return  mV2;}
+template <class Type> const Type & cUnOrderedPair<Type>::V1() const {return  mV1;}
+template <class Type> const Type & cUnOrderedPair<Type>::V2() const {return  mV2;}
+template <class Type> Type & cUnOrderedPair<Type>::V1() {return  mV1;}
+template <class Type> Type & cUnOrderedPair<Type>::V2() {return  mV2;}
 
-template  class cOrderedPair<std::string>;
+template  class cUnOrderedPair<std::string>;
+template  class cUnOrderedPair<int>;
+
 
 /* =============   cDataSelector<Type>   ========= */
 
@@ -354,7 +356,7 @@ std::vector<tElemStrInterv> LireInterv(const std::string & aStr)
    const char * aC = aStr.c_str();
    while (*aC)
    {
-      SkeepWhite(aC);
+      SkipWhite(aC);
       // Get [ or ]
       bool aLowIncl,anUpIncl;
       if (!GetInclus(aLowIncl,*aC,true))
@@ -379,7 +381,7 @@ std::vector<tElemStrInterv> LireInterv(const std::string & aStr)
       aRes.push_back(tElemStrInterv(aStrUp,anUpIncl));
 
       aC++;
-      SkeepWhite(aC);
+      SkipWhite(aC);
    }
 
 /*
@@ -1045,7 +1047,7 @@ tNameSet SetNameFromFile(const std::string& aNameFile,int aNumV)
 
 }
 
-tNameSet SetNameFromString(const std::string & aName,bool AllowPat)
+tNameSet SetNameFromString(const std::string & aName,bool AllowPat,bool WithDir)
 {
    if (IsFileGivenTag(true,aName,TagSetOfName)) // MMVII
    {
@@ -1057,7 +1059,7 @@ tNameSet SetNameFromString(const std::string & aName,bool AllowPat)
    }
    else if (AllowPat)
    {
-      return SetNameFromPat(aName);
+      return SetNameFromPat(aName,WithDir);
    }
    // If we are here, we accept  file as empty set, but not file of bad format
    if (ExistFile(aName))
@@ -1067,7 +1069,12 @@ tNameSet SetNameFromString(const std::string & aName,bool AllowPat)
    return  tNameSet(); // emty set mode US
 }
 
-tNameSet SetNameFromPat(const std::string& aFullPat)
+tNameSet SetNameFromString(const std::string & aName,bool AllowPat)
+{
+    return SetNameFromString(aName,AllowPat,false);
+}
+
+tNameSet SetNameFromPat(const std::string& aFullPat,bool WithDir)
 {
      std::string aDir,aPat;
      SplitDirAndFile(aDir,aPat,aFullPat,false);
@@ -1076,8 +1083,17 @@ tNameSet SetNameFromPat(const std::string& aFullPat)
 
      GetFilesFromDir(aV,aDir,AllocRegex(aPat));
      for (const auto & el : aV)
-        aRes.Add(el);
+     {
+         if (WithDir)
+             aRes.Add(aDir+el);
+         else
+             aRes.Add(el);
+     }
      return aRes;
+}
+tNameSet SetNameFromPat(const std::string& aFullPat)
+{
+   return    SetNameFromPat(aFullPat,false);
 }
 
 std::vector<std::string>  ToVect(const tNameSet & aSet)

@@ -266,7 +266,7 @@ template <class Type> void  cResolSysNonLinear<Type>::SetFrozenAllCurrentValues(
 }
 
 template <class Type> 
-    void  cResolSysNonLinear<Type>::SetFrozenFromPat(tObjWUk & anObjGlob,const std::string& aPat, bool Frozen)
+    void  cResolSysNonLinear<Type>::SetFrozenFromPat(tObjWUk & anObjGlob,const std::string& aPat, bool Frozen,tREAL8 aWeight)
 {
       cGetAdrInfoParam<Type> aGIAP(aPat,anObjGlob,false);
       for (size_t aK=0 ;aK<aGIAP.VAdrs().size() ; aK++)
@@ -276,11 +276,13 @@ template <class Type>
 	  //  StdOut() << "Aaaa " << *anAdr << " NN=" << aGIAP.VNames() [aK] << " " << anObjPtr->IndOfVal(anAdr) << std::endl;
           if (Frozen)
 	  {
+             MMVII_INTERNAL_ASSERT_tiny(aWeight<0,"SetFrozenFromPat Frozen with weight");
              SetFrozenVarCurVal(*anObjPtr,*anAdr);
 	  }
 	  else
 	  {
              SetUnFrozenVar(*anObjPtr,*anAdr);
+	     AddEqFixCurVar(*anObjPtr,*anAdr,aWeight);
 	  }
       }
 }
@@ -318,6 +320,40 @@ template <class Type> int  cResolSysNonLinear<Type>::GetCurNbObs() const
 template <class Type> int  cResolSysNonLinear<Type>::GetNbObs() const
 {
     return currNbObs?currNbObs:lastNbObs;
+}
+
+template <class Type> Type cResolSysNonLinear<Type>::GetCond() const
+{
+
+    // conditionning without frozen params
+    cDenseMatrix<Type> aDenseM = mSysLinear->V_tAA();
+    auto aNbParamsNotFrozen = std::count(mVarIsFrozen.begin(), mVarIsFrozen.end(), false);
+    if (aNbParamsNotFrozen>0)
+    {
+        cDenseMatrix<Type> aDenseMReduced(aNbParamsNotFrozen, aNbParamsNotFrozen);
+
+        int aJReduced=0;
+        for (int aJ=0 ; aJ<mNbVar ; aJ++)
+        {
+            if (mVarIsFrozen[aJ])
+                continue;
+
+            int aIReduced=0;
+            for (int aI=0 ; aI<mNbVar ; aI++)
+            {
+                if (mVarIsFrozen[aI])
+                    continue;
+                aDenseMReduced.SetElem(aIReduced, aJReduced, aDenseM.GetElem(aI, aJ));
+                aIReduced++;
+            }
+            aJReduced++;
+        }
+        // std::cout<<"Reduced matrix:\n"; aDenseMReduced.Show(); std::cout<<std::endl;
+        cResulSymEigenValue<Type> aEig = aDenseMReduced.SymEigenValue();
+        Type aCond = aEig.Cond(0.);
+        return aCond;
+    }
+    return NAN;
 }
 
 //   ==================================  Fix var with a given weight =====================================
@@ -786,9 +822,9 @@ template <> void cResolSysNonLinear<tREAL8>::R_AddObsWithTmpUK (const tR_Up::tSe
 
 
 
-template <class Type> 
-   const cDenseVect<Type> & 
-          cResolSysNonLinear<Type>::SolveUpdateReset(const Type & aLVM,tVPtr_SUR AfterCstr ,tVPtr_SUR AfterLVM)
+template <class Type>
+   const cDenseVect<Type> &
+          cResolSysNonLinear<Type>::SolveUpdateReset(const Type & aLVM,tVPtr_SUR AfterCstr ,tVPtr_SUR AfterLVM, bool calcCond)
 {
     if (mNbVar-GetNbLinearConstraints()>currNbObs)
     {
@@ -821,11 +857,23 @@ template <class Type>
         }
     }
 
-   for (auto aPtrSur : AfterLVM)
+    for (auto aPtrSur : AfterLVM)
        if (aPtrSur)
           aPtrSur->Compile(this);
 
+if (0)
+{
+    cDenseMatrix<Type> aDenseM = mSysLinear->V_tAA();
+    StdOut()  << "BEFORE " << aDenseM.GetElem(0,0) << " Sym=" << aDenseM.Symetricity() << "\n";
+    cResulSymEigenValue<Type> aEigFull = aDenseM.SymEigenValue();
+    std::cout<<"\nEigenValues Full: "<<aEigFull.EigenValues()<<"\n";
+}
     mCurGlobSol += mSysLinear->PublicSolve();     //  mCurGlobSol += mSysLinear->SparseSolve();
+						 
+
+    if (calcCond)
+        StdOut() << "Reduced system condition number: " << GetCond() << "\n";
+
     mSysLinear->PublicReset();
     currNbObs = 0;
 

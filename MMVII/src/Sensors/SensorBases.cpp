@@ -1,6 +1,9 @@
 #include "MMVII_Sensor.h"
 #include "MMVII_2Include_Serial_Tpl.h"
 
+#include "MMVII_PCSens.h"
+
+
 
 /**
    \file SensorBases.cpp
@@ -59,12 +62,16 @@ tREAL8 cPixelDomain::DegreeVisibility(const cPt2dr & aP) const
 cSensorImage::cSensorImage(const std::string & aNameImage)  :
      mNameImage               (aNameImage),
      mEqColinearity           (nullptr),
-     mEqCIsInit               (false)
+     mEqCIsInit               (false),
+     mImage                   (nullptr),
+     mOwnsImage               (false)
 {
 }
 
 cSensorImage::~cSensorImage()
 {
+    if (mOwnsImage)
+        delete mImage;
 }
 
 
@@ -147,6 +154,46 @@ cPt3dr cSensorImage::ImageAndDepth2Ground(const cPt3dr &) const
 {
     MMVII_INTERNAL_ERROR("No cSensorImage::ImageAndDepth2Ground");
     return cPt3dr::Dummy();
+}
+
+tREAL8 cSensorImage::Gen_GroundSamplingDistance(const cPt3dr & aPGroundCenter) const 
+{
+     cPt3dr aPProjCenter = Ground2ImageAndDepth(aPGroundCenter);
+     cPt2dr aPImCenter  = Proj(aPProjCenter);
+     tREAL8 aDepth = aPProjCenter.z();
+     // const auto & aVN = AllocNeighbourhood<2>(4);
+
+     cWeightAv<tREAL8> aWeighD;
+     for (const auto & aNeigh : AllocNeighbourhood<2>(1))
+     {
+         cPt2dr aPIm = aPImCenter + ToR(aNeigh);
+         cPt3dr aPGround = ImageAndDepth2Ground(TP3z(aPIm,aDepth));
+         tREAL8 aD = Norm2(aPGround-aPGroundCenter);
+
+	 aWeighD.Add(1.0,aD);
+     }
+
+     return aWeighD.Average();
+}
+
+tREAL8 cSensorImage::Horiz_GroundSamplingDistance(const cPt3dr & aPGroundCenter) const 
+{
+     cPt3dr aPProjCenter = Ground2ImageAndZ(aPGroundCenter);
+     cPt2dr aPImCenter  = Proj(aPProjCenter);
+     tREAL8 aZ = aPProjCenter.z();
+     // const auto & aVN = AllocNeighbourhood<2>(4);
+
+     cWeightAv<tREAL8> aWeighD;
+     for (const auto & aNeigh : AllocNeighbourhood<2>(1))
+     {
+         cPt2dr aPIm = aPImCenter + ToR(aNeigh);
+         cPt3dr aPGround = ImageAndZ2Ground(TP3z(aPIm,aZ));
+         tREAL8 aD = Norm2(aPGround-aPGroundCenter);
+
+	 aWeighD.Add(1.0,aD);
+     }
+
+     return aWeighD.Average();
 }
 
 cCalculator<double> * cSensorImage::CreateEqColinearity(bool WithDerives,int aSzBuf,bool ReUse)
@@ -275,7 +322,7 @@ tPt2dr  cSensorImage::RelativePosition(const tPt2dr & aPt) const
 }
 
 
-tPt3dr cSensorImage::RandomVisiblePGround(const cSensorImage & other,int aNbTestMax,bool * isOk ) const
+tPt3dr cSensorImage::RandomVisiblePGround(const cSensorImage & other,int aNbTestMax,bool * isOk,tREAL8 * aZ ) const
 {
 
     if (isOk!=nullptr ) *isOk= false;
@@ -286,12 +333,17 @@ tPt3dr cSensorImage::RandomVisiblePGround(const cSensorImage & other,int aNbTest
        tPt2dr aPIm2 = other.RandomVisiblePIm();
 
        tPt3dr aResult = PInterBundle(cHomogCpleIm(aPIm1,aPIm2),other);
+       if (aZ!=nullptr)
+       {
+           aResult.z() = *aZ;
+       }
+
 
 // StdOut() << aPIm1 << aPIm2 << aResult << aResult << std::endl;
        if ( this->IsVisible(aResult)  && other.IsVisible(aResult))
        {
            if (isOk!=nullptr) *isOk= true;
-	   return aResult;
+           return aResult;
        }
     }
 
@@ -305,6 +357,12 @@ tPt3dr cSensorImage::RandomVisiblePGround(const cSensorImage & other,int aNbTest
 cHomogCpleIm cSensorImage::RandomVisibleCple(const cSensorImage & other,int aNbTestMax,bool * isOk) const
 {
     tPt3dr aPGr = RandomVisiblePGround(other,aNbTestMax,isOk);
+    return cHomogCpleIm(this->Ground2Image(aPGr),other.Ground2Image(aPGr));
+}
+
+cHomogCpleIm cSensorImage::RandomVisibleCple(tREAL8 aZ,const cSensorImage & other,int aNbTestMax,bool * isOk) const
+{
+    tPt3dr aPGr = RandomVisiblePGround(other,aNbTestMax,isOk,&aZ);
     return cHomogCpleIm(this->Ground2Image(aPGr),other.Ground2Image(aPGr));
 }
 
@@ -482,7 +540,20 @@ const cSensorCamPC * cSensorImage::UserGetSensorCamPC() const
     return const_cast<cSensorImage*>(this)->UserGetSensorCamPC();
 }
 
+cDataGenUnTypedIm<2> & cSensorImage::LoadImage()
+{
+    if (!mImage)
+    {
+        mImage = ReadIm2DGen(mNameImage);
+        mOwnsImage = true;
+    }
+    return *mImage;
+}
 
+bool cSensorImage::ImageIsLoaded() const
+{
+    return mImage;
+}
 
 /* ******************************************************* */
 /*                                                         */
@@ -504,6 +575,32 @@ cPt3dr cSIMap_Ground2ImageAndProf::Inverse(const cPt3dr & aPt) const
 {
 	return mSI->ImageAndDepth2Ground(aPt);
 }
+
+/* ******************************************************* */
+/*                                                         */
+/*                   cSIMap_Ground2ImageAndZ               */
+/*                                                         */
+/* ******************************************************* */
+
+cSIMap_Ground2ImageAndZ::cSIMap_Ground2ImageAndZ(cSensorImage * aSens)  :
+    mSI  (aSens)
+{
+}
+
+cPt3dr cSIMap_Ground2ImageAndZ::Value(const cPt3dr & aPt) const
+{
+	return mSI->Ground2ImageAndZ(aPt);
+}
+
+cPt3dr cSIMap_Ground2ImageAndZ::Inverse(const cPt3dr & aPt) const
+{
+	return mSI->ImageAndZ2Ground(aPt);
+}
+
+
+
+
+
 
 /* ******************************************************* */
 /*                                                         */

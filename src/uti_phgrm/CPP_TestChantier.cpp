@@ -421,6 +421,47 @@ int mergeSOMAF_main(int argc,char ** argv)
     return EXIT_SUCCESS;
 }
 
+//---------------------------------------------------------------------//
+
+int Tagine_main(int argc,char ** argv)
+{
+    std::string aFullDir, aSaisiefile;
+    std::string aPathOut = "./SaisieAll-S2D.xml";
+
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  << EAMC(aFullDir, "Full Directory (Dir+Pattern)", eSAM_IsPatFile)
+                    << EAMC(aSaisiefile, "Saisie Appuis 2D file (XML) with only one saisie", eSAM_IsExistFileRP),
+        LArgMain()  << EAM(aPathOut, "Out", true, "Output path (default = './SaisieAll-S2D.xml')", eSAM_IsOutputFile)
+    );
+
+    std::string aDir, aPat;
+    SplitDirAndFile(aDir,aPat,aFullDir);
+    cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+    const std::vector<std::string> aSetIm = *(anICNM->Get(aPat));
+
+    cSetOfMesureAppuisFlottants aSOMAF = StdGetFromPCP(aSaisiefile, SetOfMesureAppuisFlottants);
+    cSetOfMesureAppuisFlottants aSOMAFout;
+    cMesureAppuiFlottant1Im aMAFout;
+
+    std::list<cMesureAppuiFlottant1Im> aListMAF = aSOMAF.MesureAppuiFlottant1Im();
+    ELISE_ASSERT(aListMAF.size() == 1, "Saisie Appuis file must contain only one saisie.");
+
+    cMesureAppuiFlottant1Im aMAF = aListMAF.front();
+
+    for(unsigned aC=0; aC<aSetIm.size(); aC++)
+    {
+        aMAFout.OneMesureAF1I() = aMAF.OneMesureAF1I();
+        aMAFout.NameIm() = aSetIm[aC];
+        aSOMAFout.MesureAppuiFlottant1Im().push_back(aMAFout);
+        std::cout << "Add saisie for image : " << aSetIm[aC] << std::endl;
+    }
+
+    MakeFileXML(aSOMAFout, aPathOut);
+
+    return EXIT_SUCCESS;
+}
 
 
 //---------------------------------------------------------------------//

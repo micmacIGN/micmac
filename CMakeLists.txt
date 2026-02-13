@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.10)
 
 # Interfaces de saisie des param�tres
 option(WITH_QT5 "compile Qt interfaces" OFF)

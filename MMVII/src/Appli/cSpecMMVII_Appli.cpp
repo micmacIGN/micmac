@@ -163,6 +163,10 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpecEditSet);
         TheVecAll.push_back(&TheSpecEditRel);
         TheVecAll.push_back(&TheSpec_EditCalcMetaDataImage);
+        TheVecAll.push_back(&TheSpec_EditBlockInstr);
+        TheVecAll.push_back(&TheSpec_BlockInstrReport);
+        TheVecAll.push_back(&TheSpec_BlockInstrInitCam);
+        TheVecAll.push_back(&TheSpec_BlockInstrInitClino);
         TheVecAll.push_back(&TheSpecWalkman);
         TheVecAll.push_back(&TheSpecDaisy);
         TheVecAll.push_back(&TheSpecCatVideo);
@@ -233,7 +237,16 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpec_ImportLines);
         TheVecAll.push_back(&TheSpec_ImportOBS);
         TheVecAll.push_back(&TheSpec_ImportORGI);
+        TheVecAll.push_back(&TheSpec_ImportAiconCamera);
+        TheVecAll.push_back(&TheSpec_ImportStaticScan);
         TheVecAll.push_back(&TheSpec_ImportTxtCloud);
+        TheVecAll.push_back(&TheSpec_MMVII_CloudClip);
+        TheVecAll.push_back(&TheSpec_MMVII_Cloud2Ply);
+        TheVecAll.push_back(&TheSpecTestLidarRevEng);
+	{
+            TheVecAll.push_back(&TheSpec_MMVII_CloudColorate);
+            TheVecAll.push_back(&TheSpec_MMVII_CloudImProj);
+	}
         TheVecAll.push_back(&TheSpec_ImportM32);
         //TheVecAll.push_back(&TheSpecTopoComp);
         TheVecAll.push_back(&TheSpecGenArgsSpec);
@@ -270,6 +283,7 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpec_TutoFormalDeriv);
         TheVecAll.push_back(&TheSpec_ExportUndistMesIm);
         TheVecAll.push_back(&TheSpecAppliExtractLine);
+        TheVecAll.push_back(&TheSpecAppliBubbles);
         TheVecAll.push_back(&TheSpec_CERN_ImportClino);
         TheVecAll.push_back(&TheSpec_MMV2_MesIm_2_MMV1);
         TheVecAll.push_back(&TheSpec_MergeMesImGCP);
@@ -278,6 +292,7 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpec_ImportTriplet);
         TheVecAll.push_back(&TheSpec_ArboTriplet);
 
+        TheVecAll.push_back(&TheSpecAppliBenchAPBI);
 
 
         std::sort(TheVecAll.begin(),TheVecAll.end(),CmpCmd);

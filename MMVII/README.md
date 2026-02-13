@@ -65,7 +65,7 @@ Under Linux (Ubuntu) distribution the installation procedure is as follows:
 
 - Install dependancies specific to MMVII:
 	```bash
-	sudo apt install pkg-config libproj-dev libgdal-dev
+	sudo apt install pkg-config libproj-dev libgdal-dev libxerces-c-dev
 	```
 
 - Access the folder:
@@ -248,6 +248,14 @@ The latest version of the documentation can be downloaded directly **[HERE](http
 
 # License
 This project is licensed under the **CECILL-B** License - see the **[LICENSE.md](LICENSE.md)** file for details.
+
+MMVII sources includes codes from:
+
+ - hapPLY: Copyright (c) 2018 Nick Sharp, MIT licence, https://github.com/nmwsharp/happly
+ - Delaunay/delaunator: Copyright (c) 2018 Volodymyr Bilonenko, MIT Licence
+ - Eigen: Copyright (C) 2008 Gael Guennebaud, Mozilla Public License, https://eigen.tuxfamily.org
+ - libE57Format, Copyright (C) 2020 Andy Maloney/Kevin Ackley, Boost Software License, https://github.com/asmaloney/libE57Format
+
 
 # Useful links
 * [MMVII Documentation](https://github.com/micmacIGN/micmac/releases/tag/MMVII_Documentation)

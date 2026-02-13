@@ -29,9 +29,16 @@ cOneLineAntiParal::cOneLineAntiParal() :
 {
 }
 
+std::string cOneLineAntiParal::NameLine() const
+{
+    return  mNameLine.value_or(MMVII_NONE);
+}
+
+
 void AddData(const cAuxAr2007 & anAux,cOneLineAntiParal & anEx)
 {
       AddData(cAuxAr2007("Image",anAux),anEx.mNameIm);
+      AddOptData(anAux,"NameLine",anEx.mNameLine);
       AddData(cAuxAr2007("P1",anAux),anEx.mSeg.P1());
       AddData(cAuxAr2007("P2",anAux),anEx.mSeg.P2());
       AddData(cAuxAr2007("ParalAng",anAux),anEx.mAngDif);
@@ -323,7 +330,7 @@ void cSetMesGndPt::ExtractMes1Im(cSet2D3D&  aS23,const std::string &aNameIm,bool
     for (size_t aKp=0 ;  aKp<mMesGCP3D.size() ; aKp++)
     {
          const cPt2dr * aP2 = mMesImOfPt[aKp].PtOfIm(aNumIm);
-	 if (aP2)
+         if (aP2)
             aS23.AddPair(*aP2,mMesGCP3D[aKp].mPt);
     }
 }
@@ -781,6 +788,23 @@ std::map<std::string, MMVII::cSetMesGnd3D> cSetMesGnd3D::SplitPerOutDir(const st
     return output;
 }
 
+const cMes1Gnd3D * cSetMesGnd3D::GetAdrMeasureOfNamePt(const std::string& aName,bool SVP) const
+{
+    for (const auto & aMeas : mMeasures)
+        if (aMeas.mNamePt==aName)
+           return  & aMeas;
+    MMVII_INTERNAL_ASSERT_strong(SVP,"Cannot found GCP of name : " +aName);
+
+   return nullptr;
+}
+
+const cMes1Gnd3D & cSetMesGnd3D::GetMeasureOfNamePt(const std::string& aName) const
+{
+    return * GetAdrMeasureOfNamePt(aName);
+}
+
+
+
 
 /**********************************************/
 /*                                            */
@@ -829,6 +853,8 @@ void cSet2D3D::AddPair(const cPt2dr& aPIm,const cPt3dr& aPGround,double aWeight)
 
 
 const cSet2D3D::tCont2D3D &  cSet2D3D::Pairs() const { return mPairs;}
+cSet2D3D::tCont2D3D &  cSet2D3D::Pairs() { return mPairs;}
+
 
 const cWeightedPair2D3D &  cSet2D3D::KthPair(int aK) const {return mPairs.at(aK);}
 size_t cSet2D3D::NbPair() const {return mPairs.size();}

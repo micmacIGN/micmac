@@ -15,8 +15,14 @@ double Cst_KthVal(const std::vector<double> &, double aProportion);
 template <class Type> Type Average(const Type * aTab,size_t aNb);
 template <class Type> Type Average(const std::vector<Type> &);
 
+double  IKthVal(std::vector<double> & aV, int aK);
 
-tREAL8 AngleInRad(eTyUnitAngle);
+
+tREAL8 AngleFromRad(eTyUnitAngle);
+tREAL8 AngleFromRad(tREAL8 aAngInRad,eTyUnitAngle);
+tREAL8 Rad2DMgon(tREAL8 aAngInRad);
+
+
 bool AssertRadAngleInOneRound(tREAL8 aAngleRad, bool makeError=true);
 
 // some time needs a null val for any type with + (neutral for +)
@@ -75,6 +81,8 @@ double RandInInterval(double a,double b); ///<  Uniform distribution in [a,b]
 double RandInInterval(const cPt2dr &interval); ///<  Uniform distribution in [interval.x,interval.y]
 double RandInInterval_C(const cPt2dr &interval); ///<  Uniform distribution in [-interval.y,-interval.x]U[interval.x,interval.y]
 
+double RandUnif_Angle(); ///<  Uniform distribution in [0 2Pi]
+
 int RandUnif_M_N(int aM,int aN); ///< Uniform disrtibution in [M,N] 
 
 /** Class for mapping object R->R */
@@ -96,6 +104,8 @@ template<class Type>  std::vector<Type>  RandomOrder(const std::vector<Type> & a
         aRes.push_back(aV.at(aI));
     return aRes;
 }
+///  Permutation as a shift 
+std::vector<int> ShitPerm(int aN,int aDelta);
 
 /// Random subset K among  N  !! Higher bias => lower proba of selection
 std::vector<int> RandSet(int aK,int aN,cFctrRR & aBias =cFctrRR::TheOne);
@@ -123,6 +133,7 @@ class cRandKAmongN
 /// K is the numbre to select, it will be selected regularly with a proportion aProp
 bool SelectWithProp(int aK,double aProp);
 bool SelectQAmongN(int aK,int aQ,int aN);
+int  KthSelectQAmonN(int aKTh,int aQ,int aN,tREAL8 aPhase=0.5);
 
 
 /* ============ Definition of numerical type ================*/
@@ -782,7 +793,8 @@ template <class TVal> TVal MinTab(TVal * Data,int aNb)
     return aMin;
 }
 
-
+// Min or Max with a weight on other,  for W=0.8 -> close to min
+tREAL8 SoftExtre(tREAL8 aWMax,tREAL8 aV1,tREAL8 aV2);
 
 
 /// Class to store min and max values
@@ -949,8 +961,9 @@ class cCelCC : public cMemCheck
         size_t               mLowCode;    ///< lower representant
         bool                 mTmp;        ///< some marker to use when convenient
         int                  mNum;        ///< Num used so that names is alway the same whatever maybe the selection
+        bool                 mSelfSym;    ///< is the code self sym with permutation of system
 
-	size_t HammingDist(const cCelCC &) const;
+        size_t HammingDist(const cCelCC &) const;
 
         cCelCC(size_t aLowestCode);
      public :
@@ -967,7 +980,7 @@ class cCompEquiCodes : public cMemCheck
        static std::string NameCERNLookUpTable(size_t aNbBits); ///< name of file where are stored CERN'S   LUT
        static std::string NameCERNPannel(size_t aNbBits); ///< name of file where are stored CERN'S   3D target
        ///  allocate & compute code , return the same adress if param eq
-       static cCompEquiCodes * Alloc(size_t aNbBits,size_t aPerAmbig=1,bool WithMirror=false);
+       static cCompEquiCodes * Alloc(size_t aNbBits,size_t aPerAmbig=1,bool WithMirror=false,bool OkSelfSym=true);
 
        /// For a set code (p.y()) return the cell containing them (or not contatining them)
        std::vector<cCelCC*>  VecOfUsedCode(const std::vector<cPt2di> &,bool Used);
@@ -984,7 +997,7 @@ class cCompEquiCodes : public cMemCheck
    private :
        static std::string NameCERStuff(const std::string & aPrefix,size_t aNbBits); ///< name of file where are stored CERN'S   3D target
 
-       cCompEquiCodes(size_t aNbBits,size_t aPerdAmbig,bool WithMirror);
+       cCompEquiCodes(size_t aNbBits,size_t aPerdAmbig,bool WithMirror,bool OkSelfSym);
        /// put all the code identic, up to a circular permutation, in the same cellu
        void AddCodeWithPermCirc(size_t aCode,cCelCC *);
 
@@ -1042,7 +1055,10 @@ template <class Type> class  cPolynom
            static cPolynom<Type>  D1FromRoot(const Type &aRoot);    ///< degre 1 polynom with aRoot
            static cPolynom<Type>  D2NoRoot(const Type & aVMin,const Type &aArgmin);  ///< +- (|V| + (x-a) ^2) ,
 
-           static cPolynom<Type>  RandomPolyg(int aDegree,Type & anAmpl);
+           static cPolynom<Type>  Monom(size_t aDegre);      ///< Monom  X ^D
+
+	   /// Ampl is typycal valu of X => Coef[d] ~  anAmpl ^(-d)
+           static cPolynom<Type>  RandomPolyg(size_t aDegree,const Type & anAmpl);
            ///  Generate random polygo from its randomly generated roots => test for
            static cPolynom<Type>  RandomPolyg(std::vector<Type> & aVRoots,int aNbRoot,int aNbNoRoot,Type Interv,Type MinDist);
 
@@ -1058,6 +1074,8 @@ template <class Type> class  cPolynom
            cPolynom<Type> operator - (const cPolynom<Type> & aP2) const;
            cPolynom<Type> operator * (const  Type & aVal) const;
            cPolynom<Type> Deriv() const;
+
+	   cPolynom<Type> & operator += (const cPolynom<Type> & aP2);
 
            std::vector<Type> RealRoots(const Type & aTol,int ItMax) const;
 
