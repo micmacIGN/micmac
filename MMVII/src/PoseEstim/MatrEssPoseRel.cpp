@@ -30,12 +30,24 @@ cSetHomogCpleDir::cSetHomogCpleDir(const cSetHomogCpleIm & aSetH,const cPerspCam
      }
 }
 
+cSetHomogCpleDir::cSetHomogCpleDir(const std::vector<cPt3dr>& aVDir1,const std::vector<cPt3dr>& aVDir2) :
+    mVDir1 (aVDir1),
+    mVDir2 (aVDir2),
+    mR1ToInit (tRot::Identity()),
+    mR2ToInit (tRot::Identity())
+{
+}
+
 const std::vector<cPt3dr>& cSetHomogCpleDir::VDir1() const {return mVDir1;}
 const std::vector<cPt3dr>& cSetHomogCpleDir::VDir2() const {return mVDir2;}
 
 void  cSetHomogCpleDir::NormalizeRot(cRotation3D<tREAL8>&  aRot ,std::vector<cPt3dr> & aVPts)
 {
       cPt3dr aP = Centroid(aVPts);
+      if (IsNull(aP))
+      {
+          aP = cPt3dr(0.0,0.0,1.0);
+      }
       tRot  aRKAB  = tRot::CompleteRON(aP);
 
       tRot  aRepairABK(aRKAB.AxeJ(),aRKAB.AxeK(),aRKAB.AxeI(),false);
@@ -131,7 +143,7 @@ void  MatEssAddEquations(const cSetHomogCpleDir & aSetD,cLinearOverCstrSys<tREAL
      for (size_t aKP=0 ; aKP<aVD1.size() ; aKP++)
      {
          SetVectMatEss(aVect,aVD1[aKP],aVD2[aKP]);
-	 aSys.PublicAddObservation(1.0,aVect,0.0);
+         aSys.PublicAddObservation(1.0,aVect,0.0);
      }
 }
 
@@ -216,6 +228,16 @@ int   MatEss_GetKMax(const cSetHomogCpleDir & aSetD,tREAL8 aWeightStab,bool Show
     return aWMax.IndexExtre();
 }
 
+/*
+tPoseR  PoseRelFrom2RotAndBase(const cPt3dr &,const tRotR& aR2E1,const tRotR & aR2E2)
+{
+    //  aR2E1 :  C1-> E1  ;  aR2E2  C2 -> E2 ;   E2->
+    //  E2 -> E1
+    tPoseR aSol(aMatU * aPV,cRotation3D<tREAL8>(aMatU * aMatV.Transpose(),false));
+
+}
+*/
+
 /* ************************************** */
 /*                                        */
 /*         cMatEssential                  */
@@ -233,7 +255,7 @@ cMatEssential::cMatEssential(const cSetHomogCpleDir & aSetD,cLinearOverCstrSys<t
      for (size_t aKP=0 ; aKP<aVD1.size() ; aKP++)
      {
          MMVII::SetVectMatEss(aVect,aVD1[aKP],aVD2[aKP]);
-	 aSys.PublicAddObservation(1.0,aVect,0.0);
+         aSys.PublicAddObservation(1.0,aVect,0.0);
      }
      aSys.AddObsFixVar(aVD1.size(),aKFix,1.0);
      cDenseVect<tREAL8> aSol = aSys.PublicSolve();
@@ -271,9 +293,9 @@ void cMatEssential::Show(const cSetHomogCpleDir& aSetD) const
     {
         for (int aX=0 ; aX<3 ; aX++)
         {
-		StdOut() << " " <<  FixDigToStr(1000*mMat.GetElem(aX,aY),8) ;
+             StdOut() << " " <<  FixDigToStr(1000*mMat.GetElem(aX,aY),8) ;
         }
-	StdOut() << std::endl;
+        StdOut() << std::endl;
     }
     StdOut() << "     Cost=" << AvgCost(aSetD,1.0) << std::endl;
     cResulSVDDecomp<tREAL8>  aRSVD =  mMat.SVD();
@@ -306,7 +328,7 @@ tREAL8  cMatEssential::KthCost(const  cSetHomogCpleDir & aSetD,tREAL8  aProp) co
 
 
 
-cMatEssential::tPose  cMatEssential::ComputePose(const cSetHomogCpleDir & aHom,tPose * aRef) const
+cMatEssential::tPose  cMatEssential::ComputePose(const cSetHomogCpleDir & aHom,const tPose * aRef) const
 {
     /*  We have EssM = U D tV , and due to eigen convention
              1 0 0
@@ -319,7 +341,7 @@ cMatEssential::tPose  cMatEssential::ComputePose(const cSetHomogCpleDir & aHom,t
            =   (U SwXZ)  (SwXZ D SwXZ aRot)  t( V aSwXZ R)
 
         And  Sw D Sw aRot is what we want :
-                              0 0  0
+                          0 0  0
 	   (Sw D Sw aRot) =   0 0 -1
 	                      0 1  0
         
@@ -406,15 +428,15 @@ cMatEssential::tPose  cMatEssential::ComputePose(const cSetHomogCpleDir & aHom,t
               tREAL8 aDif1 = mMat.L2Dist( aRconst *  aEV(0));
               tREAL8 aDif2 = mMat.L2Dist( aRconst * (-aEV(0)));
               MMVII_INTERNAL_ASSERT_bench(std::min(aDif1,aDif2)<1e-5,"Matric Reconstution in EssMat");
-	  }
+          }
 
 
           size_t aNbP = aHom.VDir1().size();
           size_t aNbPU = 0;
           size_t aNbPV = 0;
 
-	  cPt3dr aPU(0,0,0); //Image center for first cam
-	  cPt3dr aPV(aSignPt,0,0); // Image center for second cam
+          cPt3dr aPU(0,0,0); //Image center for first cam
+          cPt3dr aPV(aSignPt,0,0); // Image center for second cam
 
           for (size_t aKP=0 ; aKP<aNbP ; aKP++)
           {
@@ -450,6 +472,7 @@ cMatEssential::tPose  cMatEssential::ComputePose(const cSetHomogCpleDir & aHom,t
           }
 
 	  aNb11 += (aNbPU==aNbP) && (aNbPV==aNbP);
+ // StdOut() << "MATEEEESSsss \n"; getchar();
 	  tPose aSol(aMatU * aPV,cRotation3D<tREAL8>(aMatU * aMatV.Transpose(),false));
 	  aBestPose.Add(aSol,aNbPU+aNbPV);
        }
@@ -480,8 +503,12 @@ void Bench_MatEss(cParamExeBench & aParam)
     }  
     for (int aNb=0 ; aNb<1 ; aNb++)
     {
-        cCamSimul::BenchMatEss(aTS,false);
-        cCamSimul::BenchMatEss(aTS,true);
+        cCamSimul::BenchPoseRel2Cam(aTS,true,true,true);
+
+        cCamSimul::BenchPoseRel2Cam(aTS,false,false,false);
+        cCamSimul::BenchPoseRel2Cam(aTS,true,false,false);
+        cCamSimul::BenchPoseRel2Cam(aTS,false,true,false);
+        cCamSimul::BenchPoseRel2Cam(aTS,true,true,false);
     }
 
     delete aTS;

@@ -432,13 +432,37 @@ template <class TypeImage,class tBase,class TypeFile>  void TplBenchFileImage(co
         cPt2di aP0 = aSz/5;
         cPt2di aP1 = aSz/2;
         cBox2di  aBox(aP0,aP1);
-	aDImDup.ClipToFile(aNameTiff,aBox);
-	cIm2D<int>  aImCl = cIm2D<int>::FromFile(aNameTiff);
+        aDImDup.ClipToFile(aNameTiff,aBox);
+        cIm2D<tBase>  aImCl = cIm2D<tBase>::FromFile(aNameTiff);
 
-	for (const auto & aP : aImCl.DIm())
-	{
-            MMVII_INTERNAL_ASSERT_bench(aImCl.DIm().GetV(aP)==aDImDup.GetV(aP+aP0),"Bench ClipToFile")
-	}
+       for (const auto & aP : aImCl.DIm())
+       {
+          if (aImCl.DIm().GetV(aP)!=aDImDup.GetV(aP+aP0))
+          {
+            StdOut() << " DIFF=" << aImCl.DIm().GetV(aP) << " " << aDImDup.GetV(aP+aP0) << "\n";
+            MMVII_INTERNAL_ASSERT_bench(aImCl.DIm().GetV(aP)==aDImDup.GetV(aP+aP0),"Bench ClipToFile");
+          }
+      }
+    }
+
+    {   if (0)
+        {
+           StdOut() << "TplBenchFileImage "
+                 << cStrIO<TypeImage>::msNameType << "  "
+                 << cStrIO<tBase>::msNameType << " "
+                 << cStrIO<TypeFile>::msNameType << " "
+                 << " N=" << aNameTiff
+                 << "\n";
+        }
+        cIm2D<TypeFile> aIDup =  cIm2D<TypeFile>::FromFile(aNameTiff);
+        auto aPtrI = ReadIm2DGen(aNameTiff);
+
+        for (const auto aPix : aIDup.DIm())
+        {
+            MMVII_INTERNAL_ASSERT_bench((tREAL8)aIDup.DIm().GetV(aPix) ==aPtrI->VD_GetV(aPix),"ReadIm2DGen" );
+        }
+        delete aPtrI;
+
     }
 }
 
@@ -446,6 +470,8 @@ template <class TypeFile,class TypeImage>  void TplBenchFileImage()
 {
     TplBenchFileImage<tU_INT1,tINT4,tINT4>(cPt2di(1000,500),100.0);
     TplBenchFileImage<tINT4,tINT4,tINT2>(cPt2di(1000,500),1e-2);
+    TplBenchFileImage<tREAL4,tREAL8,tREAL4>(cPt2di(1000,500),1e-2);
+
 }
 
 void BenchFileImage()

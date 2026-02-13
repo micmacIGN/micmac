@@ -14,7 +14,7 @@ namespace MMVII
         //Check Formulas_ClinoBloc
         
         cCalculator<double> * aEqClinoBloc;
-        aEqClinoBloc = EqClinoBloc(false, 1, true);
+        aEqClinoBloc = Old_EqClinoBloc(false, 1, true);
         
         // Value of axiator
         std::vector<tREAL8> aVUK = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};

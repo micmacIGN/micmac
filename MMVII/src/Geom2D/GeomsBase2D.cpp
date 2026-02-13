@@ -6,6 +6,8 @@ namespace MMVII
 {
 
 const  cPt2di FreemanV8[8]   {{1,0},{1,1},{0,1},{-1,1},{-1,0},{-1,-1},{0,-1},{1,-1}};
+const  cPt2di FreemanV9[9]   {{0,0},{1,0},{1,1},{0,1},{-1,1},{-1,0},{-1,-1},{0,-1},{1,-1}};
+
 const  cPt2di FreemanV4[4]   {{1,0},{0,1},{-1,0},{0,-1}};
 const  cPt2di FreemanV10[10] {{1,0},{1,1},{0,1},{-1,1},{-1,0},{-1,-1},{0,-1},{1,-1},{1,0},{1,1}};
 
@@ -74,7 +76,7 @@ template <class Type> cSegment2DCompiled<Type>::cSegment2DCompiled(const cSegmen
 
 template <class Type> Type cSegment2DCompiled<Type>::SignedDist(const tPt& aPt) const
 {
-    return Scal(mNorm,aPt - this->mP1);
+    return Scal(mNorm,aPt - this->P1());
 }
 template <class Type> Type cSegment2DCompiled<Type>::Dist(const tPt& aPt) const
 {
@@ -84,18 +86,18 @@ template <class Type> Type cSegment2DCompiled<Type>::Dist(const tPt& aPt) const
 
 template <class Type> cPtxd<Type,2> cSegment2DCompiled<Type>::ToCoordLoc(const tPt& aPt) const
 {
-    tPt   aV1P = aPt - this->mP1;
+    tPt   aV1P = aPt - this->P1();
     return tPt(Scal(this->mTgt,aV1P),Scal(mNorm,aV1P));
 }
 
 template <class Type> cPtxd<Type,2> cSegment2DCompiled<Type>::FromCoordLoc(const tPt& aPt) const
 {
-    return  this->mP1 + this->mTgt*aPt.x()  + mNorm*aPt.y();
+    return  this->P1() + this->mTgt*aPt.x()  + mNorm*aPt.y();
 }
 
 template <class Type> Type cSegment2DCompiled<Type>::DistLine(const tPt& aPt) const
 {
-    return std::abs(Scal(mNorm,aPt - this->mP1));
+    return std::abs(Scal(mNorm,aPt - this->P1()));
 }
 
 
@@ -107,7 +109,7 @@ template <class Type> Type cSegment2DCompiled<Type>::DistClosedSeg(const tPt& aP
        return  Norm2(aPL);
 
     if (aPL.x() >  this->mN2)
-      return  Norm2(aPt-this->mP2);
+      return  Norm2(aPt-this->P2());
 
     return std::abs(aPL.y());
 }

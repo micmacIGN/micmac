@@ -1,11 +1,6 @@
-#include "MMVII_Ptxd.h"
+#include "MMVII_InstrumentalBlock.h"
 #include "cMMVII_Appli.h"
-#include "MMVII_Geom3D.h"
-#include "MMVII_PCSens.h"
-#include "MMVII_Clino.h"
 #include "MMVII_2Include_Serial_Tpl.h"
-
-
 
 
 /**
@@ -19,452 +14,769 @@
 namespace MMVII
 {
 
-class cOneCamInRBoI;            // on cam in a bloc
-class cCamsInRBoI;              // set of cam in a bloc
-class cOneClinoInRBoI;          // one clino in a bloc
-class cClinosInRBoI;          // set of  clino in a bloc
-class cRigidBlockOfInstrument;  //  bloc of rigid instrument
-class cAppli_EditBlockInstr;    // appli of "edtiting" the bloc, "friend" of some classes
-
-
-/// class for representing a camera embeded in a "Rigid Block of Instrument"
-class cOneCamInRBoI
-{
-    public :
-        cOneCamInRBoI();  //< required for serialisation 
-        /// "real" constructor
-        cOneCamInRBoI(const std::string & aNameCal,const std::string & aTimeStamp,const std::string & aPatImSel);
-	const std::string & NameCal() const; //< Accessor
-	void AddData(const  cAuxAr2007 & anAux); //< Serializer
-    private :
-        std::string   mNameCal;        ///< name of calibration associated to
-        std::string   mPatTimeStamp;   //< use to extract time stamp from a name
-        bool          mSelIsPat;       ///< indicate if selector is pattern/file
-	std::string   mImSelect;       ///< selector, indicate if an image belongs  to the block
-	bool          mIsInit;         ///< was the pose in the block computed ?
-        tPoseR        mPoseInBlock;    ///< Position in the block  +- boresight
-	tREAL8        mSigmaC;         ///< sigma on center
-	tREAL8        mSigmaR;         ///< sigma on orientation
-};
-/// public interface to serialization
-void AddData(const  cAuxAr2007 & anAux,cOneCamInRBoI & aCam);
-
-
-///  class for representing one clino embeded in a "Rigid Block of Instrument""
-class cOneClinoInRBoI
-{
-    public :
-        cOneClinoInRBoI();  //< required for serialisation
-        cOneClinoInRBoI(const std::string & aName); //< "Real" constructor
-        const std::string & Name() const;  //< accessor 
-        void AddData(const  cAuxAr2007 & anAux); //< serializer
-    private :
-        std::string   mName;           //< name of the clino
-	bool          mIsInit;         //< was values computed ?
-        tRotR         mOrientInBloc;    //< Position in the block
-        tREAL8        mSigmaR;         //< sigma on orientation
-};
-void AddData(const  cAuxAr2007 & anAux,cOneClinoInRBoI & aClino);
-
-
-///  class for representing the set of cameras embedded in a bloc
-class cCamsInRBoI
-{
-     public :
-         friend cAppli_EditBlockInstr;
-
-         cCamsInRBoI();
-
-	 void AddData(const  cAuxAr2007 & anAux);
-     private :
-         void AddCam
-              (
-                   const std::string & aNameCalib,
-                   const std::string& aTimeStamp,
-                   const std::string & aPatImSel,
-                   bool SVP=false
-              );
-         cOneCamInRBoI * CamFromName(const std::string& aName);
-
-	 std::vector<cOneCamInRBoI>  mVCams;          //< set of cameras
-};
-void AddData(const  cAuxAr2007 & anAux,cCamsInRBoI & aCam);
-
-///  class for representing a set of clino
-class cClinosInRBoI
-{
-     public :
-         friend cAppli_EditBlockInstr;
-         cClinosInRBoI();
-
-	 void AddData(const  cAuxAr2007 & anAux);
-     private :
-         cOneClinoInRBoI * ClinoFromName(const std::string& aName);
-         void AddClino(const std::string &,bool SVP=false);
-
-         std::vector<cOneClinoInRBoI> mVClinos;
-};
-
-
-///  class for representing all the instruments possibly used 
-class cRigidBlockOfInstrument
-{
-     public :
-	static const std::string  theDefaultName;  /// in most application there is only one block
-        cRigidBlockOfInstrument(const std::string& aName);
-	void AddData(const  cAuxAr2007 & anAux);
-
-	cCamsInRBoI &   SetCams() ;            //< Accessors
-	cClinosInRBoI & SetClinos() ;            //< Accessors
-	const std::string & NameBloc() const; //< Accessor 
-     private :
-	std::string              mNameBloc;   //<  Name of the bloc
- 	cCamsInRBoI              mSetCams;    //<  Cameras used in the bloc
-        cClinosInRBoI            mSetClinos;  //<  Clinos used in the bloc
-};
-void AddData(const  cAuxAr2007 & anAux,cRigidBlockOfInstrument & aRBoI);
-
 /* *************************************************************** */
 /*                                                                 */
-/*                        cOneCamInRBoI                            */
+/*                        cIrb_SigmaInstr                          */
 /*                                                                 */
 /* *************************************************************** */
 
-cOneCamInRBoI::cOneCamInRBoI(const std::string & aNameCal,const std::string & aTimeStamp,const std::string & aPatImSel) :
-     mNameCal       (aNameCal),
-     mPatTimeStamp  (aTimeStamp),
-     mSelIsPat      (true),
-     mImSelect      (aPatImSel),
-     mIsInit        (false),
-     mPoseInBlock   (tPoseR::Identity()),
-     mSigmaC        (-1),
-     mSigmaR        (-1)
+
+cIrb_SigmaInstr::cIrb_SigmaInstr() :
+    cIrb_SigmaInstr(0.0,0.0,0.0,0.0)
 {
 }
 
-cOneCamInRBoI::cOneCamInRBoI()  :
-    cOneCamInRBoI(MMVII_NONE,MMVII_NONE,MMVII_NONE)
+
+cIrb_SigmaInstr::cIrb_SigmaInstr(tREAL8 aWTr,tREAL8 aWRot,tREAL8 aSigTr,tREAL8 aSigRot) :
+    mAvgSigTr   (),
+    mAvgSigRot  ()
 {
+    mAvgSigTr.Add(aWTr,aSigTr);
+    mAvgSigRot.Add(aWRot,aSigRot);
 }
 
-const std::string & cOneCamInRBoI::NameCal() const { return mNameCal; }
-
-void cOneCamInRBoI::AddData(const  cAuxAr2007 & anAux)
+void cIrb_SigmaInstr::AddData(const  cAuxAr2007 & anAux)
 {
-      MMVII::AddData(cAuxAr2007("NameCalib",anAux),mNameCal);
-      MMVII::AddData(cAuxAr2007("PatTimeStamp",anAux),mPatTimeStamp);
-      MMVII::AddData(cAuxAr2007("SelIsPat",anAux),mSelIsPat);
-      MMVII::AddData(cAuxAr2007("ImSelect",anAux),mImSelect);
-      MMVII::AddData(cAuxAr2007("IsInit",anAux),mIsInit);
-      MMVII::AddData(cAuxAr2007("Pose",anAux),mPoseInBlock);
-      MMVII::AddData(cAuxAr2007("SigmaC",anAux),mSigmaC);
-      MMVII::AddData(cAuxAr2007("SigmaR",anAux),mSigmaR);
+ //   StdOut() << "cIrb_SigmaInstr::AddData " << mAvgSigTr.Nb() << " " << mAvgSigRot.Nb() << "\n";
+
+    MMVII::AddData(cAuxAr2007("Tr",anAux) ,mAvgSigTr);
+    if (mAvgSigTr.SW() > 0)
+       anAux.Ar().AddComment("SigTr="+ToStr(mAvgSigTr.Average()));
+
+    MMVII::AddData(cAuxAr2007("Rot",anAux) ,mAvgSigRot);
+    if (mAvgSigRot.SW() >0 )
+    {
+       anAux.Ar().AddComment
+       (
+             "SigRot="
+           + ToStr(mAvgSigRot.Average()) + " rad, "
+           + ToStr(Rad2DMgon(mAvgSigRot.Average())) + " dmgon "
+       );
+    }
 }
 
-void AddData(const  cAuxAr2007 & anAux,cOneCamInRBoI & aCam)
+
+void AddData(const  cAuxAr2007 & anAux,cIrb_SigmaInstr & aSig)
 {
-    aCam.AddData(anAux);
+    aSig.AddData(anAux);
+}
+
+
+
+void  cIrb_SigmaInstr::AddNewSigma(const cIrb_SigmaInstr & aS2)
+{
+  mAvgSigTr.Add(aS2.mAvgSigTr);
+  mAvgSigRot.Add(aS2.mAvgSigRot);
+}
+
+tREAL8 cIrb_SigmaInstr::SigmaTr() const
+{
+   return mAvgSigTr.Average();
+}
+
+tREAL8 cIrb_SigmaInstr::SigmaRot() const
+{
+    return mAvgSigRot.Average();
+
 }
 
 /* *************************************************************** */
 /*                                                                 */
-/*                        cCamsInRBoI                              */
+/*                        cIrb_Desc1Intsr                          */
 /*                                                                 */
 /* *************************************************************** */
 
-cCamsInRBoI::cCamsInRBoI() 
+
+cIrb_Desc1Intsr::cIrb_Desc1Intsr (eTyInstr aType,const std::string & aNameInstr ) :
+    mType      (aType),
+    mNameInstr (aNameInstr)
 {
 }
 
-void cCamsInRBoI::AddCam
-     (
-         const std::string & aNameCalib,
-	 const std::string & aTimeStamp,
-	 const std::string & aPatImSel,
-	 bool SVP
-     )
+cIrb_Desc1Intsr::cIrb_Desc1Intsr():
+    cIrb_Desc1Intsr(eTyInstr::eNbVals,MMVII_NONE)
 {
-   cOneCamInRBoI * aCam = CamFromName(aNameCalib);
-   cOneCamInRBoI aNewCam (aNameCalib,aTimeStamp,aPatImSel);
-   if (aCam)
+}
+
+void cIrb_Desc1Intsr::AddData(const  cAuxAr2007 & anAux)
+{
+    EnumAddData(anAux,mType,"Type");
+    MMVII::AddData(cAuxAr2007("NameInstr",anAux) ,mNameInstr);
+    MMVII::AddData(cAuxAr2007("Sigma",anAux) ,mSigma);
+}
+
+void AddData(const  cAuxAr2007 & anAux,cIrb_Desc1Intsr & aDesc)
+{
+   aDesc.AddData(anAux);
+}
+
+const cIrb_SigmaInstr & cIrb_Desc1Intsr::Sigma() const {return mSigma;}
+
+void cIrb_Desc1Intsr::SetSigma(const cIrb_SigmaInstr& aSigma)
+{
+   mSigma = aSigma;
+}
+
+void cIrb_Desc1Intsr::ResetSigma()
+{
+    SetSigma(cIrb_SigmaInstr());
+}
+
+void  cIrb_Desc1Intsr::AddNewSigma(const cIrb_SigmaInstr& aSigAdd)
+{
+    mSigma.AddNewSigma(aSigAdd);
+}
+
+eTyInstr             cIrb_Desc1Intsr::Type() const {return mType;}
+const std::string &  cIrb_Desc1Intsr::NameInstr() const {return mNameInstr;}
+
+
+/* *************************************************************** */
+/*                                                                 */
+/*                        cIrbComp_TimeS                             */
+/*                                                                 */
+/* *************************************************************** */
+
+cIrbComp_TimeS::cIrbComp_TimeS (const cIrbComp_Block & aCompBlock) :
+    mCompBlock       (aCompBlock),
+    mSetCams         (aCompBlock),
+    mPoseInstrIsInit (false),
+    mPoseInstr       (tPoseR::Identity())
+{
+}
+
+const cIrbComp_CamSet & cIrbComp_TimeS::SetCams() const {return mSetCams;}
+cIrbComp_CamSet & cIrbComp_TimeS::SetCams() {return mSetCams;}
+const cIrbComp_ClinoSet & cIrbComp_TimeS::SetClino() const {return mSetClino;}
+
+const cIrbComp_Block & cIrbComp_TimeS::CompBlock() const {return mCompBlock;}
+
+const cIrbCal_Block & cIrbComp_TimeS::CalBlock() const{return  mCompBlock.CalBlock();}
+
+void cIrbComp_TimeS::SetClinoValues(const cOneMesureClino& aMeasure)
+{
+    mSetClino.SetClinoValues(aMeasure);
+}
+
+// cIrbComp_Block & cIrbComp_TimeS::CompBlock()  {return mCompBlock;}
+
+void cIrbComp_TimeS::ComputePoseInstrument(const std::vector<int>& aSetNumCam,bool SVP)
+{
+    mPoseInstrIsInit = false;
+   // static tTypeMap  Centroid(const std::vector<tTypeMap> & aV,const std::vector<Type> &);
+    std::vector<tPoseR> aVPose;
+    std::vector<tREAL8> aVWeight;
+
+    // tREAL8 aSumW = 0;
+    const cIrbCal_CamSet & aSetCalCams = mCompBlock.SetOfCalibCams() ;
+
+
+   // for (size_t aKP=0 ; aKP< aSetCalCams.NbCams() ; aKP++)
+    for (auto aKP : aSetNumCam)
+    {
+         const cIrbCal_Cam1 & aCalCams = aSetCalCams.KthCam(aKP);
+         const cIrbComp_Cam1 & aCompCam = mSetCams.KthCam(aKP) ;
+         if (aCalCams.IsInit() && aCompCam.IsInit())
+         {
+             const  cIrb_SigmaInstr & aSigma  = CalBlock().DescrIndiv(aCalCams.NameCal()).Sigma();
+             tREAL8 aSig2 = Square(aSigma.SigmaRot()) +  Square(aSigma.SigmaTr()) ;
+             //  PoseCal  :  Cam->CalCoord     PoseIm  Cam->Word
+             //  PoseCal * PoseIm-1  :  Word -> CalCoord
+             tPoseR aPoseCam2Word = aCompCam.Pose();
+             tPoseR aPoseCam2Cal = aCalCams.PoseInBlock();
+             tPoseR aPosWord2Cal = aPoseCam2Cal*aPoseCam2Word.MapInverse();
+
+           //  StdOut()  << "    * PPPppPPp " << aPosWord2Cal.Tr() << " " << aPosWord2Cal.Rot().ToWPK() << "\n";
+
+             aVWeight.push_back(1/aSig2);
+             aVPose.push_back(aPosWord2Cal);
+         }
+    }
+//    StdOut() << " ============================================================\n";
+    if (! aVWeight.empty())
+    {
+        mPoseInstrIsInit = true;
+        mPoseInstr = tPoseR::Centroid(aVPose,aVWeight);
+    }
+    else
+    {
+        MMVII_INTERNAL_ASSERT_tiny(SVP,"Cannot do ComputePoseInstrument");
+    }
+}
+
+tREAL8 cIrbComp_TimeS::ScoreDirClino(const cPt3dr& aDirClino,size_t aKClino) const
+{
+    cPt3dr aDirLoc = mPoseInstr.Rot().Inverse(aDirClino);
+    // cPt3dr aDirLoc = mPoseInstr.Rot().Value(aDirClino);
+/*
+    StdOut () << " aKClino " << aKClino << " " << mSetClino.NbMeasure() << "\n";
+    std::abs(aDirLoc.z() - std::sin(mSetClino.KthMeasure(aKClino).Angle()) );
+    StdOut() << " ScoreDirClino " << __LINE__ << "\n";
+*/
+
+    return std::abs(aDirLoc.z() - std::sin(mSetClino.KthMeasure(aKClino).Angle()) );
+
+    // return std::abs(aDirLoc.z() - mSetClino.KthMeasure(aKClino).Angle() );
+
+}
+
+
+
+/* *************************************************************** */
+/*                                                                 */
+/*                        cIrbComp_Block                            */
+/*                                                                 */
+/* *************************************************************** */
+
+    //  -------------------------- "Constructors"  --------------------------------------------------------
+
+
+cIrbComp_Block::cIrbComp_Block( cIrbCal_Block * aCalBlock,bool IsAdopted) :
+   mCalBlock   (aCalBlock),
+   mCalIsAdopted (IsAdopted),
+   mPhProj (nullptr)
+{
+}
+
+
+cIrbComp_Block::~cIrbComp_Block()
+{
+   if (mCalIsAdopted)
+      delete mCalBlock;
+}
+
+
+cIrbComp_Block::cIrbComp_Block(const std::string & aNameFile) :
+    cIrbComp_Block (new  cIrbCal_Block,true)
+{
+    ReadFromFile(*mCalBlock,aNameFile);
+}
+
+
+cIrbComp_Block::cIrbComp_Block(const cPhotogrammetricProject& aPhProj,const std::string & aNameBloc) :
+    cIrbComp_Block  (aPhProj.NameRigBoI(aNameBloc,true))
+{
+    mPhProj   = &aPhProj;
+}
+
+    //  -------------------------- "Modificators=progressive construction"  --------------------------------------------
+
+cIrbComp_TimeS &  cIrbComp_Block::DataOfTimeS(const std::string & aTS)
+{
+    // possibly add an empty cIrbComp_TimeS if noting at aTS
+    mDataTS.emplace(aTS,*this);
+
+    // extract result mDataTS[aTS]  that should exist now
+    auto  anIter = mDataTS.find(aTS);
+    MMVII_INTERNAL_ASSERT_tiny(anIter!=mDataTS.end(),"cIrbComp_Block::DataOfTimeS");
+    return anIter->second;
+}
+
+void cIrbComp_Block::AddImagePose(cSensorCamPC * aCamPC,bool okImNotInBloc,bool Adopt)
+{
+    // extract the name of the calibration 
+    std::string aNameIm = aCamPC->NameImage();
+    tPoseR aPose = aCamPC->Pose();
+    std::string aNameCal = PhProj().StdNameCalibOfImage(aNameIm);
+
+    // extract the specification of the camera in the block
+    cIrbCal_Cam1 *  aCInRBoI = mCalBlock->mSetCams.CamFromNameCalib(aNameCal,okImNotInBloc);
+    if (aCInRBoI==nullptr)
+       return;
+
+    // if the image does not belong to this block
+    if (!aCInRBoI->ImageIsInBlock(aNameIm))
+    {
+        MMVII_INTERNAL_ASSERT_tiny(okImNotInBloc,"Image is not in bloc : "+aNameIm);
+        return;
+    }
+
+    // extract time stamp
+    std::string aTimeS = aCInRBoI->TimeStamp(aNameIm);
+    // cIrbComp_TimeS &  cIrbComp_Block::DataOfTimeS(const std::string & aTS)
+    cIrbComp_TimeS &  aDataTS =  DataOfTimeS(aTimeS);
+
+    // StdOut() << " III=" << aNameIm << " CCC=" << aNameCal << " Ptr=" << aTimeS << "\n";
+    aDataTS.mSetCams.AddImagePose(aCInRBoI->Num(),aCamPC,Adopt);
+}
+
+void cIrbComp_Block::AddImagePose(const std::string & aNameIm,bool  okImNotInBloc, bool usePoseOfCalib)
+{
+    cSensorCamPC * aCamPC = nullptr;
+
+
+    if (usePoseOfCalib)
+    {
+        aCamPC = mCalBlock->SetCams().CamInBloc(&PhProj(),aNameIm);
+        aCamPC = new cSensorCamPC(aNameIm,aCamPC->Pose(),aCamPC->InternalCalib());
+    }
+    else
+    {
+         aCamPC = PhProj().ReadCamPC(aNameIm,DelAuto::Yes,SVP::Yes);
+    }
+
+    if (aCamPC!=0)
+    {
+         AddImagePose(aCamPC,okImNotInBloc,usePoseOfCalib);
+    }
+}
+
+void cIrbComp_Block::AddImagesPoses(const std::vector<std::string> & aVecName,bool okImNotInBloc,bool usePoseOfCalib)
+{
+    for (const auto & aName : aVecName)
+        AddImagePose(aName,okImNotInBloc,usePoseOfCalib);
+}
+
+
+void cIrbComp_Block::SetClinoValues(const cSetMeasureClino& aSetM,bool OkNewTimeS)
+{
+    MMVII_INTERNAL_ASSERT_tiny(aSetM.NamesClino() == mCalBlock->SetClinos().VNames(),"Names differs in SetClinoValues");
+   for (const auto & aMeasure : aSetM.SetMeasures())
    {
-       MMVII_INTERNAL_ASSERT_strong(SVP,"cRigidBlockOfInstrument::AddCam, cal already exist for " + aNameCalib);
-       *aCam = aNewCam;
+       // we test before, because in case does not exist, it will
+       if (!OkNewTimeS)
+       {
+           MMVII_INTERNAL_ASSERT_tiny(MapBoolFind(mDataTS,aMeasure.Ident()),"SetClinoValues new clino ident refuted for "+aMeasure.Ident());
+       }
+       cIrbComp_TimeS &     aTS = DataOfTimeS(aMeasure.Ident());
+       aTS.SetClinoValues(aMeasure);
    }
-   else
+}
+
+void cIrbComp_Block::SetClinoValues(bool OkNewTimeS)
+{
+    cSetMeasureClino aSetMeasures = mPhProj->ReadMeasureClino();
+    SetClinoValues(aSetMeasures,OkNewTimeS);
+}
+
+
+    //  -------------------------- "computation"  --------------------------------------------
+void cIrbComp_Block::ComputePoseInstrument(bool SVP)
+{
+    std::vector<int> aSetNumCam = SetOfCalibCams().NumPoseInstr();
+
+StdOut() << "ComputePoseInstrumentComputePoseInstrument= " << aSetNumCam << "\n";
+
+    for (auto & [aTimes,aDataTS] : mDataTS)
+        aDataTS.ComputePoseInstrument(aSetNumCam,SVP);
+}
+
+typename cIrbComp_Block::tResCompCal cIrbComp_Block::ComputeCalibCamsInit(int aKC1,int aKC2) const
+{
+   // [0]  Compute relative poses for each time stamps where it exist
+   std::vector<tPoseR> aVPoseRel;  // vector of existing relative pose
+   std::vector<std::string> aVTS;  // vector of existing time_stamp
+   for (const auto & [aName,aDataTS] :  mDataTS) // parse Time-Stamps and data associated
    {
-      mVCams.push_back(aNewCam);
+       const cIrbComp_CamSet & aSetC = aDataTS.SetCams(); // extract data for cameras
+        if (aSetC.HasPoseRel(aKC1,aKC2))
+        {
+            tPoseR aPose = aSetC.PoseRel(aKC1,aKC2);
+            aVPoseRel.push_back(aPose);
+            aVTS.push_back(aName);
+        }
    }
-}
+   int aNbP = aVPoseRel.size();
+   if (aNbP<2)
+       return  tResCompCal(-1.0,tPoseR::Identity(),cIrb_SigmaInstr());
 
-cOneCamInRBoI * cCamsInRBoI::CamFromName(const std::string& aName)
-{
-    for (auto&  aCam : mVCams)
-        if (aCam.NameCal() == aName)
-           return & aCam;
-    return nullptr;
-}
-
-void  cCamsInRBoI::AddData(const  cAuxAr2007 & anAux)
-{
-    MMVII::StdContAddData(cAuxAr2007("Set_Cams",anAux),mVCams);
-}
-void AddData(const  cAuxAr2007 & anAux,cCamsInRBoI & aCams)
-{
-    aCams.AddData(anAux);
-}
-
-/* *************************************************************** */
-/*                                                                 */
-/*                        cOneClinoInRBoI                          */
-/*                                                                 */
-/* *************************************************************** */
-
-cOneClinoInRBoI::cOneClinoInRBoI(const std::string & aName) :
-   mName         (aName),
-   mIsInit       (false),
-   mOrientInBloc (tRotR::Identity()),
-   mSigmaR       (-1)
-{
-}
-
-cOneClinoInRBoI::cOneClinoInRBoI() :
-   cOneClinoInRBoI (MMVII_NONE)
-{
-}
-
-void cOneClinoInRBoI::AddData(const  cAuxAr2007 & anAux)
-{
-      MMVII::AddData(cAuxAr2007("Name",anAux),mName);
-      MMVII::AddData(cAuxAr2007("IsInit",anAux),mIsInit);
-      MMVII::AddData(cAuxAr2007("OrientInBloc",anAux),mOrientInBloc);
-      MMVII::AddData(cAuxAr2007("SigmaR",anAux),mSigmaR);
-}
-void AddData(const  cAuxAr2007 & anAux,cOneClinoInRBoI & aClino)
-{
-    aClino.AddData(anAux);
-}
-
-const std::string & cOneClinoInRBoI::Name() const {return mName;}
-
-
-/* *************************************************************** */
-/*                                                                 */
-/*                        cClinosInRBoI                            */
-/*                                                                 */
-/* *************************************************************** */
-
-cClinosInRBoI::cClinosInRBoI()
-{
-}
-
-void cClinosInRBoI::AddData(const  cAuxAr2007 & anAux)
-{
-     MMVII::StdContAddData(cAuxAr2007("Set_Clinos",anAux),mVClinos);
-}
-
-void AddData(const  cAuxAr2007 & anAux,cClinosInRBoI & aSetClino)
-{
-    aSetClino.AddData(anAux);
-}
-
-
-cOneClinoInRBoI * cClinosInRBoI::ClinoFromName(const std::string& aName)
-{
-    for (auto&  aClino : mVClinos)
-        if (aClino.Name() == aName)
-           return & aClino;
-    return nullptr;
-}
-
-void cClinosInRBoI::AddClino(const std::string & aName,bool SVP)
-{
-   cOneClinoInRBoI * aClino = ClinoFromName(aName);
-   cOneClinoInRBoI aNewClino (aName);
-   if (aClino)
+   // [1]  Compute medians of residuals, used to have an order of magnitude of the sigmas
+   // required for mixing sigma on tr with sigma on rot
+   tREAL8 aMedTr=0,aMedRot=0;
    {
-       MMVII_INTERNAL_ASSERT_strong(SVP,"cRigidBlockOfInstrument::AddClino, cal already exist for " + aName);
-       *aClino = aNewClino;
+       std::vector<tREAL8>  aVDistTr;
+       std::vector<tREAL8>  aVDistRot;
+       for (size_t aKP1 =0 ; aKP1<aVPoseRel.size() ; aKP1++)
+       {
+           for (size_t aKP2 =aKP1+1 ; aKP2<aVPoseRel.size() ; aKP2++)
+           {
+                aVDistTr.push_back(Norm2(aVPoseRel.at(aKP1).Tr()-aVPoseRel.at(aKP2).Tr()));
+                aVDistRot.push_back(aVPoseRel.at(aKP1).Rot().Dist(aVPoseRel.at(aKP2).Rot()));
+           }
+       }
+       aMedTr  =  NonConstMediane(aVDistTr);
+       aMedRot =  NonConstMediane(aVDistRot);
    }
-   else
+   
+
+   // [2]  Exract the robust center, ie the one minimizing the sum of distance
+   // to the other
+   int    aK1Min    = -1;
+   tREAL8 aMinDGlob = 1e10;
+   tREAL8 aMinDTr   = 1e10;
+   tREAL8 aMinDRot  = 1e10;
+   tREAL8 aRatioTrRot = (aMedTr/aMedRot);
+   tREAL8 aRatioNb = 1.0 / tREAL8(aNbP-1);
+
+   for (size_t aKP1 =0 ; aKP1<aVPoseRel.size() ; aKP1++)
    {
-      mVClinos.push_back(aNewClino);
+       tREAL8 aSumDGlob = 0.0;
+       tREAL8 aSumDTr   = 0.0;
+       tREAL8 aSumDRot  = 0.0;
+       cStdStatRes      aStat;
+       for (size_t aKP2 =0 ; aKP2<aVPoseRel.size() ; aKP2++)
+       {
+            tREAL8 aDTr = Norm2(aVPoseRel.at(aKP1).Tr()-aVPoseRel.at(aKP2).Tr());
+            tREAL8 aDRot = aVPoseRel.at(aKP1).Rot().Dist(aVPoseRel.at(aKP2).Rot());
+            aSumDTr   += aDTr;
+            aSumDRot  += aDRot;
+            aSumDGlob += ( aDTr + aDRot * aRatioTrRot) / (1+aRatioTrRot);
+       }
+       // StdOut() << "SOM=" << aSumDGlob/aVPoseRel.size() << "\n";
+       if (aSumDGlob<aMinDGlob )
+       {
+           aK1Min    = aKP1;
+           aMinDGlob = aSumDGlob * aRatioNb;
+           aMinDTr   = aSumDTr   * aRatioNb;
+           aMinDRot  = aSumDRot  * aRatioNb;
+       }
    }
+
+
+   /*
+   StdOut() << "K1/K2=" << aKC1<< aKC2 
+            << " Med , Tr=" <<  aMedTr << " Rot=" <<  aMedRot
+	    << " TS "  << aVTS.at(aK1Min) << " DTr=" <<  aMinDTr << " DRot=" << aMinDRot 
+	    << "\n";
+	    */
+
+   return tResCompCal(aMinDGlob,aVPoseRel.at(aK1Min), cIrb_SigmaInstr (aNbP,aNbP,aMinDTr,aMinDRot));
 }
 
+
+    //  -------------------------- "Accessors"  --------------------------------------------------------
+   
+const cIrbCal_CamSet &  cIrbComp_Block::SetOfCalibCams() const { return mCalBlock->SetCams(); }
+const cPhotogrammetricProject & cIrbComp_Block::PhProj()
+{
+    MMVII_INTERNAL_ASSERT_strong(mPhProj,"No PhProj for cIrbComp_Block");
+    return *mPhProj;
+}
+const cIrbCal_Block & cIrbComp_Block::CalBlock() const {return *mCalBlock;}
+cIrbCal_Block & cIrbComp_Block::CalBlock() {return *mCalBlock;}
+size_t  cIrbComp_Block::NbCams() const  {return SetOfCalibCams().NbCams();}
+
+const typename cIrbComp_Block::tContTimeS & cIrbComp_Block::DataTS() const {return mDataTS;}
+ typename cIrbComp_Block::tContTimeS & cIrbComp_Block::DataTS()  {return mDataTS;}
+
+
+tREAL8 cIrbComp_Block::ScoreDirClino(const cPt3dr& aDir,size_t aKClino) const
+{
+    cWeightAv<tREAL8,tREAL8>  aWAvg;
+
+     for (const auto & [aTimeS,aDataTS]: mDataTS)
+     {
+         // StdOut() << " DDDTssSS " << aTimeS << "\n";
+         if (aKClino < aDataTS.SetClino().NbMeasure())
+            aWAvg.Add(1.0,aDataTS.ScoreDirClino(aDir,aKClino));
+     }
+
+     return aWAvg.Average();
+}
+
+
 /* *************************************************************** */
 /*                                                                 */
-/*                        cRigidBlockOfInstrument                  */
+/*                        cIrb_CstrRelRot                          */
 /*                                                                 */
 /* *************************************************************** */
 
-const std::string  cRigidBlockOfInstrument::theDefaultName = "TheBlock";  /// in most application there is only one block
-
-cRigidBlockOfInstrument::cRigidBlockOfInstrument(const std::string& aName) :
-     mNameBloc (aName)
+cIrb_CstrRelRot::cIrb_CstrRelRot(const tRotR & anOri,const tREAL8 & aSigma) :
+    mOri    (anOri),
+    mSigma (aSigma)
 {
 }
 
+cIrb_CstrRelRot::cIrb_CstrRelRot() :
+    cIrb_CstrRelRot(tRotR::Identity(),-1.0)
+{
 
-void  cRigidBlockOfInstrument::AddData(const  cAuxAr2007 & anAux)
+}
+
+void cIrb_CstrRelRot::AddData(const  cAuxAr2007 & anAux)
+{
+    MMVII::AddData(cAuxAr2007("Ori",anAux),mOri);
+    MMVII::AddData(cAuxAr2007("Sigma",anAux),mSigma);
+
+}
+
+void AddData(const  cAuxAr2007 & anAux,cIrb_CstrRelRot & aICRR)
+{
+    aICRR.AddData(anAux);
+}
+
+/* *************************************************************** */
+/*                                                                 */
+/*                        cIrb_CstrOrthog                          */
+/*                                                                 */
+/* *************************************************************** */
+
+
+cIrb_CstrOrthog::cIrb_CstrOrthog(const tREAL8 & aSigma) :
+    mSigma (aSigma)
+{
+}
+
+cIrb_CstrOrthog::cIrb_CstrOrthog() :
+    cIrb_CstrOrthog(-1.0)
+{
+
+}
+
+
+tREAL8 cIrb_CstrOrthog::Sigma() const {return mSigma;}
+
+
+void cIrb_CstrOrthog::AddData(const  cAuxAr2007 & anAux)
+{
+    MMVII::AddData(cAuxAr2007("Sigma",anAux),mSigma);
+
+}
+
+void AddData(const  cAuxAr2007 & anAux,cIrb_CstrOrthog & aICO)
+{
+    aICO.AddData(anAux);
+}
+
+/* *************************************************************** */
+/*                                                                 */
+/*                        cIrbCal_Block                            */
+/*                                                                 */
+/* *************************************************************** */
+
+const std::string  cIrbCal_Block::theDefaultName = "TheBlock";  /// in most application there is only one block
+
+cIrbCal_Block::cIrbCal_Block(const std::string& aName) :
+     mNameBloc (aName),
+     mSetCams  (this),
+     mSetClinos (this)
+{
+    /*
+    mSetCams.mCalBlock = this;
+    mSetClinos.mCalBlock = this;
+*/
+}
+
+
+void  cIrbCal_Block::AddData(const  cAuxAr2007 & anAux)
 {
     MMVII::AddData(cAuxAr2007("Cams",anAux),mSetCams);	
     MMVII::AddData(cAuxAr2007("Clinos",anAux),mSetClinos);	
+
+    MMVII::StdMapAddData(cAuxAr2007("SigmasPairs",anAux),mSigmaPair);
+    MMVII::StdMapAddData(cAuxAr2007("DescrIndiv",anAux),mDescrIndiv);
+    MMVII::StdMapAddData(cAuxAr2007("CstrRelRot",anAux),mCstrRelRot);
+    MMVII::StdMapAddData(cAuxAr2007("CstrOrthog",anAux),mCstrOrthog);
 }
-void AddData(const  cAuxAr2007 & anAux,cRigidBlockOfInstrument & aRBoI)
+
+void AddData(const  cAuxAr2007 & anAux,cIrbCal_Block & aRBoI)
 {
     aRBoI.AddData(anAux);
 }
 
-
-const std::string & cRigidBlockOfInstrument::NameBloc() const {return mNameBloc;}
-cCamsInRBoI &  cRigidBlockOfInstrument::SetCams() {return mSetCams;}
-cClinosInRBoI &  cRigidBlockOfInstrument::SetClinos() {return mSetClinos;}
-
-/* *************************************************************** */
-/*                                                                 */
-/*                        cRigidBlockOfInstrument                  */
-/*                                                                 */
-/* *************************************************************** */
-
-class cAppli_EditBlockInstr : public cMMVII_Appli
+cIrb_Desc1Intsr &  cIrbCal_Block::AddSigma_Indiv(std::string aNameInstr,eTyInstr aTypeInstr)
 {
-     public :
-
-        cAppli_EditBlockInstr(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli &);
-        int Exe() override;
-         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override;
-         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override;
-
-        // std::vector<std::string>  Samples() const override;
-
-     private :
-        cPhotogrammetricProject   mPhProj;
-        std::string               mNameBloc;
-	std::vector<std::string>  mVPatsIm4Cam;
-};
-
-cAppli_EditBlockInstr::cAppli_EditBlockInstr(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec) :
-    cMMVII_Appli (aVArgs,aSpec),
-    mPhProj      (*this),
-    mNameBloc    (cRigidBlockOfInstrument::theDefaultName)
-{
-}
-
-cCollecSpecArg2007 & cAppli_EditBlockInstr::ArgObl(cCollecSpecArg2007 & anArgObl) 
-{
-     return anArgObl
-             <<  mPhProj.DPBlockInstr().ArgDirInMand()
-     ;
-
-}
-
-cCollecSpecArg2007 & cAppli_EditBlockInstr::ArgOpt(cCollecSpecArg2007 & anArgOpt)
-{
-	return anArgOpt
-            << AOpt2007(mNameBloc,"NameBloc","Set the name of the bloc ",{{eTA2007::HDV}})
-            << AOpt2007(mVPatsIm4Cam,"PatsIm4Cam","Pattern images []",{{eTA2007::ISizeV,"[1,3]"}})
-            << mPhProj.DPBlockInstr().ArgDirOutOpt()
-            << mPhProj.DPMeasuresClino().ArgDirInOpt()
-        ;
-}
-
-
-int cAppli_EditBlockInstr::Exe() 
-{
-    mPhProj.DPBlockInstr().SetDirOutInIfNotInit();
-    mPhProj.FinishInit();
-
-    cRigidBlockOfInstrument *  aBlock = mPhProj.ReadRigBoI(mNameBloc,SVP::Yes);
-
-    if (IsInit(&mVPatsIm4Cam))
+    auto  anIter = mDescrIndiv.find(aNameInstr);
+    if (anIter== mDescrIndiv.end())
     {
-        std::string aPatSelOnDisk = mVPatsIm4Cam.at(0);
-        std::string aPatTimeStamp = GetDef(mVPatsIm4Cam,1,aPatSelOnDisk);
-        std::string aPatSelIm = GetDef(mVPatsIm4Cam,2,aPatTimeStamp);
+        mDescrIndiv[aNameInstr] = cIrb_Desc1Intsr(aTypeInstr,aNameInstr);
+        anIter = mDescrIndiv.find(aNameInstr);
+    }
+    cIrb_Desc1Intsr &  anInstr = anIter->second;
 
-        auto aVNameIm = ToVect(SetNameFromString(aPatSelOnDisk,true));
-        for (const auto & aNameIm : aVNameIm)
+    MMVII_INTERNAL_ASSERT_tiny(anInstr.Type()== aTypeInstr,"Chang type in cIrbCal_Block::AddSigma_Indiv");
+    MMVII_INTERNAL_ASSERT_tiny(anInstr.NameInstr()== aNameInstr,"Chang type in cIrbCal_Block::AddSigma_Indiv");
+
+    return anInstr;
+}
+
+void  cIrbCal_Block::AddSigma_Indiv(std::string aNameInstr,eTyInstr aTypeInstr, const cIrb_SigmaInstr & aSigma)
+{
+    AddSigma_Indiv(aNameInstr,aTypeInstr).AddNewSigma(aSigma);
+}
+
+void  cIrbCal_Block::AddCstrRelRot(std::string aN1,std::string aN2,tREAL8 aSigma,tRotR anOri)
+{
+   if (aN1>aN2)
+   {
+       std::swap(aN1,aN2);
+       anOri = anOri.MapInverse();
+   }
+
+   DescrIndiv(aN1);
+   DescrIndiv(aN2);
+
+   mCstrRelRot[tNamePair(aN1,aN2)] = cIrb_CstrRelRot(anOri,aSigma);
+}
+
+void  cIrbCal_Block::AddCstrRelOrthog(std::string aN1,std::string aN2,tREAL8 aSigma)
+{
+   if (aN1>aN2)
+   {
+       std::swap(aN1,aN2);
+   }
+
+   DescrIndiv(aN1);
+   DescrIndiv(aN2);
+
+   mCstrOrthog[tNamePair(aN1,aN2)] = cIrb_CstrOrthog(aSigma);
+}
+
+void cIrbCal_Block::AddSigma(std::string aN1,eTyInstr aType1,std::string aN2,eTyInstr aType2,const cIrb_SigmaInstr & aSig)
+{
+    AddSigma_Indiv(aN1,aType1,aSig);
+    AddSigma_Indiv(aN2,aType2,aSig);
+    // mSigmaInd[aN1].AddNewSigma(aSig);
+    // mSigmaInd[aN2].AddNewSigma(aSig);
+    mSigmaPair[tNamePair(aN1,aN2)].AddNewSigma(aSig);
+}
+
+
+const std::string &      cIrbCal_Block::NameBloc() const {return mNameBloc;}
+cIrbCal_CamSet &        cIrbCal_Block::SetCams() {return mSetCams;}
+const cIrbCal_CamSet &  cIrbCal_Block::SetCams() const {return mSetCams;}
+cIrbCal_ClinoSet &      cIrbCal_Block::SetClinos() {return mSetClinos;}
+
+
+const  std::map<tNamePair,cIrb_SigmaInstr> &  cIrbCal_Block::SigmaPair() const {return mSigmaPair; }
+const std::map<std::string,cIrb_Desc1Intsr> & cIrbCal_Block::DescrIndiv() const {return mDescrIndiv;}
+const std::map<tNamePair,cIrb_CstrOrthog> &  cIrbCal_Block::CstrOrthog() const {return mCstrOrthog;}
+
+void cIrbCal_Block::SetSigmaPair(const  std::map<tNamePair,cIrb_SigmaInstr> & aSigmaPair)
+{
+
+    StdOut () << "    ============  SIGMA by PAIR, for cams in bloc ===========\n";
+    for (const auto&  [aCple,aSig] : aSigmaPair )
+    {
+        StdOut()
+                << " Tr=" << aSig.SigmaTr() << " Rot=" << aSig.SigmaRot()
+                << " : " << aCple.V1() << " " << aCple.V2()
+                << "\n";
+    }
+    mSigmaPair = aSigmaPair;
+}
+
+void cIrbCal_Block::SetSigmaIndiv(const  std::map<tNamePair,cIrb_SigmaInstr> & aSigmaPair)
+{
+
+    StdOut() << "AddNewSigma SetSigmaIndiv \n";
+    std::set<std::string> aSetInstr;
+    for (const auto&  [aCple,aSig] : aSigmaPair )
+    {
+        aSetInstr.insert(aCple.V1());
+        aSetInstr.insert(aCple.V2());
+    }
+
+    for (const auto&   aNameInstr : aSetInstr )
+    {
+        NC_DescrIndiv(aNameInstr).ResetSigma();
+    }
+
+    for (const auto&  [aCple,aSig] : aSigmaPair )
+    {
+        NC_DescrIndiv(aCple.V1()).AddNewSigma(aSig);
+        NC_DescrIndiv(aCple.V2()).AddNewSigma(aSig);
+        //StdOut() << " TTRRR=" << NC_DescrIndiv(aCple.V1()).Sigma().SigmaTr() << "\n";
+    }
+}
+
+
+const cIrb_Desc1Intsr &  cIrbCal_Block::DescrIndiv(const std::string & aNameInstr) const
+{
+   return *(MapGet(mDescrIndiv,aNameInstr));
+}
+
+cIrb_Desc1Intsr &  cIrbCal_Block::NC_DescrIndiv(const std::string & aNameInstr)
+{
+   return const_cast<cIrb_Desc1Intsr &> (DescrIndiv(aNameInstr));
+}
+
+void cIrbCal_Block::AvgPairSigma(eTyInstr aTyTarg1,eTyInstr aTyTarg2)
+{
+    tIntPair aPairTarg((int)aTyTarg1,(int)aTyTarg2); // Index use for T1,T2 <=> T2,T1
+    std::vector<cIrb_SigmaInstr*> aVSig; // memorize
+    cIrb_SigmaInstr  aSigGlob;
+
+    for ( auto & [aPair,aSigma] : mSigmaPair)
+    {
+        eTyInstr aTy1 = DescrIndiv(aPair.V1()).Type();
+        eTyInstr aTy2 = DescrIndiv(aPair.V2()).Type();
+
+        if (aPairTarg== tIntPair(int(aTy1),int(aTy2)))
         {
-            std::string aNameCal = mPhProj.StdNameCalibOfImage(aNameIm);
-	    aBlock->SetCams().AddCam(aNameCal,aPatTimeStamp,aPatSelIm,SVP::Yes);
+            aSigGlob.AddNewSigma(aSigma);
+            aVSig.push_back(&aSigma);
         }
     }
-    if (mPhProj.DPMeasuresClino().DirInIsInit())
+
+    for (auto aPtrS : aVSig)
+        *aPtrS = aSigGlob;
+}
+
+void cIrbCal_Block::AvgIndivSigma(eTyInstr aTyTarg)
+{
+    cIrb_SigmaInstr  aSigGlob;
+    std::vector<cIrb_Desc1Intsr*> aVInstr;
+
+    for ( auto & [aPair,aInstr] : mDescrIndiv)
     {
-         cSetMeasureClino aMesClin =  mPhProj.ReadMeasureClino();
-         for (const auto & aName : aMesClin.NamesClino())
-         {
-             aBlock->SetClinos().AddClino(aName,SVP::Yes);
-         }
+        if (aInstr.Type() == aTyTarg)
+        {
+            aSigGlob.AddNewSigma(aInstr.Sigma());
+            aVInstr.push_back(&aInstr);
+        }
     }
 
+    for (auto aPtrI : aVInstr)
+        aPtrI->SetSigma(aSigGlob);
 
-    mPhProj.SaveRigBoI(*aBlock);
+}
 
-    delete aBlock;
-    return EXIT_SUCCESS;
+void cIrbCal_Block::AvgIndivSigma()
+{
+    AvgIndivSigma(eTyInstr::eCamera);
+}
+
+void cIrbCal_Block::AvgPairSigma()
+{
+   AvgPairSigma(eTyInstr::eCamera,eTyInstr::eCamera);
+}
+
+void cIrbCal_Block::AvgSigma()
+{
+    AvgPairSigma();
+    AvgIndivSigma();
 }
 
 
-    /* ==================================================== */
-    /*                                                      */
-    /*               MMVII                                  */
-    /*                                                      */
-    /* ==================================================== */
-
-
-tMMVII_UnikPApli Alloc_EditBlockInstr(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec)
+void cIrbCal_Block::ShowDescr(eTyInstr aType) const
 {
-   return tMMVII_UnikPApli(new cAppli_EditBlockInstr(aVArgs,aSpec));
-}
+    StdOut() << " ====Block " << mNameBloc << " TypInstr: " << E2Str(aType) << "====\n";
+    cWeightAv<tREAL8> aAvSigTr;
+    cWeightAv<tREAL8> aAvSigRot;
 
-cSpecMMVII_Appli  TheSpec_EditBlockInstr
-(
-     "EditBlockInstr",
-      Alloc_EditBlockInstr,
-      "Create/Edit a block of instruments",
-      {eApF::Project},
-      {eApDT::Xml},
-      {eApDT::Xml},
-      __FILE__
-);
-
-/* *************************************************************** */
-/*                                                                 */
-/*               cPhotogrammetricProject                           */
-/*                                                                 */
-/* *************************************************************** */
-// cRigidBlockOfInstrument  ReadRigBoI(const std::string &) const;
-
-std::string   cPhotogrammetricProject::NameRigBoI(const std::string & aName,bool isIn) const
-{
-    return DPBlockInstr().FullDirInOut(isIn) + aName + "." + GlobTaggedNameDefSerial();
-}
-
-cRigidBlockOfInstrument *  cPhotogrammetricProject::ReadRigBoI(const std::string & aName,bool SVP) const
-{
-    std::string aFullName  = NameRigBoI(aName,IO::In);
-    cRigidBlockOfInstrument * aRes = new cRigidBlockOfInstrument(aName);
-
-    if (! ExistFile(aFullName))  // if it doesnt exist and we are OK, it return a new empty bloc
+    for (const auto & [aName,aDesc] : mDescrIndiv )
     {
-        MMVII_INTERNAL_ASSERT_User_UndefE(SVP,"cRigidBlockOfInstrument file dont exist");
+        if (aDesc.Type()==eTyInstr::eCamera)
+        {
+           cIrb_SigmaInstr aSig = aDesc.Sigma();
+           aAvSigTr.Add(1.0,aSig.SigmaTr());
+           aAvSigRot.Add(1.0,aSig.SigmaRot());
+
+           StdOut() << "  *NameInsr=[" << aName << "]"
+                    <<" Sigmas =["
+                     << " Tr:" <<  aSig.SigmaTr()
+                     << " Rot:" << aSig.SigmaRot() << " Rad]"
+                     << "\n";
+        }
     }
-    else
-    {
-        ReadFromFile(*aRes,aFullName);
-    }
+    StdOut ()  << "    AVERAGE  "
+                <<" Sigmas =["
+               << " Tr:" <<  aAvSigTr.Average()
+               << " Rot:" << aAvSigRot.Average() << " Rad]"
+               << "\n";
 
-
-    return aRes;
 }
-
-void   cPhotogrammetricProject::SaveRigBoI(const cRigidBlockOfInstrument & aBloc) const
-{
-      SaveInFile(aBloc,NameRigBoI(aBloc.NameBloc(),IO::Out));
-}
-
 
 };
 

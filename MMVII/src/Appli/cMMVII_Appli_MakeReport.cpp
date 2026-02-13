@@ -41,7 +41,14 @@ std::string  cMMVII_Appli::NameParamPostFixReport() { return "ReportPostF"; }
 std::string  cMMVII_Appli::CommentParamPostFixReport() { return "Postfix for folder in report generation"; }
 
 
-void  cMMVII_Appli::InitReportCSV(const std::string &anId,const std::string &aPost,bool IsMul,const std::vector<std::string> & aHeader)
+void  cMMVII_Appli::InitReportCSV
+      (
+            const std::string &anId,
+            const std::string &aPost,
+            bool IsMul,
+            const std::vector<std::string> & aHeader,
+            bool  forceNewFile
+      )
 {
     cAttrReport & anAttr = mMapAttrReport[anId];
     anAttr.mIsMul = IsMul;
@@ -62,10 +69,14 @@ void  cMMVII_Appli::InitReportCSV(const std::string &anId,const std::string &aPo
     else
         return;
 
-    cMMVII_Ofs(anAttr.mFile, eFileModeOut::CreateText);
+    bool fileExist = ExistFile(anAttr.mFile);
+    cMMVII_Ofs(anAttr.mFile, (forceNewFile ? eFileModeOut::CreateText : eFileModeOut::AppendText));
 
     if (! aHeader.empty())
-       AddHeaderReportCSV(anId,aHeader);
+    {
+       if (forceNewFile || (!fileExist))
+          AddHeaderReportCSV(anId,aHeader);
+    }
 }
 
 const std::string& cMMVII_Appli::NameFileCSVReport(const std::string & anId) const

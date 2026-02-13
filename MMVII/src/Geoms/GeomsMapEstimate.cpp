@@ -201,8 +201,9 @@ template <class TypeMap>
              )
 {
     TypeMap  aMap = RansacL1Estimate(aVIn,aVOut,aParam.ParamRS().NbTestOfErrAdm(TypeMap::NbPtsMin));
-    cParamCtrNLsq  aPLSq= aParam.ParamLSQ();
+    cParamCtrWeightedLSq  aPLSq= aParam.ParamLSQ();
  
+    //  In case aPtrRes is null, we still need it for "StabilityAfterNextError / LeastSquareRefine"
     tTypeElem  aResidual;
     if (aPtrRes==nullptr)
        aPtrRes = &aResidual;
@@ -253,6 +254,7 @@ template class TMAP<tREAL4>;\
 template class TMAP<tREAL8>;\
 template class TMAP<tREAL16>;
 
+MACRO_DEFINE_MAP_ESTIMATE(cTrans2D)
 MACRO_DEFINE_MAP_ESTIMATE(cSimilitud3D)
 MACRO_DEFINE_MAP_ESTIMATE(cIsometry3D)
 MACRO_DEFINE_MAP_ESTIMATE(cRot2D)

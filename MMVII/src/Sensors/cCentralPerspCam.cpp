@@ -216,7 +216,8 @@ cPerspCamIntrCalib::cPerspCamIntrCalib(const cDataPerspCamIntrCalib & aData) :
                                )
 		         ),
     mInvIsUpToDate       (false),
-    mTabulDUD            (nullptr)
+    mTabulDUD            (nullptr),
+    mEqProjSeg           (nullptr)
 {
     mVTmpCopyParams.clear();
 }
@@ -253,9 +254,9 @@ cPerspCamIntrCalib * cPerspCamIntrCalib::FromFile(const std::string & aName,bool
 {
     cPerspCamIntrCalib * aCalib = nullptr;
     if (Remanent) 
-       aCalib = RemanentObjectFromFile<cPerspCamIntrCalib,cDataPerspCamIntrCalib>(aName);
+       aCalib = RemanentNewObjectFromFile<cPerspCamIntrCalib,cDataPerspCamIntrCalib>(aName);
     else
-       aCalib =  ObjectFromFile<cPerspCamIntrCalib,cDataPerspCamIntrCalib>(aName);
+       aCalib =  NewObjectFromFile<cPerspCamIntrCalib,cDataPerspCamIntrCalib>(aName);
 
     std::string aNameWithFile = LastPrefix( FileOfPath(aName)) ;
     if (aNameWithFile != aCalib->Name())
@@ -605,8 +606,24 @@ void  cPerspCamIntrCalib::FillGetAdrInfoParam(cGetAdrInfoParam<tREAL8> & aGAIP)
 
 cCalculator<double> * cPerspCamIntrCalib::EqColinearity(bool WithDerives,int aSzBuf,bool ReUse)
 {
-    return EqColinearityCamPPC(mTypeProj,mDir_Degr,WithDerives,aSzBuf,ReUse,mIsFraserMode);
+    return EqColinearityCamPPC(mTypeProj,mDir_Degr,WithDerives,aSzBuf,ReUse,mIsFraserMode,eTypeEqCol::ePt);
 }
+
+cCalculator<double> * cPerspCamIntrCalib::EqProjSeg(bool WithDerives,int aSzBuf,bool ReUse)
+{
+    return EqColinearityCamPPC(mTypeProj,mDir_Degr,WithDerives,aSzBuf,ReUse,mIsFraserMode,eTypeEqCol::eLine);
+}
+
+cCalculator<double> *  cPerspCamIntrCalib::SetAndGet_EqProjSeg()
+{
+   if (mEqProjSeg==nullptr)
+      mEqProjSeg = EqProjSeg(true,10,true);
+
+  return mEqProjSeg;
+}
+
+
+
       //   ----  Accessor  to distorsion ----------------
 
 const std::vector<double> & cPerspCamIntrCalib::VParamDist() const 
@@ -896,12 +913,12 @@ cPerspCamIntrCalib * cPerspCamIntrCalib::RandomCalib(eProjPC aTypeProj,int aKDeg
 	                                 cDataPerspCamIntrCalib
 	                                 (
 	                                       "BenchCam",
-                                                aTypeProj,
-						aDegDir.at(aKDeg),
+                                            aTypeProj,
+                                            aDegDir.at(aKDeg),
 	                                        std::vector<double>(),
 	                                        cMapPProj2Im(aFoc,aPP),
 	                                        cDataPixelDomain(aSz),
-						aDegInv.at(aKDeg),
+                                            aDegInv.at(aKDeg),
 	                                        100
 	                                 )
                                 );
@@ -1084,6 +1101,8 @@ void BenchImAndZ()
 
 void BenchCentralePerspective(cParamExeBench & aParam)
 {
+    if (! aParam.NewBench("CentralPersp")) return;
+
     BenchAiconCamera();
 
    // Test the accuracy of tabulation on dist/undist
@@ -1133,8 +1152,6 @@ void BenchCentralePerspective(cParamExeBench & aParam)
 
 
     BenchCentralePerspective(aParam,eProjPC::eOrthoGraphik);
-
-    if (! aParam.NewBench("CentralPersp")) return;
 
     BenchStenopeSat();
     BenchImAndZ();

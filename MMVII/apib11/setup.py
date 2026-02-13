@@ -146,7 +146,7 @@ setup(
     #author_email="",
     url="https://github.com/micmacIGN",
     description="MicMac v2 Python API",
-    long_description="",
+    #long_description="",
     py_modules=['MMVII'],
     ext_modules=[CMakeExtension("_"+module_name)],
     cmdclass={"build_ext": CMakeBuild},

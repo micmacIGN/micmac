@@ -20,11 +20,11 @@ enum class eTypeFuncDist
 
 /**  This class store a complete description of each parameters of the distorsion,
      it is used for computing the formula, the vector of name and (later) automatize
-     conversion, print understandable values ....
+     conversion, print understandable values...
 
      It's rather bad design with the same classe coding different things, and some fields
-     used of not according to the others, but as it internal/final classes, quick and dirty
-     exceptionnaly allowed ...
+     used or not according to the other, but as it is an internal/final classes, quick and dirty
+     is exceptionnaly allowed...
 */
 enum class eModeDistMonom
 {
@@ -96,6 +96,11 @@ class cRandInvertibleDist
 std::vector<std::string>  NamesP3(const std::string& aPref) ;  /// x y z
 std::vector<std::string>  NamesP2(const std::string& aPref) ;  /// x y z
 std::vector<std::string>  NamesMatr(const std::string& aPref,const cPt2di & aSz);  /// m00  m10  m20  m01 ...
+std::vector<std::string>  NamesObsP3Norm(const std::string& aPref) ;  /// x y z
+
+
+//  aPref+aK0  .... aPref+aK0-1
+std::vector<std::string>  VectNames(const std::string& aPref,int aK0,int aK1) ;  /// x y z
 
 ///  Vector of name for a pose NameC->  center of proj,   NameOmega-> vector rotation
 std::vector<std::string>  NamesPose(const std::string& NameC ,const std::string&  NameOmega);
@@ -136,7 +141,14 @@ NS_SymbolicDerivative::cCalculator<double> * EqColinearityCamGen(int  aDeg,bool 
 NS_SymbolicDerivative::cCalculator<double> * RPC_Proj(bool WithDerive,int aSzBuf,bool ReUse); // PUSHB
 
            // .............   Equation colinearity , imply external parameter, Projectiion, distorsion, foc+PP .............
-NS_SymbolicDerivative::cCalculator<double> * EqColinearityCamPPC(eProjPC  aType,const cPt3di & aDeg,bool WithDerive,int aSzBuf,bool ReUse,bool isFraserMode);
+enum class eTypeEqCol
+           {
+                ePt,
+                eLine
+           };
+
+NS_SymbolicDerivative::cCalculator<double> * EqColinearityCamPPC(eProjPC  aType,const cPt3di & aDeg,bool WithDerive,int aSzBuf,bool ReUse,bool isFraserMode,eTypeEqCol);
+
            // .............  TO BE REMOVED ULTIMATELY Equation colinearity , imply external parameter, Projectiion .............
 NS_SymbolicDerivative::cCalculator<double> * EqColinearityCamProj(bool WithDerive,int aSzBuf,bool ReUse);
     // .............   Equation colinearity , imply external parameter, Projectiion .............
@@ -154,8 +166,12 @@ NS_SymbolicDerivative::cCalculator<double> * EqRadiomStabilization(int aDegSens,
            // .............   Equation on rigid bloc .............
 NS_SymbolicDerivative::cCalculator<double> * EqBlocRig(bool WithDerive,int aSzBuf,bool Reuse);  // RIGIDBLOC
 NS_SymbolicDerivative::cCalculator<double> * EqBlocRig_RatE(bool WithDerive,int aSzBuf,bool Reuse);  // RIGIDBLOC
-NS_SymbolicDerivative::cCalculator<double> * EqClinoBloc(bool WithDerive,int aSzBuf,bool Reuse);  // CLINOBLOC
-NS_SymbolicDerivative::cCalculator<double> * EqClinoRot(bool WithDerive,int aSzBuf,bool Reuse);  // CLINOBLOC
+NS_SymbolicDerivative::cCalculator<double> * EqBlocRig_Clino(bool WithDerive,int aSzBuf,bool ReUse);  // RIGIDBLOC
+NS_SymbolicDerivative::cCalculator<double> * EqBlocRig_Orthog(bool WithDerive,int aSzBuf,bool ReUse);  // RIGIDBLOC
+
+
+NS_SymbolicDerivative::cCalculator<double> * Old_EqClinoBloc(bool WithDerive,int aSzBuf,bool Reuse);  // CLINOBLOC
+NS_SymbolicDerivative::cCalculator<double> * Old_EqClinoRot(bool WithDerive,int aSzBuf,bool Reuse);  // CLINOBLOC
 
 
 

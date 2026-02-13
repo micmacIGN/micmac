@@ -6,6 +6,8 @@
 #include "MMVII_enums.h"
 #include "MMVII_Error.h"
 #include "MMVII_nums.h"
+#include "MMVII_Stringifier.h"
+
 
 namespace MMVII
 {
@@ -190,8 +192,12 @@ template <class Type> void SortPtrValue(std::vector<Type*> &aV);
 
 // Xml or pat
 tNameSet SetNameFromPat    (const std::string&); ///< create a set of file from a pattern
+tNameSet SetNameFromPat    (const std::string&,bool WithDir); ///< create a set of file from a pattern
+
 tNameSet SetNameFromFile   (const std::string&, int aNumV); ///< create from a file xml, V1 or V2
 tNameSet SetNameFromString (const std::string&, bool AllowPat); ///< general case, try to recognize automatically V1, V2 or pattern
+tNameSet SetNameFromString(const std::string & aName,bool AllowPat,bool WithDir);
+
 std::vector<std::string>  ToVect(const tNameSet &);  ///< Less economic but more convenient than PutInVect
 
 /** read from file, select version, accept empty, error if file exist bud in bad format */
@@ -208,25 +214,25 @@ tNameRel  RelNameFromXmlFileIfExist
 
 /* ================================================ */
 /*                                                  */
-/*                 cOrderedPair                     */
+/*                 cUnOrderedPair                     */
 /*                                                  */
 /* ================================================ */
 
 /// Pair where we want (a,b) == (b,a)
 
-/** cOrderedPair are pretty match like pair<T,T> ,
+/** cUnOrderedPair are pretty match like pair<T,T> ,
     the main difference being that they modelise symetric graph.
     To assure that they are always in a single way, we
     force V1 <= V2
 */
-template <class Type> class cOrderedPair
+template <class Type> class cUnOrderedPair
 {
       public :
-           typedef cOrderedPair<Type> value;
-           cOrderedPair(const Type & aV1,const Type & aV2); ///< Pair will be reordered
-           cOrderedPair(); ///< Default constructor, notably for serializer
-           bool operator < (const cOrderedPair<Type> & aP2) const;
-           bool operator == (const cOrderedPair<Type> & aP2) const;
+           typedef cUnOrderedPair<Type> value;
+           cUnOrderedPair(const Type & aV1,const Type & aV2); ///< Pair will be reordered
+           cUnOrderedPair(); ///< Default constructor, notably for serializer
+           bool operator < (const cUnOrderedPair<Type> & aP2) const;
+           bool operator == (const cUnOrderedPair<Type> & aP2) const;
            const Type & V1() const;
            const Type & V2() const;
            Type & V1() ;
@@ -262,6 +268,18 @@ template<class TCont,class TVal> bool  MapBoolFind(const TCont & aCont,const TVa
 {
     return aCont.find(aVal) != aCont.end();
 }
+
+template<class TCont,class TKey> const typename  TCont::mapped_type *  MapGet(const TCont & aCont,const TKey & aKey,bool SVP=false)
+{
+    auto anIter = aCont.find(aKey);
+    if (anIter==aCont.end())
+    {
+        MMVII_INTERNAL_ASSERT_tiny(SVP,"MapGet for Key="+ cStrIO<TKey>::ToStr(aKey));
+        return nullptr;
+    }
+    return & anIter->second;
+}
+
 
 template <class TV,class TF> void erase_if(TV & aVec,const TF& aFonc)
 {
@@ -578,6 +596,22 @@ class cComputeAssociation
           std::list<cOneTryCAI> mVTries;
 };
 void AddData(const cAuxAr2007 & anAux,cComputeAssociation & aTransl);
+
+
+
+template <class TypeCont> typename TypeCont::value_type SumElem(const TypeCont &aCont)
+{
+    typename TypeCont::value_type  aResult = cNV<typename TypeCont::value_type>::V0();
+    for (const auto aVal : aCont)
+        aResult += aVal;
+    return aResult;
+}
+
+template <class TypeCont> typename TypeCont::value_type AvgElem(const TypeCont &aCont)
+{
+    MMVII_INTERNAL_ASSERT_tiny(!aCont.empty(),"AvgElem on empty vect");
+    return SumElem(aCont) / double (aCont.size());
+}
 
 };
 

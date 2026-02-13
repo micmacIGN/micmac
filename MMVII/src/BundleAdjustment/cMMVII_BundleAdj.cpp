@@ -104,7 +104,8 @@ cMMVII_BundleAdj::cMMVII_BundleAdj(cPhotogrammetricProject * aPhp) :
     mNbIter           (0),
     mVerbose          (true),
     mShow_UC_UK       (false),
-    mRUCSUR           (nullptr)
+    mRUCSUR           (nullptr),
+    mVecLineAdjust    ()
 {
 }
 
@@ -120,6 +121,9 @@ cMMVII_BundleAdj::~cMMVII_BundleAdj()
     delete mRUCSUR;
     // DeleteAllAndClear(mGCP_UK);
     DeleteAllAndClear(mVBA_Lidar);
+
+    DeleteLineAdjust();
+    DeleteBlockInstr();
 }
 
 void cMMVII_BundleAdj::ShowUKNames(const std::vector<std::string> & aParam, const std::string &aSuffix, cMMVII_Appli * anAppli)
@@ -268,9 +272,22 @@ void cMMVII_BundleAdj::OneIteration(tREAL8 aLVM,bool isLastIter, bool doShowCond
     if (mPatParamFrozenCalib !="")
     {
         for (const  auto & aPtrCal : mVPCIC)
-	{
+        {
             mR8_Sys->SetFrozenFromPat(*aPtrCal,mPatParamFrozenCalib,true);
-	}
+        }
+    }
+    for (const auto & aVPat : mPatternFreeCalib)
+    {
+        std::string aPatNameCam = aVPat.at(0);
+        tREAL8 aWeight = cStrIO<tREAL8>::FromStr(GetDef(aVPat,2,std::string("-1.0")));
+	//if (aVPat.size()>=3)
+        for (const  auto & aPtrCal : mVPCIC)
+        {
+            if (MatchRegex(aPtrCal->Name(),aPatNameCam))
+            {
+               mR8_Sys->SetFrozenFromPat(*aPtrCal,aVPat.at(1),false,aWeight);
+            }
+        }
     }
 
     // if necessary, fix frozen centers of external calibration
@@ -306,6 +323,8 @@ void cMMVII_BundleAdj::OneIteration(tREAL8 aLVM,bool isLastIter, bool doShowCond
         if (mVerbose)
             StdOut() << "Frozen orients: " << nbMatches << ".\n";
     }
+    // if necessary fix hard cosntraint onf Gauge of Rigid-Block of instrument
+    SetHardGaugeBlockInstr();
 
     if (mPatFrozenClinos != "" && mBlClino)
     {
@@ -372,6 +391,12 @@ void cMMVII_BundleAdj::OneIteration(tREAL8 aLVM,bool isLastIter, bool doShowCond
     for (const auto & aLidarPh : mVBA_Lidar )
        aLidarPh->AddObs();
 
+    // Add observation for line adjustment
+    IterAdjustOnLine();
+    //  Add observation for block of instrument
+    IterOneBlockInstr();
+
+
     if (mCompute_Uncert && isLastIter)
     {
 // StdOut() <<  "mCompute_UncertmCompute_UncertmCompute_Uncert--------------------------------\n";
@@ -392,6 +417,7 @@ void cMMVII_BundleAdj::OneIteration(tREAL8 aLVM,bool isLastIter, bool doShowCond
                  //<< " ?VarCur?=" << mR8_Sys->VarCurSol()
                  << " ---------------" << std::endl;
     }
+
 }
 
 
@@ -477,6 +503,10 @@ void  cMMVII_BundleAdj::AddCam(const std::string & aNameIm)
 const std::vector<cSensorImage *> &  cMMVII_BundleAdj::VSIm() const  {return mVSIm;}
 const std::vector<cSensorCamPC *> &  cMMVII_BundleAdj::VSCPC() const {return mVSCPC;}
 cResolSysNonLinear<tREAL8> *  cMMVII_BundleAdj::Sys() {return mR8_Sys;}
+cPhotogrammetricProject  & cMMVII_BundleAdj::PhProj() {return *mPhProj;}
+
+
+cSetInterUK_MultipeObj<tREAL8> &   cMMVII_BundleAdj::SetIntervUK() {return mSetIntervUK;}
 
 
     /* ---------------------------------------- */
@@ -486,6 +516,11 @@ cResolSysNonLinear<tREAL8> *  cMMVII_BundleAdj::Sys() {return mR8_Sys;}
 void cMMVII_BundleAdj::SetParamFrozenCalib(const std::string & aPattern)
 {    
     mPatParamFrozenCalib = aPattern;
+}
+
+void cMMVII_BundleAdj::SetParamFreeCalib(const std::vector<std::vector<std::string>> & aVVPat)
+{    
+    mPatternFreeCalib = aVVPat;
 }
 
 void cMMVII_BundleAdj::SetFrozenCenters(const std::string & aPattern)
@@ -757,7 +792,12 @@ void cMMVII_BundleAdj::SaveClino()
 
 void cMMVII_BundleAdj::Add1AdjLidarPhotogra(const std::vector<std::string> &aParam)
 {
-   mVBA_Lidar.push_back(new cBA_LidarPhotogra(*this,aParam));
+    mVBA_Lidar.push_back(new cBA_LidarPhotograTri(mPhProj, *this,aParam));
+}
+
+void cMMVII_BundleAdj::Add1AdjLidarPhoto(const std::vector<std::string> &aParam)
+{
+    mVBA_Lidar.push_back(new cBA_LidarPhotograRaster(mPhProj, *this,aParam));
 }
 
 /* ---------------------------------------- */

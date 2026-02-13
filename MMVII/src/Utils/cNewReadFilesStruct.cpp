@@ -58,7 +58,7 @@ void   cNRFS_ParamRead::AddArgOpt(cCollecSpecArg2007 & anArgOpt)
     anArgOpt
             <<  AOpt2007(mL0,"NumL0","Num of first line to read",{eTA2007::HDV})
             <<  AOpt2007(mLLast,"NumLast","Num of last line to read (-1 if at end of file)",{eTA2007::HDV})
-            <<  AOpt2007(mComment,"Comment","Carac for comment")
+            <<  AOpt2007(mComment,"Comment","Carac for comment",{eTA2007::HDV})
             <<  AOpt2007(mNoDupLine,"NoDupL","Supress duplicated lines")
     ;
 }

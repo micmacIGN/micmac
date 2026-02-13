@@ -75,6 +75,13 @@ if((NOT OpenMP_CXX_FOUND) AND (CMAKE_CXX_COMPILER_ID STREQUAL "Clang"))
    message(STATUS "OpenMP not found: did you install libomp-dev ?")
 endif()
 
+# libE57Format
+find_package( XercesC 3.2 REQUIRED )
+set(E57_RELEASE_LTO OFF CACHE BOOL "Compile release library with link-time optimization") # OFF for static
+add_subdirectory(ExternalInclude/libE57Format)
+include_directories(${CMAKE_BINARY_DIR}/E57-install/include)
+link_directories(${CMAKE_BINARY_DIR}/E57-install/lib)
+
 #######################################################
 ##        Compilation toolchain
 #######################################################
@@ -142,6 +149,9 @@ file(GLOB mmv2_headers "${mmv2_include_dir}/*.h" "${mmv2_include_dir}/*/*.h" "${
 add_library(P2007 "${mmv2_libsrcs}" "${mmv2_headers}")
 target_include_directories(P2007 PRIVATE "${mmv2_include_dir};${mmv1_include_dir};${EIGEN3_INCLUDE_PATH};${PROJ_INCLUDE_DIRS};${GDAL_INCLUDE_DIRS}")
 target_link_libraries(P2007 PRIVATE MMVII_compiler_flags Threads::Threads ${PROJ_LIBRARIES} ${GDAL_LIBRARIES})
+
+target_link_libraries(P2007 PRIVATE E57Format)
+add_dependencies(P2007 E57Format)
 
 # Force parallel compilation with MSVC
 if(MSVC)

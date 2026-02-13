@@ -253,7 +253,7 @@ tREAL8 cSysCo::getRadiusApprox(const tPt &in) const
     auto inGeoc = Value(in);
     PJ_COORD pj_geoc = toPjCoord(inGeoc);
     PJ_COORD pj_geog = proj_trans(mPJ_GeoC2Geog, PJ_FWD, pj_geoc);
-    tREAL8 lat = pj_geog.lp.phi/AngleInRad(eTyUnitAngle::eUA_degree);
+    tREAL8 lat = pj_geog.lp.phi/AngleFromRad(eTyUnitAngle::eUA_degree);
 
     return semi_axis*sqrt(1-e2)/(1-e2*Square(sin(lat)));//total curvature sphere
 }
@@ -398,8 +398,8 @@ cSysCoLEuc::cSysCoLEuc(const std::string &aDef, bool aDebug) :
 
         PJ_COORD to = proj_trans(mPJ_GeoC2Geog, PJ_FWD, toPjCoord(mTranfo2GeoC.Tr()));
         if (mDebug) testPJerror(mPJ_GeoC2Geog, MMVII_SysCoGeoC, MMVII_SysCoDefLatLong);
-        mCenterLatRad = to.lp.phi/AngleInRad(eTyUnitAngle::eUA_degree);
-        mCenterLongRad = to.lp.lam/AngleInRad(eTyUnitAngle::eUA_degree);
+        mCenterLatRad = to.lp.phi/AngleFromRad(eTyUnitAngle::eUA_degree);
+        mCenterLongRad = to.lp.lam/AngleFromRad(eTyUnitAngle::eUA_degree);
     }
     else
     {
@@ -496,8 +496,8 @@ bool cSysCoRTL::computeRTL(tPt anOrigin, std::string aInDef)
     to = proj_trans(pj_in2latlong, PJ_FWD, from);
     if (mDebug) testPJerror(pj_in2latlong, aInDef, MMVII_SysCoDefLatLong);
 
-    mCenterLatRad = to.lp.phi/AngleInRad(eTyUnitAngle::eUA_degree);
-    mCenterLongRad = to.lp.lam/AngleInRad(eTyUnitAngle::eUA_degree);
+    mCenterLatRad = to.lp.phi/AngleFromRad(eTyUnitAngle::eUA_degree);
+    mCenterLongRad = to.lp.lam/AngleFromRad(eTyUnitAngle::eUA_degree);
     auto Rz = cRotation3D<tREAL8>::RotKappa(-mCenterLongRad);
     auto Ry = cRotation3D<tREAL8>::RotPhi( mCenterLatRad - M_PI/2.);
     auto Rz2 = cRotation3D<tREAL8>::RotFromCanonicalAxes("-jik").Mat();
@@ -707,8 +707,8 @@ void BenchSysCo(cParamExeBench & aParam)
     cChangeSysCo aGeoC2Geog(aSysCoGeoC, aSysCoGeog);
     tPt3dr aPtAGeog = {2.4240, 48.8447, 100.};
     tPt3dr aPtAGeoC = aGeoC2Geog.Inverse(aPtAGeog);
-    tREAL8 lambda = aPtAGeog.x()/AngleInRad(eTyUnitAngle::eUA_degree);
-    tREAL8 phi = aPtAGeog.y()/AngleInRad(eTyUnitAngle::eUA_degree);
+    tREAL8 lambda = aPtAGeog.x()/AngleFromRad(eTyUnitAngle::eUA_degree);
+    tREAL8 phi = aPtAGeog.y()/AngleFromRad(eTyUnitAngle::eUA_degree);
 
     tREAL8 aDistN = 1000.;
     tPt3dr aVectN = { cos(lambda)*cos(phi), sin(lambda)*cos(phi), sin(phi) };

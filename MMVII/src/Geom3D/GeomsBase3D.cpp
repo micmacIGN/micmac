@@ -1,5 +1,6 @@
 #include "MMVII_SysSurR.h"
 #include "MMVII_Geom3D.h"
+#include "MMVII_Geom2D.h"
 
 namespace MMVII
 {
@@ -65,6 +66,17 @@ cPt3dr  BundleInters(const tSeg3dr & aSeg1,const tSeg3dr & aSeg2,tREAL8 aW12)
  *
  *
  */
+
+
+cPt3dr Cart2Cyl(const cPt3dr & aPtCart)
+{
+    return   TP3z(ToPolar(Proj(aPtCart),0.0),aPtCart.z());
+}
+
+cPt3dr Cyl2Cart(const cPt3dr & aPtspher)
+{
+    return   TP3z(FromPolar(Proj(aPtspher)),aPtspher.z());
+}
 
 
 
@@ -259,6 +271,8 @@ static const cPt3di NoTriplet(-1,-1,-1);
 
 std::pair<cPt3di,tREAL8> cPlane3D::IndexRansacEstimate(const std::vector<cPt3dr> & aVPts,bool AvgOrMax,int aNbTest,tREAL8 aRegulMinTri)
 {
+    //StdOut() << "cPlane3D::IndexRansacEstimatcPlane3D::IndexRansacEstimat\n";getchar();
+
      cWhichMin<cPt3di,tREAL8> aWM(NoTriplet,1e30);
 
      std::vector<cSetIExtension>  aSet3I; // Set of triple of indexes
@@ -296,6 +310,22 @@ std::pair<cPlane3D,tREAL8> cPlane3D::RansacEstimate(const std::vector<cPt3dr> & 
 
    return std::pair<cPlane3D,tREAL8>(cPlane3D::From3Point(aVPts.at(anInd.x()),aVPts.at(anInd.y()),aVPts.at(anInd.z())),aCost);
 
+}
+
+
+std::pair<cPlane3D,tREAL8> cPlane3D::LSQEstimate(const std::vector<cPt3dr> & aVPt,const std::vector<tREAL8>* aVW)
+{
+    cAffineSpace<3> aSp =  cAffineSpace<3>::LstSqEstimate(aVPt,2,aVW);
+
+    cPlane3D aPl = cPlane3D::FromP0And2V(aSp.P0(),aSp.VecSp().at(0),aSp.VecSp().at(1));
+    cWeightAv<tREAL8,tREAL8> aWS;
+    for (size_t aKPt=0 ; aKPt<aVPt.size() ; aKPt++)
+    {
+        tREAL8 aW = aVW ? aVW->at(aKPt) : 1.0;
+        aWS.Add(aW,aPl.Dist(aVPt.at(aKPt)));
+    }
+
+    return std::pair<cPlane3D,tREAL8>(aPl,aWS.Average());
 }
 
 
@@ -566,6 +596,14 @@ void BenchPlane3D()
 
        //  StdOut() << "NnnNnn " <<  Norm2(aPI - aPIVec) << std::endl;
        MMVII_INTERNAL_ASSERT_bench(Norm2(aPI - aPIVec) <1e-5,"BundleInters");
+    }
+
+    for (int aK=0 ; aK< 10 ; aK++)
+    {
+        cPt3dr aPCart =  cPt3dr::PRandC();
+        cPt3dr aPCyl  = Cart2Cyl(aPCart);
+        MMVII_INTERNAL_ASSERT_bench(Norm2(Cyl2Cart(aPCyl) - aPCart )<1e-7,"Cylindriq coordinates");
+        MMVII_INTERNAL_ASSERT_bench(std::abs(aPCyl.z()-aPCart.z() )<1e-7,"Cylindriq coordinates");
     }
     
 }

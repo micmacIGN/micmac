@@ -189,7 +189,6 @@ void AddData(const  cAuxAr2007 & anAux, cRawData4Serial  &  aVal)
 }
 
 void AddData(const  cAuxAr2007 & anAux, tREAL4  &  aVal) { anAux.Ar().TplAddDataTermByCast(anAux,aVal,(double*)nullptr); }
-void AddData(const  cAuxAr2007 & anAux, tREAL16  &  aVal) { anAux.Ar().TplAddDataTermByCast(anAux,aVal,(double*)nullptr); }
 
 void AddData(const  cAuxAr2007 & anAux, tINT1  &  aVal) 
 { 
@@ -200,7 +199,9 @@ void AddData(const  cAuxAr2007 & anAux, tU_INT1  &  aVal) { anAux.Ar().TplAddDat
 void AddData(const  cAuxAr2007 & anAux, tU_INT2  &  aVal) { anAux.Ar().TplAddDataTermByCast(anAux,aVal,(int*)nullptr); }
 void AddData(const  cAuxAr2007 & anAux, bool     &  aVal) { anAux.Ar().TplAddDataTermByCast(anAux,aVal,(int*)nullptr); }
 
-
+// Those 2 are dangerous ....
+void AddData(const  cAuxAr2007 & anAux, tREAL16  &  aVal) { anAux.Ar().TplAddDataTermByCast(anAux,aVal,(double*)nullptr); }
+void AddData(const  cAuxAr2007 & anAux, long     &  aVal) { anAux.Ar().TplAddDataTermByCast(anAux,aVal,(int*)nullptr); }
 
 
 // void AddData(const  cAuxAr2007 & anAux, bool  &  aVal) {anAux.Ar().RawAddDataTerm(aVal); }
@@ -242,7 +243,7 @@ template <class Type,int Dim> void AddData(const  cAuxAr2007 & anAux, cPtxd<Type
 }
 
 
-template  void AddData(const  cAuxAr2007 & anAux, cPtxd<tREAL8,4>  &  aVal) ;
+// template  void AddData(const  cAuxAr2007 & anAux, cPtxd<tREAL8,4>  &  aVal) ;
 
 #define MACRO_INSTANTIATE_AddDataPtxD(DIM)\
 template  void AddData(const  cAuxAr2007 & anAux, cPtxd<tREAL4,DIM>  &  aVal) ;\
@@ -253,6 +254,8 @@ template  void AddData(const  cAuxAr2007 & anAux, cPtxd<tINT4,DIM>  &  aVal) ;
 MACRO_INSTANTIATE_AddDataPtxD(1)
 MACRO_INSTANTIATE_AddDataPtxD(2)
 MACRO_INSTANTIATE_AddDataPtxD(3)
+MACRO_INSTANTIATE_AddDataPtxD(4)
+MACRO_INSTANTIATE_AddDataPtxD(5)
 
 void AddData(const  cAuxAr2007 & anAux, tNamePair  &  aVal) 
 {
@@ -320,7 +323,7 @@ eTAAr cAuxAr2007::Type() const {return mType;}
 
 
 class cIBaseTxt_Ar2007 : public cAr2007,
-	                   public cXmlSerialTokenParser
+	                 public cXmlSerialTokenParser
 {
      public :
           cIBaseTxt_Ar2007(const std::string & aName,eTypeSerial aTypeS) : 
@@ -739,7 +742,7 @@ void cIBin_Ar2007::RawAddDataTerm(cRawData4Serial  &    aRDS)
 */
 
 // std::unique_ptr<cAr2007 >  AllocArFromFile(const std::string & aName,bool Input)
-cAr2007 *  AllocArFromFile(const std::string & aName,bool Input,bool IsSpecif)
+cAr2007 *  AllocArFromFile(const std::string & aName,bool Input,bool IsSpecif,eTypeSerial aForceTypeS)
 {
    if (IsSpecif)
    {
@@ -769,7 +772,7 @@ cAr2007 *  AllocArFromFile(const std::string & aName,bool Input,bool IsSpecif)
        else
           aRes =  new cOBin_Ar2007(aName);
    }
-   else if (UCaseEqual(aPost,"txt") )
+   else if (UCaseEqual(aPost,"txt") || (aForceTypeS==eTypeSerial::etxt)  )
    {
        if (Input)
        {

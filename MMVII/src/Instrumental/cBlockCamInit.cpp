@@ -54,6 +54,7 @@ void cSetSensSameId::Resize(size_t aSize)
 	mVCams.resize(aSize);
 }
 
+
 const std::vector<cSensorCamPC*>&   cSetSensSameId::VCams() const {return mVCams;}
 
 const std::string & cSetSensSameId::Id() const {return mId;}

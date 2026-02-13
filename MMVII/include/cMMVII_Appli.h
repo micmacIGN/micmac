@@ -563,7 +563,14 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
 	virtual void OnCloseReport(int aNbLine,const std::string & anIdent,const std::string & aNameFile) const;
 
         /// Generate a new entry for report "anId",  IsMul -> indicate if we are in multi process (for merge at end)
-	void  InitReportCSV(const std::string &anId,const std::string & aPostfix,bool IsMul,const std::vector<std::string> & aHeader={});
+	void  InitReportCSV
+              (
+                  const std::string &anId,
+                  const std::string & aPostfix,
+                  bool IsMul,
+                  const std::vector<std::string> & aHeader={},
+                  bool  forceNewFile=true  // if "false" , use mode append, else create
+              );
 	//  void  AddTopReport(const std::string &anId,const std::string & VecMsg);
 
 

@@ -91,7 +91,13 @@ template <>  cPt2di cStrIO<cPt2di>::FromStr(const std::string & aStr);
 */
 
 #ifndef _MSC_VER
-template <>  const std::string cStrIO<char>::msNameType;
+template <>  const std::string cStrIO<tU_INT1>::msNameType;
+template <>  const std::string cStrIO<tINT1>::msNameType;
+template <>  const std::string cStrIO<tU_INT2>::msNameType;
+template <>  const std::string cStrIO<tINT2>::msNameType;
+template <>  const std::string cStrIO<tREAL4>::msNameType;
+template <>  const std::string cStrIO<tREAL8>::msNameType;
+//template <>  const std::string cStrIO<char>::msNameType;
 template <>  const std::string cStrIO<bool>::msNameType;
 template <>  const std::string cStrIO<int>::msNameType;
 template <>  const std::string cStrIO<double>::msNameType;
@@ -133,6 +139,8 @@ template <>  const std::string cStrIO<eTopoObsType>::msNameType;
 template <>  const std::string cStrIO<eTopoObsSetType>::msNameType;
 template <>  const std::string cStrIO<eTopoStOriStat>::msNameType;
 template <>  const std::string cStrIO<eTyClino>::msNameType;
+template <>  const std::string cStrIO<eTyInstr>::msNameType;
+
 #endif
 
 /** These functions offer an"easy" interface to cStrIO, however I think
@@ -435,8 +443,8 @@ class cAuxAr2007
 	 eTAAr     mType;
 };
 
-/// Create an archive structure, its type (xml, binary, text) is determined by extension
- cAr2007* AllocArFromFile(const std::string & aName,bool Input,bool IsSpecif=false);
+/// Create an archive structure, its type (xml, binary, text) is determined by extension, if aTypeS!=eNbVals it forces the type
+ cAr2007* AllocArFromFile(const std::string & aName,bool Input,bool IsSpecif=false,eTypeSerial aTypeS=eTypeSerial::eNbVals);
 
  ///  Create an archive for storing specif
  cAr2007* AllocArSpecif(const std::string & aName);
@@ -456,6 +464,8 @@ void AddData(const  cAuxAr2007 & anAux, int  &  aVal); ///< for int
 void AddData(const  cAuxAr2007 & anAux, tINT1  &  aVal); ///< for unsigned short
 void AddData(const  cAuxAr2007 & anAux, tU_INT1  &  aVal); ///< for unsigned short
 void AddData(const  cAuxAr2007 & anAux, tINT2  &  aVal); ///< for unsigned short
+void AddData(const  cAuxAr2007 & anAux, long  &  aVal); ///< for unsigned short
+
 void AddData(const  cAuxAr2007 & anAux, tU_INT2  &  aVal); ///< for unsigned short
 void AddData(const  cAuxAr2007 & anAux, tREAL4  &  aVal); ///< for unsigned short
 void AddData(const  cAuxAr2007 & anAux, tREAL16  &  aVal); ///< for long double

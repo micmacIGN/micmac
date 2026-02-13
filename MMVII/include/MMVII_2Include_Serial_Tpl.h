@@ -292,7 +292,7 @@ template <class Type,size_t aSz> void AddData(const cAuxAr2007 & anAux,  cArray<
 
 /** Serialization for map (will be) used for cSetMultipleTiePoints, and more ? */
 
-template <class TypeKey,class TypeVal> void AddData(const cAuxAr2007 & anAux,std::map<TypeKey,TypeVal> & aMap)
+template <class TypeKey,class TypeVal> void StdMapAddData(const cAuxAr2007 & anAux,std::map<TypeKey,TypeVal> & aMap)
 {
     anAux.SetType(eTAAr::eMap);
     int aNb=aMap.size();
@@ -333,6 +333,11 @@ template <class TypeKey,class TypeVal> void AddData(const cAuxAr2007 & anAux,std
     }
 }
 
+template <class TypeKey,class TypeVal> void AddData(const cAuxAr2007 & anAux,std::map<TypeKey,TypeVal> & aMap)
+{
+    StdMapAddData(anAux,aMap);
+}
+
 
 template <class Type,const int Dim>  void  AddData(const  cAuxAr2007 & anAux,cTplBox<Type,Dim> & aBox) { aBox.AddData(anAux); }
 template <class Type,const int Dim>  void  AddData(const  cAuxAr2007 & anAux,cTplBoxOfPts<Type,Dim> & aBox) { aBox.AddData(anAux); }
@@ -358,6 +363,24 @@ template <class Type> void AddData(const cAuxAr2007 & anAux, cDenseVect<Type>& a
 {
     AddData(anAux,aVect.DIm());
 }
+
+/// if we want a human readable vector for small vect ..
+template <class Type> void AddDataAsStdVect(const cAuxAr2007 & anAux0,cDenseVect<Type>& aDenseV)
+{
+     cAuxAr2007 anAuxVect("StdVect",anAux0);
+     std::vector<Type> aStdV;
+     if (anAux0.Input())
+     {
+        MMVII::AddData(anAuxVect,aStdV);
+        aDenseV = cDenseVect<Type>(aStdV);
+     }
+     else
+     {
+        aStdV = aDenseV.ToStdVect();
+        MMVII::AddData(anAuxVect,aStdV);
+     }
+}
+
 
 // template <class Type,const int Dim> void AddData(const cAuxAr2007 & anAux,cDataTypedIm<Type,Dim> & aIm)
 
@@ -564,9 +587,16 @@ template<class Type> void  ResetToFileIfFirstime()
     ToFileIfFirstime((Type*)nullptr,"",true);
 }
 
+///  Most basic creation, create an object from file, object must be copiable and has default constructor
+template<class Type> Type  SimpleCopyObjectFromFile(const std::string & aName)
+{
+    Type aRes;
+    ReadFromFile(aRes,aName);
+    return aRes;
+}
 
 
-template<class Type,class TypeTmp> Type * ObjectFromFile(const std::string & aName)
+template<class Type,class TypeTmp> Type * NewObjectFromFile(const std::string & aName)
 {
     TypeTmp aDataCreate;
     ReadFromFile(aDataCreate,aName);
@@ -576,7 +606,7 @@ template<class Type,class TypeTmp> Type * ObjectFromFile(const std::string & aNa
 /**  Read in the file if first time and memorize, other times return the same object ,
  *   at end, destruction will be handled using "AddObj2DelAtEnd"  (which is required for memory checking)
  */
-template<class Type,class TypeTmp> Type * RemanentObjectFromFile(const std::string & aName,bool * AlreadyExist=nullptr)
+template<class Type,class TypeTmp> Type * RemanentNewObjectFromFile(const std::string & aName,bool * AlreadyExist=nullptr)
 {
      ASSERT_NO_MUTI_THREAD();
 
@@ -590,7 +620,7 @@ template<class Type,class TypeTmp> Type * RemanentObjectFromFile(const std::stri
         // TypeTmp aDataCreate;
         // ReadFromFile(aDataCreate,aName);
         // anExistingRes = new Type(aDataCreate);
-        anExistingRes = ObjectFromFile<Type,TypeTmp>(aName);
+        anExistingRes = NewObjectFromFile<Type,TypeTmp>(aName);
         cMMVII_Appli::AddObj2DelAtEnd(anExistingRes);
         if (AlreadyExist)
            *AlreadyExist= false;
@@ -600,7 +630,7 @@ template<class Type,class TypeTmp> Type * RemanentObjectFromFile(const std::stri
 
 /** Same than RemanentObjectFromFile, but note use the 2 time initialisation, require a default constructor */
 
-template<class Type> Type * SimpleRemanentObjectFromFile(const std::string & aName,bool * AlreadyExist=nullptr)
+template<class Type> Type * SimpleRemanentNewObjectFromFile(const std::string & aName,bool * AlreadyExist=nullptr)
 {
      ASSERT_NO_MUTI_THREAD();
 

@@ -620,7 +620,7 @@ int cAppli_ClinoInit::Exe()
 	else 
         {
             const cOneMesureClino &  aMes = aVMC.at(aKMes);
-            std::string aNameIm =  aSMC.NameOfIm(aMes);
+            std::string aNameIm =  aSMC.ClinoDeprecatedNameOfImage(aMes);
 
 	    cSensorCamPC * aCam = mPhProj.ReadCamPC(aNameIm,true,isOkNoCam);
 	    if (aCam != nullptr)

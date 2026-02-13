@@ -65,6 +65,8 @@ struct cSet2D3D : public cMemCheck
          void AddPair(const cPt2dr&,const cPt3dr&,double aWeight=1.0);
 
          const tCont2D3D &  Pairs() const;
+          tCont2D3D &  Pairs() ;
+
 	 const tPair &  KthPair(int aK) const;
 	 size_t NbPair() const;
          void  Clear() ;
@@ -549,7 +551,10 @@ class cOneLineAntiParal
      public :
           cOneLineAntiParal();
 
+          std::string NameLine() const; // return "" if optional not init
+
           std::string mNameIm;
+          std::optional<std::string> mNameLine;
           tSeg2dr mSeg;
           tREAL8  mAngDif;
           tREAL8  mWidth;

@@ -20,6 +20,10 @@ namespace MMVII
 /*                                                 */
 /* *********************************************** */
 
+
+//  see    cPtxd<int,Dim> WhichMax(const cDataTypedIm<T1,Dim> & aIm)  in MMVII_Tpl_Images.h
+
+
 /**  Given three consecutive value interpole the extremum assumming a parabol, no value if alligned
 */
 std::optional<double>  InterpoleExtr(double V1,double V2,double V3);

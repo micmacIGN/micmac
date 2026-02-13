@@ -40,6 +40,8 @@ template <class Type,const int Dim> class cSphereBoundedSet;//   cDataBoundedSet
 template <class Type,const int DimIn,const int DimOut> class cMapping;
 template <class Type,const int DimIn,const int DimOut> class cDataMapping;
 template <class Type,const int Dim> class cDataInvertibleMapping ;// :  public cDataMapping<Type,Dim,Dim>
+template <class Type,const int Dim> class cDataInvertOfMapping;  //  : public cDataInvertibleMapping <Type,Dim>
+
 template <class Type,const int Dim> class cDataIterInvertMapping ;// :  public cDataInvertibleMapping<Type,Dim>
 template <class Type,const int Dim> class cDataIIMFromMap ; // : public cDataIterInvertMapping<Type,Dim>
 
@@ -145,7 +147,7 @@ template <class Type,const int Dim> class cDataBoundedSet : public cMemCheck
       typedef  cTplBox<Type,Dim> tBox;
 
       cDataBoundedSet(const tBox &);
-      virtual ~cDataBoundedSet<Type,Dim>();
+      virtual ~cDataBoundedSet();
 
       /// quantitative  + inside, - outside , 0 at the frontier
       tREAL8 InsidenessWithBox(const tPt &) const;
@@ -282,7 +284,7 @@ template <class Type,const int Dim> class  cDataMappedBoundedSet : public cDataB
 template <class Type,const int DimIn,const int DimOut> class cDataMapping : public cMemCheck
 {
     public :
-      virtual ~cDataMapping<Type,DimIn,DimOut>();
+      virtual ~cDataMapping();
       // typedef  cMapping<Type,DimIn,DimOut> tMap;
       typedef  cPtxd<Type,DimOut>          tPtOut;
       typedef  cPtxd<Type,DimIn>           tPtIn;
@@ -439,6 +441,7 @@ template <class Type,const int Dim> class cDataInvertibleMapping :  public cData
 #endif
 };
 
+///  If we have a Map M, create M-1, just by "swapping"  Inverses & Values
 template <class Type,const int Dim> class cDataInvertOfMapping : public cDataInvertibleMapping <Type,Dim>
 {
    public :
@@ -585,7 +588,7 @@ template <class Type,const int DimIn,const int DimOut>
       using typename tDataMap::tPtIn;
       using typename tDataMap::tPtOut;
 
-      virtual ~cDataMapCalcSymbDer<Type,DimIn,DimOut>();
+      virtual ~cDataMapCalcSymbDer();
 
        const  tVecOut &  Values(tVecOut &,const tVecIn & ) const override;  ///< V2 : use mCalc to fill values
        tCsteResVecJac  Jacobian(tResVecJac,const tVecIn &) const override;  ///< J2 : use mCalcDer to compute derivative
@@ -829,6 +832,8 @@ template <class cMapElem> class cInvertMappingFromElem :  public
 
 /** Specialization when cMapElem is linear => constant jacobian */
 
+/*
+ * No longer see utilty
 template <class cMapElem> class cIMElemLinear :  public 
            cInvertMappingFromElem<cMapElem>
 {
@@ -851,6 +856,7 @@ template <class cMapElem> class cIMElemLinear :  public
     private :
          tMat  mMat;
 };
+*/
 
 /**
      We have a set of function F1,  .. Fp     R^k => R ^n, we want to estimate F  as a linear combination:
@@ -923,7 +929,7 @@ template <class Type,const int DimIn,const int DimOut>
 
 /**  Bijective Affine Mapping Elementary */
 
-template <class Type,const int Dim> class cBijAffMapElem
+template <class Type,const int Dim> class cBijAffMapElem  // : public cDataInvertibleMapping<Type,Dim>
 {
      public :
         typedef Type  tTypeElem;
@@ -935,8 +941,8 @@ template <class Type,const int Dim> class cBijAffMapElem
         typedef cPtxd<Type,Dim>    tPt;
         cBijAffMapElem(const tMat & aMat ,const tPt& aTr) ;
 
-        tPt  Value(const tPt & aP)   const;
-        tPt  Inverse(const tPt & aP) const;
+        tPt  Value(const tPt & aP)   const ;
+        tPt  Inverse(const tPt & aP) const ;
 
         cBijAffMapElem<Type,Dim>  MapInverse() const;
 

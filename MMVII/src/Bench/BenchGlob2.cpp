@@ -1,6 +1,7 @@
 #include "MMVII_Ptxd.h"
 #include "MMVII_Bench.h"
 #include "MMVII_TplHeap.h"
+#include "cMMVII_Appli.h"
 
 namespace MMVII
 {
@@ -27,10 +28,44 @@ class cIndexPtrPt2drOnY
 };
 
 
+/// Class for asserting my understanding of "emplace" functionnalities
+class cTestEmpl
+{
+    public :
+        cTestEmpl(const std::string & aMsg) :
+             mMsg (aMsg)
+        {
+              TheGlobMsg += mMsg + "_";
+        }
+        static std::string TheGlobMsg;
+
+        std::string mMsg;
+};
+std::string cTestEmpl::TheGlobMsg = "";
 
 void Bench_Heap(cParamExeBench & aParam)
 {
      if (! aParam.NewBench("Heap")) return;
+
+
+     // a test on emplace behaviour
+     {
+         std::map<std::string,cTestEmpl> aMap;
+         aMap.emplace("0","A0");
+         aMap.emplace("1","B1");
+         aMap.emplace("2","C2");
+
+         aMap.emplace("1","X"); // create new object, but does not modify the map
+
+         MMVII_INTERNAL_ASSERT_bench(cTestEmpl::TheGlobMsg=="A0_B1_C2_X_","emplace/TheGlobMsg");
+         MMVII_INTERNAL_ASSERT_bench(aMap.find("1")->second.mMsg=="B1","emplace/M[1]");
+         MMVII_INTERNAL_ASSERT_bench(aMap.size()==3,"Sz map");
+
+         if (0)
+         {
+             StdOut() << cTestEmpl::TheGlobMsg << " M[1]=" << aMap.find("1")->second.mMsg << " Sz=" << aMap.size() << "\n";
+         }
+     }
 
      for (int aSz=10 ; aSz<50 ; aSz+=6)
      {

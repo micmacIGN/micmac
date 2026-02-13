@@ -53,6 +53,8 @@ enum class eTA2007
                 RigBlock,      ///< Rigid bloc    // RIGIDBLOC  => soon deprecated
                 Clino,         ///< Clinometer
                 MeasureClino,  ///< Clinometer
+                TypeInstr,     ///< Type of instrument, like cam, clino ...
+                StaticLidar,   ///< Static Lidar
                 Topo,          ///< Topo
                 SysCo,         ///< System coord
                 Input,         ///< Is this parameter used as input/read
@@ -84,7 +86,9 @@ enum class eApF
                ImProc,     ///< Image processing
                Radiometry, ///< Radiometric modelization
                SysCo,        ///< Coordinate system
+               BlockInstr, ///< Edit, Calib, block of instrument
                Ori,        ///< Orientation
+               Clino,
                Match,      ///< Dense Matching
                GCP,        ///< Ground point processing
                TieP,       ///< Tie-Point processing
@@ -145,8 +149,10 @@ enum class eFormatExtern
 enum class eApDT
            {
               Ori,    ///< Orientation
+              Clino,
               PCar,   ///< Tie Points
               TieP,   ///< Tie Points
+              BlockInstr,   ///< Tie Points
               ObjMesInstr,  ///< Ground Points image coords
               ObjCoordWorld,  ///< Ground Points ground coords
               Lines,   ///< Tie Points
@@ -156,6 +162,7 @@ enum class eApDT
               Radiom,   ///< Orientations files
               Ply,           ///< Ply file
               MMVIICloud,    ///< MMVII-dmp internal format
+              StaticScan,    ///< Static scan internal format
               Topo,    ///< Topo files
               None,     ///< Nothing
               ToDef,     ///< still unclassed
@@ -183,6 +190,16 @@ enum class eLevelCheck
               NoCheck,
               Warning,
               Error
+           };
+
+/// Possible behaviour when two datas exist
+enum class eModeFusionData
+           {
+              eMerge,     // (try to) merge
+              eOverWrite, // over write new data
+              eDoNothing, // do nothing, maintain old data
+              eError,     // refuse existing
+              eNbVals     // required for automatized serialization
            };
 
 /// Type of set creation
@@ -272,6 +289,7 @@ enum class eTyUnitAngle
               eUA_radian,
               eUA_degree,
               eUA_gon,
+              eUA_DMgon,
               eNbVals
 	   };
 
@@ -283,6 +301,15 @@ enum class eTyClino
               eNbVals    ///< Tag for number of value
            };
 
+enum class eTyInstr
+           {
+              eCamera,
+              eClino,
+              eGNSS,
+              eIMU,
+              eTarget,
+              eNbVals    ///< Tag for number of value
+           };
 
 enum class eTyNums
            {
@@ -633,7 +660,11 @@ enum class eMTDIm
               eNbVals
            };
 
+
+const std::string & E2Str(const eModeFusionData &);
 const std::string & E2Str(const eTyClino &);
+const std::string & E2Str(const eTyInstr &);
+
 const std::string & E2Str(const eFormatSensor &);
 const std::string & E2Str(const eTypeSensor &);
 

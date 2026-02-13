@@ -7,11 +7,12 @@ Dependencies
 
 As admin:
 
-    apt install python3-pip doxygen pybind11-dev clang-tools llvm-dev
+    apt install python3-pip doxygen clang-tools llvm-dev
 
 In the Python virtual environment used for compilation:
 
-    pip3 install pybind11 setuptools build
+    pip3 install pybind11[global] setuptools build
+
 
 Compilation
 -----------
@@ -20,14 +21,14 @@ First, compile MMv1 and MMv2.
 
 Then, in 'apib11' directory and the correct Python virtual environment:
 
-    export CC=/usr/bin/clang
-    export CXX=/usr/bin/clang++
     pip wheel . --no-deps -w dist/
+
 
 Installation
 ------------
 
     pip install --force-reinstall dist/mmvii*.whl
+
 
 Distribution
 ------------
@@ -46,7 +47,6 @@ Upgrade pip if needed:
     python3 -m pip install --upgrade pip
 
 
-
 Usage
 -----
 
@@ -57,7 +57,6 @@ Usage
 The built-in Python help system can be used to have information about the API.
 
 See 'examples' directory for use cases.
-
 
 
 Binding Conventions
