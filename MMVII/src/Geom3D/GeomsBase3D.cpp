@@ -651,7 +651,7 @@ bool IsPlanarityIdxPdal(const std::vector<cPt3dr>& aVPt, tREAL8 mThresh1, tREAL8
     if (anEV(0)<=0)  return false;
     if (anEV(1)<=0)  return false;
     if (anEV(2)<=0)  return false;
-    StdOut()<<"EV(1)/EV(0) > 2000.0 "<<anEV(1)/anEV(0)<<" EV(2)/EV(1) < 2.0"<< anEV(2)/anEV(1) <<std::endl;
+    //StdOut()<<"EV(1)/EV(0) > 2000.0 "<<anEV(1)/anEV(0)<<" EV(2)/EV(1) < 2.0"<< anEV(2)/anEV(1) <<std::endl;
     if ((anEV(1) > mThresh1 * anEV(0)) &&
         (mThresh2 * anEV(1) > anEV(2))
         )

@@ -417,7 +417,7 @@ void cAppliNuageBascule::MakeBasculeTris(cZBuffer & aZB)
                                                    ToStr(mIndBoxRecal.x())+"-"+
                                                    ToStr(mIndBoxRecal.y())+"-"+
                                                    NameWithoutDir(mNameResult),
-                                                   eTyNums::eTN_INT1,
+                                                   eTyNums::eTN_U_INT1,
                                                    mImMasqOut.DIm().Sz(),
                                                    1);
     mImMasqOut.DIm().Write(aDFM,aDFM.P0());
