@@ -6,10 +6,10 @@
 
 namespace MMVII
 {
-class cAppli_GCPBascule : public cMMVII_Appli
+class cAppli_GCPAbsOri : public cMMVII_Appli
 {
     public:
-        cAppli_GCPBascule(const std::vector<std::string> & aVArgs, const cSpecMMVII_Appli & aSpec);
+        cAppli_GCPAbsOri(const std::vector<std::string> & aVArgs, const cSpecMMVII_Appli & aSpec);
         void AddData(const cAuxAr2007 & anAuxInit);
 
     private:
@@ -29,7 +29,7 @@ class cAppli_GCPBascule : public cMMVII_Appli
 
 };
 
-cCollecSpecArg2007 & cAppli_GCPBascule::ArgObl(cCollecSpecArg2007 & anArgObl)
+cCollecSpecArg2007 & cAppli_GCPAbsOri::ArgObl(cCollecSpecArg2007 & anArgObl)
 {
     return anArgObl
         << Arg2007(mSpecImIn,"Pattern/file for images",{{eTA2007::MPatFile,"0"},{eTA2007::FileDirProj}}) //input pattern of images
@@ -40,7 +40,7 @@ cCollecSpecArg2007 & cAppli_GCPBascule::ArgObl(cCollecSpecArg2007 & anArgObl)
       ;
 }
 
-cCollecSpecArg2007 & cAppli_GCPBascule::ArgOpt(cCollecSpecArg2007 & anArgOpt)
+cCollecSpecArg2007 & cAppli_GCPAbsOri::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
     return anArgOpt
         << AOpt2007(mShow,"Show","Show some useful details",{eTA2007::HDV})
@@ -49,16 +49,16 @@ cCollecSpecArg2007 & cAppli_GCPBascule::ArgOpt(cCollecSpecArg2007 & anArgOpt)
     ;
 }
 
-cAppli_GCPBascule::cAppli_GCPBascule(const std::vector<std::string> & aVArgs, const cSpecMMVII_Appli & aSpec):
+cAppli_GCPAbsOri::cAppli_GCPAbsOri(const std::vector<std::string> & aVArgs, const cSpecMMVII_Appli & aSpec):
     cMMVII_Appli(aVArgs,aSpec),
     mPhProj     (*this),
     mShow       (false),
     mCSVReport  (true),
-    mWriteSim   (false)
+    mWriteSim   (true)
 {
 }
 
-void cAppli_GCPBascule::AddData(const cAuxAr2007 & anAuxInit)
+void cAppli_GCPAbsOri::AddData(const cAuxAr2007 & anAuxInit)
 {
     cAuxAr2007 anAux("3D-Similarity",anAuxInit);
     MMVII::AddData(cAuxAr2007("Scale",anAux),mScale);
@@ -66,13 +66,12 @@ void cAppli_GCPBascule::AddData(const cAuxAr2007 & anAuxInit)
     MMVII::AddData(cAuxAr2007("Rotation",anAux),mRot);
 }
 
-void AddData(const cAuxAr2007 & anAuxInit, cAppli_GCPBascule & aAppliBascule)
+void AddData(const cAuxAr2007 & anAuxInit, cAppli_GCPAbsOri & aAppliAbsOri)
 {
-    aAppliBascule.AddData(anAuxInit);
+    aAppliAbsOri.AddData(anAuxInit);
 }
 
-
-int cAppli_GCPBascule::Exe()
+int cAppli_GCPAbsOri::Exe()
 {
 
     mPhProj.FinishInit();
@@ -95,9 +94,12 @@ int cAppli_GCPBascule::Exe()
         mPhProj.LoadIm(aSet,nullptr,*aCam);
     }
 
-    cSetMesGnd3D aInSet, aOutSet;
+    //vectors to store points for StdGlobEstimate()
+    std::vector<cPt3dr> aInPts, aOutPts;
+    //vector to store GCP names
+    std::vector<std::string> aPtsNames;
 
-    //pseudo-intersection
+    //pseudo-intersection - fill point and name vectors
     for(const auto & aMesIm : aSet.MesImOfPt())
     {
         int aNumPt = aMesIm.NumPt();
@@ -105,37 +107,34 @@ int cAppli_GCPBascule::Exe()
 
         if(aMesIm.VMeasures().size() >= 2)
         {
-            cMes1Gnd3D aInMes;
-            aInMes.mPt = aSet.BundleInter(aMesIm);
-            aInMes.mNamePt = aMes3D.mNamePt;
-            aInSet.AddMeasure3D(aInMes);
-
-            cMes1Gnd3D aOutMes;
-            aOutMes.mPt = aMes3D.mPt;
-            aOutMes.mNamePt = aMes3D.mNamePt;
-            aOutSet.AddMeasure3D(aOutMes);
+            //compute bundle intersection - origine frame coordinates
+            cPt3dr aInPt = aSet.BundleInter(aMesIm);
+            //retreive target frame coordinates
+            cPt3dr aOutPt = aMes3D.mPt;
+            //pt name
+            std::string aNamePt = aMes3D.mNamePt;
+            
+            //store coordinates and names
+            aInPts.push_back(aInPt);
+            aOutPts.push_back(aOutPt);
+            aPtsNames.push_back(aNamePt);
             
             if(mShow)
             {
-                StdOut() << "Name = " << aInMes.mNamePt << " Origin_Frame = " << aInMes.mPt << " Target_Frame = " << aOutMes.mPt << "\n";
+                StdOut() << "Name = " << aNamePt << " Origin_Frame = " << aInPt 
+                         << "  &&  " 
+                         << "Target_Frame = " << aOutPt 
+                         << "\n";
             }
-
         }
     }
 
     //we need at least 3 correspondences
-    if(aInSet.Measures().size() < 3)
+    if(aInPts.size() < 3)
     {
         StdOut() << "Not enough points (the minimum is 3) ! " << "\n";
         return EXIT_FAILURE;
     }
-
-    //vectors to store points for StdGlobEstimate()
-    std::vector<cPt3dr> aInPts, aOutPts;
-    for(const auto & aMes : aInSet.Measures())
-        aInPts.push_back(aMes.mPt);
-    for(const auto & aMes : aOutSet.Measures())
-        aOutPts.push_back(aMes.mPt);
 
     //estimate 3d similarity
     mSim = mSim.StdGlobEstimate(aInPts,aOutPts,&mRes2,nullptr,cParamCtrlOpt::Default());
@@ -147,7 +146,7 @@ int cAppli_GCPBascule::Exe()
         StdOut() << "Similarity translation = "  << mSim.Tr() << "\n";
         StdOut() << "Similarity rotation = "     << mSim.Rot().Mat() << "\n";
     }
-    
+
     //apply similarity to input ori
     for(const auto & aIm : aVImg)
     {
@@ -169,27 +168,26 @@ int cAppli_GCPBascule::Exe()
     if(mCSVReport)
     {
         //csv file name
-        std::string aReportFileName = "3D-Sim-Residuals";
+        std::string aReportFileName = std::string("3D-Similarity-Residuals") 
+                                    + "_"
+                                    + mPhProj.DPOrient().DirIn()
+                                    + "_"
+                                    + mPhProj.DPOrient().DirOut();
 
         //csv header
-        InitReportCSV(aReportFileName,"csv","false",{"Pt_name","delta_x","delta_y","delta_z"});
+        InitReportCSV(aReportFileName,"csv","false",{"GCP_name","delta_x","delta_y","delta_z"});
 
-        //vector to store transformed points
-        std::vector<cPt3dr> aVTransformedPts;
-
-        for(size_t i=0; i<aInSet.Measures().size(); i++)
+        for(size_t i=0; i<aInPts.size(); i++)
         {
-            cPt3dr aInPt = aInSet.Measures().at(i).mPt;
-            cPt3dr aTransformedPt = mSim.Value(aInPt);
-            cPt3dr aOutPt = aOutSet.Measures().at(i).mPt;
+            cPt3dr aTransformedPt = mSim.Value(aInPts[i]);
 
             //residuals
-            double dx =  aTransformedPt.x() - aOutPt.x();
-            double dy =  aTransformedPt.y() - aOutPt.y();
-            double dz =  aTransformedPt.z() - aOutPt.z();
+            double dx =  aTransformedPt.x() - aOutPts[i].x();
+            double dy =  aTransformedPt.y() - aOutPts[i].y();
+            double dz =  aTransformedPt.z() - aOutPts[i].z();
 
             //add to csv file
-            AddOneReportCSV(aReportFileName,{aInSet.Measures().at(i).mNamePt,ToStr(dx),ToStr(dy),ToStr(dz)});
+            AddOneReportCSV(aReportFileName,{aPtsNames[i],ToStr(dx),ToStr(dy),ToStr(dz)});
         }
     }
 
@@ -198,12 +196,12 @@ int cAppli_GCPBascule::Exe()
     {
         //file name
         std::string aNameFile = mPhProj.DPOrient().FullDirOut()
-                                + "3D-Similarity"
+                                + "3D-Similarity-Parameters"
                                 + "_"
                                 + mPhProj.DPOrient().DirIn()
                                 + "_"
                                 + mPhProj.DPOrient().DirOut()
-                                + std::string(".xml");
+                                + ".xml";
         //assign
         mScale = mSim.Scale();
         mTr = mSim.Tr();
@@ -214,25 +212,24 @@ int cAppli_GCPBascule::Exe()
         
         if(mShow)
         {
-            StdOut() << "Similarity parameters wrote to file : " << aNameFile << "\n";
+            StdOut() << "3D similarity parameters wrote to file: " << aNameFile << "\n";
         }
         
     }
 
-    
     return EXIT_SUCCESS;
 }
 
-tMMVII_UnikPApli Alloc_GCPBascule(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec)
+tMMVII_UnikPApli Alloc_GCPAbsOri(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec)
 {
-      return tMMVII_UnikPApli(new cAppli_GCPBascule(aVArgs,aSpec));
+      return tMMVII_UnikPApli(new cAppli_GCPAbsOri(aVArgs,aSpec));
 }
 
-cSpecMMVII_Appli TheSpec_GCPBascule
+cSpecMMVII_Appli TheSpec_GCPAbsOri
 (
-     "GCPBascule",
-      Alloc_GCPBascule,
-      "Perform a bascule based on GCPs",
+     "GCPAbsOri",
+      Alloc_GCPAbsOri,
+      "Generating an Absolute Orientation using a 3D similarity transformation based on GCPs",
       {eApF::Ori,eApF::GCP},                      //features
       {eApDT::ObjCoordWorld, eApDT::ObjMesInstr}, //inputs
       {eApDT::Console},                           //output
