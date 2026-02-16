@@ -215,7 +215,7 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpec_OriCheckGCPDist);
         TheVecAll.push_back(&TheSpec_OriBundlAdj);
         TheVecAll.push_back(&TheSpec_TopoAdj);
-
+        TheVecAll.push_back(&TheSpec_GCPAbsOri);
         TheVecAll.push_back(&TheSpec_OriRel2Im);
         TheVecAll.push_back(&TheSpecMeshCheck);
         TheVecAll.push_back(&TheSpecProMeshImage);
@@ -282,6 +282,7 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpec_PerturbRandomOri);
         TheVecAll.push_back(&TheSpec_ImportTriplet);
         TheVecAll.push_back(&TheSpec_ArboTriplet);
+        
 
         TheVecAll.push_back(&TheSpecAppliBenchAPBI);
 
