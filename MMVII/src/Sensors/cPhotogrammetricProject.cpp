@@ -729,6 +729,12 @@ cPerspCamIntrCalib *  cPhotogrammetricProject::InternalCalibFromImage(const std:
     //    * case where nor calib nor pose exist, and must be created from xif still to implemant
     mDPOrient.AssertDirInIsInit();
 
+    // Modif MPD because, for still unexplained reason, the above version bugs if we create first the
+    // internal calib, then the CamPC (as if object was both destroyed & remanent, obviously
+    // not a good idea...)
+    return InternalCalibFromStdName(aNameIm);
+
+/*
     cSensorCamPC *  aPC = ReadCamPC(aNameIm,false,SVP::Yes);
     if (aPC==nullptr)
     {
@@ -739,6 +745,7 @@ cPerspCamIntrCalib *  cPhotogrammetricProject::InternalCalibFromImage(const std:
     delete aPC;
 
     return aCalib;
+    */
 }
         //  =============  Calibration =================
 

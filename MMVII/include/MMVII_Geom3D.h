@@ -232,6 +232,7 @@ void PP_1Line_MatRot(const cMatrix<tREAL8> & aMat,int aY,size_t aNbChar=4);
 
 /// Make a pretty print of full matric
 void PP_Full_MatRot(const cMatrix<tREAL8> & aMat,size_t aNbChar=4);
+void PP_Full_2MatRot(const cMatrix<tREAL8> & aMat1,const cMatrix<tREAL8> & aMat2,size_t aNbChar=4);
 
 
 

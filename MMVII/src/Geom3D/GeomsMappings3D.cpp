@@ -493,9 +493,11 @@ template <class Type> cRotation3D<tREAL8>  ToReal8(const cRotation3D<Type>  & aR
 
 template <class Type> cPtxd<Type,3>  cRotation3D<Type>::ToWPK() const
 {
+//StdOut() << "TpWPK "  << __LINE__  << mMat.Sz() << "\n";
     Type aSinPhi = std::min(Type(1.0),std::max(Type(-1.0),mMat(2,0)));
     Type aPhi = ASin(aSinPhi);
     Type aCosPhi = std::cos(aPhi);
+//StdOut() << "TpWPK "  << __LINE__  << mMat.Sz() << "\n";
 
     Type aKapa ,aOmega;
     if (std::abs(aCosPhi) < 1e-4)
@@ -505,21 +507,22 @@ template <class Type> cPtxd<Type,3>  cRotation3D<Type>::ToWPK() const
         // aSinPhi=-11  mMat(0,1),mMat(1,1)  =      CosW SinK-SinW CosK  , cosW CosK+sinW sinK =   sin(K-W), cos(K-W)   
         Type aCombin = std::atan2(mMat(0,1),mMat(1,1));
         if (aSinPhi>0)
-	{
+        {
               aKapa = aCombin/2;
-	      aOmega = aCombin/2;
-	}
-	else
-	{
+              aOmega = aCombin/2;
+        }
+        else
+        {
               aKapa = aCombin/2;
               aOmega = -aCombin/2;
-	}
+        }
     }
     else
     {
        aKapa =  std::atan2(-mMat(1,0),mMat(0,0));
        aOmega = std::atan2(-mMat(2,1),mMat(2,2));
     }
+//StdOut() << "TpWPK "  << __LINE__  << mMat.Sz() << "\n";
 
     tPt aWPK(aOmega,aPhi,aKapa);
 
@@ -544,6 +547,8 @@ template <class Type> cPtxd<Type,3>  cRotation3D<Type>::ToWPK() const
 	      aVecDer.push_back( (aMat_p-aMat_m) * Type(1.0/(2*aEps)));
 
 	}
+ //StdOut() << "TpWPK "  << __LINE__  << mMat.Sz() << "\n";
+
 	aSys.AddObsFixVar(1e-4,0,0.0);  // add some constraint becaus if guimball dont want to have degenerate sys
 
 	for (const auto & aPix : aVecDer[0].DIm())
@@ -558,6 +563,8 @@ template <class Type> cPtxd<Type,3>  cRotation3D<Type>::ToWPK() const
 	cDenseVect<Type> aSol = aSys.PublicSolve();
 	aWPK += tPt::FromVect(aSol);
     }
+
+//StdOut() << "TpWPK "  << __LINE__  << mMat.Sz() << "\n";
 
     return aWPK;
 }
@@ -592,6 +599,20 @@ void PP_Full_MatRot(const cMatrix<tREAL8> & aMat,size_t aNbChar)
     }
 
 }
+
+
+void PP_Full_2MatRot(const cMatrix<tREAL8> & aMat1,const cMatrix<tREAL8> & aMat2,size_t aNbChar)
+{
+    for (int aY = 0 ; aY<aMat1.Sz().y() ; aY++)
+    {
+        PP_1Line_MatRot(aMat1,aY,aNbChar);
+        StdOut() << " || ";
+        PP_1Line_MatRot(aMat2,aY,aNbChar);
+
+        StdOut() << "\n";
+    }
+}
+
 
 
 /* ************************************************* */

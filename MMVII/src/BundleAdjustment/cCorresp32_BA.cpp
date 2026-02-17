@@ -34,7 +34,9 @@ cCorresp32_BA::cCorresp32_BA
 {
 
     for (auto & anObj : mSensor->GetAllUK())
+    {
         mSetInterv.AddOneObj(anObj); // #DOC-AddOneObj
+    }
     //   mSetInterv.AddOneObj(m CamPC); // #DOC-AddOneObj
     //   mSetInterv.AddOneObj(m Calib);  // #DOC-AddOneObj
 

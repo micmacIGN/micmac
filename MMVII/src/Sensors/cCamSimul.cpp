@@ -153,7 +153,7 @@ void cCamSimul::BenchPoseRel2Cam
     thread_local static int aCptPbL1 = 0;
 
 
-    if (0)
+    if (1)
     {
 
        for (int aK1=0 ; aK1<(int)eProjPC::eNbVals ; aK1++)

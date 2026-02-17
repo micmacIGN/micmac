@@ -15,21 +15,177 @@
 namespace MMVII
 {
 
+#if (0)
+class cCdtInitV
+{
+     public :
+        tREAL8 SqDist(const cCdtInitV&) const;
+        cPt4dr mQuat;
+        cPt3dr mVecOnSph;
+        tREAL8 mScore;
+        bool   mFree;
+};
+
+
+tREAL8 cCdtInitV::SqDist(const cCdtInitV& aCdt) const
+{
+    return SqN2(mQuat-aCdt.mQuat) + SqN2(mVecOnSph-aCdt.mVecOnSph);
+}
+
+
+/** Extract the best "Free" Candidate, and marq all its neighboor in Ray aDistMin as non free */
+cCdtInitV * ExtractMin(std::vector<cCdtInitV> &  aVCdt,tREAL8 aDistMin,tREAL8 * aScMaxNeigh=nullptr)
+{
+    cCdtInitV * aRes = nullptr;
+    tREAL8      aScMin = 1e20;
+
+    // extract the minimal cdt that is still free
+    for (auto & aCdt : aVCdt)
+    {
+        if (aCdt.mFree && (aCdt.mScore < aScMin))
+        {
+            aRes = &aCdt;
+            aScMin = aCdt.mScore;
+        }
+    }
+
+    // if we got it, marks its neighbours as not free
+
+    if (aRes)
+    {
+        if (aScMaxNeigh)
+            *aScMaxNeigh = aScMin;
+        tREAL8 aD2 = Square(aDistMin);
+        for (auto & aCdt : aVCdt)
+            if (aCdt.mFree && (aCdt.SqDist(*aRes) < aD2))
+            {
+                aCdt.mFree = 0;
+                if (aScMaxNeigh)
+                    *aScMaxNeigh = std::max(*aScMaxNeigh,aCdt.mScore);
+            }
+    }
+
+    return aRes;
+}
+
+
+
+cOptimizeRotAndVUnit::cOptimizeRotAndVUnit(int aNbSamleRot,int aNbSampleSphere,bool isSignAmb) :
+    mNbSampleRot    (aNbSamleRot),
+    mNbSampleSphere (aNbSampleSphere),
+    mIsSignAmb      (isSignAmb),
+    mCurV0          (cPt3dr(1,0,0),"","")
+{
+
+}
+
+std::pair<tRotR,cPt3dr>  cOptimizeRotAndVUnit::P5toRotP3(const cPtxd<tREAL8,5>& aPt) const
+{
+    cPt3dr aWPK(aPt.x(),aPt.y(),aPt.z());
+    cPt2dr aDVert(aPt.t(),aPt.u());
+
+    return std::pair<tRotR,cPt3dr>(mCurRot0*tRotR::RotFromWPK(aWPK), mCurV0.GetPNorm(aDVert));
+}
+
+cPt1dr  cOptimizeRotAndVUnit::Value(const cPtxd<tREAL8,5>& aPt5) const
+{
+   auto [aRot,aVec] = P5toRotP3(aPt5);
+   return cPt1dr(ScoreRotAndVect(aRot,aVec));
+}
+std::pair<tREAL8,std::pair<tRotR,cPt3dr>>
+           cOptimizeRotAndVUnit::ComputeSolInit(tREAL8 aDistNeigh,tREAL8 anEpsilon,int aNbTest,tREAL8 aDeltaSc)
+{
+    //  Create object for sampling Rot & Sphere
+    cSampleQuat     aSQuat(mNbSampleRot,true); // true => sampling for rotation
+    // mIsSignAmb : projective, if V and -V are equivalent
+    cSampleSphere3D aSSph(mNbSampleSphere,mIsSignAmb);
+
+
+    std::vector<cCdtInitV> mVCdts; // will store the score, for extracting multiple max loc
+    int aNbCdt = aSQuat.NbRot()*aSSph.NbSamples();
+    mVCdts.reserve(aNbCdt);
+
+    //  Parse the rotation and the sphere and store the score in mVCdts
+    for (int aKQ=0 ; aKQ<(int)aSQuat.NbRot() ; aKQ++)
+    {
+        cPt4dr aQuat =   aSQuat.KthQuat(aKQ);
+        tRotR aRot(Quat2MatrRot(aQuat),false);
+        for (int aKV=0 ; aKV<aSSph.NbSamples() ; aKV++)
+        {
+            cPt3dr aVecOnSph = aSSph.KthPt(aKV);
+            tREAL8 aScore = ScoreRotAndVect(aRot,aVecOnSph);
+
+            cCdtInitV aCdt;
+            aCdt.mVecOnSph = aVecOnSph;
+            aCdt.mQuat = aQuat;
+            aCdt.mScore = aScore;
+            aCdt.mFree  = true;
+            mVCdts.push_back(aCdt);
+        }
+    }
+
+    cCdtInitV * aCdtMin =  ExtractMin(mVCdts,aDistNeigh); // Extract the best candidate
+    MMVII_INTERNAL_ASSERT_always(aCdtMin!=nullptr,"No cdt in InitVerticalAnd2OthogClino");
+    tREAL8 aThSc0 =  2.0* aCdtMin->mScore + aDeltaSc;
+
+    tREAL8 aBestScore = 1e10;
+    tRotR aRotOpt;
+    cPt3dr aVectOpt;
+    while (aNbTest>0)
+    {
+        mCurRot0 = tRotR (Quat2MatrRot(aCdtMin->mQuat),false);
+        mCurV0.SetPNorm(aCdtMin->mVecOnSph);
+
+        cOptimByStep<5> anOptim(*this,true,1.0);
+        tREAL8 aStep0 = 1.0 /(mNbSampleRot+mNbSampleSphere);
+        auto [aScOpt,aPt5Opt] = anOptim.Optim(cPtxd<tREAL8,5>::PCste(0),aStep0,anEpsilon,1/sqrt(2.0));
+        if (aScOpt<aBestScore)
+        {
+            aBestScore = aScOpt;
+            auto aPair = P5toRotP3(aPt5Opt);
+            aRotOpt = aPair.first;
+            aVectOpt = aPair.second;
+        }
+        aCdtMin =  ExtractMin(mVCdts,aDistNeigh);
+
+        if (aCdtMin==nullptr)
+        {
+            aNbTest=0;
+        }
+        else
+        {
+           if (aCdtMin->mScore>aThSc0)
+              aNbTest=0;
+        }
+        aNbTest--;
+    }
+
+    return std::pair<tREAL8,tSol>(aBestScore,tSol(aRotOpt,aVectOpt));
+//    StdOut()  << " --VVV=" << aVectOpt << " D1=" << aRotOpt.AxeI() << " " << aRotOpt.AxeJ() << "\n";
+}
+#endif
 
 /* *************************************************************** */
 /*                                                                 */
 /*               cAppli_BlockInstrInitClino                          */
 /*                                                                 */
 /* *************************************************************** */
-class cCdtInitV;
+class cAppli_BlockInstrInitClino;
+class cABIII_Optim2CV ;
+
+
+
 
 class cAppli_BlockInstrInitClino : public cMMVII_Appli,
                                    public cDataMapping<tREAL8,2,1>,
-                                   public cDataMapping<tREAL8,3,1>,
-                                   public cDataMapping<tREAL8,5,1>
+                                   public cDataMapping<tREAL8,3,1>
+
+        //                           public cDataMapping<tREAL8,5,1>
 
 {
      public :
+        friend cABIII_Optim2CV;
+
 
         cAppli_BlockInstrInitClino(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli &);
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override;
@@ -62,14 +218,8 @@ class cAppli_BlockInstrInitClino : public cMMVII_Appli,
 
         // =============  Methods for 2 orthogonal clino + Vertical ====================
 
-        void RefineCdt(const cCdtInitV& aCdt);
-
-        tREAL8 ValueOfVerticalAnd2OthogClino(const tRotR& aR,const cPt3dr & aVertical) const;
         void InitVerticalAnd2OthogClino(const cPt2di & aK1K2);
-        cPt1dr  Value(const cPtxd<tREAL8,5>&) const override ;
 
-
-        std::pair<tRotR,cPt3dr>  P5toRotP3(const cPtxd<tREAL8,5>& aPt) const;
         cPt3dr  P2toP3(const cPt2dr&) const;
         tRotR   P3toRot(const cPt3dr&) const;
 
@@ -127,7 +277,6 @@ cAppli_BlockInstrInitClino::cAppli_BlockInstrInitClino
 ) :
     cMMVII_Appli (aVArgs,aSpec),
     mPhProj      (*this),
-
     mNameBloc    (cIrbCal_Block::theDefaultName),
     mNbSamp1Cl   (100),
     mNbSVert     (7,7),
@@ -137,7 +286,8 @@ cAppli_BlockInstrInitClino::cAppli_BlockInstrInitClino
     mCalBlock    (nullptr),
     mSetClinos   (nullptr),
     mNbClino     (-1),
-    mKCurClino   (-1)
+    mKCurClino   (-1),
+    mVertApriori (0,0,1)
 {
 }
 
@@ -175,171 +325,39 @@ tREAL8 cAppli_BlockInstrInitClino::Ang4Show(tREAL8 anAng) const
 
 // ========================  5D optimisation ==========================
 
-tREAL8 cAppli_BlockInstrInitClino::ValueOfVerticalAnd2OthogClino
-      (
-        const tRotR& aR2Clin,
-        const cPt3dr & aVertical
-       ) const
+class cABIII_Optim2CV : public cOptimizeRotAndVUnit
 {
-    mBlock->SetVerticalCste(VUnit(aVertical));
-
-    return ValueOf2OthogClino(aR2Clin);
-}
-
-std::pair<tRotR,cPt3dr>  cAppli_BlockInstrInitClino::P5toRotP3(const cPtxd<tREAL8,5>& aPt) const
-{
-    cPt3dr aWPK(aPt.x(),aPt.y(),aPt.z());
-    cPt2dr aDVert(aPt.t(),aPt.u());
-
-    return std::pair<tRotR,cPt3dr>(P3toRot(aWPK), P2toP3(aDVert));
-
-}
-
-cPt1dr  cAppli_BlockInstrInitClino::Value(const cPtxd<tREAL8,5>& aPt5d) const
-{
-    auto [aR2Clin,aVertical] = P5toRotP3(aPt5d);
-    return cPt1dr(ValueOfVerticalAnd2OthogClino(aR2Clin,aVertical));
-}
-
-class cCdtInitV
-{
-     public :
-        tREAL8 SqDist(const cCdtInitV&) const;
-        cPt4dr mQuat;
-        cPt3dr mVert;
-        tREAL8 mScore;
-        bool   mFree;
+  public :
+    cABIII_Optim2CV(cAppli_BlockInstrInitClino &,int aNbSamleRot,int aNbSampleSphere);
+  private :
+    tREAL8 ScoreRotAndVect (const tRotR&,const cPt3dr &) const override;
+    cAppli_BlockInstrInitClino & mAppli;
 };
 
-
-
-
-
-
-    /*
-    cPt2di aIndexMin = aWMin.IndexExtre();
-    mAxes2Orthog = aSQuat.KthRot(aIndexMin.x());
-    cPt3dr aVertInit = aSSph.KthPt(aIndexMin.y());
-    */
-
-tREAL8 cCdtInitV::SqDist(const cCdtInitV& aCdt) const
+cABIII_Optim2CV::cABIII_Optim2CV(cAppli_BlockInstrInitClino & anAppli,int aNbSamleRot,int aNbSampleSphere) :
+    cOptimizeRotAndVUnit(aNbSamleRot,aNbSampleSphere,true),
+    mAppli (anAppli)
 {
-    return SqN2(mQuat-aCdt.mQuat) + SqN2(mVert-aCdt.mVert);
 }
 
-cCdtInitV * ExtractMin(std::vector<cCdtInitV> &  aVCdt,tREAL8 aDistMin)
+tREAL8 cABIII_Optim2CV::ScoreRotAndVect (const tRotR& aR2Clin,const cPt3dr & aVertical) const
 {
-    cCdtInitV * aRes = nullptr;
-    tREAL8      aScMin = 1e20;
-
-    for (auto & aCdt : aVCdt)
-    {
-        if (aCdt.mFree && (aCdt.mScore < aScMin))
-        {
-            aRes = &aCdt;
-            aScMin = aCdt.mScore;
-        }
-    }
-
-    if (aRes)
-    {
-        tREAL8 aD2 = Square(aDistMin);
-        for (auto & aCdt : aVCdt)
-            if (aCdt.mFree && (aCdt.SqDist(*aRes) < aD2))
-                aCdt.mFree = 0;
-    }
-
-    return aRes;
+    mAppli.mBlock->SetVerticalCste(VUnit(aVertical));
+    return mAppli.ValueOf2OthogClino(aR2Clin);
 }
+
 
 void cAppli_BlockInstrInitClino::InitVerticalAnd2OthogClino(const cPt2di & aK1K2)
 {
     mK1CurC = aK1K2.x();
     mK2CurC = aK1K2.y();
 
-    cSampleQuat     aSQuat(mNbSVert.x(),true); // true => sampling for rotation
-    // true : projective, because V and -V are equivalent with sging change in clinos
-    cSampleSphere3D aSSph(mNbSVert.y(),true);
+    cABIII_Optim2CV anOpt(*this,mNbSVert.x(),mNbSVert.y());
+    auto [aSc,aPair] = anOpt.ComputeSolInit(1.0,1e-8,10,0.05);
+    auto [aRot,aV] = aPair;
 
-    cWeightAv<tREAL8,tREAL8> anAv;
-    cWhichMin<cPt2di,tREAL8> aWMin;
-
-    std::vector<cCdtInitV> mVCdts;
-    int aNbCdt = aSQuat.NbRot()*aSSph.NbSamples();
-    StdOut() << " NNNNNN= " << aNbCdt << "\n";
-    mVCdts.reserve(aNbCdt);
-
-    for (int aKQ=0 ; aKQ<(int)aSQuat.NbRot() ; aKQ++)
-    {
-        cPt4dr aQuat =   aSQuat.KthQuat(aKQ);
-        tRotR aRot2Clino(Quat2MatrRot(aQuat),false);
-        for (int aKV=0 ; aKV<aSSph.NbSamples() ; aKV++)
-        {
-            cPt3dr aVertical = aSSph.KthPt(aKV);
-            tREAL8 aScore = ValueOfVerticalAnd2OthogClino(aRot2Clino,aVertical);
-            anAv.Add(1.0,aScore);
-            aWMin.Add(cPt2di(aKQ,aKV),aScore);
-
-            cCdtInitV aCdt;
-            aCdt.mVert = aVertical;
-            aCdt.mQuat = aQuat;
-            aCdt.mScore = aScore;
-            aCdt.mFree  = true;
-            mVCdts.push_back(aCdt);
-        }
-    }
-
-    tREAL8 aDistMin = 1.0;
-    cCdtInitV * aCdtMin =  ExtractMin(mVCdts,aDistMin);
-    MMVII_INTERNAL_ASSERT_always(aCdtMin!=nullptr,"No cdt in InitVerticalAnd2OthogClino");
-    tREAL8 aThSc0 = 2.0* aCdtMin->mScore + 0.05;
-    int aNbTest = 10;
-
-    tREAL8 aBestScore = 1e10;
-    tRotR aRotOpt;
-    cPt3dr aVertOpt;
-    while (aNbTest>0)
-    {
-        mAxes2Orthog = tRotR (Quat2MatrRot(aCdtMin->mQuat),false);
-        mAxes1Clino = tRotR::CompleteRON( aCdtMin->mVert);
-
-        cOptimByStep<5> anOptim(*this,true,1.0);
-        auto [aScOpt,aPt5Opt] = anOptim.Optim(cPtxd<tREAL8,5>::PCste(0),1.0/mNbSVert.x(),1e-8,1/sqrt(2.0));
-        if (aScOpt<aBestScore)
-        {
-            aBestScore = aScOpt;
-            auto aPair = P5toRotP3(aPt5Opt);
-            aRotOpt = aPair.first;
-            aVertOpt = aPair.second;
-        }
-
-        //StdOut() << " SCEXTRAcMin " << aCdtMin->mScore << " " << aCdtMin->mVert << " SS=" << aScOpt << "\n";
-        aCdtMin =  ExtractMin(mVCdts,aDistMin);
-
-
-        if (aCdtMin==nullptr)
-        {
-            aNbTest=0;
-        }
-        else
-        {
-           if (aCdtMin->mScore>aThSc0)
-              aNbTest=0;
-        }
-        aNbTest--;
-    }
-
-    if (Scal(mVertApriori,aVertOpt) < 0)
-    {
-        aRotOpt = tRotR (-aRotOpt.AxeI(),-aRotOpt.AxeJ(),aRotOpt.AxeK(),false);
-        aVertOpt    = - aVertOpt;
-    }
-
-    StdOut() << " SCORE=" << ValueOfVerticalAnd2OthogClino(aRotOpt,aVertOpt)
-             << " Vert=" << aVertOpt
-             << " Clino1=" <<   aRotOpt.AxeI()
-             << " Clino2=" <<  aRotOpt.AxeJ()
-             << "\n";
+            mBlock->SetVerticalCste(aV);
+    StdOut()  << " SS=" << Ang4Show(aSc) <<  " VV=" << aV << " C1="<< aRot.AxeI() << " C2=" << aRot.AxeJ() << "\n";
 }
 
 // ========================  3D optimisation ==========================
@@ -430,7 +448,6 @@ void cAppli_BlockInstrInitClino::Process1ClinoIndep(int aK)
     // I + aJ + b K ; J and K are computed as orthogonal base
     mAxes1Clino = tRotR::CompleteRON(aWMin.IndexExtre());
 
-    tREAL8 aSc1 = aWMin.ValExtre();
 
     tREAL8 aScMin = 1e10;
     for (auto aStep : {0.8,0.6,0.4,0.3})
@@ -441,54 +458,8 @@ void cAppli_BlockInstrInitClino::Process1ClinoIndep(int aK)
        mAxes1Clino = tRotR::CompleteRON(P2toP3(aPt2Min));
     }
 
-
-    tREAL8 aSc2 = aScMin;
-
-    if (NeverHappens())
-    {
-        StdOut() << " K=" << mKCurClino
-                 << " V=" << Ang4Show(aWMin.ValExtre())
-                 << " VV=" << Ang4Show(aScMin)
-                 << " P=" << aWMin.IndexExtre() << " "<< mAxes1Clino.AxeI() << "\n";
-    }
-
-    /*
-    for (int aK=0 ; aK<100 ; aK++)
-    {
-        int aDivStep= 4;
-        tREAL8 aStep = aScMin * RandInInterval(1.0-1.0/aDivStep,1.0) /aDivStep;
-        cPt2dr anOffset = cPt2dr::PRandC() * aStep;
-        int aMulStep = 3;
-        int aNbStep = aDivStep * aMulStep;
-        cRect2 aBox = cRect2::BoxWindow(aNbStep);
-
-        cWhichMin<cPt2dr,tREAL8> aMinNeigh(cPt2dr(0,0),Value(cPt2dr(0,0)).x());
-        for (const auto aPix : aBox)
-        {
-             cPt2dr aDelta = anOffset + ToR(aPix) * aStep;
-             aMinNeigh.Add(aDelta,Value(aDelta).x());
-        }
-        if (IsNotNull(aMinNeigh.IndexExtre()))
-        {
-             aScMin = aMinNeigh.ValExtre();
-             mAxesCur = tRotR::CompleteRON(P2toP3(aMinNeigh.IndexExtre()));
-            // StdOut()  << "SCCCC= " << Ang4Show(aScMin) << "\n";
-        }
-    }
-    */
-
-    tREAL8 aSc3 = aScMin;
-    if (NeverHappens())
-    {
-        StdOut() << " SCORE CLINO "
-                 << " A0=" <<   Ang4Show(aSc1)
-                 << " Opt1=" << Ang4Show(aSc2)
-                 << " Opt2=" << Ang4Show(aSc3)
-              << "\n";
-    }
-
-    mAvgClinIndep.Add(1.0,aSc3);
-    mScoreClinoIndep.at(mKCurClino) = aSc3;
+    mAvgClinIndep.Add(1.0,aScMin);
+    mScoreClinoIndep.at(mKCurClino) = aScMin;
     mDirClinoIndep.at(mKCurClino) = mAxes1Clino.AxeI();
 }
 

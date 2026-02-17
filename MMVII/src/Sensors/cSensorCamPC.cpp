@@ -72,7 +72,12 @@ void  cP3dNormWithUK::FillGetAdrInfoParam(cGetAdrInfoParam<tREAL8> & aGAIP)
 
 cPt3dr cP3dNormWithUK::GetPNorm() const
 {
-    return  VUnit(mPNorm + mU*mDuDv.x() + mV*mDuDv.y());
+    return  GetPNorm(mDuDv);
+}
+
+cPt3dr cP3dNormWithUK::GetPNorm(const cPt2dr & aDuDv) const
+{
+    return  VUnit(mPNorm + mU*aDuDv.x() + mV*aDuDv.y());
 }
 
 void cP3dNormWithUK::SetPNorm(const cPt3dr & aTr)

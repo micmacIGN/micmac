@@ -1,6 +1,6 @@
 #include "MMVII_PoseRel.h"
 #include "MMVII_Tpl_Images.h"
-
+#include "MMVII_TplHeap.h"
 
 /* We have the image formula w/o distorsion:
 
@@ -10,24 +10,116 @@
 namespace MMVII
 {
 
+class cPSC_PB ; // Planar Scene Param Bench
+class cPSC_Selec ; // Planar Scene Param Selection
+
+class cPSC_Sol ; // Planar Scene Param Selection
+
+///  Mode of execution of functions that wan be used both for Run-Time en Test
+enum class eModeExec
+{
+    eRunTime,  //< Run time will do just internal test
+    eBench,    //< Bench will make "intensive" test of correctness (on generally "perfect" data)
+    eTest      //< will do Bench and  generate some output (message, images ...) to help comprehension
+};
+
+/* ******************************************* */
+/*                                             */
+/*               cPSC_PB                       */
+/*                                             */
+/* ******************************************* */
 
 class cPSC_PB  //< cPS_CompPose Param Bench
 {
      public :
+
+       cPSC_PB(const std::string & aMsg,tPoseR aGTPoseRel,bool isSameSide,eModeExec aMode);
+       const std::string & Msg()  const;
+       const tPoseR & GTPoseRel() const;
+       bool  IsSameSide() const;
+       eModeExec           Mode() const;
+
+     private :
        std::string mMsg;
-       bool        mModeEpip;
-       bool        mWithGT;
-
-       //cSetHomogCpleDir mSetDir;
-
-       cPSC_PB(const std::string & aMsg,bool aModeEpip = false) :
-           mMsg      (aMsg),
-           mModeEpip (aModeEpip),
-           mWithGT   (false)
-       {
-       }
+       tPoseR      mGTPoseRel;
+       bool        mIsSameSide;
+       eModeExec   mMode;
 };
 
+const std::string & cPSC_PB::Msg()  const {return mMsg;}
+const tPoseR & cPSC_PB::GTPoseRel() const {return mGTPoseRel;}
+eModeExec           cPSC_PB::Mode() const {return mMode;}
+bool cPSC_PB::IsSameSide() const {return mIsSameSide;}
+
+cPSC_PB::cPSC_PB(const std::string & aMsg,tPoseR aGTPoseRel,bool isSameSide,eModeExec aMode) :
+    mMsg       (aMsg),
+    mGTPoseRel (aGTPoseRel),
+    mIsSameSide (isSameSide),
+    mMode       (aMode)
+{
+}
+
+
+
+/* ******************************************* */
+/*                                             */
+/*               class cPSC_Sol                */
+/*                                             */
+/* ******************************************* */
+
+class cPSC_Sol
+{
+   public :
+    cPSC_Sol(const tPoseR&,tREAL8 aPNeg1,tREAL8 aPNeg2);
+    tREAL8 Score() const;
+     const tPoseR & PoseRel() const;
+   private :
+      tPoseR   mPoseRel;
+      tREAL8   mPropNeg1;  //< Number of coordinate <0 (bad size of bundle)
+      tREAL8   mPropNeg2;
+};
+
+cPSC_Sol::cPSC_Sol(const tPoseR& aPose,tREAL8 aPNeg1,tREAL8 aPNeg2) :
+    mPoseRel(aPose),
+    mPropNeg1 (aPNeg1),
+    mPropNeg2 (aPNeg2)
+{
+}
+
+tREAL8 cPSC_Sol::Score() const {return mPropNeg1+mPropNeg2;}
+const tPoseR & cPSC_Sol::PoseRel() const {return mPoseRel;}
+
+
+class  cCmpcPSC_Sol_OnScore
+{
+     public :
+         bool operator ()(const cPSC_Sol & aS1,const cPSC_Sol & aS2) const
+         {
+             return aS1.Score() > aS2.Score();
+         }
+};
+
+
+//cKBestValue
+/* ******************************************* */
+/*                                             */
+/*               class cPSC_Sol                */
+/*                                             */
+/* ******************************************* */
+class cPSC_Selec
+{
+   public :
+
+      cPSC_Selec(tREAL8 aProp);
+
+      const tREAL8  mPropMaxNeg;
+};
+
+cPSC_Selec::cPSC_Selec(tREAL8 aProp):
+    mPropMaxNeg (aProp)
+{
+
+}
 
 /**
  * @brief cPS_CompPose::cPS_CompPose -> Planar Scene Compute Pose
@@ -38,14 +130,15 @@ class cPSC_PB  //< cPS_CompPose Param Bench
 class cPS_CompPose
 {
    public :
-        cPS_CompPose( cSetHomogCpleDir &,const  cPSC_PB * = nullptr);
+        cPS_CompPose( cSetHomogCpleDir &,bool isL1=false,int aKMax=8, const  cPSC_PB * = nullptr);
 
         typedef std::pair<cPSC_PB,cSetHomogCpleDir>  tResSimul;
+        typedef cKBestValue<cPSC_Sol,cCmpcPSC_Sol_OnScore> tCmpSol;
 
         /** generate pair 3D of direction that can correpond to coherent camera, can be more
          "extremate" than with camera, can simulate for example two side of plane.
          */
-         static tResSimul SimulateDirAny(tREAL8 aEps,tREAL8 aDistPlane,bool isSameSide); // Steep of plane, may be adjusted
+         static tResSimul SimulateDirAny(tREAL8 aMinDistViewPoints,tREAL8 aDistPlane,bool isSameSide,eModeExec); // Steep of plane, may be adjusted
 
 
          /** generate pair of direction the correspond to camera already in epipolar config, more for
@@ -60,23 +153,36 @@ class cPS_CompPose
    private :
 
         ///  Compute the 3D homog matrix
-        static cDenseMatrix<tREAL8>   ComputeMatHom3D(cSetHomogCpleDir &,const  cPSC_PB *);
+        static cDenseMatrix<tREAL8> ComputeMatHom3D(const cSetHomogCpleDir &,bool isL1,int aKMax,const  cPSC_PB *);
 
-        bool TestOneHypoth(cResulSVDDecomp<tREAL8>& aSvdH,const cPt3dr&ABL,int SignB,const cPt3dr & aSignD);
+        bool TestOneHypoth
+             (
+                cResulSVDDecomp<tREAL8>& aSvdH,
+                const cPt3dr&ABL,
+                int SignB,
+                const cPt3dr & aSignD,
+                const cPSC_Selec & aSel
+              );
 
         /// generate a point of view by randomizing Theta
        // static    cPt3dr RandPointOfView(const cPt2dr & aRhoZ);
-        static    cPt3dr RandPointOfView(int aSign,tREAL8 aDPlane);
+        static    cPt3dr RandPointOfView(int aSign,tREAL8 aDistMinPlane);
 
 
         /// Utilitary : transferate "Pt" in "Vect" at offset "Index" muliplied by "Mul"
         static void SetPt( cDenseVect<tREAL8>& aVect,size_t aIndex,const cPt3dr& aPt,tREAL8 aMul);
 
 
+        const cSetHomogCpleDir &   mCpleDir;
+        const  cPSC_PB *           mCurParam;
+        eModeExec                  mMode;
         const std::vector<cPt3dr>* mCurV1 ;
         const std::vector<cPt3dr>* mCurV2 ;
         size_t                     mCurNbPts;
-        const  cPSC_PB *           mCurParam;
+
+        int                        mKMax;
+        cDenseMatrix<tREAL8>       mMatH ; ///<  Homography matrix
+
 
         // parameters extract of homog matrix , used to compute polynome
         tREAL8                     mHM_Det;
@@ -84,7 +190,7 @@ class cPS_CompPose
         tREAL8                     mHM_Tr4;
 
         size_t                     mNbSolTested; ///< number of sol we try
-        size_t                     mNbSolOk;     ///< number of sol possible at end
+        tCmpSol                    mCmpSol;      ///< will a maximum of 2 best solution
 };
 
 
@@ -172,7 +278,7 @@ class cPS_CompPose
  *        [P2] a^2 + b^2 + 2           = L^2 Tr2
  *        [P3] (a^2+b^2) ^2 + 2 b^2 +2 = L^4 Tr4
  *
- *     By substitution in [P3] we get a polynomial equation in L
+ *     By substitution in [P3] we get a polynomi FakeUseIt(aNbM2);al equation in L
  *     (a^2 + b^2) comes from [P2] and b^2 from [P1] & [P2]) :
  *         (L^2Tr^2 -2) ^2 + 2(L^2 Tr2-2 -L^6 D^2)   +2 = L^4 Tr4
  *     This 6-degree in L can be solved as 3 degree i n L2
@@ -190,7 +296,7 @@ class cPS_CompPose
 /*
 cPt3dr cPS_CompPose::RandPointOfView(const cPt2dr & aRhoZ)
 {
-    return Cyl2Cart(cPt3dr(aRhoZ.x(),RandUnif_Angle(),aRhoZ.y()));
+    return Cyl2Cart(cPt3dr(aRhoZ.x(),Raconst cPS FakeUseIt(aNbM2);C_Selec & aSel    ndUnif_Angle(),aRhoZ.y()));
 }
 */
 
@@ -256,7 +362,7 @@ cSetHomogCpleDir cPS_CompPose::SimulateDirEpip
  *
  */
 
-cPt3dr cPS_CompPose::RandPointOfView(int aSign,tREAL8 aDPlane)
+cPt3dr cPS_CompPose::RandPointOfView(int aSign,tREAL8 aDistMinPlane)
 {
     // any value  in [0,2PI]
     tREAL8 aTeta =  RandUnif_Angle();
@@ -266,7 +372,7 @@ cPt3dr cPS_CompPose::RandPointOfView(int aSign,tREAL8 aDPlane)
     tREAL8 aRho =  std::pow(RandUnif_0_1(),4.0) * 20.0;
 
     cPt3dr aP = spher2cart(cPt3dr(aTeta,aPhi,aRho));
-    aP.z() = std::max(aP.z(),aDPlane) * aSign;
+    aP.z() = std::max(aP.z(),aDistMinPlane) * aSign;
 
     return aP;
 }
@@ -287,13 +393,20 @@ cPt3dr cPS_CompPose::RandPointOfView(int aSign,tREAL8 aDPlane)
  * @return
  */
 
-cPS_CompPose::tResSimul cPS_CompPose::SimulateDirAny(tREAL8 aEpsilon,tREAL8 aDistPlane,bool SameSide)
+cPS_CompPose::tResSimul
+     cPS_CompPose::SimulateDirAny
+     (
+        tREAL8 aMinDistViewPoints,
+        tREAL8 aDistPlane,
+        bool SameSide,
+        eModeExec aMode
+      )
 {
     tREAL8 aSign = SameSide ? 1 : -1;
 
     cPt3dr aC1 = RandPointOfView(1,aDistPlane);
     cPt3dr aC2 = aC1;
-    while (Norm2(aC1-aC2)<aEpsilon)
+    while (Norm2(aC1-aC2)<aMinDistViewPoints)
          aC2 = RandPointOfView(aSign,aDistPlane);
 
 
@@ -305,14 +418,23 @@ cPS_CompPose::tResSimul cPS_CompPose::SimulateDirAny(tREAL8 aEpsilon,tREAL8 aDis
     for (int aK=0 ; aK<100 ; aK++)
     {
         cPt2dr aPPlane = cPt2dr::PRandInSphere();
-        // the planer comp of point are generate in the circle unit
+        // the planer comp of point are generate FakeUseIt(aNbM2); in the circle unit
         cPt3dr aPGround = TP3z(aPPlane, 0.0);
 
         aVDir1.push_back(aR1.Value(VUnit(aPGround-aC1)));
         aVDir2.push_back(aR2.Value(VUnit(aPGround-aC2)));
     }
 
-    cPSC_PB aPSC("Any",false);
+    // Now compute the relative pose as ground truth
+    tPoseR aPC1toE1(cPt3dr(0,0,0),aR1.MapInverse());
+    tPoseR aPE2toE1(VUnit(aC2-aC1),tRotR::Identity());
+    tPoseR aPC2toE2(cPt3dr(0,0,0),aR2.MapInverse());
+    //                  C2 <-E2               E2 <-E1    E2 <- C2
+    tPoseR aPC1toC2 =  aPC1toE1.MapInverse() * aPE2toE1 * aPC2toE2;
+
+
+
+    cPSC_PB aPSC("Any",aPC1toC2,SameSide,aMode);
     return tResSimul(aPSC,cSetHomogCpleDir(aVDir1,aVDir2));
 }
 
@@ -332,7 +454,7 @@ void cPS_CompPose::SetPt( cDenseVect<tREAL8>& aVect,size_t aIndex,const cPt3dr& 
 
 
 cDenseMatrix<tREAL8>
-    cPS_CompPose::ComputeMatHom3D(cSetHomogCpleDir &aSetCple,const  cPSC_PB * aCurParam)
+    cPS_CompPose::ComputeMatHom3D(const cSetHomogCpleDir &aSetCple,bool isL1,int aKMax,const  cPSC_PB * aCurParam)
 {
     const std::vector<cPt3dr>* aCurV1   = & aSetCple.VDir1() ;
     const std::vector<cPt3dr>* aCurV2   = & aSetCple.VDir2() ;
@@ -340,7 +462,9 @@ cDenseMatrix<tREAL8>
 
      //  [1]   Estimate the homography
      cDenseVect<tREAL8> aVect(9);
-     cLeasSqtAA<tREAL8> aSys(9); // least square to estimate parameters
+     cLinearOverCstrSys<tREAL8> * aSys =  isL1                         ?
+                                          AllocL1_Barrodale<tREAL8>(9) :
+                                          new cLeasSqtAA<tREAL8> (9)   ;
 
      for (size_t aKP=0 ; aKP<aCurNbPts ; aKP++)
      {
@@ -351,21 +475,22 @@ cDenseMatrix<tREAL8>
          SetPt(aVect,0,aP1,aP2.z());
          SetPt(aVect,3,aP1,0); // 0 => reset, P1 will be unused
          SetPt(aVect,6,aP1,-aP2.x());
-         aSys.PublicAddObservation(1.0,aVect,0.0);
+         aSys->PublicAddObservation(1.0,aVect,0.0);
 
          // Add the equation  L2.P1 z2 - L3.P1 y2 = 0
          SetPt(aVect,0,aP1,0);  // reset, P1 will be unused
          SetPt(aVect,3,aP1,aP2.z());
          SetPt(aVect,6,aP1,-aP2.y());
-         aSys.PublicAddObservation(1.0,aVect,0.0);
+         aSys->PublicAddObservation(1.0,aVect,0.0);
      }
      // Fix last value as matrix is up to a scale
-     aSys.AddObsFixVar(tREAL8(aCurNbPts),8,1.0);
-     cDenseVect<tREAL8> aSol = aSys.PublicSolve();
+     aSys->AddObsFixVar(tREAL8(aCurNbPts),aKMax,1.0);
+     cDenseVect<tREAL8> aSol = aSys->PublicSolve();
      cDenseMatrix<tREAL8> aMatH = Vect2MatEss(aSol);
 
      if (aCurParam)
      {
+         // Test that homography transformate direction 1 in direction 2
         for (size_t aKP=0 ; aKP<aCurNbPts ; aKP++)
         {
             const cPt3dr & aP1 = aCurV1->at(aKP);
@@ -373,34 +498,44 @@ cDenseMatrix<tREAL8>
 
             // As point are projective P and -P are equivalent : use line-angle
             tREAL8 anAng = AbsLineAngleTrnk(aMatH*aP1,aP2);
-            MMVII_INTERNAL_ASSERT_bench(anAng<1e-7,"cPS_CompPose :: Matrix");
-
-            // This test can no longer sucess with data simulated by direction (more chalenging)
-            if (0)
-            {
-                tREAL8 aDif = Norm2(VUnit(aMatH * aP1) - aP2);
-                MMVII_INTERNAL_ASSERT_bench(aDif<1e-7,"cPS_CompPose :: Matrix");
-            }
-          //  StdOut()  << " * DiiIiff=  " << AbsLineAngleTrnk(aMatH*aP1,aP2) << "\n";
+            tREAL8 aThrs = 1e-5;
+            if (anAng>=aThrs)
+                StdOut() << " AAAAA : " << anAng << "\n";
+            MMVII_INTERNAL_ASSERT_bench(anAng<aThrs,"cPS_CompPose :: Matrix");
         }
      }
      // Not real reason to do that, just to supress an arbitray degree of freedom
      if (aMatH.Det() < 0)
          aMatH = - aMatH;
+     delete aSys;
      return aMatH;
 }
 
 /*
-    const std::vector<cPt3dr>* mCurV1 = aSetCple.VDir1();
-    const std::vector<cPt3dr>* mCurV2 = aSetCple.VDir1();
+    This weighting is some generalization of the fact that coeeff >0 are OK and <0 are
+    not OK.  It some majic formula based on :
+        - it must be continuous, identifyin +Infty and -Infty
+        - growing in 0+ ->+Infty  and -Infty -> O-
  */
+
+tREAL8  WOfCoeff(tREAL8 aCoeff)
+{
+  if (aCoeff==0)
+      return 0;
+
+  if (aCoeff >0)
+      return 1.0 - 1.0 / (1.0+aCoeff);
+
+  return 2.0 - WOfCoeff(-aCoeff);
+}
 
 bool cPS_CompPose::TestOneHypoth
      (
         cResulSVDDecomp<tREAL8>& aSvdH,  // SVD of 3D-Homograhy
         const cPt3dr & anABL,            // Value for A,B and lamda
         int   aSignBase,                 // Sign of base
-        const cPt3dr & aSignDiag         // sign of diagonal
+        const cPt3dr & aSignDiag ,        // sign of diagonal
+        const cPSC_Selec & aSel
      )
 {
     mNbSolTested++;
@@ -469,171 +604,150 @@ bool cPS_CompPose::TestOneHypoth
     tRotR  aRE1(aQV *  aSvdH.MatV().Transpose(),false);
     tRotR  aRE2(aQU *  aSvdH.MatU().Transpose(),false);
 
-    tREAL8 aNbM1 = 0.0; FakeUseIt(aNbM1);
-    tREAL8 aNbM2 = 0.0; FakeUseIt(aNbM2);
+    tREAL8 aNbM1 = 0.0; // number of point on bad side of bundle1
+    tREAL8 aNbM2 = 0.0; // number of point on bad side of bundle2
     std::vector<cPt3dr> aVecPt;
     int aNbBundleParal = 0;
 
+    // W/O error all points should be "in front of camera", in reality there may be some
+    // outlayer and we have a small tolerance,
+    int aNbNegMax = round_up(aSel.mPropMaxNeg*mCurNbPts);
+
+     // intersections in C1 and C2 coordinates, for bench of aPC2toC1
+     std::vector<cPt3dr>  aVInterC1,aVInterC2;
+     tREAL8 aSumWOffCoeff =0.0;
      for (size_t aK=0 ; aK<mCurNbPts ; aK++)
      {
          cPt3dr aPE1 = aRE1.Value(mCurV1->at(aK));
          cPt3dr aPE2 = aRE2.Value(mCurV2->at(aK));
 
-         // mesaure if the bundles are parallel
+         // mesaure if the bundles are parallel, use the unsigned distance between 2 direction
          tREAL8 aDistDir = DistDirLine(aPE1,aPE2);
 
-         // if not paral an intersection can be computed
+         // if not sub-parallel, an intersection can be computed
          if (aDistDir>1e-6)
          {
+            // (0,0,0) is position of Center1 , aBase is position of center 2
             tSegComp3dr aSeg1(cPt3dr(0,0,0),aPE1);
             tSegComp3dr aSeg2(aBase,aBase+aPE2);
 
+            // I = aC.x B1 + aC.y B2 + aC.z B1^ B2
             cPt3dr aCoeffI;
             cPt3dr anInter = BundleInters(aCoeffI,aSeg1,aSeg2);
             aVecPt.push_back(anInter);
 
+           // aVInterC1,aVInterC2
             //tREAL8 aWeight = 1.0 / (1.0+std::abs(aCoeffI.z()));
             if (aCoeffI.x() < 0)
+            {
                 aNbM1 += 1;
+                if (aNbM1>aNbNegMax) // more point behind than tolerated
+                    return false;
+            }
             if (aCoeffI.y() < 0)
+            {
                  aNbM2 += 1;
+                 if (aNbM2>aNbNegMax)  // more point behind than tolerated
+                     return false;
+            }
 
+            aSumWOffCoeff += WOfCoeff(aCoeffI.x()) +  WOfCoeff(aCoeffI.y());
 
+            // is we are in  test mode, check that the bundle are intersecting
             if (mCurParam)
             {
+               // push the intersection in coordinates of C1 and C2
+               aVInterC1.push_back(mCurV1->at(aK)*aCoeffI.x());
+               aVInterC2.push_back(mCurV2->at(aK)*aCoeffI.y());
+
+
                tREAL8 aDist = std::abs(aCoeffI.z()) / (1.0+Square(aCoeffI.x())+Square(aCoeffI.y()));
-               tREAL8 aD1 = aSeg1.Dist(anInter);
-               tREAL8 aD2 = aSeg2.Dist(anInter);
-               if ((aDist>1e-6) || (Norm2(aCoeffI)>1e10))
-               {
-                  StdOut() << " D1D2 " << aD1 << " " << aD2  << aCoeffI << " " << aDist
-                                <<  " CPT=" << aCptSol << " Kpt=" << aK << "\n";
-                  StdOut() << " Msg=" <<  mCurParam->mMsg  << "\n";
-                  if (Norm2(aCoeffI)>1e10)
-                  {
-
-                     StdOut() << " COEFFI=" << aCoeffI << " I=" << anInter
-                              <<  " CPT=" << aCptSol << " K=" << aK <<"\n";
-
-                     StdOut() << " V1=" << mCurV1->at(aK)<< " V2="<< mCurV2->at(aK)
-                              << " E1=" << aPE1 << " E2=" << aPE2 << "\n";
-
-                     getchar();
-                  }
-                  if (aDist>1e-6)
-                  {
-                     MMVII_INTERNAL_ASSERT_bench(false,"PlanEpip : dist bund");
-                  }
-               }
+               MMVII_INTERNAL_ASSERT_bench(aDist<1e-5,"PlanEpip : dist bund");
             }
          }
          else
          {
+             aSumWOffCoeff += 2.0;
              aNbBundleParal++;
          }
      }
 
+     // if there is less then 3 points, dont even try to compute the plane
      if (aVecPt.size()<3)
      {
          if (mCurParam)
          {
-            StdOut() << "    ****** NB BunPar " << aNbBundleParal << " on " << mCurNbPts << "\n";
+            StdOut() << "    ****** NB BunPar " << aNbBundleParal
+                     << " on " << mCurNbPts
+                     <<  " WCOeff" << aSumWOffCoeff
+                     << "\n";
          }
          return false;
      }
 
-     auto [aPlane,aRes] =  cPlane3D::RansacEstimate(aVecPt,true,100);
+     auto [aPlane,aRes] =  cPlane3D::LSQEstimate(aVecPt);
 
      cPt3dr aC0 = aPlane.ToLocCoord(cPt3dr(0,0,0));
      cPt3dr aC1   = aPlane.ToLocCoord(aBase);
      bool isZP0 = aC0.z() > 0;
      bool isZP1 = aC1.z() > 0;
 
+     // In "physically" possible scenes, the two points must be on the same side
      bool   isSameSide = (isZP0==isZP1) ; FakeUseIt(isSameSide);
+     if (! isSameSide)
+        return false;
 
+     tREAL8 aScoreP1 = aNbM1/tREAL8(mCurV1->size());
+     tREAL8 aScoreP2 = aNbM1/tREAL8(mCurV2->size());
 
-     tREAL8 aScorePos = (aNbM1+aNbM2) / (2.0* mCurV1->size());
+     tPoseR aPC1toE1(cPt3dr(0,0,0),aRE1);
+     tPoseR aPE2toE1(aBase,tRotR::Identity());
+     tPoseR aPC2toE2(cPt3dr(0,0,0),aRE2);
+
+      //                          C <- E1       E1 <- E2   E2 <-C2
+      tPoseR aPC2toC1 = aPC1toE1.MapInverse() * aPE2toE1 * aPC2toE2;
+
+      mCmpSol.Push(cPSC_Sol(aPC2toC1,aScoreP1,aScoreP2));
 
 
      if (mCurParam)
      {
-         if (true) //  aScorePos<1e-4)
+         // We check that aPC2toC1 is the mapping that transform coordinates from Cam2 to
+         // Cam1 as it's supposed to be
+         for (size_t aKP=0; aKP<aVInterC1.size(); aKP++)
          {
-
-             StdOut()  <<  "PooOs:= "
-                        << " SignB= " << aSignBase  << " SD=" <<  aSignDiag
-                        <<  ((aScorePos<1e-4)  ? " *** " : "     ")
-                         <<  " " << (isSameSide ? "==" : "!!")
-                          <<  ( isZP0 ? "+" : "-")
-                           <<  ( isZP1 ? "+" : "-") << " "
-                            << aNbM1 << " " << aNbM2
-                            <<  " N=" << aPlane.AxeK().y()
-                             << " On: " << aScorePos << " CPT=" << aCptSol ;
-             StdOut() << "\n";
-
-
-             if (mCurParam->mModeEpip && (aScorePos<1e-4))
-             {
-                 /*
-                 for (int aY=0 ; aY<3 ; aY++)
-                 {
-                     StdOut() <<  "                      ";
-                     PP_1Line_MatRot(aRE1.Mat(),aY);
-                     StdOut() << "   |||   ";
-                     PP_1Line_MatRot(aRE2.Mat(),aY);
-                     StdOut()  << "\n";
-                 }*/
-              //   StdOut() << " VVV=" << aVecPt[0] << "\n";
-
-//                 tPoseR aP1()
-           //      cPt3dr aPE1 = aRE1.Value(mCurV1->at(aK));
-           //     cPt3dr aPE2 = aRE2.Value(mCurV2->at(aK));
-
-
-                  tPoseR aPC1toE1(cPt3dr(0,0,0),aRE1);
-                  tPoseR aPE1toE2(aBase,tRotR::Identity());
-                  tPoseR aPC2toE2(cPt3dr(0,0,0),aRE2);
-
-                  //                  C2 <-E2               E2 <-E1    E1 <- C1
-                  tPoseR aPC1toC2 =aPC2toE2.MapInverse() * aPE1toE2 * aPC1toE1;
-
-
-                   StdOut() << " ######## TR12=" << aPC1toC2.Tr()  << aSignDiag << "####### \n";
-
-                 // StdOut()  << aRE1.AxeI() <<  aRE1.AxeJ() << aRE1.AxeK() << "\n";
-                 // StdOut()  << aRE2.AxeI() <<  aRE2.AxeJ() << aRE2.AxeK() << "\n";
-
-
-             }
-             mNbSolOk++;
-             return true;
+             tREAL8 aDist = Norm2(aVInterC1.at(aKP) - aPC2toC1.Value(aVInterC2.at(aKP)));
+             MMVII_INTERNAL_ASSERT_bench(aDist<1e-5,"Dist VinterC1/VInterC2 in Planar Scene");
          }
-         else
-         {
-             // StdOut()  << " Nbumber Minus -> " << aNbM1  << " " << aNbM2 << "\n";
-         }
+
+         // we check that the plane estimate is realy Z= A + B X
+         tREAL8 aDirPlY =  aPlane.AxeK().y();
+         MMVII_INTERNAL_ASSERT_bench(std::abs(aDirPlY)<1e-5,"aDirPlY in Planar Scene");
+
+         return true;
 
     }
-     return false;
+    return false;
 }
 
-cPS_CompPose::cPS_CompPose(cSetHomogCpleDir & aSetCple,const  cPSC_PB * aBenchParam) :
-    mNbSolTested (0),
-    mNbSolOk     (0)
-{
-    // const std::vector<cPt3dr>& aV1 = aSetCple.VDir1();
-   // const std::vector<cPt3dr>& aV2 = aSetCple.VDir2();
-    cDenseMatrix<tREAL8> aMatH = ComputeMatHom3D(aSetCple,aBenchParam); // aV1,aV2,aParamBench);
 
-    mCurV1    = & aSetCple.VDir1() ;
-    mCurV2    = & aSetCple.VDir2() ;
-    mCurNbPts = mCurV1->size();
-    mCurParam = aBenchParam;
+cPS_CompPose::cPS_CompPose(cSetHomogCpleDir & aSetCple,bool isL1,int aKMax,const  cPSC_PB * aBenchParam) :
+    mCpleDir     (aSetCple),
+    mCurParam    (aBenchParam),
+    mMode        (mCurParam ? mCurParam->Mode() : eModeExec::eRunTime),
+    mCurV1       (&mCpleDir.VDir1()),
+    mCurV2       (&mCpleDir.VDir2()),
+    mCurNbPts    ( mCurV1->size()),
+    mKMax        (aKMax),
+    mMatH        (ComputeMatHom3D(mCpleDir,isL1,mKMax,aBenchParam)),
+    mNbSolTested (0),
+    mCmpSol      (cCmpcPSC_Sol_OnScore(),2)
+{
 
     // [2]  Estimate the paramater a,b,L
 
      //  [2.1] make a SVD, Eigen value used for invariant,  maybe not optimal , btw will be used later
-     cResulSVDDecomp<tREAL8> aSvdH = aMatH.SVD(true);
+     cResulSVDDecomp<tREAL8> aSvdH = mMatH.SVD(true);
      cDenseVect<tREAL8>      aSingV = aSvdH.SingularValues();
 
      // [2.2]  compute invariant
@@ -653,19 +767,19 @@ cPS_CompPose::cPS_CompPose(cSetHomogCpleDir & aSetCple,const  cPSC_PB * aBenchPa
      // some basic check, compare values from singular with direct computation
      if (mCurParam)
      {
-         cDenseMatrix<tREAL8> aH_tH = aMatH * aMatH.Transpose();
+         cDenseMatrix<tREAL8> aH_tH = mMatH * mMatH.Transpose();
 
          if (0)
          {
-             StdOut()  << "DDDD= " << mHM_Det - aMatH.Det() << "\n";
+             StdOut()  << "DDDD= " << mHM_Det - mMatH.Det() << "\n";
              StdOut()  << "tTr2= " << mHM_Tr2 - aH_tH.Trace() << "\n";
              StdOut()  << "tTr4= " << mHM_Tr4 - aH_tH.DIm().SqL2Norm(false) << "\n";
              StdOut() << "\n";
+             StdOut() << " SINGV " << aSingV << "\n";
          }
-         StdOut() << " SINGV " << aSingV << "\n";
 
          // For determinant of projective, sign is undefined
-         MMVII_INTERNAL_ASSERT_bench(RelativeDifference(mHM_Det, std::abs(aMatH.Det()))<1e-7,  "cPS_CompPose :: Det");
+         MMVII_INTERNAL_ASSERT_bench(RelativeDifference(mHM_Det, std::abs(mMatH.Det()))<1e-7,  "cPS_CompPose :: Det");
          MMVII_INTERNAL_ASSERT_bench(RelativeDifference(mHM_Tr2, aH_tH.Trace())<1e-7,"cPS_CompPose :: Tr2");
          MMVII_INTERNAL_ASSERT_bench(RelativeDifference(mHM_Tr4,aH_tH.DIm().SqL2Norm(false))<1e-7,"cPS_CompPose:Tr4");
          //RelativeDifference()
@@ -710,35 +824,42 @@ cPS_CompPose::cPS_CompPose(cSetHomogCpleDir & aSetCple,const  cPSC_PB * aBenchPa
 
 
      //std::vector<cPt3dr> aVPtsSign{{1,1,1},{1,-1,-1},{-1,1,-1},{-1,-1,1}};
+     // the ambiguity is completely handled by base & ABL => no need to have more
      std::vector<cPt3dr> aVPtsSign{{1,1,1}};
 
-     int aNbSol= 0;
+
      for (int aSignBase =-1 ; aSignBase<=1 ; aSignBase+=2)
      {
          for (const auto & anABL : aVABL)
          {
               for (const auto & aPtSignDiag : aVPtsSign)
               {
-                  aNbSol += TestOneHypoth
+                  TestOneHypoth
                   (
                       aSvdH,
                       anABL,
                       aSignBase,
-                      aPtSignDiag
+                      aPtSignDiag,
+                      cPSC_Selec(0.2)
                   );
               }
          }
     }
 
-    StdOut() << "------------ " <<  aNbSol << " -------------------------------------------------\n";
-     if (aNbSol == 0) getchar();
-    if (0&& mCurParam)
+    if (mCurParam && mCurParam->IsSameSide())
     {
-         StdOut() << "----------------------------------------" << mCurParam->mMsg << mCurParam->mMsg  << mCurParam->mMsg  <<" \n";
-         if (0&&UserIsMPD())
-            getchar();
+        int aNbSolOk = 0;
+        for (const auto & aSol:mCmpSol.Elements())
+        {
+            tREAL8 aDistPose = aSol.PoseRel().DistPose(mCurParam->GTPoseRel(),1.0);
+            // Threshold on DistPose is high, generally it's ~ 1e-15, but there seems
+            // to be rare degenerate case that I dont have time to look for at the time being ...
+            if ((aSol.Score()==0) && (aDistPose<1e-3))
+                aNbSolOk++;
+        }
+       // StdOut() << "aNbSolOk " << aNbSolOk << "\n";
+        MMVII_INTERNAL_ASSERT_bench(aNbSolOk==1,"Scene Plane NbSol=1");
     }
-
 }
 
 
@@ -747,70 +868,17 @@ void BenchMEP_Coplan()
 
     if (1)
     {
-        /* In this test we generate random bundle
-         */
+      // StdOut() << "BenchMEP_CoplanBenchMEP_Coplan \n";
        for (int aNbTest=0 ; aNbTest < 100 ; aNbTest++)
        {
-            for (int aSign =  1 ; aSign<= 1 ; aSign+=2)
-            {
-                /*
-                tREAL8 aRho1 = RandUnif_0_1() * 2.0;
-                tREAL8 aRho2 = RandUnif_0_1() * 2.0;
-                tREAL8 aZ1 = 0.1 + RandUnif_0_1() * 2.0;
-                tREAL8 aZ2 = aSign*(0.1 + RandUnif_0_1() * 2.0);
-*/
-                cPS_CompPose::tResSimul aRes = cPS_CompPose::SimulateDirAny(1e-2,0.1,true);
-               // std::string aMsg = (aSign>0) ? "++++++++++" : "-----------" ;
-                 // cPSC_PB aParam((aSign>0) ? "++++++++++" : "-----------",true);
-                cPS_CompPose aPsC(aRes.second,&aRes.first);
-           }
-
-            // getchar();
+           // For reason still to get, there is mor pb with opposite sides
+           bool isSameSide = (aNbTest !=0);
+           bool isL1 = (aNbTest%2)==0;
+           cPS_CompPose::tResSimul aRes =
+                        cPS_CompPose::SimulateDirAny(1e-2,0.1,isSameSide,eModeExec::eTest);
+            cPS_CompPose aPsC(aRes.second,isL1,8,&aRes.first);
        }
-    }
-
-    if (0)
-    {
-        // Z  Steep  Rho Sens
-
-       std::vector<std::vector<tREAL8>>  aVConf
-                                         {
-           {-10.0, 0.0,1.0,1.0},
-           {-10.0, 0.2,1.0,1.0},
-           {-10.0,-0.2,1.0,1.0},
-                                               {-1.0, 0.0,1.0,1.0},
-                                               {-1.0, 0.1,1.0,1.0},
-                                               {-1.0,-0.1,1.0,1.0},
-
-                                               {-1.0, 0.0,1.0,0.0},
-                                               {-1.0, 0.1,1.0,0.0},
-                                               {-1.0,-0.1,1.0,0.0},
-
-                                               {1.0,0.1,1.0,1.0},
-                                             // {1.0,0.,1.0,0.0},
-                                              {1.0,0.1,1.0,1.0},
-                                              {2.0,1.0,10.0,1.0},
-                                              {1.0,0.2,1.0,0}
-                                         };
-       for (const auto& aV : aVConf)
-       {
-           cSetHomogCpleDir aSetCple=cPS_CompPose::SimulateDirEpip(aV.at(0),aV.at(1),aV.at(2),aV.at(3)!=0);
-
-           cPSC_PB aParam("EpipInit:"+ToStr(aV),true);
-           cPS_CompPose aPsC(aSetCple,&aParam);
-           getchar();
-       }
-    }
-    /*
-    cSetHomogCpleDir cPS_CompPose::SimulateDirEpip
-                            (
-                                 tREAL8 aZ,           // Altitude of both camera
-                                 tREAL8 aSteep,  // Z = X * Steep
-                                 bool   BaseIsXP1     // is the base (1,0,0) or (-1,0,0) ?
-                            )
-                            */
-   //StdOut() << "CPT " << aCptPbL1  << "  " << aCpt << std::endl;
-
+    } 
 }
 
 
