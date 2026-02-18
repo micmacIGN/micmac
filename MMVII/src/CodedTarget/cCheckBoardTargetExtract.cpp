@@ -685,21 +685,21 @@ void cAppliCheckBoardTargetExtract::DoOneImageAndScale(tREAL8 aScale,const  tIm 
 	   bool GotIt = false;
 	   for (size_t aKC=0 ; (aKC<TryCE.size()) && (!GotIt) ; aKC++)
 	   {
-               std::vector<cPt2dr> aVFront;
-               cCdEllipse aCDE(aCdtRad,*mDImTmp,mNbMaxBlackCB,TryCE.at(aKC),aVFront);
-	       if (aCDE.IsOk())
-	       {
-	          SetLabel(aCDE.mC,eFilterEllipse);
-                  aCDE.DecodeByL2CP(mPropGrayDCD);
-                  aVCdtEll.push_back(aCDE);
-	          if (aCDE.Code())
+            std::vector<cPt2dr> aVFront;
+            cCdEllipse aCDE(aCdtRad,*mDImTmp,mNbMaxBlackCB,TryCE.at(aKC),aVFront);
+            if (aCDE.IsOk())
+            {
+                SetLabel(aCDE.mC,eFilterEllipse);
+                aCDE.DecodeByL2CP(mPropGrayDCD);
+                aVCdtEll.push_back(aCDE);
+                if (aCDE.Code())
 	          {
                      // StdOut() << "aCDE.mC,eFilterCodedTargetaCDE.mC,eFilterCodedTarget \n";
                      SetLabel(aCDE.mC,eFilterCodedTarget);
 	             aNbEllWCode++;
 		     GotIt = true;
 	          }
-		  AddCdtE(aCDE);
+              AddCdtE(aCDE);
 	       }
 	   }
         }
