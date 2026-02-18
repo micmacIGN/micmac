@@ -8,6 +8,8 @@
 #include "MMVII_Ptxd.h"
 #include "SymbDer/SymbolicDerivatives.h"
 #include <typeinfo>       // operator typeid
+#include "MMVII_PhgrDist.h"
+
 
 using namespace NS_SymbolicDerivative;
 

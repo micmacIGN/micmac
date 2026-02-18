@@ -1,6 +1,7 @@
 #include "MMVII_PoseRel.h"
 #include "MMVII_Tpl_Images.h"
 #include "MMVII_TplHeap.h"
+#include "MMVII_HeuristikOpt.h"
 
 namespace MMVII
 {
@@ -37,7 +38,7 @@ class  cCmp_cCdtPoseRel
          }
 };
 
-class cEstimatePosRel2Im : public cMemCheck
+class cEstimatePosRel2Im :  public cOptimizeRotAndVUnit
 {
    public :
     typedef cKBestValue<cCdtPoseRel,cCmp_cCdtPoseRel> tCmpSol;
@@ -65,9 +66,13 @@ class cEstimatePosRel2Im : public cMemCheck
     // Make one try of Ransac with aNb
     void  EstimPose_By_MatEssRansac(int aNbPts,int aNbTest);
 
-    //  Estimate a vector of angular residual
-    void EstimateResidual(std::vector<tREAL8>& aVRes,const tPoseR& aPose);
+    // use some heuris
+    void EstimateHeuristik();
 
+    //  Estimate a vector of angular residual
+    void EstimateResidual(std::vector<tREAL8>& aVRes,const tPoseR& aPose) const;
+
+    tREAL8 ScoreRotAndVect (const tRotR&,const cPt3dr &) const override;
 
   //  tREAL8  ScoreOfPose(const tPoseR&) const;
 
@@ -95,6 +100,7 @@ cEstimatePosRel2Im::cEstimatePosRel2Im
     cSetHomogCpleIm      aSetHom,
     int                  aNbKBestSol
 ) :
+   cOptimizeRotAndVUnit(5,4,false),
    mCalib1     (aCalib1),
    mFoc1       (mCalib1.F()),
    mCalib2     (aCalib2),
@@ -110,6 +116,7 @@ cEstimatePosRel2Im::cEstimatePosRel2Im
    mKBestSols  (mCmpSol,aNbKBestSol)
 {
 
+  //  EstimateHeuristik();   // far too long, we supress for now
     EstimPose_By_MatEssL1Glob();
 
     int aNbPtsMax = std::max(30, (int)mVDir1.size()/2);
@@ -133,7 +140,7 @@ cEstimatePosRel2Im::~cEstimatePosRel2Im()
     delete mSysL2;
 }
 
-void cEstimatePosRel2Im::EstimateResidual(std::vector<tREAL8>& aVRes,const tPoseR& aPose)
+void cEstimatePosRel2Im::EstimateResidual(std::vector<tREAL8>& aVRes,const tPoseR& aPose) const
 {
     cPt3dr aC2 = aPose.Tr();
     tRotR  aRot = aPose.Rot();
@@ -148,6 +155,21 @@ void cEstimatePosRel2Im::EstimateResidual(std::vector<tREAL8>& aVRes,const tPose
         tREAL8 aRes = std::abs(aCoeffI.z()) / (1.0+Norm2(aCoeffI));
         aVRes.push_back(aRes);
     }
+}
+
+tREAL8  cEstimatePosRel2Im::ScoreRotAndVect (const tRotR& aRot,const cPt3dr & aTr) const
+{
+    std::vector<tREAL8> aVRes;
+    EstimateResidual(aVRes,tPoseR(aTr,aRot));
+
+    return RankWeigthedAverage(aVRes,1.0,false);
+}
+void cEstimatePosRel2Im::EstimateHeuristik()
+{
+    StdOut() << "BEGIN HEURISTIK \n";
+      auto [aCost,aPair] =  ComputeSolInit(1.0,0.01/mFocMoy,4,10.0/mFocMoy);
+
+      ShowSol(tPoseR(aPair.second,aPair.first),"Heuristitk");
 }
 
 
@@ -274,8 +296,8 @@ cAppli_OriRel2Im::cAppli_OriRel2Im(const std::vector<std::string> & aVArgs,const
 cCollecSpecArg2007 & cAppli_OriRel2Im::ArgObl(cCollecSpecArg2007 & anArgObl)
 {
     return anArgObl
-              << Arg2007(mIm1,"name first image")
-              << Arg2007(mIm2,"name second image")
+              << Arg2007(mIm1,"name first image",{eTA2007::FileImage})
+              << Arg2007(mIm2,"name second image",{eTA2007::FileImage})
               <<  mPhProj.DPOrient().ArgDirInMand("Input orientation for calibration")
 
            ;
@@ -373,6 +395,7 @@ int cAppli_OriRel2Im::Exe()
 
      }
 
+     // eventualy generates outlayers
      if (IsInit(&mParamOutLayer))
      {
          for (int aK=0 ; aK<mParamOutLayer.at(0) ; aK++)
