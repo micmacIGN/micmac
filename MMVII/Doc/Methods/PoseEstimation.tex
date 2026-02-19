@@ -708,40 +708,50 @@ The residual of intersection is $c$, and apply scalar product by $\vec n$ in equ
 we have :
 
 \begin{equation}
-    c = \vec B . \vec n = [\vec B,\vec u_1,\vec U_2] = [\vec B,\vec u_1, R \vec u_2]
+	c = \vec B . \vec n 
+	  =  \frac{[\vec B,\vec u_1,\vec U_2]}{ ||u_1 \wedge U_2||} 
+	    = \frac{[\vec B,\vec u_1, R \vec u_2]}{||u_1 \wedge U_2||} 
+\end{equation}
+
+In the following, we will make the \emph{questionnable} assumption that $||u_1 \wedge U_2||$ is almost
+constant and make the linearisation of :
+
+\begin{equation}
+	\bar c = [\vec B,\vec u_1, R \vec u_2]
 \end{equation}
 
 Using equation \label{Eq:BundSimp:LinB} and \label{Eq:BundSimp:LinR}, we can write :
 
 
 \begin{equation}
-    c =  [\vec B_0 + d_a \vec \alpha + d_b \vec \beta,\vec u_1, R_0 \vec u_2 + d_{\vec \omega }  \wedge   R_0 \vec u_2]
+    \bar c =  [\vec B_0 + d_a \vec \alpha + d_b \vec \beta,\vec u_1, R_0 \vec u_2 + d_{\vec \omega }  \wedge   R_0 \vec u_2]
 \end{equation}
 
 Noting the none value $ R_0 \vec u_2= \vec U^0_2$
 
 \begin{equation}
-    c =  [\vec B_0 + d_a \vec \alpha + d_b \vec \beta,\vec u_1, \vec U^0_2  + d_{\vec \omega }  \wedge   \vec U^0_2]
+    \bar c =  [\vec B_0 + d_a \vec \alpha + d_b \vec \beta,\vec u_1, \vec U^0_2  + d_{\vec \omega }  \wedge   \vec U^0_2]
 \end{equation}
 
 Neglegting, $2^{nd}$ order infinitesimal,  and noting $\vec N_0= \vec u_1 \wedge \vec U^0_2 $ we have :
 
 \begin{equation}
-    c =  (\vec B_0 + d_a \vec \alpha + d_b \vec \beta) . \vec N_0
+    \bar c =  (\vec B_0 + d_a \vec \alpha + d_b \vec \beta) . \vec N_0
        + \vec B_0 . (\vec u_1  \wedge  ( d_{\vec \omega }  \wedge   \vec U^0_2))
 \end{equation}
 
 Or :
 
 \begin{equation}
-    c =  (\vec B_0 + d_a \vec \alpha + d_b \vec \beta) . \vec N_0
+    \bar c =  (\vec B_0 + d_a \vec \alpha + d_b \vec \beta) . \vec N_0
         + \vec B_0 . ( (\vec u_1 . \vec U^0_2)  d_{\vec \omega } -  (\vec u_1 . d_{\vec \omega }) \vec U^0_2)
 \end{equation}
 
 And finaly we get the formula explicitely linear in $d_a,d_b,d_x,d_y,d_z$ :
 
+
 \begin{equation}
-    c =  \vec B_0 . \vec N_0 +  (\vec \alpha . \vec N_0) d_a  +  (\vec \beta . \vec N_0) d_b
+    \bar c =  \vec B_0 . \vec N_0 +  (\vec \alpha . \vec N_0) d_a  +  (\vec \beta . \vec N_0) d_b
         +  ( (\vec u_1 . \vec U^0_2) \vec B_0  -  (\vec B_0 .\vec U^0_2) \vec u_1 ) . d_{\vec \omega } 
 \end{equation}
 

@@ -12,6 +12,73 @@
 namespace MMVII
 {
 
+class cElemBA
+{
+   public :
+       cElemBA(const std::vector<tPoseR>& aVPose);
+       ~cElemBA();
+   private :
+        cElemBA(const cElemBA &) = delete;
+
+        //void Add
+
+        std::vector<tPoseR>                mCurPose;
+
+       int                                mSzBuf;       ///<  Sz Buf for calculator
+       cCalculator<double> *              mEqElemCam1;  ///< Colinearity equation
+       cCalculator<double> *              mEqElemCam2;
+      // cCalculator<double> *              mEqElemCamN;
+       cSetInterUK_MultipeObj<double>     mSetInterv;   ///< coordinator for autom numbering
+       cResolSysNonLinear<double> *       mSys;   ///< Solver
+       cP3dNormWithUK                     mTr1;
+       cRotWithUK                         mRot1;
+       std::vector<cPoseWithUK*>          mPoseN;
+};
+
+cElemBA::cElemBA(const std::vector<tPoseR>& aVPose) :
+    mCurPose    (aVPose),
+    mSzBuf      (1),
+    mEqElemCam1 (EqBundleElem_Cam1(true,mSzBuf,true)),
+    mEqElemCam2 (EqBundleElem_Cam2(true,mSzBuf,true)),
+  //  mEqElemCamN (nullptr),
+    mSetInterv  (),
+    mSys        (nullptr),
+    mTr1        (aVPose.at(1).Tr(),"BAElem","Base1"),
+    mRot1         (aVPose.at(1).Rot())
+
+{
+    MMVII_INTERNAL_ASSERT_always(mCurPose.at(0).DistPose(tPoseR::Identity(),1.0)==0,"Pose0!=Id in cElemBA");
+    mSetInterv.AddOneObj(&mTr1);
+    mSetInterv.AddOneObj(&mRot1);
+
+    for (size_t aKP=2 ; aKP<aVPose.size() ; aKP++)
+    {
+        mPoseN.push_back(new cPoseWithUK(aVPose.at(aKP)));
+        mSetInterv.AddOneObj(mPoseN.back());
+    }
+
+    mSys = new cResolSysNonLinear<double>(eModeSSR::eSSR_LsqDense,mSetInterv.GetVUnKnowns());
+}
+
+cElemBA::~cElemBA()
+{
+    DeleteAllAndClear(mPoseN);
+    delete mSys;
+}
+
+void BenchElemBA()
+{
+    tPoseR aP0 = tPoseR::Identity();
+    tPoseR aP1 = tPoseR::RandomIsom3D(1.0);
+
+    std::vector<tPoseR> aVPose{aP0,aP1};
+    cElemBA aBA(aVPose);
+
+    StdOut() << "BenchElemBABenchElemBABenchElemBABenchElemBA\n";
+}
+
+#if (0)
+
 
 /* ************************************************************* */
 /*                                                               */
@@ -32,7 +99,7 @@ cCorresp32_BA::cCorresp32_BA
     mSzBuf         (100),
     mEqColinearity (mSensor->SetAndGetEqColinearity(true,mSzBuf,false))
 {
-// StdOut() << "cCorresp32_BA::cCorresp32_BAcCorresp32_BA::cCorresp32_BAcCorresp32_BA::cCorresp32_BA\n"; getchar();
+
     for (auto & anObj : mSensor->GetAllUK())
     {
         mSetInterv.AddOneObj(anObj); // #DOC-AddOneObj
@@ -122,6 +189,7 @@ void cCorresp32_BA::OneIteration()
 
      // PopErrorEigenErrorLevel();
 }
+#endif
 
 
 

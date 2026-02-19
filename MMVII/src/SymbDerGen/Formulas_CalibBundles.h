@@ -14,20 +14,31 @@ namespace MMVII
 {
 using namespace NS_SymbolicDerivative;
 
+enum class eModResBund
+{
+        eAngle
+};
 
 template <typename tUk>
    std::vector<tUk> ResiduAngular(const  cPtxd<tUk,3>& aDirBundle,const  cPtxd<tUk,3>& aPGround)
 {
-    cPtxd<tUk,3> aPt = (aDirBundle ^ aPGround ) / Scal(aDirBundle,aPGround) ;
+    cPtxd<tUk,3> aPt = (aDirBundle ^ aPGround ) * (1.0/ Scal(aDirBundle,aPGround)) ;
     return {aPt.x(),aPt.y(),aPt.z()};
 }
 
+template <typename tUk>
+      std::vector<tUk> ResidualBundle(const  cPtxd<tUk,3>& aDirBundle,const  cPtxd<tUk,3>& aPGround,eModResBund aMode)
+{
+
+       return ResiduAngular(aDirBundle,aPGround);
+}
+
    /// Class for first camera, no unknown for this camera, as it is the refernce
-class cFormulaSmallBundleCam1
+class cFormulaBundleElem_Cam1
 {
       public :
 
-           std::string FormulaName() const { return "SmallBundleCam1";}
+           std::string FormulaName() const { return "BunleElem_Cam1";}
 
            std::vector<std::string>  VNamesUnknowns()  const
            {
@@ -48,18 +59,18 @@ class cFormulaSmallBundleCam1
            {
                    cPtxd<tUk,3> aPGround = VtoP3(aVUk);  //
                    cPtxd<tUk,3> aDirBundle = VtoP3(aVObs);  //
-                   return  ResiduAngularResiduAngular(aDirBundle,aPGround);
+                   return  ResiduAngular(aDirBundle,aPGround);
            }
 
          private :
 };
 
 /// Class for second camera,  the base is unkwnon but unitary, the rotation is unknown
-class cFormulaSmallBundleCam2
+class cFormulaBundleElem_Cam2
 {
    public :
 
-        std::string FormulaName() const { return "SmallBundleCam2";}
+        std::string FormulaName() const { return "BunleElem_Cam2";}
 
         std::vector<std::string>  VNamesUnknowns()  const
         {
@@ -68,7 +79,7 @@ class cFormulaSmallBundleCam2
 
         std::vector<std::string>    VNamesObs() const
         {
-            return  {};// Append(NamesP3("Bundle"));
+            return  {Append(NamesP3("Bundle"),NamesObsP3Norm("Base"),NamesMatr("Rot",cPt2di(3,3)))};
         };
 
         template <typename tUk>
@@ -78,9 +89,14 @@ class cFormulaSmallBundleCam2
                        const std::vector<tUk> & aVObs
                     ) const
         {
-                cPtxd<tUk,3> aPGround = VtoP3(aVUk);  //
-                cPtxd<tUk,3> aDirBundle = VtoP3(aVObs);  //
-                return  ResiduAngularResiduAngular(aDirBundle,aPGround);
+                size_t aIndUk =0;
+                size_t aIndObs = 0;
+                cPtxd<tUk,3> aPGround = VtoP3AutoIncr(aVUk,&aIndUk);  //
+                cPtxd<tUk,3> aDirBundle = VtoP3AutoIncr(aVObs,&aIndObs);  //
+                cP3dNorm<tUk> aBase (aVUk,&aIndUk,aVObs,&aIndObs);
+                cRot3dF<tUk>  aRot (aVUk,&aIndUk,aVObs,&aIndObs);
+
+                return  ResiduAngular(aRot.Value(aDirBundle),aPGround-aBase.CurPt());
         }
 
       private :
