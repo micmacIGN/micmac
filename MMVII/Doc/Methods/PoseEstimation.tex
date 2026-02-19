@@ -625,12 +625,129 @@ Let $P_1={C_1,R_1}$ and $P_2={C_2,R_2}$ we say that the two pose are in
 epipolar e
 
 
-
-
 %-----------------------------------------------------
 %-----------------------------------------------------
 %-----------------------------------------------------
 
+\section{Bundle adjusment for 2 calibrated images}
+
+In this section we describe the math used for bundle adjustment
+when we have only 2 images and they are calibrated. Of course, we could
+use the general method, but  processing "at hand" this special case can
+be significativelly more efficient, and as it used intensively in the initial pose-estimation,
+it may value the price \footnote{By the way, to be honest, I found some "fun" to go back to
+basic lineraisation}.
+
+We remind :
+
+\begin{equation}
+    [\vec u,\vec v,\vec w] = u . (\vec v \wedge \vec w)
+\end{equation}
+
+And :
+\begin{equation}
+     \vec u \wedge  (\vec v \wedge \vec w) = (\vec u.\vec w) \vec v - (\vec u.\vec v) \vec w
+\end{equation}
+
+% ----------------------------------------------------------
+\subsection{Notation for pose}
+
+Le $\vec B,R$  be the base and orientation of the pose of image $2$ relatively to image $1$.
+The base $\vec B$  is unitary $||\vec B||=1$ , the current value is $\vec B_0$ and
+we write :
+
+\begin{equation}
+   \vec B = \vec B_0 + d_a \vec \alpha + d_b \vec \beta \label{Eq:BundSimp:LinB}
+\end{equation}
+
+With :
+
+\begin{itemize}
+   \item  $\vec \alpha$  and $\vec \beta$ two vector such as $ [\vec B_0,  \vec \alpha , \vec \beta]$
+         is an orthonormal basis ;
+
+   \item  $d_a$ and $d_b$ are two infininetsimal number
+\end{itemize}
+
+
+The current value of $R$ is $R_0$ and, considered the infenitesimale rotation between $R$ and $R_0$
+ we write for any  vector :
+
+\begin{equation}
+    R \vec v =  R_0 \vec v +  d_{\vec \omega }  \wedge   R_0 \vec v \label{Eq:BundSimp:LinB}
+\end{equation}
+
+Where $ d_{\vec \omega } = \trans (d_x,d_y,d_z)$  is an infinitisemal vector. Here the $5$ unknowns
+will  be $d_a,d_b,d_x,d_y,d_z$
+
+% ----------------------------------------------------------
+\subsection{Notation for bundles}
+
+Let $\vec u_1$ and $\vec u_2 $ be  direction of homologous points, the bundles in geometry
+of first image are the lines $(0,\vec u_1)$ and $(B,R\vec u_2)$. Note $\vec U_2 = R\vec u_2$
+and $\vec n = \frac{\vec u_1 \wedge \vec U_2} {\vec u_1 \wedge \vec U_2} $
+be the unitary normal (of course if $\vec u_1 \wedge \vec U_2$ is supposed not null if the bundle have to intesect).
+
+We can write :
+
+\begin{equation}
+    \vec B =  a \vec u_1  +  b \vec U_2 + c \vec n \label{Eq:BundSimp1}
+\end{equation}
+
+The pseudo intersection  $I$ is :
+
+\begin{equation}
+    I =  a \vec u_1  +   \frac{c}{2} \vec n =  \vec B  +  b \vec U_2 +   \frac{c}{2} \vec n
+\end{equation}
+
+% ----------------------------------------------------------
+\subsection{Computing residual}
+
+
+The residual of intersection is $c$, and apply scalar product by $\vec n$ in equation  \ref{Eq:BundSimp1}
+we have :
+
+\begin{equation}
+    c = \vec B . \vec n = [\vec B,\vec u_1,\vec U_2] = [\vec B,\vec u_1, R \vec u_2]
+\end{equation}
+
+Using equation \label{Eq:BundSimp:LinB} and \label{Eq:BundSimp:LinR}, we can write :
+
+
+\begin{equation}
+    c =  [\vec B_0 + d_a \vec \alpha + d_b \vec \beta,\vec u_1, R_0 \vec u_2 + d_{\vec \omega }  \wedge   R_0 \vec u_2]
+\end{equation}
+
+Noting the none value $ R_0 \vec u_2= \vec U^0_2$
+
+\begin{equation}
+    c =  [\vec B_0 + d_a \vec \alpha + d_b \vec \beta,\vec u_1, \vec U^0_2  + d_{\vec \omega }  \wedge   \vec U^0_2]
+\end{equation}
+
+Neglegting, $2^{nd}$ order infinitesimal,  and noting $\vec N_0= \vec u_1 \wedge \vec U^0_2 $ we have :
+
+\begin{equation}
+    c =  (\vec B_0 + d_a \vec \alpha + d_b \vec \beta) . \vec N_0
+       + \vec B_0 . (\vec u_1  \wedge  ( d_{\vec \omega }  \wedge   \vec U^0_2))
+\end{equation}
+
+Or :
+
+\begin{equation}
+    c =  (\vec B_0 + d_a \vec \alpha + d_b \vec \beta) . \vec N_0
+        + \vec B_0 . ( (\vec u_1 . \vec U^0_2)  d_{\vec \omega } -  (\vec u_1 . d_{\vec \omega }) \vec U^0_2)
+\end{equation}
+
+And finaly we get the formula explicitely linear in $d_a,d_b,d_x,d_y,d_z$ :
+
+\begin{equation}
+    c =  \vec B_0 . \vec N_0 +  (\vec \alpha . \vec N_0) d_a  +  (\vec \beta . \vec N_0) d_b
+        +  ( (\vec u_1 . \vec U^0_2) \vec B_0  -  (\vec B_0 .\vec U^0_2) \vec u_1 ) . d_{\vec \omega } 
+\end{equation}
+
+%-----------------------------------------------------
+%-----------------------------------------------------
+%-----------------------------------------------------
 
 \section{$2$-images orientation with essentiel matrix}
 

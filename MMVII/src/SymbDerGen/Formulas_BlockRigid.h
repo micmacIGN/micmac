@@ -304,60 +304,7 @@ class cFormulaVNormOrthog
            {
                 return  Append
                         (
-                            NamesP3("Rot") ,
-                            NamesP2("DuDv2")
-                        );
-                ;
-           }
-
-           std::vector<std::string>    VNamesObs() const
-           {
-
-                return  Append
-                        (
-                            NamesObsP3Norm("_P1"),
-                            NamesObsP3Norm("_P2")
-                        );
-           };
-
-           template <typename tUk>
-                       std::vector<tUk> formula
-                       (
-                          const std::vector<tUk> & aVUk,
-                          const std::vector<tUk> & aVObs
-                       ) const
-           {
-                   //        IndexAutoIncr(&anInd,3)
-                   size_t aK0Uk=0,aK0Obs=0;
-                   cP3dNorm<tUk> aVec1(aVUk,&aK0Uk,aVObs,&aK0Obs);  //
-                   cP3dNorm<tUk> aVec2(aVUk,&aK0Uk,aVObs,&aK0Obs);  //
-
-                   MMVII_INTERNAL_ASSERT_always(aK0Uk==aVUk.size(),"SizeUk in cFormulaVNormOrthog");
-                   MMVII_INTERNAL_ASSERT_always(aK0Obs==aVObs.size(),"SizeUk in cFormulaVNormOrthog");
-
-                   tUk aScal = Scal(aVec1.CurPt(),aVec2.CurPt());
-
-                   return  {aScal} ;
-            }
-
-
-         private :
-};
-
-/** class for 2 Pose bundles (to move away later) */
-
-
-class cFormula2PoseBundle
-{
-      public :
-
-           std::string FormulaName() const { return "VNormOrthog";}
-
-
-           std::vector<std::string>  VNamesUnknowns()  const
-           {
-                return  Append
-                        (
+                          // NamesP3("Rot") , // where does it comes from ???? error copy/Paste
                             NamesP2("DuDv1") ,
                             NamesP2("DuDv2")
                         );
@@ -396,8 +343,8 @@ class cFormula2PoseBundle
 
 
          private :
-              int mMode;
 };
+
 
 };
 
