@@ -1,6 +1,8 @@
 #include "MMVII_PoseRel.h"
 #include "MMVII_Tpl_Images.h"
+#include "../Graphs/ArboTriplets.h"
 
+#include <unordered_set>
 
 /* We have the image formula w/o distorsion:
 
@@ -794,6 +796,18 @@ cCamSimul * cCamSimul::Alloc2VIewTerrestrial(eProjPC aProj1,eProjPC aProj2,bool 
    return aRes;
 }
 
+cCamSimul * cCamSimul::AllocNVIewTerrestrial(int aNb,eProjPC aProj,bool SubVert)
+{
+    cCamSimul * aRes = new cCamSimul();
+
+    for (int aK=0; aK<aNb; aK++)
+    {
+        aRes->AddCam(aProj,SubVert);
+    }
+
+    return aRes;
+}
+
 void cCamSimul::TestCam(cSensorCamPC * aCam) const
 {
 	StdOut() << "CC " << aCam->Center()  << " CG=" << mCenterGround << std::endl;
@@ -986,6 +1000,210 @@ void cCamSimul::BenchPoseRel2Cam
                             */
    StdOut() << "CPT " << aCptPbL1  << "  " << aCpt << std::endl;
 
+}
+
+
+struct TripletHash {
+    std::size_t operator()(const std::array<int,3>& t) const noexcept {
+        std::size_t h1 = std::hash<int>{}(t[0]);
+        std::size_t h2 = std::hash<int>{}(t[1]);
+        std::size_t h3 = std::hash<int>{}(t[2]);
+
+        // hash combine
+        return h1 ^ (h2 << 1) ^ (h3 << 2);
+    }
+};
+
+void Bench_HBA(cParamExeBench & aParam)
+{
+    if (! aParam.NewBench("HierarchBA")) return;
+
+    cTimerSegm * aTS = nullptr;
+    if (aParam.Show())
+    {
+        aTS = new cTimerSegm(&cMMVII_Appli::CurrentAppli());
+    }
+
+    cCamSimul::BenchHierchBA(aTS,true,true);
+
+    delete aTS;
+    aParam.EndBench();
+}
+
+void cCamSimul::BenchHierchBA(cTimerSegm * aTS,
+                              bool         PerfInter,
+                              bool         isSubVert)
+{
+
+    int aNbCam = 50;
+    int aNbTri = round_ni((aNbCam-1)/2 * 2.5);
+
+    StdOut() << "Nb of cams=" << aNbCam << ", nb of triplets=" << aNbTri << std::endl;
+
+    for (int aK1=0 ; aK1<(int)eProjPC::eNbVals ; aK1++)
+    {
+        StdOut() << "Projection " << aK1 << " " << E2Str(eProjPC(aK1));
+        getchar();
+
+
+
+        std::vector<int>  aCamComp; // to make sure triplets form a connected component
+        std::vector<bool> aCamVisited(aNbCam,false);
+        std::unordered_set<std::array<int,3>, TripletHash> aTriplets;
+
+        cCamSimul * aCamSim = cCamSimul::AllocNVIewTerrestrial(aNbCam,eProjPC(aK1),isSubVert);
+
+        // we want to test robustness in perfect degenerate & close to degenertae
+        if (PerfInter)
+            aCamSim->mRandInterK = 0.0;
+
+
+        // first triplet
+        while (aTriplets.size()==0)
+        {
+            // first triplet's id
+            std::vector<int> aFirstTri;
+            aFirstTri = RandSet(3,aNbCam);
+
+            std::array<int,3> t = {aFirstTri[0],aFirstTri[1],aFirstTri[2]};
+            std::sort(t.begin(), t.end());
+
+            // each node is distinct
+            if (t[0] == t[1] || t[0] == t[2] || t[1] == t[2])
+                continue;
+
+            aTriplets.insert(t);
+
+            // update variable keeping track of already visited cameras
+            for (int node : t)
+            {
+                aCamVisited[node] = 1;
+                aCamComp.push_back(node);
+
+                StdOut() << "\t **** New node " << node << std::endl;
+            }
+        }
+
+        // keep generating triplets
+        //    (no condition to ensure all cameras are used
+        //     but it's okay so long we have a connected component)
+        while (aTriplets.size() < aNbTri)
+        {
+            // current triplet's id
+            std::vector<int> aCurTri;
+
+            // draw 2 nodes (can include visited nodes)
+            aCurTri = RandSet(2,aNbCam);
+
+            // add one node from existing nodes to ensure connectivity
+            aCurTri.push_back(aCamComp[RandUnif_N(aCamComp.size()-1)]);
+
+            // move to array to make triplet search faster
+            std::array<int,3> t = {aCurTri[0],aCurTri[1],aCurTri[2]};
+            std::sort(t.begin(), t.end());
+
+            // ensure distinctiveness
+            if (t[0] == t[1] || t[0] == t[2] || t[1] == t[2])
+                continue;
+
+
+            // see if the triplet already exists
+            auto [it, inserted] = aTriplets.insert(t);
+
+            // if new triplet
+            if (inserted)
+            {
+                StdOut() << "New triplet " << aTriplets.size() << ": " << t[0] << " " << t[1] << " " << t[2] << std::endl;
+
+                for (int node : t)
+                {
+                    // if this camera has not been visited
+                    if (!aCamVisited[node])
+                    {
+                        aCamVisited[node] = 1;
+                        aCamComp.push_back(node);
+
+                        StdOut() << "\t **** New node " << node << std::endl;
+
+                    }
+                }
+            }
+
+        }
+
+        cTripletSet *  a3Set = new cTripletSet;
+
+        // compute relative orientation of the triplets
+        size_t aTriCount=0;
+        for (auto aT : aTriplets)
+        {
+            // generate cams
+            cSensorCamPC * aCam1 = aCamSim->mListCam.at(aT[0]);
+            cSensorCamPC * aCam2 = aCamSim->mListCam.at(aT[1]);
+            cSensorCamPC * aCam3 = aCamSim->mListCam.at(aT[2]);
+
+            tPoseR aPose1 = tPoseR::Identity();
+            tPoseR aPose2toPose1 = aCam1->RelativePose(*aCam2);
+            tPoseR aPose3toPose1 = aCam1->RelativePose(*aCam3);
+
+            //normalise the triplet
+            double dist = Norm2(aPose2toPose1.Tr());
+            aPose2toPose1.Tr() = aPose2toPose1.Tr() / dist;
+            aPose3toPose1.Tr() = aPose3toPose1.Tr() / dist;
+
+            // save to triplet structure for hierarchical init
+            std::vector<cView> aTViews;
+            aTViews.push_back(cView(aPose1,"image_"+ToStr(aT[0])+".tif"));
+            aTViews.push_back(cView(aPose2toPose1,"image_"+ToStr(aT[1])+".tif"));
+            aTViews.push_back(cView(aPose3toPose1,"image_"+ToStr(aT[2])+".tif"));
+
+            cTriplet* aThisTri = new cTriplet;
+            aThisTri->Id() = aTriCount;
+            aThisTri->PVec() = aTViews;
+
+            a3Set->PushTriplet(*aThisTri);
+
+            aTriCount++;
+
+            //delete aThisTri;
+        }
+
+        // run hierarchical init
+        cMMVII_Appli &  anAp = cMMVII_Appli::CurrentAppli();
+        cPhotogrammetricProject aPhProj(anAp);
+        aPhProj.FinishInit();
+        cMakeArboTriplet  aMk3(*a3Set,false,1.0,aPhProj,anAp); //(cTripletSet & ,bool ,tREAL8 , cPhotogrammetricProject &,cMMVII_Appli &);
+
+        aMk3.MakeGraphPose();
+        StdOut() << "MakeGraphPose DONE" << std::endl;
+        aMk3.InitialiseCalibs();
+        StdOut() << "InitialiseCalibs DONE" << std::endl;
+        aMk3.DoPoseRef();
+        StdOut() << "DoPoseRef DONE" << std::endl;
+        aMk3.MakeCnxTriplet();
+        StdOut() << "MakeCnxTriplet DONE" << std::endl;
+        aMk3.MakeWeightingGraphTriplet();
+        StdOut() << "MakeWeightingGraphTriplet DONE" << std::endl;
+        aMk3.ComputeArbor();
+        StdOut() << "ComputeArbor DONE" << std::endl;
+
+
+
+        delete a3Set;
+        /*
+            -
+            -
+            - alow introduction of outliers on triplets
+            - generate homologous points
+            - save triplets to a structure
+            - launch hierarch and recover output poses
+            - do bascule on GT poses and compare
+            -  or  calc relative ori from global ori???
+        */
+
+
+
+    }
 }
 
 

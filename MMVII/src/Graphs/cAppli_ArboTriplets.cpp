@@ -822,6 +822,7 @@ void cNodeArborTriplets::RefineSolutionGen()
     std::vector<cCalculator<double> *> aVEqCol ;
 
     // intrinsic parameters considered the same for all images
+    StdOut() << "Calibration: " << mPMAT->MapI2Str(mLocSols.at(0).mNumPose) << std::endl;
     cPerspCamIntrCalib *   aCal = mPhProj.InternalCalibFromStdName(mPMAT->MapI2Str(mLocSols.at(0).mNumPose),false);
 
     // vector of all image names belonging to this tree level
@@ -1510,6 +1511,7 @@ void cMakeArboTriplet::InitialiseCalibs()
 {
     for (size_t aKIm=0 ; aKIm<mMapStrI.size() ; aKIm++)
     {
+        //StdOut() << *mMapStrI.I2Obj(aKIm) << std::endl;
         cPerspCamIntrCalib *   aCal = mPhProj.InternalCalibFromStdName(*mMapStrI.I2Obj(aKIm));
         FakeUseIt(aCal);
     }

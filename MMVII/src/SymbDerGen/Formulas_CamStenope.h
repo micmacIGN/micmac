@@ -846,9 +846,18 @@ public:
         // focal length for residual scaling
         tUk f = VObs.at(6);
 
-        // angles-based residual ~
+        // angle-based residual ~
         //          minimises the difference between predicted and
         //          observed bundles in camera frame
+        //
+        //     (cg * u) / |cg| |u| = cos alpha = 0 [rad] (because u _|_ to cg)
+        //     (cg * v) / |cg| |v| = cos alpha = 0 [rad] (because v _|_ to cg)
+        //
+        // or in pixels :
+        //
+        //   f * (cg * u) / |cg| |u| = 0 [pix]
+        //   f * (cg * v) / |cg| |v| = 0 [pix]
+        //
         tUk cgNorm = Sqrt(cg.x()*cg.x() + cg.y()*cg.y() + cg.z()*cg.z());
         tUk uNorm = Sqrt(u.x()*u.x() + u.y()*u.y() + u.z()*u.z());
         tUk vNorm = Sqrt(v.x()*v.x() + v.y()*v.y() + v.z()*v.z());

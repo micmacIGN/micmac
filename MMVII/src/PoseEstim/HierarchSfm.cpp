@@ -17,22 +17,6 @@ namespace MMVII
 
 /* ********************************************************** */
 /*                                                            */
-/*                          cMiniBA                           */
-/*                                                            */
-/* ********************************************************** */
-
-class cMiniBA
-{
-    public:
-        cMiniBA();
-        ~cMiniBA();
-
-    private:
-
-};
-
-/* ********************************************************** */
-/*                                                            */
 /*                     cAppli_HierarchSfm                     */
 /*                                                            */
 /* ********************************************************** */
@@ -46,6 +30,10 @@ class cAppli_HierarchSfm : public cMMVII_Appli
         int Exe() override;
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
+
+        static void BenchHierchBA(cTimerSegm * aTS,
+                           bool         PerfInter,
+                           bool         isSubVert);
 
     private:
         cPhotogrammetricProject   mPhProj;

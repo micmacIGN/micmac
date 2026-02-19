@@ -736,9 +736,11 @@ class cCamSimul : public cMemCheck
 {
    public :
       static cCamSimul * Alloc2VIewTerrestrial(eProjPC aProj1,eProjPC aProj2,bool SubVert);
+      static cCamSimul * AllocNVIewTerrestrial(int aNb,eProjPC aProj,bool SubVert);
 
       ~cCamSimul();
       static void BenchPoseRel2Cam(cTimerSegm * aTS,bool PerfInter,bool SubVert,bool Planar);
+      static void BenchHierchBA(cTimerSegm * aTS,bool PerfInter,bool isSubVert);
       void TestCam(cSensorCamPC * aCam) const;
 
       const std::vector<cSensorCamPC *> & ListCam() const;
