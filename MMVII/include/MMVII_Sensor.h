@@ -447,7 +447,7 @@ class cDirsPhProj : public cMemCheck
 /**  Minimal virtual interface for photogrammetric project access.
  *   Both cPhotogrammetricProject (disk-based) and cPhotogrammetricProjectMemory
  *   (in-memory) inherit from this interface.  Code that only needs calibrations,
- *   orientations, homologous points or multiple tie-points should accept a
+ *   orientations, homologous points / multiple tie-points should accept a
  *   cIPhProj& / cIPhProj* instead of a concrete type.
  */
 class cIPhProj
@@ -914,7 +914,7 @@ void SaveAndFilterAttrEll(const cPhotogrammetricProject & aPhp,const cSetMesPtOf
 
 
 /**  In-memory implementation of cIPhProj.
- *   Calibrations, orientations (sensors/poses) and homologous points are stored
+ *   Calibrations, orientations and homologous points are stored
  *   in maps keyed by image name rather than read from disk.
  *
  *   Populate with Add*() methods before use; the Read*() methods then return

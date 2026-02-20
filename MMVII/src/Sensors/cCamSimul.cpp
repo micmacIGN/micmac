@@ -1046,8 +1046,7 @@ void cCamSimul::BenchHierchBA(cTimerSegm * aTS,
         getchar();
 
 
-
-        std::vector<int>  aCamComp; // to make sure triplets form a connected component
+        std::vector<std::pair<int,int>> aEdges; // to make sure triplets form a connected component
         std::vector<bool> aCamVisited(aNbCam,false);
         std::unordered_set<std::array<int,3>, TripletHash> aTriplets;
 
@@ -1059,6 +1058,7 @@ void cCamSimul::BenchHierchBA(cTimerSegm * aTS,
 
 
         // first triplet
+
         while (aTriplets.size()==0)
         {
             // first triplet's id
@@ -1078,25 +1078,28 @@ void cCamSimul::BenchHierchBA(cTimerSegm * aTS,
             for (int node : t)
             {
                 aCamVisited[node] = 1;
-                aCamComp.push_back(node);
+                aEdges.push_back(std::make_pair(t[0],t[1]));
+                aEdges.push_back(std::make_pair(t[1],t[2]));
+                aEdges.push_back(std::make_pair(t[2],t[0]));
 
                 StdOut() << "\t **** New node " << node << std::endl;
             }
         }
 
         // keep generating triplets
-        //    (no condition to ensure all cameras are used
-        //     but it's okay so long we have a connected component)
+        //   (not all nodes are forced to be visited but it's fine)
         while (aTriplets.size() < aNbTri)
         {
             // current triplet's id
             std::vector<int> aCurTri;
 
-            // draw 2 nodes (can include visited nodes)
-            aCurTri = RandSet(2,aNbCam);
+            // draw 2 nodes from existing nodes to ensure connectivity
+            int anEdgeId = RandUnif_N(aEdges.size()-1);
+            aCurTri.push_back(aEdges[anEdgeId].first);
+            aCurTri.push_back(aEdges[anEdgeId].second);
 
-            // add one node from existing nodes to ensure connectivity
-            aCurTri.push_back(aCamComp[RandUnif_N(aCamComp.size()-1)]);
+            // draw one node from unvisited nodes
+            aCurTri.push_back(RandUnif_N(aNbCam-1));
 
             // move to array to make triplet search faster
             std::array<int,3> t = {aCurTri[0],aCurTri[1],aCurTri[2]};
@@ -1121,7 +1124,9 @@ void cCamSimul::BenchHierchBA(cTimerSegm * aTS,
                     if (!aCamVisited[node])
                     {
                         aCamVisited[node] = 1;
-                        aCamComp.push_back(node);
+                        aEdges.push_back(std::make_pair(t[0],t[1]));
+                        aEdges.push_back(std::make_pair(t[1],t[2]));
+                        aEdges.push_back(std::make_pair(t[2],t[0]));
 
                         StdOut() << "\t **** New node " << node << std::endl;
 
@@ -1165,7 +1170,7 @@ void cCamSimul::BenchHierchBA(cTimerSegm * aTS,
 
             aTriCount++;
 
-            //delete aThisTri;
+            delete aThisTri;
         }
 
         // run hierarchical init
@@ -1195,14 +1200,13 @@ void cCamSimul::BenchHierchBA(cTimerSegm * aTS,
         StdOut() << "ComputeArbor DONE" << std::endl;
 
 
-
+        delete aCamSim;
         delete a3Set;
         /*
             -
             -
             - alow introduction of outliers on triplets
             - generate homologous points
-            - save triplets to a structure
             - launch hierarch and recover output poses
             - do bascule on GT poses and compare
             -  or  calc relative ori from global ori???

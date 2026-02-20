@@ -285,7 +285,7 @@ cReadMTP_Std::cReadMTP_Std
 
      if (!GotSomething)
      {
-         MMVII_UnclasseUsEr("Could not get any tie points for DirIn=[" + aPhProj.DPMulTieP().DirIn() + "]");
+         MMVII_UnclasseUsEr("Could not get any tie points for DirIn=[" + aPhProj.MulTiePDirIn() + "]");
      }
 
      while ( GetNextConfig()) ;
