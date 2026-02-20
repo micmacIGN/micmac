@@ -344,7 +344,7 @@ cComputeMergeMulTieP::cComputeMergeMulTieP
 (
        const std::vector<std::string> & aVNames,
        cInterfImportHom * anIIH,
-       cPhotogrammetricProject*  aPhP ,
+       cIPhProj*  aPhP ,
        bool                      WithImageIndexe
 ) :
     mVNames (aVNames)

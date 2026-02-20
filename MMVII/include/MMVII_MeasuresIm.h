@@ -17,6 +17,7 @@ struct cPair2D3D;
 struct cSet2D3D;
 class cMesIm1Pt;
 class cSetMesPtOf1Im;
+class cIPhProj;
 
 class cMesIm1Pt;
 class cSetMesPtOf1Im;
@@ -425,7 +426,7 @@ class cComputeMergeMulTieP : public cMemCheck
         (
              const  std::vector<std::string> & aVNames,
 	     cInterfImportHom * =nullptr,
-	     cPhotogrammetricProject*  aPhP = nullptr,
+	     cIPhProj*  aPhP = nullptr,
 	     bool WithImageIndex = false
         );
 
@@ -505,7 +506,7 @@ cComputeMergeMulTieP * AllocStdFromMTPFromFolder
                       (
                             const std::string & aFolder,
                             const std::vector<std::string> & aVNames,
-                            cPhotogrammetricProject & aPhProj,
+                            cIPhProj & aPhProj,
                             bool  WithPtIndex,
 			    bool  WithSensor,
 			    bool  WithImageIndexe

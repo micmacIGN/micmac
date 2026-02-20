@@ -12,7 +12,7 @@ namespace MMVII
 
 
 cNodeArborTriplets::cNodeArborTriplets(cMakeArboTriplet & aMAT ,const t3G3_Tree & aTree,int aLevel,
-                                       cPhotogrammetricProject & aPhProj) :
+                                       cIPhProj & aPhProj) :
    mPhProj    (aPhProj),
    mDepth     (aLevel),
    mTree      (aTree),
@@ -1449,7 +1449,7 @@ tREAL8 c3G3_AttrV::CostVertexCommon(const c3G3_AttrV & anAttr2,tREAL8 aWTr) cons
 /* ********************************************************* */
 
 
-cMakeArboTriplet::cMakeArboTriplet(cTripletSet & aSet3,bool doCheck,tREAL8 aWBalance, cPhotogrammetricProject & aPhProj, cMMVII_Appli & anAppli) :
+cMakeArboTriplet::cMakeArboTriplet(cTripletSet & aSet3,bool doCheck,tREAL8 aWBalance, cIPhProj & aPhProj, cMMVII_Appli & anAppli) :
    mAppli       (anAppli),
    mPhProj      (aPhProj),
    mTimeSegm    (mAppli.TimeSegm()),
@@ -1535,7 +1535,6 @@ void cMakeArboTriplet::InitTPtsStruct(const std::string& aFolder, std::vector<st
         // for every image
         for (int aKIm=0; aKIm<NbIm; aKIm++)
         {
-
             cPerspCamIntrCalib *   aCal = mPhProj.InternalCalibFromStdName(aVNames[aKIm],true);
 
             std::vector<cPt3dr> aOutBundles;

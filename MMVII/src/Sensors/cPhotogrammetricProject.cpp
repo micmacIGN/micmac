@@ -1101,6 +1101,12 @@ void  cPhotogrammetricProject::ReadMultipleTiePFromFolder(const std::string &  a
      ReadMultipleTieP(aVPm,aNameIm,SVP);
 }
 
+std::string  cPhotogrammetricProject::MulTiePDirIn() const
+{
+    return DPMulTieP().DirIn();
+}
+
+
 
 
 

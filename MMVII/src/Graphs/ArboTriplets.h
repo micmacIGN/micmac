@@ -61,7 +61,7 @@ public :
 
     /// constructor, recursively split the tree, dont parallelize !
     cNodeArborTriplets(cMakeArboTriplet &,const t3G3_Tree &,int aLevel,
-                       cPhotogrammetricProject &);
+                       cIPhProj &);
     /// destructor, recursively free the children
     ~cNodeArborTriplets();
 
@@ -133,7 +133,7 @@ private :
 
     ///
 
-    cPhotogrammetricProject & mPhProj;
+    cIPhProj &                mPhProj;
     int                       mDepth;     ///< level in the hierarchy, used for pretty printing
     t3G3_Tree                 mTree;      ///< tree of triplet
     //std::array<tNodePtr,2>    mChildren;  ///< sub-nodes (if any ...)
@@ -151,7 +151,7 @@ class cMakeArboTriplet
 {
 public :
 
-    cMakeArboTriplet(cTripletSet & aSet3,bool doCheck,tREAL8 aWBalance, cPhotogrammetricProject &,cMMVII_Appli &);
+    cMakeArboTriplet(cTripletSet & aSet3,bool doCheck,tREAL8 aWBalance, cIPhProj &,cMMVII_Appli &);
     ~cMakeArboTriplet();
 
     /// Print some info on dimensions of data
@@ -217,7 +217,7 @@ public :
 private :
 
     cMMVII_Appli &          mAppli;
-    cPhotogrammetricProject& mPhProj;
+    cIPhProj &              mPhProj;
     cTimerSegm  &           mTimeSegm;
     cTripletSet  &          mSet3;          ///< Initial triplet structure
     bool                    mDoCheck;       ///< do checking ....

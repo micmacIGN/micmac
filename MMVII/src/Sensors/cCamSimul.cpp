@@ -1170,9 +1170,16 @@ void cCamSimul::BenchHierchBA(cTimerSegm * aTS,
 
         // run hierarchical init
         cMMVII_Appli &  anAp = cMMVII_Appli::CurrentAppli();
-        cPhotogrammetricProject aPhProj(anAp);
-        aPhProj.FinishInit();
-        cMakeArboTriplet  aMk3(*a3Set,false,1.0,aPhProj,anAp); //(cTripletSet & ,bool ,tREAL8 , cPhotogrammetricProject &,cMMVII_Appli &);
+
+        // populate in-memory PhProj with calibrations for all simulated cameras
+        cPhotogrammetricProjectMemory aMemPhProj;
+        for (int aKIm=0 ; aKIm<aNbCam ; aKIm++)
+        {
+            std::string aNameIm = "image_" + ToStr(aKIm) + ".tif";
+            aMemPhProj.AddCalib(aNameIm, aCamSim->mListCam.at(aKIm)->InternalCalib());
+        }
+
+        cMakeArboTriplet  aMk3(*a3Set,false,1.0,aMemPhProj,anAp);
 
         aMk3.MakeGraphPose();
         StdOut() << "MakeGraphPose DONE" << std::endl;

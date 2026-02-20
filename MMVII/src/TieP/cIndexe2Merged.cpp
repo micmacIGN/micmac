@@ -177,7 +177,7 @@ static cParamHeap_MTP The_cParamHeap_MTP;
 
 
 
-class cReadMTP_Std 
+class cReadMTP_Std
 {
       public :
               typedef cIndexedHeap<cObjHeapMTP,cParamHeap_MTP,cParamHeap_MTP> tHeap;
@@ -185,7 +185,7 @@ class cReadMTP_Std
               (
                      const std::string & aFolder,
                      const std::vector<std::string> &aVNames,
-		     cPhotogrammetricProject & aPhProj,
+		     cIPhProj & aPhProj,
 		     bool WithInd,
 		     bool WithSensor
               );
@@ -256,7 +256,7 @@ cReadMTP_Std::cReadMTP_Std
 (
     const std::string & aFolder,
     const std::vector<std::string> &aVNames,
-    cPhotogrammetricProject & aPhProj,
+    cIPhProj & aPhProj,
     bool  WithIndex,
     bool  WithSensor
 ) :
@@ -285,7 +285,7 @@ cReadMTP_Std::cReadMTP_Std
 
      if (!GotSomething)
      {
-         MMVII_UnclasseUsEr("Could not got any tie points for DirIn=[" + aPhProj.DPMulTieP().DirIn() + "]");
+         MMVII_UnclasseUsEr("Could not get any tie points for DirIn=[" + aPhProj.DPMulTieP().DirIn() + "]");
      }
 
      while ( GetNextConfig()) ;
@@ -297,7 +297,7 @@ cComputeMergeMulTieP * AllocStdFromMTPFromFolder
                       (
                             const std::string & aFolder,
                             const std::vector<std::string> &aVNames,
-                            cPhotogrammetricProject & aPhProj,
+                            cIPhProj & aPhProj,
                             bool  WithIndexPt,
                             bool  WithSensor,
                             bool  WithIndexImages
