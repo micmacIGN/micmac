@@ -117,6 +117,29 @@ void AddData(const  cAuxAr2007 & anAux,cSetHomogCpleIm & aSet)
 }
 
 
+void cSetHomogCpleIm::AddPairSet(const cSetMesPtOf1Im& aSet1,const cSetMesPtOf1Im& aSet2)
+{
+  // [1] Create a dictionnary on aSet1  to add correspondance Name <-> Index
+   t2MapStrInt  aMap1;
+
+   const std::vector<cMesIm1Pt> & aSetM1 = aSet1.Measures();
+   for (const auto & aMes1 : aSetM1)
+       aMap1.Add(aMes1.mNamePt);
+
+   //  [2] Use this dico to create the homologous
+   for (const auto & aMes2 : aSet2.Measures())
+   {
+       int anInd =  aMap1.Obj2I(aMes2.mNamePt,SVP::Yes) ;
+        if ((anInd >=0) && (!starts_with(aMes2.mNamePt,MMVII_NONE)))
+        {
+            // StdOut() << "AddPairSetAddPairSet " << aMes2.mNamePt << "\n";
+            Add(cHomogCpleIm(aSetM1.at(anInd).mPt,aMes2.mPt));
+        }
+   }
+
+}
+
+
 void cSetHomogCpleIm::Clear()
 {
 	mSetH.clear();

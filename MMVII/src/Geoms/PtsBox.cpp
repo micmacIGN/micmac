@@ -310,6 +310,21 @@ template <const int Dim>
     return *this;
 }
 
+template <const int Dim> void IncrementPixBoxIteratorGen(cPixBoxIterator<Dim>& anIter)
+{
+   for (int aD=0 ; aD<Dim-1 ; aD++)
+   {
+        if (++anIter.mPCur[aD] == anIter.mRO->P1()[aD])
+        {
+             anIter.mPCur[aD] = anIter.mRO->P0()[aD];
+        }
+        else
+            return;
+   }
+
+   anIter.mPCur[Dim-1]++;
+}
+
 
 
 /* ========================== */
@@ -362,6 +377,18 @@ template <class Type> double  SpecAbsSurfParalogram(const cPtxd<Type,1> & aP1,co
     MMVII_INTERNAL_ERROR("SpecAbsSurfParalogram for dim 1");
     return 0.0;
 }
+template <class Type> double  SpecAbsSurfParalogram(const cPtxd<Type,4> & aP1,const cPtxd<Type,4> & aP2)
+{
+    MMVII_INTERNAL_ERROR("SpecAbsSurfParalogram for dim 1");
+    return 0.0;
+}
+template <class Type> double  SpecAbsSurfParalogram(const cPtxd<Type,5> & aP1,const cPtxd<Type,5> & aP2)
+{
+    MMVII_INTERNAL_ERROR("SpecAbsSurfParalogram for dim 1");
+    return 0.0;
+}
+
+
 template <class Type> double  SpecAbsSurfParalogram(const cPtxd<Type,2> & aP1,const cPtxd<Type,2> & aP2)
 {
     return std::abs(aP1 ^ aP2) ;
@@ -779,7 +806,6 @@ template <const int Dim>  const std::vector<std::vector<cPtxd<int,Dim>>> & TabGr
 {
    return  cAllocNeighourhood<Dim>::AllocTabGrowNeigh(aDistMax);
 }
-
 
 
 
@@ -1494,6 +1520,7 @@ template  TYPE AbsSurfParalogram(const cPtxd<TYPE,2>& aP1,const cPtxd<TYPE,2>& a
 template  TYPE AbsSurfParalogram(const cPtxd<TYPE,3>& aP1,const cPtxd<TYPE,3>& aP2);
 
 
+
 INSTANTIATE_ABS_SURF(tINT4)
 INSTANTIATE_ABS_SURF(tREAL4)
 INSTANTIATE_ABS_SURF(tREAL8)
@@ -1581,6 +1608,7 @@ template cPtxd<int,DIM> Pt_round_ni(const cPtxd<TYPE,DIM>&  aP);\
 
 
 #define MACRO_INSTATIATE_PRECT_DIM(DIM)\
+template  void IncrementPixBoxIteratorGen(cPixBoxIterator<DIM>&);\
 MACRO_INSTATIATE_POINT(DIM)\
 template class cAffineSpace<DIM>;\
 template const std::vector<std::vector<cPtxd<int,DIM>>> & TabGrowNeigh(int);\
@@ -1644,6 +1672,8 @@ MACRO_INSTATIATE_PRECT_DIM(5)
 //MACRO_INSTATIATE_POINT(4)
 // MACRO_INSTATIATE_POINT(5)
 
+template  tREAL8 AbsSurfParalogram(const cPtxd<tREAL8,4>& aP1,const cPtxd<tREAL8,4>& aP2);
+template  tREAL8 AbsSurfParalogram(const cPtxd<tREAL8,5>& aP1,const cPtxd<tREAL8,5>& aP2);
 
 
 };

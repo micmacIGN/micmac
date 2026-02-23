@@ -8,6 +8,8 @@
 #include "MMVII_Ptxd.h"
 #include "SymbDer/SymbolicDerivatives.h"
 #include <typeinfo>       // operator typeid
+#include "MMVII_PhgrDist.h"
+
 
 using namespace NS_SymbolicDerivative;
 
@@ -489,6 +491,9 @@ template <class Type> class cP3dNorm
              mDuDv  (VtoP2(aVecUk,aK0Uk))
          {
          }
+
+        // static std::vector<std::string> NameObs(const std::string& aPref) {Append(NamesP3(aPref+"U"),NamesP3(aPref+"V"));}
+
 
          cP3dNorm(const std::vector<Type> &  aVecUk,size_t* aK0Uk,const std::vector<Type> &  aVecObs,size_t* aK0Obs) :
              cP3dNorm(aVecUk,IndexAutoIncr(aK0Uk,2),aVecObs,IndexAutoIncr(aK0Obs,9))

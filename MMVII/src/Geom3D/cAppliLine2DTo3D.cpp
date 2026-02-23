@@ -13,10 +13,10 @@ namespace MMVII
 /*                                                 */
 /* =============================================== */
 
-class cAppliLine2DTo3D : public cMMVII_Appli
+class cAppliTestElemBundle : public cMMVII_Appli
 {
      public :
-        cAppliLine2DTo3D(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
+        cAppliTestElemBundle(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
      private :
 
 	cPt2dr Redist(const cPt2dr &) const;

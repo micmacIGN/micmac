@@ -12,13 +12,11 @@ namespace MMVII
 /** \file MMVII_StaticLidar.h
     \brief Static lidar internal representation
 
-
-
 */
 
 
-cPt3dr cart2spher(const cPt3dr & aPtCart);
-cPt3dr spher2cart(const cPt3dr & aPtspher);
+//cPt3dr cart2spher(const cPt3dr & aPtCart); => MPD , plus logique dans MMVII_Geom3D
+//cPt3dr spher2cart(const cPt3dr & aPtspher);
 tREAL8 toMinusPiPlusPi(tREAL8 aAng, tREAL8 aOffset = 0.);
 
 

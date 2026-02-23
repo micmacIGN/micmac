@@ -21,6 +21,7 @@ template <class Type> class cExtSet ;
 template <class Type> class cDataExtSet ;
 template <class Type> class cSelector ;
 template <class Type> class cDataSelector ;
+template <class Type>  class cBijectiveMapI2O;
 
 
 /// just a std::array that is Destructible for use with std::optional

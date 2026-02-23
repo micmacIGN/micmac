@@ -460,8 +460,9 @@ class cDecodeFromCoulBits
          cDecodeFromCoulBits(const cFullSpecifTarget *);
 	 ///  Fix the colour Black/white of a given bit
          void SetColBit(bool IsBlack,size_t aBit);
-         bool IsComplete() const;   /// Have all the bits been fixed
-         const cOneEncoding * Encoding() const; /// Extract encoding, asserting that "IsComplete()"
+         bool IsComplete() const;   ///< Have all the bits been fixed
+         const cOneEncoding * Encoding() const; ///< Extract encoding, asserting that "IsComplete()"
+         const  tSet32Bits &  Code () const; ///< Acces to initial code (w/o merging equivalent)
 
       private :
          const cFullSpecifTarget * mSpec;      /// Specification

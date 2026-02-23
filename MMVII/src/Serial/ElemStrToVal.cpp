@@ -95,6 +95,8 @@ template <class TypeEnum> class cE2Str
           return aRes;
      }
 
+     static std::vector<TypeEnum> AllVals() { return VecOfPat(".*",true); }
+
      static std::vector<bool> VecBoolOfPat(const std::string & aPat,bool AcceptEmpy)
      {
          std::vector<TypeEnum>  aVEnum = VecOfPat(aPat,AcceptEmpy);
@@ -130,6 +132,10 @@ template <> std::string   StrAllVall<TypeEnum>()\
 template <> std::vector<TypeEnum> SubOfPat<TypeEnum>(const std::string & aPat,bool AcceptEmpty)\
 {\
    return cE2Str<TypeEnum>::VecOfPat(aPat,AcceptEmpty);\
+}\
+template <> std::vector<TypeEnum> AllEnumValues<TypeEnum>()\
+{\
+   return cE2Str<TypeEnum>::AllVals();\
 }\
 template <> tSemA2007  AC_ListVal<TypeEnum>()\
 {\
@@ -462,6 +468,12 @@ template<> cE2Str<eTyCodeTarget>::tMapE2Str cE2Str<eTyCodeTarget>::mE2S
                 {eTyCodeTarget::eCERN,"CERN"}
            };
 
+template<> cE2Str<eModResBund>::tMapE2Str cE2Str<eModResBund>::mE2S
+           {
+                {eModResBund::eAngle,"Angle"},
+                {eModResBund::eProduct,"Product"}
+           };
+
 template<> cE2Str<eMTDIm>::tMapE2Str cE2Str<eMTDIm>::mE2S
            {
                 {eMTDIm::eFocalmm,"Focalmm"},
@@ -670,6 +682,7 @@ void BenchEnum(cParamExeBench & aParam)
     TplBenchEnum<eModeCaracMatch>();
     TplBenchEnum<eDCTFilters>();
     TplBenchEnum<eTyCodeTarget>();
+    TplBenchEnum<eModResBund>();
     TplBenchEnum<eTypeSerial>();
     TplBenchEnum<eTAAr>();
     TplBenchEnum<eMTDIm>();
@@ -679,6 +692,7 @@ void BenchEnum(cParamExeBench & aParam)
     TplBenchEnum<eImatchCrit>();
     TplBenchEnum<eTyClino>();
     TplBenchEnum<eTyInstr>();
+    TplBenchEnum<eTyCodeTarget>();
 
 
     aParam.EndBench();
@@ -1275,6 +1289,7 @@ MACRO_INSTANTITATE_STRIO_ENUM(eModePaddingEpip,"ModePadEpip")
 MACRO_INSTANTITATE_STRIO_ENUM(eModeCaracMatch,"ModeCaracMatch")
 MACRO_INSTANTITATE_STRIO_ENUM(eDCTFilters,"DCTFilters")
 MACRO_INSTANTITATE_STRIO_ENUM(eTyCodeTarget,"TypeCodedTarget")
+MACRO_INSTANTITATE_STRIO_ENUM(eModResBund,"ModeResidualBundle")
 MACRO_INSTANTITATE_STRIO_ENUM(eModeTestPropCov,"TestPropCov")
 MACRO_INSTANTITATE_STRIO_ENUM(eMTDIm,"TypeMTDIm")
 MACRO_INSTANTITATE_STRIO_ENUM(eFormatExtern,"ExternalFormat")

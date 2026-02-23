@@ -13,12 +13,29 @@ namespace MMVII
 
 template <const int Dim> cDataGenUnTypedIm<Dim>::cDataGenUnTypedIm
                          (
-                             const cPtxd<int,Dim> & aP0,
-                             const cPtxd<int,Dim> & aP1
+                             const tPixI & aP0,
+                             const tPixI & aP1
                          )  :
                             cPixBox<Dim>(aP0,aP1)
 {
 }
+template <const int Dim> cDataGenUnTypedIm<Dim>::~cDataGenUnTypedIm()
+{
+
+}
+
+template <const int Dim> void cDataGenUnTypedIm<Dim>::VI_VPtsSetV(const  std::vector<tPixI> & aVPt, int  aV)
+{
+   for (const auto & aPix : aVPt)
+       VI_SetV(aPix,aV);
+}
+
+template <const int Dim> void cDataGenUnTypedIm<Dim>::VD_VPtsSetV(const  std::vector<tPixI> & aVPt,tREAL8  aV)
+{
+   for (const auto & aPix : aVPt)
+       VI_SetV(aPix,aV);
+}
+
 
 
 template <class Type> cDataGenUnTypedIm<2> * Tpl_ReadIm2DGen(const cDataFileIm2D &aDFI,const cBox2di & aBox)
@@ -434,7 +451,9 @@ template class cDataTypedIm<tREAL4,3>;
 #define MACRO_INSTANTIATE_cDataTypedIm(aType)\
 template class cDataTypedIm<aType,1>;\
 template class cDataTypedIm<aType,2>;\
-template class cDataTypedIm<aType,3>;
+template class cDataTypedIm<aType,3>;\
+template class cDataTypedIm<aType,4>;\
+template class cDataTypedIm<aType,5>;
 
 
 MACRO_INSTANTIATE_cDataTypedIm(tINT1)

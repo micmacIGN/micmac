@@ -35,7 +35,7 @@ template <class Type> class cLinearFilter
                       const cRect2 &,
                       const tFl &aFx,
                       const  tFl &aFy,
-		      bool IsExp=true
+                      bool IsExp=true
                   );
 };
 
@@ -76,9 +76,11 @@ template <class TBuf,class TIm,class TFact,class TyNorm> void
       else
       {
            int aNbV = round_ni(aFact);
-	   // specialized case for V=1 because (A) faster ? (B) that's what I need now and I am a lazy guy ...
-	   if (aNbV==1)
-	   {
+           // Not sure I want to handle these complicated case
+           MMVII_INTERNAL_ASSERT_strong(anX0+aNbV<anX1-aNbV,"In Sq Avg, NbV too high");
+          // specialized case for V=1 because (A) faster ? (B) that's what I need now and I am a lazy guy ...
+          if (aNbV==1)
+          {
              // save value at end / begin of line
               TIm aVRes0 =    (aLineIm[anX0] +  aLineIm[anX0+1])/2.0;
               TIm aVRes1 =    (aLineIm[anX1-2] +  aLineIm[anX1-1])/2.0;
@@ -86,23 +88,33 @@ template <class TBuf,class TIm,class TFact,class TyNorm> void
               TIm aV0 = aLineIm[anX0]; // Prec value
               TIm aV1 = aLineIm[anX0+1]; // current value
 
-	      for (int anX = anX0+1; anX<anX1-1 ; anX++)
+              for (int anX = anX0+1; anX<anX1-1 ; anX++)
               {
                   TIm aV2 = aLineIm[anX+1]; // next value
-		  aLineIm[anX] = (aV0+aV1+aV2) / 3.0;
-		  aV0 = aV1;
-		  aV1 = aV2;
+                  aLineIm[anX] = (aV0+aV1+aV2) / 3.0;
+                  aV0 = aV1;
+                  aV1 = aV2;
               }
 
-	      aLineIm[anX0] = aVRes0;
-	      aLineIm[anX1-1] = aVRes1;
-	   }
-	   else
-           {
-               MMVII_INTERNAL_ERROR("Filter avegrag to implement");
-	   }
+              aLineIm[anX0] = aVRes0;
+              aLineIm[anX1-1] = aVRes1;
+          }
+          else
+          {
+/*
+              tREAL8  aSPrec;
+              int aXPrec = anX0;
+              for (int aDx=0; aDx<=aNbV ; aDx++)
+              {
+                  aS0 +=  aLineIm[anX0+aDx];
+                  aNbP++;
+              }
+*/
+              MMVII_INTERNAL_ERROR("Filter avegrag to implement");
+          }
       }
    }
+   // Normalization is outside the loop because the normalisation was being made with iterations
    if (aDataNorm)
    {
       for (int anX= anX0 ; anX<anX1 ; anX++)
@@ -129,9 +141,10 @@ template <class Type> void  cLinearFilter<Type>::FilterExp
                                  const cRect2 & aRect,
                                  const tFl &aFx,
                                  const  tFl &aFy,
-				 bool IsExp
+                                 bool IsExp
                             )
 {
+// StdOut() << "OneLineFilterExpOneLineFilterExp=======================================================\n"; 
    MMVII_INTERNAL_ASSERT_strong(aRect.IncludedIn(aIm),"cLinearFilter Rect is outside");
 
    // Local copy to have quick access

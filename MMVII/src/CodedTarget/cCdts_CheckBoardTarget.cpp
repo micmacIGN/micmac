@@ -478,7 +478,8 @@ cCdEllipse::cCdEllipse(const cCdRadiom & aCdR,cDataIm2D<tU_INT1> & aMarq,int aNb
      mMaxEllD  (0.0),
      mCode     (nullptr),
      mBOutCB   (false),
-     mIsCircle (isCircle)
+     mIsCircle (isCircle),
+     mCodeInit (-1)
 {
 
      // [1]  comoute the integer point  of the frontier
@@ -569,7 +570,7 @@ cCdEllipse::cCdEllipse(const cCdRadiom & aCdR,cDataIm2D<tU_INT1> & aMarq,int aNb
 
      //  [5] ----------------Compute the  mapping (affinity) from ref target to image ---------------
 
-     EstimateAffinity();
+     EstimateAffinity(false);
 /*
      // In specif the corner are for a white sector, with name of transition (B->W or W->B)
      // coming with trigonometric convention; here the angle have been comouted for a  black sector
@@ -585,7 +586,7 @@ cCdEllipse::cCdEllipse(const cCdRadiom & aCdR,cDataIm2D<tU_INT1> & aMarq,int aNb
 */
 }
 
-void cCdEllipse::EstimateAffinity()
+void cCdEllipse::EstimateAffinity(bool secondCall)
 {
      // In specif the corner are for a white sector, with name of transition (B->W or W->B)
      // coming with trigonometric convention; here the angle have been comouted for a  black sector
@@ -594,9 +595,38 @@ void cCdEllipse::EstimateAffinity()
      mCornerlEl_BW = mEll.InterSemiLine(mTetas[1]+M_PI);
 
      cAff2D_r::tTabMin  aTabIm{mC,mCornerlEl_WB,mCornerlEl_BW};
-     cAff2D_r::tTabMin  aTabMod{mSpec->Center(),mSpec->CornerlEl_WB(),mSpec->CornerlEl_BW()};
+
+     cPt2dr aPC= mSpec->Center();
+     cPt2dr aPWB = mSpec->CornerlEl_WB();
+     cPt2dr  aPBW = mSpec->CornerlEl_BW();
+
+     // in second call, if we have a code, we use it to solve the ambuiguy on geometry
+     if (secondCall && (mCode!=nullptr))
+     {
+         int aC1 = mCode->Code() ;
+         int aC2 = mCodeInit;
+
+         if (aC1!=aC2)
+         {
+             int aNBB  = mSpec->NbBits();
+             int aC1Shifted =  N_LeftBitsCircPerm(aC1,1<<aNBB,aNBB/2);
+
+            //  StdOut( )  << " SHIFT " << aC1 << " =>" << aC1Shifted << "=?" << aC2 << " NBB= " << aNBB << "\n";
+             MMVII_INTERNAL_ASSERT_strong(aC1Shifted==aC2,"Assertion in shitf bit/vs ambiguity");
+
+             aPWB = aPC * 2.0 - aPWB;
+             aPBW = aPC * 2.0 - aPBW;
+          }
+     }
+
+     cAff2D_r::tTabMin  aTabMod{aPC,aPWB,aPBW};
+
+//     cAff2D_r::tTabMin  aTabMod{mSpec->Center(),mSpec->CornerlEl_WB(),mSpec->CornerlEl_BW()};
 
      mAffIm2Mod =  cAff2D_r::FromMinimalSamples(aTabIm,aTabMod);
+
+
+   //  StdOut() << mCode->Code() << "\n";
 }
 
 
@@ -773,6 +803,8 @@ void cCdEllipse::DecodeByL2CP(tREAL8 aWeighWhite)
      }
 
      mCode = aDec.Encoding();
+     mCodeInit =  aDec.Code().FlagBits() ;
+     EstimateAffinity(true);
 }
 
 const cOneEncoding *  cCdEllipse::BasicDecode(tREAL8 aWW)

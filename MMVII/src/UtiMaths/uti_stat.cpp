@@ -7,6 +7,22 @@
 namespace MMVII
 {
 
+tREAL8 RankWeigthedAverage(const std::vector<tREAL8>& aResInit,tREAL8 aPow,bool CosTransf,tREAL8 aRkMin)
+{
+   std::vector<tREAL8> aResSort = aResInit;
+   std::sort(aResSort.begin(),aResSort.end());
+
+   cWeightAv<tREAL8,tREAL8> aWAvg;
+   for (size_t aK = 0 ; aK<aResSort.size(); aK++)
+   {
+       tREAL8 aRnk = (aK+0.5) / (aResSort.size());
+       tREAL8 aW = CosTransf ?  1+std::cos(M_PI*aRnk) : (1.0-aRnk);
+       aWAvg.Add(aRkMin+std::pow(aW,aPow),aResSort.at(aK));
+   }
+   return aWAvg.Average();
+}
+
+
 // return the variance of  exponential distribution of parameter "a" ( i.e proportiona to  "a^|x|")
 double Sigma2FromFactExp(double a)
 {

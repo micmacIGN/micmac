@@ -84,7 +84,7 @@ class cMatEssential
         tREAL8  KthCost(const  cSetHomogCpleDir &,tREAL8 aProp) const;
 
 	/// Return the essential matrix
-	const tMat& Mat() const {return mMat;}
+         const tMat& Mat() const {return mMat;}
 
         void Show(const cSetHomogCpleDir &) const;
 
@@ -109,6 +109,8 @@ int   MatEss_GetKMax(const cSetHomogCpleDir & aSetD,tREAL8 aWeightStab,bool Show
  *  basic, but opportunity to fix convention */
 
 tPoseR  PoseRelFrom2RotAndBase(const cPt3dr &,const tRotR& aR2E1,const tRotR & aR2E2);
+
+
 
 };
 #endif // _MMVII_POSE_REL_H_
