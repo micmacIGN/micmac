@@ -471,7 +471,8 @@ template<> cE2Str<eTyCodeTarget>::tMapE2Str cE2Str<eTyCodeTarget>::mE2S
 template<> cE2Str<eModResBund>::tMapE2Str cE2Str<eModResBund>::mE2S
            {
                 {eModResBund::eAngle,"Angle"},
-                {eModResBund::eProduct,"Product"}
+                {eModResBund::eProduct,"Product"},
+                {eModResBund::eDet12,"Det12"}
            };
 
 template<> cE2Str<eMTDIm>::tMapE2Str cE2Str<eMTDIm>::mE2S
