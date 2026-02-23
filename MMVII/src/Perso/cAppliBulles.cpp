@@ -162,7 +162,7 @@ cAppliBubbles::~cAppliBubbles()
     delete mCurvExtract;
 }
 
-cCollecSpecArg2007 & cAppliBubbles::ArgObl(cCollecSpecArg2007 & anArgObl) 
+cCollecSpecArg2007 & cAppliBubbles::ArgObl(cCollecSpecArg2007 & anArgObl)
 {
       return    anArgObl
             <<  Arg2007(mPatImage,"Name of input Image", {eTA2007::FileDirProj,{eTA2007::MPatFile,"0"}})

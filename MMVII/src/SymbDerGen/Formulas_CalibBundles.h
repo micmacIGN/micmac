@@ -14,10 +14,6 @@ namespace MMVII
 {
 using namespace NS_SymbolicDerivative;
 
-enum class eModResBund
-{
-        eAngle
-};
 
 template <typename tUk>
    std::vector<tUk> ResiduAngular(const  cPtxd<tUk,3>& aDirBundle,const  cPtxd<tUk,3>& aPGround)
@@ -27,10 +23,21 @@ template <typename tUk>
 }
 
 template <typename tUk>
-      std::vector<tUk> ResidualBundle(const  cPtxd<tUk,3>& aDirBundle,const  cPtxd<tUk,3>& aPGround,eModResBund aMode)
+      std::vector<tUk> ResiduProduit(const  cPtxd<tUk,3>& aDirBundle,const  cPtxd<tUk,3>& aPGround)
 {
+       cPtxd<tUk,3> aPt = (aDirBundle ^ aPGround ) ;
+       return {aPt.x(),aPt.y(),aPt.z()};
+}
 
+template <typename tUk>
+      std::vector<tUk> ResidualBundle
+      (const  cPtxd<tUk,3>& aDirBundle,const  cPtxd<tUk,3>& aPGround,eModResBund aMode)
+{
+    if (aMode==eModResBund::eAngle)
        return ResiduAngular(aDirBundle,aPGround);
+
+    MMVII_INTERNAL_ASSERT_always(aMode==eModResBund::eProduct,"ResidualBundle")
+    return ResiduProduit(aDirBundle,aPGround);
 }
 
    /// Class for first camera, no unknown for this camera, as it is the refernce
@@ -38,7 +45,9 @@ class cFormulaBundleElem_Cam1
 {
       public :
 
-           std::string FormulaName() const { return "BunleElem_Cam1";}
+           cFormulaBundleElem_Cam1(eModResBund aMode) : mMode (aMode) {}
+
+           std::string FormulaName() const { return "BunleElem_Cam1_Mode" +ToStr(int(mMode));}
 
            std::vector<std::string>  VNamesUnknowns()  const
            {
@@ -59,10 +68,11 @@ class cFormulaBundleElem_Cam1
            {
                    cPtxd<tUk,3> aPGround = VtoP3(aVUk);  //
                    cPtxd<tUk,3> aDirBundle = VtoP3(aVObs);  //
-                   return  ResiduAngular(aDirBundle,aPGround);
+                   return  ResidualBundle(aDirBundle,aPGround,mMode);
            }
 
          private :
+              eModResBund mMode;
 };
 
 /// Class for second camera,  the base is unkwnon but unitary, the rotation is unknown
@@ -70,7 +80,9 @@ class cFormulaBundleElem_Cam2
 {
    public :
 
-        std::string FormulaName() const { return "BunleElem_Cam2";}
+       cFormulaBundleElem_Cam2(eModResBund aMode) : mMode (aMode) {}
+
+        std::string FormulaName() const { return "BunleElem_Cam2_Mode"+ToStr(int(mMode));}
 
         std::vector<std::string>  VNamesUnknowns()  const
         {
@@ -96,10 +108,12 @@ class cFormulaBundleElem_Cam2
                 cP3dNorm<tUk> aBase (aVUk,&aIndUk,aVObs,&aIndObs);
                 cRot3dF<tUk>  aRot (aVUk,&aIndUk,aVObs,&aIndObs);
 
-                return  ResiduAngular(aRot.Value(aDirBundle),aPGround-aBase.CurPt());
+                return  ResidualBundle(aRot.Value(aDirBundle),aPGround-aBase.CurPt(),mMode);
         }
 
       private :
+        eModResBund mMode;
+
 };
 
 

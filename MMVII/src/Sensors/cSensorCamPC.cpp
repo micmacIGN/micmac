@@ -79,6 +79,10 @@ cPt3dr cP3dNormWithUK::GetPNorm(const cPt2dr & aDuDv) const
 {
     return  VUnit(mPNorm + mU*aDuDv.x() + mV*aDuDv.y());
 }
+const cPt3dr & cP3dNormWithUK::RawPNorm() const
+{
+    return mPNorm;
+}
 
 void cP3dNormWithUK::SetPNorm(const cPt3dr & aTr)
 {

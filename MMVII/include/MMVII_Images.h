@@ -334,7 +334,7 @@ template <const int Dim> class cDataGenUnTypedIm : public cPixBox<Dim>,
 ;
         cDataGenUnTypedIm(const cPtxd<int,Dim> & aP0,const cPtxd<int,Dim> & aP1);
 
-        virtual ~cDataGenUnTypedIm() {};
+        virtual ~cDataGenUnTypedIm();
 
 
          
@@ -346,6 +346,10 @@ template <const int Dim> class cDataGenUnTypedIm : public cPixBox<Dim>,
            // Set Value, integer coordinates
                 /// Set Pixel Integrer Value
         virtual void VI_SetV(const  tPixI & aP,const int & aV) =0;
+                /// Set Value for vector of points, default use VI_SetV
+        virtual void VI_VPtsSetV(const  std::vector<tPixI> & aP, int  aV);
+        virtual void VD_VPtsSetV(const  std::vector<tPixI> & aP, tREAL8 aV);
+
                 /// Set Pixel Float Value
         virtual void VD_SetV(const  tPixI & aP,const double & aV)=0 ;
 

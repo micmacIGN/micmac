@@ -369,13 +369,13 @@ cCalculator<double> * Old_EqClinoRot(bool WithDerive,int aSzBuf,bool ReUse)  // 
 }
 
 
-cCalculator<double> * EqBundleElem_Cam1(bool WithDerive,int aSzBuf,bool ReUse)  // RIGIDBLOC
+cCalculator<double> * EqBundleElem_Cam1(eModResBund aMode,bool WithDerive,int aSzBuf,bool ReUse)  // RIGIDBLOC
 {
-    return StdAllocCalc(NameFormula(cFormulaBundleElem_Cam1(),WithDerive),aSzBuf,false,ReUse);
+    return StdAllocCalc(NameFormula(cFormulaBundleElem_Cam1(aMode),WithDerive),aSzBuf,false,ReUse);
 }
-cCalculator<double> * EqBundleElem_Cam2(bool WithDerive,int aSzBuf,bool ReUse)  // RIGIDBLOC
+cCalculator<double> * EqBundleElem_Cam2(eModResBund aMode,bool WithDerive,int aSzBuf,bool ReUse)  // RIGIDBLOC
 {
-    return StdAllocCalc(NameFormula(cFormulaBundleElem_Cam2(),WithDerive),aSzBuf,false,ReUse);
+    return StdAllocCalc(NameFormula(cFormulaBundleElem_Cam2(aMode),WithDerive),aSzBuf,false,ReUse);
 }
 // cFormulaBundleElem_Cam1
 // topo subframe with dist parameter
@@ -866,8 +866,11 @@ int cAppliGenCode::Exe()
        GenCodesFormula((tREAL8*)nullptr,cFormulaClino(0,3),WithDer);
        GenCodesFormula((tREAL8*)nullptr,cFormulaVNormOrthog(),WithDer);
 
-       GenCodesFormula((tREAL8*)nullptr,cFormulaBundleElem_Cam1(),WithDer);
-       GenCodesFormula((tREAL8*)nullptr,cFormulaBundleElem_Cam2(),WithDer);
+       for (const auto aMode : AllEnumValues<eModResBund>())
+       {
+           GenCodesFormula((tREAL8*)nullptr,cFormulaBundleElem_Cam1(aMode),WithDer);
+           GenCodesFormula((tREAL8*)nullptr,cFormulaBundleElem_Cam2(aMode),WithDer);
+       }
 
 
        GenCodesFormula((tREAL8*)nullptr,cFormulaClinoBloc(),WithDer); // CLINOBLOC

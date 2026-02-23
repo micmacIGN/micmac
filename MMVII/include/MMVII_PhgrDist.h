@@ -169,8 +169,8 @@ NS_SymbolicDerivative::cCalculator<double> * Old_EqClinoBloc(bool WithDerive,int
 NS_SymbolicDerivative::cCalculator<double> * Old_EqClinoRot(bool WithDerive,int aSzBuf,bool Reuse);  // CLINOBLOC
 
 
-NS_SymbolicDerivative::cCalculator<double> * EqBundleElem_Cam1(bool WithDerive,int aSzBuf,bool ReUse);  // RIGIDBLOC
-NS_SymbolicDerivative::cCalculator<double> * EqBundleElem_Cam2(bool WithDerive,int aSzBuf,bool ReUse);  // RIGIDBLOC
+NS_SymbolicDerivative::cCalculator<double> * EqBundleElem_Cam1(eModResBund,bool WithDerive,int aSzBuf,bool ReUse);  // RIGIDBLOC
+NS_SymbolicDerivative::cCalculator<double> * EqBundleElem_Cam2(eModResBund,bool WithDerive,int aSzBuf,bool ReUse);  // RIGIDBLOC
 
 
 
