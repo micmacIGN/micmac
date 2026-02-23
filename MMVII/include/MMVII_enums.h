@@ -665,6 +665,7 @@ enum class eModResBund
 {
         eAngle,
         eProduct,
+        eDet12,   // Case where
         eNbVals
 };
 

@@ -4,6 +4,9 @@
 #include "MMVII_ImageMorphoMath.h"
 #include "MMVII_Sensor.h"
 #include "MMVII_Ptxd.h"
+#include "MMVII_2Include_Serial_Tpl.h"
+
+
 //#include "MMVII_ImageInfoExtract.h"
 //#include "MMVII_TplGradImFilter.h"
 
@@ -47,6 +50,7 @@ class cCurvFrange
 };
 
 
+
 cCurvFrange::cCurvFrange(const cBox2di & aBox) :
     mBox (aBox),
     mAvX (aBox.P1().y()+1)  // +1 => P1 is include
@@ -79,6 +83,25 @@ std::vector<cPt3dr>  cCurvFrange::ExtractCurve() const
        }
    }
    return aRes;
+}
+
+/* =============================================== */
+/*                                                 */
+/*                 cExportFrange                   */
+/*                                                 */
+/* =============================================== */
+
+class cExportFrange
+{
+   public :
+       int                 mLabel;
+       std::vector<cPt3dr> mVPts;
+};
+
+void AddData(const cAuxAr2007 & anAux, cExportFrange & anEF)
+{
+    AddData(cAuxAr2007("Label", anAux),anEF.mLabel);
+    StdContAddData(cAuxAr2007("Pts", anAux),anEF.mVPts);
 }
 
 /* =============================================== */
@@ -470,13 +493,19 @@ void  cAppliFranges::DoOneImage(const std::string & aNameIm)
     // ===============  Generate the export =====================
 
     // Generate the csv
+    std::vector<cExportFrange> aVCE;
     for (size_t aKC=0 ; aKC<mCurves.size() ; aKC++)
     {
-        for (const auto aPt : mCurves.at(aKC).ExtractCurve())
+        cExportFrange anEF;
+        anEF.mLabel = aKC;
+        anEF.mVPts = mCurves.at(aKC).ExtractCurve();
+        for (const auto aPt : anEF.mVPts)
         {
             AddOneReportCSV(mIdExport,{ToStr(aKC),ToStr(aPt.x()),ToStr(aPt.y()),ToStr(aPt.z())});
         }
+        aVCE.push_back(anEF);
     }
+    SaveInFile(aVCE,DirReport()+mIdExport+".json");
 
     // Generate the visualisation if required
     if (mDoVisu)

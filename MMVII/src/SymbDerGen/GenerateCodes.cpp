@@ -868,8 +868,11 @@ int cAppliGenCode::Exe()
 
        for (const auto aMode : AllEnumValues<eModResBund>())
        {
-           GenCodesFormula((tREAL8*)nullptr,cFormulaBundleElem_Cam1(aMode),WithDer);
-           GenCodesFormula((tREAL8*)nullptr,cFormulaBundleElem_Cam2(aMode),WithDer);
+           if (aMode != eModResBund::eDet12)
+           {
+              GenCodesFormula((tREAL8*)nullptr,cFormulaBundleElem_Cam1(aMode),WithDer);
+              GenCodesFormula((tREAL8*)nullptr,cFormulaBundleElem_Cam2(aMode),WithDer);
+           }
        }
 
 

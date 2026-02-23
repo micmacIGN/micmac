@@ -15,7 +15,7 @@ namespace MMVII
 class cElemBA
 {
    public :
-       cElemBA(const std::vector<tPoseR>& aVPose);
+       cElemBA(eModResBund,const std::vector<tPoseR>& aVPose);
        ~cElemBA();
 
        void AddHomBundle_Cam1Cam2(const cPt3dr & aDirB0,const cPt3dr & aDirB1,tREAL8 aW,tREAL8 aEpsilon=1e-6);
@@ -33,8 +33,8 @@ class cElemBA
 
         //void Add
 
-        std::vector<tPoseR>                mCurPose;
-
+       eModResBund                        mMode;
+       std::vector<tPoseR>                mCurPose;
        int                                mSzBuf;       ///<  Sz Buf for calculator
        cCalculator<double> *              mEqElemCam1;  ///< Colinearity equation
        cCalculator<double> *              mEqElemCam2;
@@ -50,11 +50,12 @@ class cElemBA
 
 };
 
-cElemBA::cElemBA(const std::vector<tPoseR>& aVPose) :
+cElemBA::cElemBA(eModResBund aMode,const std::vector<tPoseR>& aVPose) :
+    mMode       (aMode),
     mCurPose    (aVPose),
     mSzBuf      (1),
-    mEqElemCam1 (EqBundleElem_Cam1(eModResBund::eAngle,true,mSzBuf,true)),
-    mEqElemCam2 (EqBundleElem_Cam2(eModResBund::eAngle,true,mSzBuf,true)),
+    mEqElemCam1 (EqBundleElem_Cam1(mMode,true,mSzBuf,true)),
+    mEqElemCam2 (EqBundleElem_Cam2(mMode,true,mSzBuf,true)),
   //  mEqElemCamN (nullptr),
     mSetInterv  (),
     mSys        (nullptr),
@@ -289,10 +290,11 @@ class cAppliTestElemBundle : public cMMVII_Appli
 
      private :
 
-        int     mNbIter;
-        cPt2dr  mSigTrRot;
-        tREAL8  mLVM;
-        int     mNbSamples;
+        eModResBund    mMode;
+        int            mNbIter;
+        cPt2dr         mSigTrRot;
+        tREAL8         mLVM;
+        int            mNbSamples;
 };
 
 
@@ -316,9 +318,7 @@ cAppliTestElemBundle::~cAppliTestElemBundle()
 cCollecSpecArg2007 & cAppliTestElemBundle::ArgObl(cCollecSpecArg2007 & anArgObl)
 {
       return    anArgObl
-              /*
-             <<  Arg2007(mPatImage,"Name of input Image", {eTA2007::FileDirProj,{eTA2007::MPatFile,"0"}})
-         <<  Arg2007(mLineIsWhite," True : its a light line , false dark ")*/
+            <<  Arg2007(mMode,"Mode of bundle compens", {AC_ListVal<eModResBund>()})
       ;
 }
 
@@ -346,7 +346,7 @@ int cAppliTestElemBundle::Exe()
 {
     cBenchElemBA aBench2(2,mSigTrRot);
 
-    cElemBA aBA(aBench2.mVPosePert);
+    cElemBA aBA(mMode,aBench2.mVPosePert);
 
     std::vector<std::vector<cPt3dr>> aVVBund;
     for (int aK=0 ; aK<mNbSamples ; aK++)
