@@ -82,9 +82,11 @@ Under Linux (Ubuntu) distribution the installation procedure is as follows:
 	```
 - Compile **MMVII**:
 	```bash
-	make full -j N
+	make full -j8   
 	```
-	- N is the number of CPUs on the machine and can be retrieved by typing `nproc --all`
+	- in general, you can run "make -jNUM"  where NUM is the number of CPUs on the machine and can be retrieved by typing `nproc --all`, or  "NUM-2" if you want to use the computer while compiling
+	- !!!!!!!!!!!!!!! classical pitfall :  typing literally "make -j NUM" will run all the compilation simultaneously and will almost certainly crash your computer !!!!!!!!!!!!!
+        
 
 - Add binaries to the `PATH` (**adapt the path**):
 	```bash

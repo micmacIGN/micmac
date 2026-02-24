@@ -150,7 +150,7 @@ void cCamSimul::BenchPoseRel2Cam
     // cLinearOverCstrSys<tREAL8> *  aSysL1 = new cLeasSqtAA<tREAL8>(9);
     cLeasSqtAA<tREAL8> aSysL2(9);
 
-    thread_local static int aCptPbL1 = 0;
+    thread_local static int aCptPbL1 = 0; FakeUseIt(aCptPbL1);
 
 
     if (1)

@@ -541,6 +541,7 @@ bool cPS_CompPose::TestOneHypoth
     mNbSolTested++;
 
     static int aCptSol=0;  // Debug counter
+    FakeUseIt(aCptSol); // WARN with CLANG
     aCptSol++;
     //StdOut() << " CPTSOL=" << aCptSol << "\n";
     //bool Debug = (aCptSol==395);
