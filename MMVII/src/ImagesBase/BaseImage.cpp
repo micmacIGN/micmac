@@ -19,6 +19,7 @@ template <const int Dim> cDataGenUnTypedIm<Dim>::cDataGenUnTypedIm
                             cPixBox<Dim>(aP0,aP1)
 {
 }
+
 template <const int Dim> cDataGenUnTypedIm<Dim>::~cDataGenUnTypedIm()
 {
 
@@ -447,6 +448,16 @@ template class cDataTypedIm<tREAL4,1>;
 template class cDataTypedIm<tREAL4,2>;
 template class cDataTypedIm<tREAL4,3>;
 */
+
+template class cDataGenUnTypedIm<1>;
+template class cDataGenUnTypedIm<2>;
+template class cDataGenUnTypedIm<3>;
+template class cDataGenUnTypedIm<4>;
+template class cDataGenUnTypedIm<5>;
+
+
+
+
 
 #define MACRO_INSTANTIATE_cDataTypedIm(aType)\
 template class cDataTypedIm<aType,1>;\

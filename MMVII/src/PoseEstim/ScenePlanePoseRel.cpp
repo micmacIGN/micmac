@@ -278,7 +278,7 @@ class cPS_CompPose
  *        [P2] a^2 + b^2 + 2           = L^2 Tr2
  *        [P3] (a^2+b^2) ^2 + 2 b^2 +2 = L^4 Tr4
  *
- *     By substitution in [P3] we get a polynomi FakeUseIt(aNbM2);al equation in L
+ *     By substitution in [P3] we get a polynomial equation in L
  *     (a^2 + b^2) comes from [P2] and b^2 from [P1] & [P2]) :
  *         (L^2Tr^2 -2) ^2 + 2(L^2 Tr2-2 -L^6 D^2)   +2 = L^4 Tr4
  *     This 6-degree in L can be solved as 3 degree i n L2
@@ -293,12 +293,6 @@ class cPS_CompPose
  */
 
 
-/*
-cPt3dr cPS_CompPose::RandPointOfView(const cPt2dr & aRhoZ)
-{
-    return Cyl2Cart(cPt3dr(aRhoZ.x(),Raconst cPS FakeUseIt(aNbM2);C_Selec & aSel    ndUnif_Angle(),aRhoZ.y()));
-}
-*/
 
 
 
