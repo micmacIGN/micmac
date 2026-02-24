@@ -562,6 +562,8 @@ class cP3dNormWithUK :  public cObjWithUnkowns<tREAL8>,
 
         cPt2dr & DuDv();
         const cPt3dr & RawPNorm() const; //< Accessor to mPNorm, rather for tuning/debug
+        const cPt3dr & U() const; ///< Accessor
+        const cPt3dr & V() const; ///< Acessor
 
 
         void AddIdexesAndObs(std::vector<int> &, std::vector<double>&);

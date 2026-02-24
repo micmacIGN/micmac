@@ -6,8 +6,12 @@
 #include "SymbDer/SymbDer_MACRO.h"
 #include "ComonHeaderSymb.h"
 
-/* classes for "small" Pose bundles , or more generally
-   bundle where the camera are calibrated and we directly maniplutae the 3D direction
+/** classes for "small" Pose bundles , or more generally
+   bundle where the camera are calibrated and we directly maniplutae the 3D direction.
+
+   This optimized for "small" bundle in the sense that :
+     * the parmatrization is "ad hoc" : No Unkown for first cam, 5 unknown for second cam
+     * in the 2 pose case, we  have option without the unkwnon 3D point, to avoid Schurr complement
 */
 
 namespace MMVII
@@ -15,17 +19,27 @@ namespace MMVII
 using namespace NS_SymbolicDerivative;
 
 
+/* *************************************************** */
+/*                                                     */
+/*         Case with Unknown 3D point                  */
+/*                                                     */
+/* *************************************************** */
+
+/*  In this case the equation will enforce a local-3D point to be on the local bundle. There is 3 variant
+ *  on how we measure the belonging of point to bundle.
+ */
+
 template <typename tUk>
-   std::vector<tUk> ResiduAngular(const  cPtxd<tUk,3>& aDirBundle,const  cPtxd<tUk,3>& aPGround)
+   std::vector<tUk> ResiduAngular(const  cPtxd<tUk,3>& aDirBundle,const  cPtxd<tUk,3>& aP3dLoc)
 {
-    cPtxd<tUk,3> aPt = (aDirBundle ^ aPGround ) * (1.0/ Scal(aDirBundle,aPGround)) ;
+    cPtxd<tUk,3> aPt = (aDirBundle ^ aP3dLoc ) * (1.0/ Scal(aDirBundle,aP3dLoc)) ;
     return {aPt.x(),aPt.y(),aPt.z()};
 }
 
 template <typename tUk>
-      std::vector<tUk> ResiduProduit(const  cPtxd<tUk,3>& aDirBundle,const  cPtxd<tUk,3>& aPGround)
+      std::vector<tUk> ResiduProduit(const  cPtxd<tUk,3>& aDirBundle,const  cPtxd<tUk,3>& aP3dLoc)
 {
-       cPtxd<tUk,3> aPt = (aDirBundle ^ aPGround ) ;
+       cPtxd<tUk,3> aPt = (aDirBundle ^ aP3dLoc ) ;
        return {aPt.x(),aPt.y(),aPt.z()};
 }
 
@@ -40,7 +54,8 @@ template <typename tUk>
     return ResiduProduit(aDirBundle,aPGround);
 }
 
-   /// Class for first camera, no unknown for this camera, as it is the refernce
+
+/// Class for first camera, no unknown for this camera, as it is the refernce
 class cFormulaBundleElem_Cam1
 {
       public :
@@ -49,15 +64,11 @@ class cFormulaBundleElem_Cam1
 
            std::string FormulaName() const { return "BunleElem_Cam1_" +E2Str(mMode);}
 
-           std::vector<std::string>  VNamesUnknowns()  const
-           {
-                return   NamesP3("PGround") ;
-           }
+           /// the only unknown is the 3D point (camera is the reference system)
+           std::vector<std::string>  VNamesUnknowns()  const {return   NamesP3("PGround") ;}
 
-           std::vector<std::string>    VNamesObs() const
-           {
-               return   NamesP3("Bundle");
-           };
+           /// Only obs for bundle
+           std::vector<std::string>    VNamesObs() const{  return   NamesP3("Bundle");};
 
            template <typename tUk>
                        std::vector<tUk> formula
@@ -80,15 +91,17 @@ class cFormulaBundleElem_Cam2
 {
    public :
 
-       cFormulaBundleElem_Cam2(eModResBund aMode) : mMode (aMode) {}
+        cFormulaBundleElem_Cam2(eModResBund aMode) : mMode (aMode) {}
 
         std::string FormulaName() const { return "BunleElem_Cam2_"+E2Str(mMode);}
 
+        /// Unknowns are 3d point,  Base (unitar), Orientation of Camera
         std::vector<std::string>  VNamesUnknowns()  const
         {
              return  Append(NamesP3("PGround"),NamesP2("DuDv2"), NamesP3("Omega"));
         }
 
+        /// Observations are Bundle, Obs of Unitary Base, Of rotation
         std::vector<std::string>    VNamesObs() const
         {
             return  {Append(NamesP3("Bundle"),NamesObsP3Norm("Base"),NamesMatr("Rot",cPt2di(3,3)))};
@@ -103,12 +116,18 @@ class cFormulaBundleElem_Cam2
         {
                 size_t aIndUk =0;
                 size_t aIndObs = 0;
-                cPtxd<tUk,3> aPGround = VtoP3AutoIncr(aVUk,&aIndUk);  //
-                cPtxd<tUk,3> aDirBundle = VtoP3AutoIncr(aVObs,&aIndObs);  //
-                cP3dNorm<tUk> aBase (aVUk,&aIndUk,aVObs,&aIndObs);
-                cRot3dF<tUk>  aRot (aVUk,&aIndUk,aVObs,&aIndObs);
 
-                return  ResidualBundle_PGround(aRot.Value(aDirBundle),aPGround-aBase.CurPt(),mMode);
+                cPtxd<tUk,3> aPGround = VtoP3AutoIncr(aVUk,&aIndUk);      // Extract PGround
+                cPtxd<tUk,3> aDirBundle = VtoP3AutoIncr(aVObs,&aIndObs);  // Extract dir of bundle
+                cP3dNorm<tUk> aBase (aVUk,&aIndUk,aVObs,&aIndObs);        // Extract the base unitary
+                cRot3dF<tUk>  aRot (aVUk,&aIndUk,aVObs,&aIndObs);         // Extarct the rotation
+
+                return  ResidualBundle_PGround
+                        (
+                            aRot.Value(aDirBundle), // Direction of bundle set in the coordinate system
+                            aPGround-aBase.CurPt(), // Vector Cam->PGround
+                            mMode
+                         );
         }
 
       private :
@@ -116,6 +135,12 @@ class cFormulaBundleElem_Cam2
 
 };
 
+
+/* *************************************************** */
+/*                                                     */
+/*          Case W/O Unknown 3D point                  */
+/*                                                     */
+/* *************************************************** */
 
 /* Formula "12" we express residual w/o using the unknown ground point that lead to Schurr complement.
  *
@@ -138,15 +163,11 @@ class cFormulaBundleElem_Cam2
  *      [1 S] [a]   [B.U1]         [a]    [ B.U1   -  S B.U2]
  *      [S 1] [b] = [B.U2]  then   [b]  = [-S B.U1 +  B.U2  ]  / (1 - S^2)
  *
- *         And the angular residual  c/a and c/b
+ *         And the angular residual are :  c/a and c/b
  */
-template <typename tUk>
-   std::vector<tUk>
-        ResiduDist12(const  cPtxd<tUk,3>& aBase,const  cPtxd<tUk,3>& aDirB1,const  cPtxd<tUk,3>& aDirB2)
-{
-   return {Scal(aBase,aDirB1^aDirB2) / Norm2(aDirB1^aDirB2) };
-}
 
+/** Simplest case, we just use the determinanr [B,U1,U2],  surprisingly the moste stable on simulations, almost
+ always converge */
 template <typename tUk>
       std::vector<tUk>
         ResiduDet12(const  cPtxd<tUk,3>& aBase,const  cPtxd<tUk,3>& aDirB1,const  cPtxd<tUk,3>& aDirB2)
@@ -154,6 +175,15 @@ template <typename tUk>
    return {Scal(aBase,aDirB1^aDirB2)};
 }
 
+/// Case we use the distance of intersection
+template <typename tUk>
+   std::vector<tUk>
+        ResiduDist12(const  cPtxd<tUk,3>& aBase,const  cPtxd<tUk,3>& aDirB1,const  cPtxd<tUk,3>& aDirB2)
+{
+   return {Scal(aBase,aDirB1^aDirB2) / Norm2(aDirB1^aDirB2) };
+}
+
+ /// Case we use the 2 angles for intersection
 template <typename tUk>
    std::vector<tUk>
      ResiduAng12(const  cPtxd<tUk,3>& aBase,const  cPtxd<tUk,3>& aDirB1,const  cPtxd<tUk,3>& aDirB2)
@@ -172,8 +202,6 @@ template <typename tUk>
 }
 
 
-
-
 template <typename tUk>
          std::vector<tUk> ResidualBundle_12
          (const  cPtxd<tUk,3>& aBase,const  cPtxd<tUk,3>& aDirB1,const  cPtxd<tUk,3>& aDirB2,eModResBund aMode)
@@ -190,7 +218,7 @@ template <typename tUk>
 }
 
 
-/// Class for second camera,  the base is unkwnon but unitary, the rotation is unknown
+/// Class  integrating 2 camera w/o ; formula w/o Unknown Ground Point
 class cFormulaBundleElem_CamDet12
 {
    public :
@@ -199,11 +227,13 @@ class cFormulaBundleElem_CamDet12
 
         std::string FormulaName() const { return "BunleElem_"+ToStr(mMode);}
 
+        /// Unkowns : Base & Rot of Cam2
         std::vector<std::string>  VNamesUnknowns()  const
         {
              return  Append(NamesP2("DuDv2"), NamesP3("Omega"));
         }
 
+        /// Obs : bundle 1, bundle 1, Base of Cam2, Rotation of Cam2
         std::vector<std::string>    VNamesObs() const
         {
             return  {Append(NamesP3("Bund1"),NamesP3("Bund2"),NamesObsP3Norm("Base"),NamesMatr("Rot",cPt2di(3,3)))};
@@ -219,11 +249,11 @@ class cFormulaBundleElem_CamDet12
                 size_t aIndUk =0;
                 size_t aIndObs = 0;
                 cPtxd<tUk,3> aDirB1 = VtoP3AutoIncr(aVObs,&aIndObs);  //
-                cPtxd<tUk,3> aDirB2Loc = VtoP3AutoIncr(aVObs,&aIndObs);  //
+                cPtxd<tUk,3> aDirB2Loc = VtoP3AutoIncr(aVObs,&aIndObs);  //Dir bundle in Cam2 sys
                 cP3dNorm<tUk> aBase (aVUk,&aIndUk,aVObs,&aIndObs);
                 cRot3dF<tUk>  aRot (aVUk,&aIndUk,aVObs,&aIndObs);
 
-                cPtxd<tUk,3>  aDirB2 = aRot.Value(aDirB2Loc);
+                cPtxd<tUk,3>  aDirB2 = aRot.Value(aDirB2Loc);  // Dir Bundle in Cam1 Sys
 
                 return  ResidualBundle_12(aBase.CurPt(),aDirB1,aDirB2,mMode) ;
         }

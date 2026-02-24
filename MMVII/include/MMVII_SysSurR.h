@@ -277,17 +277,17 @@ template <class Type> class cResolSysNonLinear : public cREAL8_RSNL
           typedef cResidualWeighter<Type>                       tResidualW;
           typedef cObjWithUnkowns<Type>                         tObjWUk;
 
-	  /// basic constructor, using a mode of matrix + a solution  init
+           /// basic constructor, using a mode of matrix + a solution  init
           cResolSysNonLinear(eModeSSR,const tDVect & aInitSol);
-	  ///  constructor  using linear system, allow finer control
+          ///  constructor  using linear system, allow finer control
           cResolSysNonLinear(tLinearSysSR *,const tDVect & aInitSol);
-	  /// destructor 
+          /// destructor
           ~cResolSysNonLinear();
 
 
           /// Accessor
           const tDVect  &    CurGlobSol() const;
-	  cREAL8_RSNL::tDVect    R_CurGlobSol() const override;  ///<  tREAL8 Equivalent
+          cREAL8_RSNL::tDVect    R_CurGlobSol() const override;  ///<  tREAL8 Equivalent
    
           /// Accessor
           int NbVar() const;  
@@ -311,7 +311,7 @@ template <class Type> class cResolSysNonLinear : public cREAL8_RSNL
           const tDVect  &    SolveUpdateReset(const Type & aLVM =0.0,tVPtr_SUR AfterCstr = {},tVPtr_SUR AfterLVM = {}, bool calcCond=false) ;
 
 
-	  cREAL8_RSNL::tDVect      R_SolveUpdateReset(const tREAL8& = 0.0) override ;
+          cREAL8_RSNL::tDVect      R_SolveUpdateReset(const tREAL8& = 0.0) override ;
 
           /// Add 1 equation fixing variable
           void   AddEqFixVar(const int & aNumV,const Type & aVal,const Type& aWeight);

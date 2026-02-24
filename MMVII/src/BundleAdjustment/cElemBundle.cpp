@@ -45,6 +45,7 @@ class cElemBA
       // cCalculator<double> *              mEqElemCamN;
        cSetInterUK_MultipeObj<double>     mSetInterv;   ///< coordinator for autom numbering
        cResolSysNonLinear<double> *       mSys;   ///< Solver
+      // cLinearOverCstrSys<tREAL8> *       mLinSys;
        cP3dNormWithUK                     mTr2;   ///< Unknown normaized trace for unit
        cRotWithUK                         mRot2;
        std::vector<cPoseWithUK*>          mPoseN;
@@ -134,6 +135,31 @@ void cElemBA::AddHomBundle_Cam2
 
 void cElemBA::AddHomBundle_Cam12(const cPt3dr & aDirB1,const cPt3dr & aDirB2,tREAL8  aWeight)
 {
+      if (1)
+      {
+         // StdOut() << "HANDCRAFTED \n";
+         // U02 = R0 u2  ;   N0 = u1 ^ U0
+         // c = B0.N0 + (A.N0) da + B.N0 db + ((u1.U02)B0 -(B0.U20)u1) dW
+
+          cPt3dr aU02 = mRot2.Rot().Value(aDirB2);
+          cPt3dr aN0 = aDirB1 ^ aU02;
+          cPt3dr aB0 =  mTr2.RawPNorm();
+
+          cDenseVect<tREAL8> aVect(5);
+
+          aVect(0) = Scal(aN0, mTr2.U());
+          aVect(1) = Scal(aN0, mTr2.V());
+          cPt3dr aScalW =   (aB0*Scal(aDirB1,aU02) - aDirB1 *Scal(aB0,aU02) ) * 1.0;
+          aVect(2) = aScalW.x();
+          aVect(3) = aScalW.y();
+          aVect(4) = aScalW.z();
+          tREAL8 aRes = Scal(aB0,aN0);
+          StdOut() << " RRR " << aRes << " VV " << aVect << "\n";
+         /* mSys->AddObservationLinear(aWeight,aVect,-aRes);
+          mRes1.Add(1.0,std::abs(aRes));
+          mRes2.Add(1.0,std::abs(aRes));
+         return;*/
+      }
       std::vector<int> aVIndGlob ;
       std::vector<double> aVObs = Append(aDirB1.ToStdVector(),aDirB2.ToStdVector());
       mTr2.AddIdexesAndObs(aVIndGlob,aVObs);
@@ -144,9 +170,17 @@ void cElemBA::AddHomBundle_Cam12(const cPt3dr & aDirB1,const cPt3dr & aDirB2,tRE
       for (size_t aK=0 ; aK<mEqElemCam12->NbElem() ; aK++)
       {
           tREAL8 aRes = std::abs(mEqElemCam12->ValComp(0,aK));
+
+          StdOut()  << "CCC " << mEqElemCam12->ValComp(0,aK) << " DDD " ;
+          for (int aD=0 ; aD<5 ; aD++)
+              StdOut()  << " " <<  mEqElemCam12->DerComp(0,aK,aD) ;
+          StdOut()<< "\n";
+
           mRes1.Add(1.0,aRes);
           mRes2.Add(1.0,aRes);
       }
+
+      getchar();
 }
 
 void cElemBA::AddHomBundle_Cam1Cam2(const cPt3dr & aDirB1,const cPt3dr & aDirB2,tREAL8 aW,tREAL8 aEpsilon)
@@ -331,7 +365,7 @@ cAppliTestElemBundle::cAppliTestElemBundle(const std::vector<std::string> & aVAr
     mNbIter           (10),
     mSigTrRot         (0.1,0.1),
     mLVM              (1e-5),
-    mNbSamples        (1000)
+    mNbSamples        (100)
 {
 
 }
