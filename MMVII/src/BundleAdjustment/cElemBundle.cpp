@@ -25,6 +25,7 @@ class cElemBA
 
        void AddHomBundle_Cam1(cSetIORSNL_SameTmp<tREAL8> &,const cPt3dr & aDirB0,tREAL8  aWeight);
        void AddHomBundle_Cam2(cSetIORSNL_SameTmp<tREAL8> &,const cPt3dr & aDirB1,tREAL8  aWeight);
+       void AddHomBundle_Cam12(const cPt3dr & aDirB1,const cPt3dr & aDirB2,tREAL8  aWeight);
 
        tSeg3dr  Bundle(int aKCam,const cPt3dr &) const;
 
@@ -34,10 +35,13 @@ class cElemBA
         //void Add
 
        eModResBund                        mMode;
+       bool                               isMode12;
        std::vector<tPoseR>                mCurPose;
        int                                mSzBuf;       ///<  Sz Buf for calculator
        cCalculator<double> *              mEqElemCam1;  ///< Colinearity equation
        cCalculator<double> *              mEqElemCam2;
+       cCalculator<double> *              mEqElemCam12;
+
       // cCalculator<double> *              mEqElemCamN;
        cSetInterUK_MultipeObj<double>     mSetInterv;   ///< coordinator for autom numbering
        cResolSysNonLinear<double> *       mSys;   ///< Solver
@@ -52,10 +56,12 @@ class cElemBA
 
 cElemBA::cElemBA(eModResBund aMode,const std::vector<tPoseR>& aVPose) :
     mMode       (aMode),
+    isMode12    (ModResBund_IsMode12(mMode)),
     mCurPose    (aVPose),
     mSzBuf      (1),
     mEqElemCam1 (EqBundleElem_Cam1(mMode,true,mSzBuf,true)),
     mEqElemCam2 (EqBundleElem_Cam2(mMode,true,mSzBuf,true)),
+    mEqElemCam12 (EqBundleElem_Cam12(mMode,true,mSzBuf,true)),
   //  mEqElemCamN (nullptr),
     mSetInterv  (),
     mSys        (nullptr),
@@ -122,13 +128,26 @@ void cElemBA::AddHomBundle_Cam2
     mRot2.AddIdexesAndObs(aVIndGlob,aVObs,  false);
     mSys->R_AddEq2Subst(aStrSubst,mEqElemCam2,aVIndGlob,aVObs,aWeight);
 
-
     for (int aK=0 ; aK<3 ; aK++)
         mRes2.Add(1.0,std::abs(mEqElemCam2->ValComp(0,aK)));
-
-    // StdOut() << " R2 " << mRes2.Average() << "\n";
 }
 
+void cElemBA::AddHomBundle_Cam12(const cPt3dr & aDirB1,const cPt3dr & aDirB2,tREAL8  aWeight)
+{
+      std::vector<int> aVIndGlob ;
+      std::vector<double> aVObs = Append(aDirB1.ToStdVector(),aDirB2.ToStdVector());
+      mTr2.AddIdexesAndObs(aVIndGlob,aVObs);
+      mRot2.AddIdexesAndObs(aVIndGlob,aVObs,  false);
+
+      mSys->R_CalcAndAddObs(mEqElemCam12,aVIndGlob,aVObs,aWeight);
+
+      for (size_t aK=0 ; aK<mEqElemCam12->NbElem() ; aK++)
+      {
+          tREAL8 aRes = std::abs(mEqElemCam12->ValComp(0,aK));
+          mRes1.Add(1.0,aRes);
+          mRes2.Add(1.0,aRes);
+      }
+}
 
 void cElemBA::AddHomBundle_Cam1Cam2(const cPt3dr & aDirB1,const cPt3dr & aDirB2,tREAL8 aW,tREAL8 aEpsilon)
 {
@@ -137,31 +156,38 @@ void cElemBA::AddHomBundle_Cam1Cam2(const cPt3dr & aDirB1,const cPt3dr & aDirB2,
 
     if (NormInf(aSeg1.V12() ^ aSeg2.V12()) < aEpsilon)
         return;
-    cPt3dr aPGround = BundleInters(aSeg1,aSeg2,0.5);
 
-    cSetIORSNL_SameTmp<tREAL8>  aStrSubst(aPGround.ToStdVector(),{});
+    if (isMode12)
+    {
+       AddHomBundle_Cam12(aDirB1,aDirB2,aW);
+    }
+    else
+    {
+       cPt3dr aPGround = BundleInters(aSeg1,aSeg2,0.5);
 
-    AddHomBundle_Cam1(aStrSubst,aDirB1,aW);
-    AddHomBundle_Cam2(aStrSubst,aDirB2,aW);
+       cSetIORSNL_SameTmp<tREAL8>  aStrSubst(aPGround.ToStdVector(),{});
 
-    mSys->R_AddObsWithTmpUK(aStrSubst);
+       AddHomBundle_Cam1(aStrSubst,aDirB1,aW);
+       AddHomBundle_Cam2(aStrSubst,aDirB2,aW);
+       mSys->R_AddObsWithTmpUK(aStrSubst);
+    }
 }
 
 void cElemBA::OneIter(tREAL8 aLVM,const std::vector<tPoseR> * aVRef)
 {
-    StdOut() << "  PIN " << mTr2.RawPNorm() << "\n";
+  //  StdOut() << "  PIN " << mTr2.RawPNorm() << "\n";
     const auto & aVectSol =  mSys->SolveUpdateReset(aLVM);
     mSetInterv.SetVUnKnowns(aVectSol);
-
-    StdOut() << "  POUT " << mTr2.RawPNorm()
-             << " Res=" << mRes1.Average() << " " << mRes2.Average()
-             << " DeltaTr=" << 1e4*Norm2( mTr2.GetPNorm()-aVRef->at(1).Tr())
-             << "\n";
 
     mCurPose.at(1) = tPoseR(mTr2.GetPNorm(),mRot2.Rot());
     for (size_t aKP=2 ; aKP<mCurPose.size() ; aKP++)
         mCurPose.at(aKP) = mPoseN.at(aKP-2)->Pose();
 
+    StdOut() // << "  POUT " << mTr2.RawPNorm()
+             << " Res=" << mRes1.Average() << " " << mRes2.Average()
+             << " DeltaTr=" << 1e4*Norm2( mCurPose.at(1).Tr()-aVRef->at(1).Tr())
+             << " DeltaRot=" << 1e4*mCurPose.at(1).Rot().Dist(aVRef->at(1).Rot())
+             << "\n";
    // StdOut()  << "UUUUUUUUUUUUUUppdattte  mCuuuuuurPoosse\n";
 
     mRes1.Reset();
@@ -364,7 +390,7 @@ int cAppliTestElemBundle::Exe()
         }
         aBA.OneIter(mLVM,&aBench2.mVPoseGT);
     }
-    StdOut() << "BenchElemBABenchElemBABenchElemBABenchElemBA\n"; getchar();
+    //StdOut() << "BenchElemBABenchElemBABenchElemBABenchElemBA\n"; getchar();
 
     return EXIT_SUCCESS;
 }

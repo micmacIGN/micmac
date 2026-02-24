@@ -30,7 +30,7 @@ template <typename tUk>
 }
 
 template <typename tUk>
-      std::vector<tUk> ResidualBundle
+      std::vector<tUk> ResidualBundle_PGround
       (const  cPtxd<tUk,3>& aDirBundle,const  cPtxd<tUk,3>& aPGround,eModResBund aMode)
 {
     if (aMode==eModResBund::eAngle)
@@ -47,7 +47,7 @@ class cFormulaBundleElem_Cam1
 
            cFormulaBundleElem_Cam1(eModResBund aMode) : mMode (aMode) {}
 
-           std::string FormulaName() const { return "BunleElem_Cam1_Mode" +ToStr(int(mMode));}
+           std::string FormulaName() const { return "BunleElem_Cam1_" +E2Str(mMode);}
 
            std::vector<std::string>  VNamesUnknowns()  const
            {
@@ -68,7 +68,7 @@ class cFormulaBundleElem_Cam1
            {
                    cPtxd<tUk,3> aPGround = VtoP3(aVUk);  //
                    cPtxd<tUk,3> aDirBundle = VtoP3(aVObs);  //
-                   return  ResidualBundle(aDirBundle,aPGround,mMode);
+                   return  ResidualBundle_PGround(aDirBundle,aPGround,mMode);
            }
 
          private :
@@ -82,7 +82,7 @@ class cFormulaBundleElem_Cam2
 
        cFormulaBundleElem_Cam2(eModResBund aMode) : mMode (aMode) {}
 
-        std::string FormulaName() const { return "BunleElem_Cam2_Mode"+ToStr(int(mMode));}
+        std::string FormulaName() const { return "BunleElem_Cam2_"+E2Str(mMode);}
 
         std::vector<std::string>  VNamesUnknowns()  const
         {
@@ -108,7 +108,7 @@ class cFormulaBundleElem_Cam2
                 cP3dNorm<tUk> aBase (aVUk,&aIndUk,aVObs,&aIndObs);
                 cRot3dF<tUk>  aRot (aVUk,&aIndUk,aVObs,&aIndObs);
 
-                return  ResidualBundle(aRot.Value(aDirBundle),aPGround-aBase.CurPt(),mMode);
+                return  ResidualBundle_PGround(aRot.Value(aDirBundle),aPGround-aBase.CurPt(),mMode);
         }
 
       private :
@@ -116,6 +116,122 @@ class cFormulaBundleElem_Cam2
 
 };
 
+
+/* Formula "12" we express residual w/o using the unknown ground point that lead to Schurr complement.
+ *
+ *     * let B the base,
+ *     *  U1,U2 the dir bundle with ||U1|| = ||U2|| = 1.
+ *     * S = U1.U2
+ *     *  let N = U1 ^ U2 / ||U1 ^U2|| the normal, with ||N|| = 1
+ *     *  let I be the intersection of bundles  (0,U1) et (B,U2)
+ *
+ *  We write :    B = a U1 + b U2 + c N [1]
+ *
+ *  Using scalar product on [1] with N, we get  :
+ *
+ *     *  c = B . N = [B U1 U2] / ||U1 ^U2||
+ *
+ *   This lead  c=Dist=ResiduDist12 and the simplified value ResiduDet12 = [B U1 U2]
+ *
+ *  Taking scalar with U1 and U2 on [1], we get :
+ *
+ *      [1 S] [a]   [B.U1]         [a]    [ B.U1   -  S B.U2]
+ *      [S 1] [b] = [B.U2]  then   [b]  = [-S B.U1 +  B.U2  ]  / (1 - S^2)
+ *
+ *         And the angular residual  c/a and c/b
+ */
+template <typename tUk>
+   std::vector<tUk>
+        ResiduDist12(const  cPtxd<tUk,3>& aBase,const  cPtxd<tUk,3>& aDirB1,const  cPtxd<tUk,3>& aDirB2)
+{
+   return {Scal(aBase,aDirB1^aDirB2) / Norm2(aDirB1^aDirB2) };
+}
+
+template <typename tUk>
+      std::vector<tUk>
+        ResiduDet12(const  cPtxd<tUk,3>& aBase,const  cPtxd<tUk,3>& aDirB1,const  cPtxd<tUk,3>& aDirB2)
+{
+   return {Scal(aBase,aDirB1^aDirB2)};
+}
+
+template <typename tUk>
+   std::vector<tUk>
+     ResiduAng12(const  cPtxd<tUk,3>& aBase,const  cPtxd<tUk,3>& aDirB1,const  cPtxd<tUk,3>& aDirB2)
+{
+       tUk S   = Scal(aDirB1,aDirB2);
+       tUk BU1 = Scal(aBase ,aDirB1);
+       tUk BU2 = Scal(aBase ,aDirB2);
+
+       tUk aDet = ( CreateCste(1.0,S) - Square(S));
+
+       tUk a = (BU1 - S *   BU2) / aDet;
+       tUk b = (- S * BU1 + BU2) / aDet;
+       tUk c = Scal(aBase,aDirB1^aDirB2) / Norm2(aDirB1^aDirB2);
+
+       return {c/a,c/b};
+}
+
+
+
+
+template <typename tUk>
+         std::vector<tUk> ResidualBundle_12
+         (const  cPtxd<tUk,3>& aBase,const  cPtxd<tUk,3>& aDirB1,const  cPtxd<tUk,3>& aDirB2,eModResBund aMode)
+{
+       if (aMode==eModResBund::eDet12)
+          return ResiduDet12(aBase,aDirB1,aDirB2);
+
+       if (aMode==eModResBund::eDist12)
+           return ResiduDist12(aBase,aDirB1,aDirB2);
+
+       MMVII_INTERNAL_ASSERT_always(aMode==eModResBund::eAng12,"ResidualBundle_12")
+
+       return ResiduAng12(aBase,aDirB1,aDirB2);
+}
+
+
+/// Class for second camera,  the base is unkwnon but unitary, the rotation is unknown
+class cFormulaBundleElem_CamDet12
+{
+   public :
+
+       cFormulaBundleElem_CamDet12(eModResBund aMode) : mMode (aMode) {}
+
+        std::string FormulaName() const { return "BunleElem_"+ToStr(mMode);}
+
+        std::vector<std::string>  VNamesUnknowns()  const
+        {
+             return  Append(NamesP2("DuDv2"), NamesP3("Omega"));
+        }
+
+        std::vector<std::string>    VNamesObs() const
+        {
+            return  {Append(NamesP3("Bund1"),NamesP3("Bund2"),NamesObsP3Norm("Base"),NamesMatr("Rot",cPt2di(3,3)))};
+        };
+
+        template <typename tUk>
+                    std::vector<tUk> formula
+                    (
+                       const std::vector<tUk> & aVUk,
+                       const std::vector<tUk> & aVObs
+                    ) const
+        {
+                size_t aIndUk =0;
+                size_t aIndObs = 0;
+                cPtxd<tUk,3> aDirB1 = VtoP3AutoIncr(aVObs,&aIndObs);  //
+                cPtxd<tUk,3> aDirB2Loc = VtoP3AutoIncr(aVObs,&aIndObs);  //
+                cP3dNorm<tUk> aBase (aVUk,&aIndUk,aVObs,&aIndObs);
+                cRot3dF<tUk>  aRot (aVUk,&aIndUk,aVObs,&aIndObs);
+
+                cPtxd<tUk,3>  aDirB2 = aRot.Value(aDirB2Loc);
+
+                return  ResidualBundle_12(aBase.CurPt(),aDirB1,aDirB2,mMode) ;
+        }
+
+      private :
+         eModResBund mMode;
+
+};
 
 };
 
