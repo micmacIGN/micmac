@@ -141,6 +141,11 @@ void cElemBA::AddHomBundle_Cam12(const cPt3dr & aDirB1,const cPt3dr & aDirB2,tRE
          // U02 = R0 u2  ;   N0 = u1 ^ U0
          // c = B0.N0 + (A.N0) da + B.N0 db + ((u1.U02)B0 -(B0.U20)u1) dW
 
+
+        //  [B , Uu , R(Id+W) u2] = [R'B , R'u1 , u2 + W^u2] = [R'(B+A da + B db), R'u1 ,u2 + W ^u2]
+       //   [R'B,R'u1,u2] + [R'(A da + B db),R'u1,u2] +  [R'B,R'u1,  W^u2]
+       //   [B,u1,Ru2]   + [A da+ B db,u1,R u2] 
+
           cPt3dr aU02 = mRot2.Rot().Value(aDirB2);
           cPt3dr aN0 = aDirB1 ^ aU02;
           cPt3dr aB0 =  mTr2.RawPNorm();
@@ -149,16 +154,21 @@ void cElemBA::AddHomBundle_Cam12(const cPt3dr & aDirB1,const cPt3dr & aDirB2,tRE
 
           aVect(0) = Scal(aN0, mTr2.U());
           aVect(1) = Scal(aN0, mTr2.V());
-          cPt3dr aScalW =   (aB0*Scal(aDirB1,aU02) - aDirB1 *Scal(aB0,aU02) ) * 1.0;
+          tREAL8 aRes = Scal(aB0,aN0);
+
+          cPt3dr aUP1 = mRot2.Rot().Inverse(aDirB1);
+          cPt3dr aBP  = mRot2.Rot().Inverse(aB0);
+
+          cPt3dr aScalW =   (aBP*Scal(aUP1,aDirB2) - aUP1 *Scal(aBP,aDirB2) ) * -1.0;
+
           aVect(2) = aScalW.x();
           aVect(3) = aScalW.y();
           aVect(4) = aScalW.z();
-          tREAL8 aRes = Scal(aB0,aN0);
-          StdOut() << " RRR " << aRes << " VV " << aVect << "\n";
-         /* mSys->AddObservationLinear(aWeight,aVect,-aRes);
+          // StdOut() << " RRR " << aRes << " VV " << aVect << "\n";
+          mSys->AddObservationLinear(aWeight,aVect,-aRes);
           mRes1.Add(1.0,std::abs(aRes));
           mRes2.Add(1.0,std::abs(aRes));
-         return;*/
+         return;
       }
       std::vector<int> aVIndGlob ;
       std::vector<double> aVObs = Append(aDirB1.ToStdVector(),aDirB2.ToStdVector());
