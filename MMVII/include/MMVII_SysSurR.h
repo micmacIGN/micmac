@@ -555,6 +555,9 @@ template <class Type> class cLinearOverCstrSys  : public cMemCheck
 
        /// Virtual methods => virtaul ~X()
        virtual ~cLinearOverCstrSys();
+
+       /// Down cast to dense L2 syst if it is one, nullptr else
+       virtual cLeasSqtAA<Type> * Get_tAA(bool SVP=false) ;
        
 
        /**  This the method for adding observation with temporaray unknown, the class can have various answer
@@ -728,8 +731,9 @@ template <class Type> class  cLeasSqtAA  :  public cLeasSq<Type>
        cDenseMatrix<Type> & tAA   () ;         ///< Accessor  , warn not symetrized
        cDenseVect<Type>   & tARhs () ;         ///< Accessor 
 
+       /// return this
+       cLeasSqtAA<Type> * Get_tAA(bool SVP)  override;
 
-        
 
       cDenseMatrix<Type> tAA_Solve(const cDenseMatrix<Type> &) const override;
 

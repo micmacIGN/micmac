@@ -665,12 +665,14 @@ enum class eModResBund
 {
         eAngle,
         eProduct,
-        eDet12,   // Case where
         eDist12,
         eAng12,
+        eDet12,   // Case where
+        eLinDet12,   // Case where
         eNbVals
 };
 bool ModResBund_IsMode12(eModResBund);
+bool ModResBund_IsModeGen(eModResBund);
 
 const std::string & E2Str(const eModeFusionData &);
 const std::string & E2Str(const eTyClino &);

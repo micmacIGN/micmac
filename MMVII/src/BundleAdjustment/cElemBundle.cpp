@@ -21,6 +21,7 @@ class cElemBA
        void AddHomBundle_Cam1Cam2(const cPt3dr & aDirB0,const cPt3dr & aDirB1,tREAL8 aW,tREAL8 aEpsilon=1e-6);
 
        void OneIter(tREAL8 aLVM,const std::vector<tPoseR> * aVRef);
+       cResolSysNonLinear<double> *  Sys();   ///< Accesor
    private :
 
        void AddHomBundle_Cam1(cSetIORSNL_SameTmp<tREAL8> &,const cPt3dr & aDirB0,tREAL8  aWeight);
@@ -45,6 +46,7 @@ class cElemBA
       // cCalculator<double> *              mEqElemCamN;
        cSetInterUK_MultipeObj<double>     mSetInterv;   ///< coordinator for autom numbering
        cResolSysNonLinear<double> *       mSys;   ///< Solver
+       cLeasSqtAA<tREAL8> *               mSystAA;  ///< Pointer to dense solver
       // cLinearOverCstrSys<tREAL8> *       mLinSys;
        cP3dNormWithUK                     mTr2;   ///< Unknown normaized trace for unit
        cRotWithUK                         mRot2;
@@ -57,7 +59,7 @@ class cElemBA
 
 cElemBA::cElemBA(eModResBund aMode,const std::vector<tPoseR>& aVPose) :
     mMode       (aMode),
-    isMode12    (ModResBund_IsMode12(mMode)),
+    isMode12    (! ModResBund_IsModeGen(mMode)),
     mCurPose    (aVPose),
     mSzBuf      (1),
     mEqElemCam1 (EqBundleElem_Cam1(mMode,true,mSzBuf,true)),
@@ -83,6 +85,7 @@ cElemBA::cElemBA(eModResBund aMode,const std::vector<tPoseR>& aVPose) :
     }
 
     mSys = new cResolSysNonLinear<double>(eModeSSR::eSSR_LsqDense,mSetInterv.GetVUnKnowns());
+    mSystAA = mSys->SysLinear()->Get_tAA();
 }
 
 cElemBA::~cElemBA()
@@ -90,6 +93,8 @@ cElemBA::~cElemBA()
     DeleteAllAndClear(mPoseN);
     delete mSys;
 }
+
+cResolSysNonLinear<double> *  cElemBA::Sys() {return mSys;}
 
 tSeg3dr  cElemBA::Bundle(int aKPose,const cPt3dr & aDirBundle) const
 {
@@ -135,15 +140,11 @@ void cElemBA::AddHomBundle_Cam2
 
 void cElemBA::AddHomBundle_Cam12(const cPt3dr & aDirB1,const cPt3dr & aDirB2,tREAL8  aWeight)
 {
-      if (1)
+      if (mMode==eModResBund::eLinDet12)
       {
-         // StdOut() << "HANDCRAFTED \n";
-         // U02 = R0 u2  ;   N0 = u1 ^ U0
-         // c = B0.N0 + (A.N0) da + B.N0 db + ((u1.U02)B0 -(B0.U20)u1) dW
-
-
-        //  [B , Uu , R(Id+W) u2] = [R'B , R'u1 , u2 + W^u2] = [R'(B+A da + B db), R'u1 ,u2 + W ^u2]
-       //   [R'B,R'u1,u2] + [R'(A da + B db),R'u1,u2] +  [R'B,R'u1,  W^u2]
+       // As the
+       //  [B , Uu , R(Id+W) u2] = [R'B , R'u1 , u2 + W^u2] = [R'(B+A da + B db), R'u1 ,u2 + W ^u2]
+       //   [R'B,R'u1,::u2] + [R'(A da + B db),R'u1,u2] +  [R'B,R'u1,  W^u2]
        //   [B,u1,Ru2]   + [A da+ B db,u1,R u2] 
 
           cPt3dr aU02 = mRot2.Rot().Value(aDirB2);
@@ -164,8 +165,16 @@ void cElemBA::AddHomBundle_Cam12(const cPt3dr & aDirB1,const cPt3dr & aDirB2,tRE
           aVect(2) = aScalW.x();
           aVect(3) = aScalW.y();
           aVect(4) = aScalW.z();
-          // StdOut() << " RRR " << aRes << " VV " << aVect << "\n";
-          mSys->AddObservationLinear(aWeight,aVect,-aRes);
+          if (1)
+          {
+             mSys->AddObservationLinear(aWeight,aVect,-aRes);
+          }
+          else
+          {
+            // Do not work, because CurSol != 0, and must be used in RHS, why ???
+            // I thought with OnUpdate mecanism, current sol were alway 0 ??
+             mSystAA->PublicAddObservation(aWeight,aVect,-aRes);
+          }
           mRes1.Add(1.0,std::abs(aRes));
           mRes2.Add(1.0,std::abs(aRes));
          return;
@@ -181,16 +190,15 @@ void cElemBA::AddHomBundle_Cam12(const cPt3dr & aDirB1,const cPt3dr & aDirB2,tRE
       {
           tREAL8 aRes = std::abs(mEqElemCam12->ValComp(0,aK));
 
-          StdOut()  << "CCC " << mEqElemCam12->ValComp(0,aK) << " DDD " ;
+         /* StdOut()  << "CCC " << mEqElemCam12->ValComp(0,aK) << " DDD " ;
           for (int aD=0 ; aD<5 ; aD++)
               StdOut()  << " " <<  mEqElemCam12->DerComp(0,aK,aD) ;
-          StdOut()<< "\n";
+          StdOut()<< "\n";*/
 
           mRes1.Add(1.0,aRes);
           mRes2.Add(1.0,aRes);
       }
 
-      getchar();
 }
 
 void cElemBA::AddHomBundle_Cam1Cam2(const cPt3dr & aDirB1,const cPt3dr & aDirB2,tREAL8 aW,tREAL8 aEpsilon)
@@ -220,8 +228,15 @@ void cElemBA::AddHomBundle_Cam1Cam2(const cPt3dr & aDirB1,const cPt3dr & aDirB2,
 void cElemBA::OneIter(tREAL8 aLVM,const std::vector<tPoseR> * aVRef)
 {
   //  StdOut() << "  PIN " << mTr2.RawPNorm() << "\n";
+
+     StdOut() << " GLOB " << __LINE__ << "=> " << Sys()->CurGlobSol() << "\n";
+
     const auto & aVectSol =  mSys->SolveUpdateReset(aLVM);
+    StdOut() << " GLOB " << __LINE__ << "=> " << Sys()->CurGlobSol() << "\n";
+
     mSetInterv.SetVUnKnowns(aVectSol);
+    StdOut() << " GLOB " << __LINE__ << "=> " << Sys()->CurGlobSol() << "\n";
+
 
     mCurPose.at(1) = tPoseR(mTr2.GetPNorm(),mRot2.Rot());
     for (size_t aKP=2 ; aKP<mCurPose.size() ; aKP++)
@@ -427,12 +442,16 @@ int cAppliTestElemBundle::Exe()
 
     for (int aKIter= 0 ; aKIter<mNbIter ; aKIter++)
     {
+      //  StdOut() << " GLOSOLIN=" << aBA.Sys()->CurGlobSol() << "\n";
         for (const auto & aVBund : aVVBund)
         {
            // std::vector<cPt3dr> aVBund= aBench2.GenBundle(cPt3dr(0,0,10),5.0,{0,1},0.5);
            aBA.AddHomBundle_Cam1Cam2(aVBund.at(0),aVBund.at(1),1.0);
         }
         aBA.OneIter(mLVM,&aBench2.mVPoseGT);
+
+        //StdOut() << " GLOSOLOUT=" << aBA.Sys()->CurGlobSol() << "\n";
+
     }
     //StdOut() << "BenchElemBABenchElemBABenchElemBABenchElemBA\n"; getchar();
 

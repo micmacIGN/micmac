@@ -472,13 +472,18 @@ template<> cE2Str<eModResBund>::tMapE2Str cE2Str<eModResBund>::mE2S
            {
                 {eModResBund::eAngle,"Angle"},
                 {eModResBund::eProduct,"Product"},
-                {eModResBund::eDet12,"Det12"},
                 {eModResBund::eDist12,"Dist12"},
-                {eModResBund::eAng12,"Ang12"}
+                {eModResBund::eAng12,"Ang12"},
+                {eModResBund::eDet12,"Det12"},
+                {eModResBund::eLinDet12,"LinDet12"}
            };
 bool ModResBund_IsMode12(eModResBund aMode)
 {
-    return (int) aMode >= (int) eModResBund::eDet12;
+    return  ((int) aMode >= (int) eModResBund::eDist12) && ((int) aMode <= (int) eModResBund::eDet12) ;
+}
+bool ModResBund_IsModeGen(eModResBund aMode)
+{
+    return  ((int) aMode <= (int) eModResBund::eProduct) ;
 }
 
 

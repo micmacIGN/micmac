@@ -340,7 +340,10 @@ template <class Type> void cSetInterUK_MultipeObj<Type>::IO_UnKnowns(cDenseVect<
             }
         }
         if (isSetUK)
+        {
+            StdOut() << " Onuuuuuuuuuuuuupp \n";
             aVinterv.mObj->OnUpdate();
+        }
     }
 }
 
