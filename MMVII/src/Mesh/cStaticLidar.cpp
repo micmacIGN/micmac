@@ -371,20 +371,6 @@ void cStaticLidarImporter::ComputeRotInput2Raster(std::string aTransfoIJK)
     MMVII_INTERNAL_ASSERT_tiny(HasRowCol(),"Error: ComputeRotInput2Raster needs row/col");
 
     cRotation3D<tREAL8> aRotInput2TSL = cRotation3D<tREAL8>::RotFromCanonicalAxes(aTransfoIJK);
-    size_t aIndexMidColStart = mNbLine*mNbCol/2;
-    tREAL8 aThetaMid = NAN;
-    for (size_t i=aIndexMidColStart; i<aIndexMidColStart+mNbLine; ++i)
-    {
-        auto & aPtAng = mVectPtsTPD[i];
-        if (aPtAng.z()<DistMinToExist())
-            continue;
-        else
-        {
-            aThetaMid = aPtAng.x();
-            break;
-        }
-    }
-    cRotation3D<tREAL8> aRotHz(cRotation3D<tREAL8>::RotKappa(aThetaMid), false);
     //  scanner     to      raster
     //  z|   y
     //   | /
@@ -395,12 +381,10 @@ void cStaticLidarImporter::ComputeRotInput2Raster(std::string aTransfoIJK)
 
     std::cout<<"aRotZvert2view:\n"<<aRotZvert2view.AxeI()<<"\n"
               <<aRotZvert2view.AxeJ()<<"\n"<<aRotZvert2view.AxeK()<<std::endl;
-    std::cout<<"aRotHz:\n"<<aRotHz.AxeI()<<"\n"
-              <<aRotHz.AxeJ()<<"\n"<<aRotHz.AxeK()<<std::endl;
     std::cout<<"aRotFrame:\n"<<aRotInput2TSL.AxeI()<<"\n"
               <<aRotInput2TSL.AxeJ()<<"\n"<<aRotInput2TSL.AxeK()<<std::endl;
 
-    mRotInput2Raster = aRotZvert2view * aRotHz * aRotInput2TSL; // TODO: use aRotFrame
+    mRotInput2Raster = aRotZvert2view * aRotInput2TSL; // TODO: use aRotFrame
     std::cout<<"mRotInput2Raster:\n"<<mRotInput2Raster.AxeI()<<"\n"
               <<mRotInput2Raster.AxeJ()<<"\n"<<mRotInput2Raster.AxeK()<<std::endl;
 }
@@ -573,7 +557,7 @@ float cStaticLidarImporter::LocalPhiToLinePrecise(float aPhi) const
             return aLineApprox;
         float aPhiBefore = mVectPhisCol[aLineBefore];
         float aPhiAfter = mVectPhisCol[aLineAfter];
-        std::cout<<"iter "<<aLineApprox<<"\n";
+        //std::cout<<"iter "<<aLineApprox<<"\n";
         aLineApprox = aLineBefore + (aPhi-aPhiBefore)/(aPhiAfter-aPhiBefore)*(aLineAfter-aLineBefore);
     }
     return aLineApprox;

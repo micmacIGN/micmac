@@ -784,14 +784,18 @@ int cAppli_ImportStaticScan::Exe()
     // create sensor from imported data
     std::string aScanName = mStationName + "-" + mScanName;
     // find PP: image of the (Oz) axis
-    cPt3dr aOzAxisInput = mSL_importer.RotInput2TSL().Inverse({1.,0.,0.});  // axis 1,0,0 in TSL frame, just to get equator vertical angle
-    cPt2dr aEquatorAngles = mSL_importer.Input3DtoRasterAngle(aOzAxisInput);
-    std::cout<< aEquatorAngles.y()<<" approx "
-             << mSL_importer.LocalPhiToLineApprox(aEquatorAngles.y())
+    cPt3dr aOxAxisInput = mSL_importer.RotInput2TSL().Inverse({1.,0.,0.});  // axis 1,0,0 in TSL frame, to get PP
+    cPt2dr aOxAxisAngles = mSL_importer.Input3DtoRasterAngle(aOxAxisInput);
+    std::cout<< aOxAxisAngles.y()<<" approx "
+             << mSL_importer.LocalPhiToLineApprox(aOxAxisAngles.y())
               <<" precise "
-              << mSL_importer.LocalPhiToLinePrecise(aEquatorAngles.y()) <<"\n";
-
-    cPt2dr aPP((mSL_importer.NbCol()-1)/2., mSL_importer.LocalPhiToLinePrecise(aEquatorAngles.y()));
+              << mSL_importer.LocalPhiToLinePrecise(aOxAxisAngles.y()) <<"\n";
+    std::cout << "X axis " << aOxAxisInput << ", angles: " << aOxAxisAngles << ", in pixels: "
+              << mSL_importer.LocalThetaToColPrecise(aOxAxisAngles.x()) << " "
+              << mSL_importer.LocalPhiToLinePrecise(aOxAxisAngles.y()) << "\n";
+    cPt2dr aPP(mSL_importer.LocalThetaToColPrecise(aOxAxisAngles.x()), mSL_importer.LocalPhiToLinePrecise(aOxAxisAngles.y()));
+    if (aPP.x()<0)
+        aPP.x() += mSL_importer.NbCol();
     //find F: scale from angle to pixels
     tREAL8 aFx = 1./fabs(mSL_importer.mThetaStep); //TODO: add polynomial disto for different angular steps
     tREAL8 aFy = 1./fabs(mSL_importer.mPhiStep);
