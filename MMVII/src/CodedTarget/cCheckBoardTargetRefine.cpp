@@ -58,6 +58,7 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
             /*
              *
              */
+            std::string mNameSpecif;
             std::vector<cSensorCamPC*> mVCams;
             std::string mSpecImIn;
             int mRes;
@@ -94,11 +95,13 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
     {
         return anArgObl
             << Arg2007(mSpecImIn, "Pattern/file of images", {{eTA2007::MPatFile,"0"},{eTA2007::FileDirProj}})
+            << Arg2007(mNameSpecif,"Xml/Json name for bit encoding struct",{{eTA2007::XmlOfTopTag,cFullSpecifTarget::TheMainTag}})
             << mPhProj.DPOrient().ArgDirInMand()
             << mPhProj.DPGndPt2D().ArgDirInMand()
             << mPhProj.DPGndPt3D().ArgDirInMand()
             << mPhProj.DPGndPt2D().ArgDirOutMand()
             << mPhProj.DPGndPt3D().ArgDirOutMand()
+
 
             ;
     }
@@ -162,8 +165,7 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
        // return EXIT_SUCCESS;  OK
 
         mPhProj.FinishInit();
-
-        mFullSpec.reset(cFullSpecifTarget::CreateFromFile("./IGNIndoor_Nbb14_Freq2_Hamm4_Run2_3_FullSpecif.xml"));
+        mFullSpec.reset(cFullSpecifTarget::CreateFromFile(mNameSpecif));
         std::vector<std::string> aVIm = VectMainSet(0);//gets the first set
 
         for (const auto& aImName:aVIm)
@@ -192,7 +194,7 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
                 mCurrTgtCode = aTgt;
                 bool isOk;
                 //auto aBox = doTargetRefine(isOk);
-                if (mCurrCam->NameImage() == "K127_202409211622-00-cam-22348125-85-66396858155807-70.tiff" && mCurrTgtCode != "35")
+                if (mCurrCam->NameImage() == "K127_202409211622-00-cam-22348125-98-66435913812008-83.tiff" && mCurrTgtCode != "35")
                 //if (mCurrCam->NameImage() == "cam125_az1_0000.tiff")
                 {
                     StdOut() << aTgt<<std::endl;
@@ -462,7 +464,7 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
 
                 //stolen from cSimulTarget.cpp
                 //StdOut() << "Begin gaussbicub" << std::endl;
-                cRessampleWeigth aRW = cRessampleWeigth::GaussBiCub(ToR(aPix)+aImOffSet,aLocalIm2Tgt,4);
+                cRessampleWeigth aRW = cRessampleWeigth::GaussBiCub(ToR(aPix)+aImOffSet,aLocalIm2Tgt,2);
                 //StdOut() << "Ok gaussbicub" << std::endl;
                 const std::vector<cPt2di>  & aVPts = aRW.mVPts;
                 if (!aVPts.empty())
