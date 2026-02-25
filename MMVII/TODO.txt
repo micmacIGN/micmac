@@ -1,0 +1,2 @@
+- Rewrite README
+- Test/modify to find/use mm3d binary
