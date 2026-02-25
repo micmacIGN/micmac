@@ -337,6 +337,7 @@ class cData1ImLidPhgr
         std::string mScanBName;    //< secondary scan id to get uk (only for llidar/lidar adj)
         size_t mKIm;  ///< num of images where the patch is seen (only for lidar/im adj)
         std::vector<std::pair<tREAL8,cPt2dr>> mVGr; ///< pair of radiometry/gradient, in image,  for each point of the patch
+        cStdWeighterResidual mWeighter;  //< obs weighter, combining both sensors
 };
 
 
@@ -445,6 +446,7 @@ struct cStaticLidarBAData
     std::string                    mScanName;      //< scan id
     cStaticLidar *                 mLidarRaster;   //< raster representations of lidar
     std::list<std::set<cPt2di>>    mLPatchesP;     //< set of patches as px in raster, consituted by 3D points in a lidar scan
+    cStdWeighterResidual           mWeighter;      //< scan weighter, depends on scan sigma and user factor
 };
 
 /**
@@ -492,9 +494,9 @@ public :
 
 protected :
     /**  Add observation for 1 Patch of point */
-    void Add1Patch(tREAL8 aWeight, const cPt3dr &aPGround, const std::string & aScanName);
+    void Add1Patch(const cPt3dr &aPGround, const std::string & aScanName);
 
-    void AddPatchDist(tREAL8 aWeight, const cPt3dr &aPGround, const std::vector<cData1ImLidPhgr> &aVData) ;
+    void AddPatchDist(const cPt3dr &aPGround, const std::vector<cData1ImLidPhgr> &aVData) ;
 
     void SetVUkVObs
         (const cPt3dr&           aPGround,
@@ -503,9 +505,9 @@ protected :
          const cData1ImLidPhgr &  aData,
          int                     aKPt
          ) override;
-    cStdWeighterResidual mWeighter;
 
-    std::vector<cStaticLidarBAData> mVScans;      ///< vector of raster representations of lidar
+    std::vector<cStaticLidarBAData>   mVScans;      ///< vector of raster representations of lidar
+    tREAL8                            mThreshold;   ///< distance where scan points are supposed to be hidden (mThreshold+1./NbIter)
 };
 
 

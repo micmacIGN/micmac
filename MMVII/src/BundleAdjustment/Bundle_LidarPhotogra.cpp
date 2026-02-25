@@ -578,18 +578,26 @@ void  cBA_LidarPhotogra::Add1Patch(tREAL8 aWeight,const std::vector<cPt3dr> & aV
 
 cBA_LidarLidarRaster::cBA_LidarLidarRaster(cPhotogrammetricProject * aPhProj,
                                            cMMVII_BundleAdj& aBA, const std::vector<std::string>& aParam) :
-    cBA_LidarBase(aPhProj, aBA, aParam), mWeighter({1,2,10},0)
+    cBA_LidarBase(aPhProj, aBA, aParam)
 {
     mEq = EqEqLidarLidar (true,1);
     std::vector<std::string> aParamBis = aParam;
     // if interpolator is empty, force linear
-    if (aParamBis.size() < 3)
-        aParamBis.resize(3);
+    if (aParamBis.size() < 4)
+        aParamBis.resize(4);
     if (aParamBis.at(2).empty())
     {
-        aParamBis[2] = "Linear";
+        aParamBis[2] = "-1"; // no threshold
     }
-    init(aParamBis, 1, 2);
+    if (aParamBis.at(3).empty())
+    {
+        aParamBis[3] = "[Linear]";
+    }
+    init(aParamBis, 1, 3);
+
+    mThreshold = cStrIO<double>::FromStr(aParamBis[2]);
+    if (mThreshold<0)
+        mThreshold = INFINITY;
 
     //read scans files from directory corresponding to pattern in aParam.at(1)
     auto aVScanNames = mPhProj->GetStaticLidarNames(aParam.at(0));
@@ -597,7 +605,8 @@ cBA_LidarLidarRaster::cBA_LidarLidarRaster(cPhotogrammetricProject * aPhProj,
     {
         cStaticLidar * aScan = mBA.AddStaticLidar(aNameSens);
         StdOut() << "Add Scan " << aNameSens << "\n";
-        mVScans.push_back({aNameSens, aScan, {}});
+        mVScans.push_back({aNameSens, aScan, {},
+                           cStdWeighterResidual(sqrt(mWFactor)*aScan->Sigma(), -1, mThreshold, 0)}); // TODO not used for now
     }
 
     // Creation of the patches, here juste center point
@@ -621,11 +630,9 @@ void cBA_LidarLidarRaster::AddObs()
     mNbUsedObs = 0;
     for (auto & aScan : mVScans)
     {
-        tREAL8 aScanW = mWFactor*1/Square(aScan.mLidarRaster->Sigma());
         for (const auto& aPatch : aScan.mLPatchesP)
         {
-            Add1Patch(aScanW,
-                      aScan.mLidarRaster->Image2Ground(*aPatch.begin()),
+            Add1Patch(aScan.mLidarRaster->Image2Ground(*aPatch.begin()),
                       aScan.mScanName);
         }
     }
@@ -673,13 +680,13 @@ void cBA_LidarLidarRaster::SetVUkVObs
     aGradIm.PushInStdVector(aVObs);
 }
 
-void  cBA_LidarLidarRaster::Add1Patch(tREAL8 aWeight,const cPt3dr & aPGround, const std::string & aScanName)
+void  cBA_LidarLidarRaster::Add1Patch(const cPt3dr & aPGround, const std::string & aScanName)
 {
     std::vector<cData1ImLidPhgr> aVData; // for each image where patch is visible will store the data
     cWeightAv<tREAL8>   aAvgRes;    // compute average residual
 
     //  Parse all the scans, we will select the ones where the patch is visible
-    for (auto & aScanData : mVScans)
+    for (auto & aScanData: mVScans)
     {
         if (aScanData.mScanName==aScanName)
             continue; // no obs on the same scan
@@ -690,6 +697,7 @@ void  cBA_LidarLidarRaster::Add1Patch(tREAL8 aWeight,const cPt3dr & aPGround, co
             cData1ImLidPhgr  aData; // data that will be filled
             aData.mScanAName = aScanName;
             aData.mScanBName = aScanData.mScanName;
+            aData.mWeighter = aScanData.mWeighter; // TODO: use scan A and B weights
             cPt2dr aPIm = aScanTo->Ground2Image(aPGround); // extract the image  projection
             tREAL8 aDist = Norm2(aPGround-aScanTo->Center());
             if (!aScanTo->IsValidPoint(aPIm))
@@ -698,9 +706,13 @@ void  cBA_LidarLidarRaster::Add1Patch(tREAL8 aWeight,const cPt3dr & aPGround, co
             {
                 auto aVGr = aGenDImDist.GetValueAndGradInterpol(*mInterp,aPIm); // extract pair Value/Grad of image
                 aData.mVGr = {aVGr};
-                aVData.push_back(aData); // memorize the data for this image
                 tREAL8 aValIm = aData.mVGr.at(0).first;   // value of first/central pixel in this image
-                aAvgRes.Add(1.0,fabs(aValIm-aDist));  // compute std deviation
+                tREAL8 aResidual = fabs(aValIm-aDist);
+                if (aResidual>mThreshold + 1./mBA.NbIter())
+                    continue;
+                //std::cout<< "res "<<aResidual<<"\n";
+                aAvgRes.Add(1.0,aResidual);  // compute std deviation
+                aVData.push_back(aData); // memorize the data for this image
             }
         }
     }
@@ -716,14 +728,13 @@ void  cBA_LidarLidarRaster::Add1Patch(tREAL8 aWeight,const cPt3dr & aPGround, co
     // mLastResidual.Add(1.0,  (aStdDev.StdDev(1e-5) ) );
     mLastResidual.Add(aVData.size(),  Square(aAvgRes.Average() ) );
 
-    AddPatchDist(aWeight,aPGround,aVData);
+    AddPatchDist(aPGround,aVData);
 
 }
 
 
 void cBA_LidarLidarRaster::AddPatchDist
-    (tREAL8 aWeight,
-     const cPt3dr & aPGround,
+    (const cPt3dr & aPGround,
      const std::vector<cData1ImLidPhgr> &aVData
      )
 {
@@ -735,7 +746,10 @@ void cBA_LidarLidarRaster::AddPatchDist
         std::vector<int>       aVIndUk;
         std::vector<tREAL8>    aVObs;
         SetVUkVObs (aPGround,&aVIndUk,aVObs,aData,0);
-        aSys->CalcAndAddObs(mEq,aVIndUk,aVObs,mWeighter);
+        //aSys->CalcAndAddObs(mEq,aVIndUk,aVObs,aData.mWeighter);
+        aSys->CalcAndAddObs(mEq,aVIndUk,aVObs,
+                            1e-6);
+        //                    cStdWeighterResidual(1,1,0.1,1));
     }
 }
 
