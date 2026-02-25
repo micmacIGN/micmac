@@ -12,6 +12,7 @@ namespace MMVII
 */
 
 template <class Type>  class cIm2D;
+template <const int Dim> void IncrementPixBoxIteratorGen(cPixBoxIterator<Dim>&);
 
 /**  Class allow to iterate the pixel of an image (in fact a rectangular object) using the
 same syntax than stl iterator => for (auto aP : anIma) ....
@@ -19,6 +20,8 @@ same syntax than stl iterator => for (auto aP : anIma) ....
 template <const int Dim>  class cPixBoxIterator
 {
      public :
+       friend void IncrementPixBoxIteratorGen<Dim>(cPixBoxIterator<Dim>&);
+
         typedef cPtxd<int,Dim>        tPt;
         typedef cPixBoxIterator<Dim>  tIter;
         typedef cPixBox<Dim>          tPB;
@@ -52,9 +55,11 @@ template <const int Dim>  class cPixBoxIterator
            P0[aK] <= Pix [aK] < P1[aK]  for K in [0,Dim[
 */
 
+
 template <const int Dim>  class cPixBox : public cTplBox<int,Dim>
 {
     public : 
+
         typedef int                   tScalPt;
         typedef cPtxd<tScalPt,Dim>        tPt;
         typedef cTplBox<tScalPt,Dim>      tBox;
@@ -129,6 +134,12 @@ template <> inline  bool cPixBox<4>::InsideBL(const cPtxd<double,4> & aP) const
           && (aP.z() >= tBox::mP0.z()) &&  ((aP.z()+1) <  tBox::mP1.z())
           && (aP.t() >= tBox::mP0.t()) &&  ((aP.t()+1) <  tBox::mP1.t())
     ;
+}
+template <> inline  bool cPixBox<5>::InsideBL(const cPtxd<double,5> & aP) const
+{
+   // need it for linking reason, but not sure it will ever used, to see
+   MMVII_INTERNAL_ERROR("No cPixBox<5>::InsideBL");
+   return false;
 }
 
 
@@ -287,6 +298,19 @@ template <> inline cPixBoxIterator<3> &  cPixBoxIterator<3>::operator ++()
     return *this;
 }
 
+// Higher dimension are not often used, and by the way, the gain to inlining and
+// specialization becomes low, so for theses dimension we use the "slower" generic methods
+template <> inline cPixBoxIterator<4> &  cPixBoxIterator<4>::operator ++() 
+{ 
+    IncrementPixBoxIteratorGen(*this);
+    return *this;
+}
+
+template <> inline cPixBoxIterator<5> &  cPixBoxIterator<5>::operator ++() 
+{
+   IncrementPixBoxIteratorGen(*this);
+   return *this;
+}
 
 
 ///  Abstract class allowing to manipulate images independanlty of their type
@@ -310,6 +334,9 @@ template <const int Dim> class cDataGenUnTypedIm : public cPixBox<Dim>,
 ;
         cDataGenUnTypedIm(const cPtxd<int,Dim> & aP0,const cPtxd<int,Dim> & aP1);
 
+        virtual ~cDataGenUnTypedIm();
+
+
          
            // Get Value, integer coordinates
                 /// Pixel -> Integrer Value
@@ -319,11 +346,20 @@ template <const int Dim> class cDataGenUnTypedIm : public cPixBox<Dim>,
            // Set Value, integer coordinates
                 /// Set Pixel Integrer Value
         virtual void VI_SetV(const  tPixI & aP,const int & aV) =0;
+                /// Set Value for vector of points, default use VI_SetV
+        virtual void VI_VPtsSetV(const  std::vector<tPixI> & aP, int  aV);
+        virtual void VD_VPtsSetV(const  std::vector<tPixI> & aP, tREAL8 aV);
+
                 /// Set Pixel Float Value
         virtual void VD_SetV(const  tPixI & aP,const double & aV)=0 ;
 
         virtual double GetVBL(const  tPixR & aP) const  = 0;
 };
+
+/// Specfy the box, if EmptyBox full file
+cDataGenUnTypedIm<2> * ReadIm2DGen(const std::string &aName, cBox2di );
+/// Read full file
+cDataGenUnTypedIm<2> * ReadIm2DGen(const std::string &aName);
 
 
 ///  Classes for   ram-image containg a given type of pixel

@@ -192,6 +192,16 @@ enum class eLevelCheck
               Error
            };
 
+/// Possible behaviour when two datas exist
+enum class eModeFusionData
+           {
+              eMerge,     // (try to) merge
+              eOverWrite, // over write new data
+              eDoNothing, // do nothing, maintain old data
+              eError,     // refuse existing
+              eNbVals     // required for automatized serialization
+           };
+
 /// Type of set creation
 enum class eTySC    
            {
@@ -650,6 +660,19 @@ enum class eMTDIm
               eNbVals
            };
 
+/// Mode of residual of bundle (in Elem Bundle)
+enum class eModResBund
+{
+        eAngle,
+        eProduct,
+        eDet12,   // Case where
+        eDist12,
+        eAng12,
+        eNbVals
+};
+bool ModResBund_IsMode12(eModResBund);
+
+const std::string & E2Str(const eModeFusionData &);
 const std::string & E2Str(const eTyClino &);
 const std::string & E2Str(const eTyInstr &);
 
@@ -681,12 +704,16 @@ const std::string & E2Str(const eModeEpipMatch &);
 const std::string & E2Str(const eModeTestPropCov &);         
 const std::string & E2Str(const eModePaddingEpip &);         
 const std::string & E2Str(const eModeCaracMatch &);         
-const std::string & E2Str(const eModeSSR &);         
+const std::string & E2Str(const eModeSSR &);
+const std::string & E2Str(const eModResBund &);
+
 
 template <class Type> Type  Str2E(const std::string &,bool WithDef=false); 
 template <class Type> std::string   StrAllVall();
 /// return a vector with list all label corresponding to aPat
 template <class Type> std::vector<Type> SubOfPat(const std::string & aPat,bool AcceptEmpty=false);
+/// return all values
+template <class Type> std::vector<Type> AllEnumValues();
 /// logically ~ SubOfPat, but returned as a vec of bool, indexable by (int)Label for direct access
 template <class Type> std::vector<bool> VBoolOfPat(const std::string & aPat,bool AcceptEmpty=false);
 
@@ -713,6 +740,12 @@ class DelAuto
       static constexpr bool No  = false;
 };
 class SVP
+{
+   public :
+      static constexpr bool Yes = true;
+      static constexpr bool No  = false;
+};
+class eAllowEmpty
 {
    public :
       static constexpr bool Yes = true;

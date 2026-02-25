@@ -181,7 +181,7 @@ cCollecSpecArg2007 & cAppliBundlAdj::ArgOpt(cCollecSpecArg2007 & anArgOpt)
       << AOpt2007
          (
              mParamBOIClino,
-             "ClinpBOI",
+             "ClinoBOI",
              "Clino parameter [[Bloc?,RelSigmaAngle?,RelCstrOrthog?][VertFree?,OkNewTs?][DegFree0?,DegFree1?...]]",
              {{eTA2007::ISizeV,"[1,3]"}}
           )

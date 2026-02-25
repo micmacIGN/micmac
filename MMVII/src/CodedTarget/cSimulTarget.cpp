@@ -295,18 +295,19 @@ void  cAppliSimulCodeTarget::IncrustTarget(cGeomSimDCT & aGSD)
             const std::vector<cPt2di>  & aVPts = aRW.mVPts;
             if (!aVPts.empty())
             {
-                double aSomW = 0.0;  // sum of weight
-                double aSomVW = 0.0;  //  weighted sum of vals
+                tREAL8 aSomW = 0.0;  // sum of weight
+                tREAL8 aSomVW = 0.0;  //  weighted sum of vals
                 for (int aK=0; aK<int(aVPts.size()) ; aK++)
                 {
                     if (aDImT.Inside(aVPts[aK]))
                     {
-                        double aW = aRW.mVWeight[aK];
+                        tREAL8 aW = aRW.mVWeight[aK];
                         aSomW  += aW;
                         aSomVW += aW * aDImT.GetV(aVPts[aK]);
                     }
                 }
-                // in cRessampleWeigth =>  Sum(W) is standartized and equals 1
+                // in cRessampleWeigth =>  Sum(W) is standartized and equals 1, at this step aSomVW
+                // is a "perfect" ressampling, now we add some noise
 
                 aSomVW = aSomVW * (1- mAmplWhiteNoise.y()) + RandInInterval_C(mAmplWhiteNoise) * 128 * aSomW;
                 double aVal = aSomVW + (1-aSomW)*aDImIn.GetV(aPix);

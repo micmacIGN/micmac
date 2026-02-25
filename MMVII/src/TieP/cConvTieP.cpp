@@ -111,7 +111,7 @@ int cAppli_TiePConvert::Exe()
       {
            std::string aN1 = aVName[aK1];
            std::string aN2 = aVName[aK2];
-	   OrderMinMax(aN1,aN2);  //  prefer to fix arbitrary order
+           OrderMinMax(aN1,aN2);  //  prefer to fix arbitrary order
 
            bool aDebug = aRegDebug.Match(aN1) && aRegDebug.Match(aN2);
 

@@ -97,6 +97,22 @@ template <class Type> void  cDataIm2D<Type>::VD_SetV(const cPt2di& aP,const doub
    SetVTrunc(aP,aV);
 }
 
+template <class Type> void  cDataIm2D<Type>::VPtsSetV(const  std::vector<cPt2di> & aVPt,Type aVal)
+{
+    for (const auto & aPix : aVPt)
+        SetV(aPix,aVal);
+}
+
+template <class Type> void  cDataIm2D<Type>::VI_VPtsSetV(const  std::vector<cPt2di> & aVPt, int  aV)
+{
+  VPtsSetV(aVPt,tNumTrait<Type>::Trunc(aV));
+}
+
+template <class Type> void  cDataIm2D<Type>::VD_VPtsSetV(const  std::vector<cPt2di> & aVPt,tREAL8  aV)
+{
+  VPtsSetV(aVPt,tNumTrait<Type>::Trunc(aV));
+}
+
 template <class Type> const Type * cDataIm2D<Type>::GetLine(int aY)  const
 {
    AssertYInside(aY);
@@ -187,9 +203,16 @@ template <class Type>  cIm2D<Type>::cIm2D(const cBox2di & aBox,const cDataFileIm
     Read(aDataF,aBox.P0());
 }
 
+template <class Type>  cIm2D<Type> cIm2D<Type>::DiracImage(const cPt2di & aP0,const cPt2di & aP1,Type aValDirac,const cPt2di & aPDirac)
+{
+   cIm2D<Type> aRes(aP0,aP1,nullptr,eModeInitImage::eMIA_Null); // image test for filter on X
+   aRes.DIm().InitDirac(aPDirac,aValDirac);
+   return aRes;
+}
 
 template <class Type>  cIm2D<Type> cIm2D<Type>::FromFile(const std::string & aName)
 {
+  //  StdOut() << "cIm2D<Type>::FromFile> cIm2D<Type>::FromFile " << aName << "\n";
    cDataFileIm2D  aFileIm = cDataFileIm2D::Create(aName,eForceGray::Yes);
    cIm2D<Type> aRes(aFileIm.Sz());
    aRes.Read(aFileIm,cPt2di(0,0));
@@ -376,7 +399,7 @@ template<class TypeEl> bool  cAppliParseBoxIm<TypeEl>::TopCallParallTile() const
    return  mParalTiles && (!InsideParalRecall());
 }
 
-template<class TypeEl> void  cAppliParseBoxIm<TypeEl>::APBI_ExecAll()
+template<class TypeEl> void  cAppliParseBoxIm<TypeEl>::APBI_ExecAll(bool Silence)
 {
      mDFI2d = cDataFileIm2D::Create(mNameIm,mIsGray);
      if (APBI_TestMode())
@@ -412,7 +435,7 @@ template<class TypeEl> void  cAppliParseBoxIm<TypeEl>::APBI_ExecAll()
          }
      }
      mParseBox = nullptr ;   // No longer inside parsing
-     mAppli.ExeComParal(aLComParal);
+     mAppli.ExeComParal(aLComParal,Silence);
 }
 
 template<class TypeEl> const std::string & cAppliParseBoxIm<TypeEl>::APBI_NameIm() const

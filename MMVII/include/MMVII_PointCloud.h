@@ -45,7 +45,7 @@ class cPointCloud
         void AddData(const  cAuxAr2007 & anAux) ;
         cBox3dr  Box() const;
         void Clip(cPointCloud&,const cBox2dr & aBox) const;
-	void SetOffset(const cPt3dr & anOffset);
+        void SetOffset(const cPt3dr & anOffset);
 
         void ToPly(const std::string & aName,bool WithOffset=false) const;
 

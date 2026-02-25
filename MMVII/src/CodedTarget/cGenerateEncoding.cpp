@@ -281,6 +281,7 @@ cCollecSpecArg2007 & cAppliGenerateEncoding::ArgOpt(cCollecSpecArg2007 & anArgOp
                << AOpt2007(mSpec.mPrefix,"Prefix","Prefix for output files")
                << AOpt2007(mMiror,"Mir","Unify mirro codes")
                << AOpt2007(mOkSelfSym,"OkSelfSym","Accept code with self symetry on period",{eTA2007::HDV})
+               << AOpt2007(mShowSelfSym,"ShowSelfSym","Show code wiht symetry on period",{eTA2007::HDV})
                << AOpt2007(mNameOut,"Out","Name for output file")
                << AOpt2007(mPostfixOut,"Postfix","Postfix for output file (def->default tagged extension")
                <<   mPhProj.DPGndPt3D().ArgDirInOpt("GCPNames","Dir GCP for code selection on names")
@@ -575,16 +576,17 @@ int  cAppliGenerateEncoding::Exe()
        }
        else
        {
+
            aNewVOC.push_back(aNextP->Cel());  // add new one
            for (auto & aPC : mPrioCC) // update remaining
-	       aPC.UpdateHammingD(*aNextP);
+           aPC.UpdateHammingD(*aNextP);
 
-	   if (aNewVOC.size() >= mSpec.mMaxNb)  // if enoug stop
+          if (aNewVOC.size() >= mSpec.mMaxNb)  // if enoug stop
               GoOn = false;
        }
        if (aTSeq.ItsTime2Execute())  // make user patient
        {
-	   StdOut() << "Hamming filter, still to do " << mSpec.mMaxNb-aNewVOC.size() << std::endl;
+          StdOut() << "Hamming filter, still to do " << mSpec.mMaxNb-aNewVOC.size() << std::endl;
        }
      }
   }
@@ -640,6 +642,10 @@ int  cAppliGenerateEncoding::Exe()
        for (auto & anEncode : aBE.Encodings())
        {
            anEncode.SetName(mSpec.mTargetNamePrefix + NameOfNum_InBase(anEncode.Num(),mSpec.mBase4Name,mSpec.mNbDigit));
+           if (mShowSelfSym &&  mCEC->CellOfCode(anEncode.Code())->mSelfSym  )
+           {
+               StdOut()  << "Self Sym CODE=" << anEncode.Code() << "\n";
+           }
        }
 
        aBE.SetSpec(mSpec);

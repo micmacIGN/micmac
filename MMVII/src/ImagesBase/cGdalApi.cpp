@@ -70,11 +70,11 @@ void cGdalApi::CreateFileIfNeeded(const cDataFileIm2D& aDataFileIm2D)
 {
     MMVII_INTERNAL_ASSERT_always(aDataFileIm2D.IsCreateAtFirstWrite(),"GDAL: Invalid use of GDAL API for image file creation");
     auto aName = aDataFileIm2D.Name();
-    auto aType = aDataFileIm2D.Type();
     auto aSz = aDataFileIm2D.Sz();
-    auto aNbChannel = aDataFileIm2D.NbChannel();
     auto aDataset = OpenDataset(aName, GA_ReadOnly, eOnError::ReturnNullptr);
     if (aDataset != nullptr) {
+        auto aType = aDataFileIm2D.Type();
+        auto aNbChannel = aDataFileIm2D.NbChannel();
         cPt2di fileSz = cPt2di(aDataset->GetRasterXSize(), aDataset->GetRasterYSize());
         auto fileNbChan = aDataset->GetRasterCount();
         auto fileType = ToMMVII( aDataset->GetRasterBand( 1 )->GetRasterDataType());

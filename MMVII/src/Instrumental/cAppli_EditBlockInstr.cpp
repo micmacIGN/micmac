@@ -42,6 +42,7 @@ class cAppli_EditBlockInstr : public cMMVII_Appli
         bool                      mFromScratch;  //< If exist file : Reset of Modify ?
         std::vector<std::vector<std::string>>  mCstrOrthog;  //<  Vector for relative orientations
         std::vector<int>                       mNumPoseInstr;
+        int                                    mNumMaster; //< Fix possibly the num of master image
 };
 
 cAppli_EditBlockInstr::cAppli_EditBlockInstr(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec) :
@@ -81,6 +82,7 @@ cCollecSpecArg2007 & cAppli_EditBlockInstr::ArgOpt(cCollecSpecArg2007 & anArgOpt
             << mPhProj.DPMeasuresClino().ArgDirInOpt()
             << AOpt2007(mCstrOrthog,"CstrOrthog","Constraint for vectors orthogonality [[Instr1,Instr2,Sigma]*...] ")
             << AOpt2007(mNumPoseInstr,"NPI","Num of cams used  for estimate pose of intsrument")
+            << AOpt2007(mNumMaster,"Master","Fix number of master camera")
         ;
 }
 
@@ -117,6 +119,9 @@ int cAppli_EditBlockInstr::Exe()
         for (const auto & aNameCal : aSetNameCal)
             aBlock->SetCams().AddCam(aNameCal,aPatTimeStamp,aPatSelIm,SVP::Yes); // Not OK:
     }
+
+    if (IsInit(&mNumMaster))
+        aBlock->SetCams().SetNumMaster(mNumMaster);
 
     if (IsInit(&mNumPoseInstr))
        aBlock->SetCams().SetNumPoseInstr(mNumPoseInstr);
@@ -164,6 +169,7 @@ int cAppli_EditBlockInstr::Exe()
         }
     }
 
+    StdOut() <<  "NNNNNNN " << aBlock->SetCams().NumMaster() << "\n";
     // save the result on disk
     mPhProj.SaveRigBoI(*aBlock);
 

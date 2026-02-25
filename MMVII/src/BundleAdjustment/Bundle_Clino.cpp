@@ -115,7 +115,7 @@ namespace MMVII
 
         for (auto aOneMesureClino : aSMC.SetMeasures())
         {
-            std::string aNameIm = aSMC.NameOfIm(aOneMesureClino);
+            std::string aNameIm = aSMC.ClinoDeprecatedNameOfImage(aOneMesureClino);
             cSensorCamPC * aCam = mPhProj->ReadCamPC(aNameIm,true,true);
             if (aCam != nullptr)
             {

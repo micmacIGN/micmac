@@ -6,6 +6,41 @@ namespace MMVII
 {
 
 /* ========================== */
+/*       cAffineSpace         */
+/* ========================== */
+
+template<const int Dim>
+     cAffineSpace<Dim>  cAffineSpace<Dim>::LstSqEstimate
+     (
+             const  std::vector<tPtR> & aVPt,
+             int aSzSubs,
+             const std::vector<tREAL8> * aVW
+     )
+{
+    tAffSp aRes;
+
+    cStrStat2<tREAL8> aStat(Dim);
+    for (size_t aKPt=0 ; aKPt<aVPt.size(); aKPt++)
+    {
+        tREAL8 aW = aVW ? aVW->at(aKPt) : 1.0;
+        aStat.WeightedAdd(aVPt[aKPt].ToVect(),aW);
+    }
+
+    aStat.Normalise();
+    const cResulSymEigenValue<tREAL8> &  aRSEV = aStat.DoEigen();
+    aRes.mP0 = tPtR::FromVect(aStat.Moy());
+    for (int aK=0 ; aK<aSzSubs ; aK++)
+    {
+       cDenseVect<tREAL8> aVec(aRSEV.EigenVectors().ReadCol(Dim-1-aK));
+
+       aRes.mVecSp.push_back(tPtR::FromVect(aVec));
+    }
+
+    return aRes;
+}
+
+
+/* ========================== */
 /*  cComputeCentroids         */
 /* ========================== */
 
@@ -275,6 +310,21 @@ template <const int Dim>
     return *this;
 }
 
+template <const int Dim> void IncrementPixBoxIteratorGen(cPixBoxIterator<Dim>& anIter)
+{
+   for (int aD=0 ; aD<Dim-1 ; aD++)
+   {
+        if (++anIter.mPCur[aD] == anIter.mRO->P1()[aD])
+        {
+             anIter.mPCur[aD] = anIter.mRO->P0()[aD];
+        }
+        else
+            return;
+   }
+
+   anIter.mPCur[Dim-1]++;
+}
+
 
 
 /* ========================== */
@@ -327,6 +377,18 @@ template <class Type> double  SpecAbsSurfParalogram(const cPtxd<Type,1> & aP1,co
     MMVII_INTERNAL_ERROR("SpecAbsSurfParalogram for dim 1");
     return 0.0;
 }
+template <class Type> double  SpecAbsSurfParalogram(const cPtxd<Type,4> & aP1,const cPtxd<Type,4> & aP2)
+{
+    MMVII_INTERNAL_ERROR("SpecAbsSurfParalogram for dim 1");
+    return 0.0;
+}
+template <class Type> double  SpecAbsSurfParalogram(const cPtxd<Type,5> & aP1,const cPtxd<Type,5> & aP2)
+{
+    MMVII_INTERNAL_ERROR("SpecAbsSurfParalogram for dim 1");
+    return 0.0;
+}
+
+
 template <class Type> double  SpecAbsSurfParalogram(const cPtxd<Type,2> & aP1,const cPtxd<Type,2> & aP2)
 {
     return std::abs(aP1 ^ aP2) ;
@@ -515,6 +577,12 @@ template <class Type,const int Dim> cPtxd<Type,Dim>
         aRes = PRandUnit();
    return aRes;
 }
+
+template <class Type,const int Dim> cPtxd<Type,Dim> cPtxd<Type,Dim>::OrientInSameDir(const tPt& aPt) const
+{
+    return (Scal(*this,aPt) >=0) ? aPt : (-aPt);
+}
+
 
 
 template <class Type,const int Dim>
@@ -738,7 +806,6 @@ template <const int Dim>  const std::vector<std::vector<cPtxd<int,Dim>>> & TabGr
 {
    return  cAllocNeighourhood<Dim>::AllocTabGrowNeigh(aDistMax);
 }
-
 
 
 
@@ -1453,6 +1520,7 @@ template  TYPE AbsSurfParalogram(const cPtxd<TYPE,2>& aP1,const cPtxd<TYPE,2>& a
 template  TYPE AbsSurfParalogram(const cPtxd<TYPE,3>& aP1,const cPtxd<TYPE,3>& aP2);
 
 
+
 INSTANTIATE_ABS_SURF(tINT4)
 INSTANTIATE_ABS_SURF(tREAL4)
 INSTANTIATE_ABS_SURF(tREAL8)
@@ -1518,7 +1586,9 @@ template  TYPE AbsLineAngleTrnk(const cPtxd<TYPE,DIM> &,const cPtxd<TYPE,DIM> &)
 template  TYPE DistDirLine(const cPtxd<TYPE,DIM> &,const cPtxd<TYPE,DIM> &,const TYPE &);\
 template  cPtxd<TYPE,DIM>  VUnit(const cPtxd<TYPE,DIM> & aP);\
 template  cPtxd<TYPE,DIM>  cPtxd<TYPE,DIM>::FromPtInt(const cPtxd<int,DIM> & aPInt);\
-template  cPtxd<TYPE,DIM>  cPtxd<TYPE,DIM>::FromPtR(const cPtxd<tREAL8,DIM> & aPInt);
+template  cPtxd<TYPE,DIM>  cPtxd<TYPE,DIM>::FromPtR(const cPtxd<tREAL8,DIM> & aPInt);\
+template  cPtxd<TYPE,DIM>  cPtxd<TYPE,DIM>::OrientInSameDir(const cPtxd<TYPE,DIM> & aPInt)const;
+
 
 // AbsLineAngleTrnk
 // template  cPtxd<TYPE,DIM>  PCste(const DIM & aVal);
@@ -1538,7 +1608,9 @@ template cPtxd<int,DIM> Pt_round_ni(const cPtxd<TYPE,DIM>&  aP);\
 
 
 #define MACRO_INSTATIATE_PRECT_DIM(DIM)\
+template  void IncrementPixBoxIteratorGen(cPixBoxIterator<DIM>&);\
 MACRO_INSTATIATE_POINT(DIM)\
+template class cAffineSpace<DIM>;\
 template const std::vector<std::vector<cPtxd<int,DIM>>> & TabGrowNeigh(int);\
 template const std::vector<cPtxd<int,DIM>> & AllocNeighbourhood(int);\
 MACRO_INSTATIATE_ROUNDPT(tINT4,DIM)\
@@ -1595,9 +1667,13 @@ void F()
 MACRO_INSTATIATE_PRECT_DIM(1)
 MACRO_INSTATIATE_PRECT_DIM(2)
 MACRO_INSTATIATE_PRECT_DIM(3)
-// MACRO_INSTATIATE_PRECT_DIM(4)
-MACRO_INSTATIATE_POINT(4)
+MACRO_INSTATIATE_PRECT_DIM(4)
+MACRO_INSTATIATE_PRECT_DIM(5)
+//MACRO_INSTATIATE_POINT(4)
+// MACRO_INSTATIATE_POINT(5)
 
+template  tREAL8 AbsSurfParalogram(const cPtxd<tREAL8,4>& aP1,const cPtxd<tREAL8,4>& aP2);
+template  tREAL8 AbsSurfParalogram(const cPtxd<tREAL8,5>& aP1,const cPtxd<tREAL8,5>& aP2);
 
 
 };

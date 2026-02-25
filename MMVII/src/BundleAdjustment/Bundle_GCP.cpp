@@ -114,6 +114,8 @@ void cMMVII_BundleAdj::OneItere_GCP()
     const std::vector<cMultipleImPt> & aVMesIm  = aSet.MesImOfPt() ;
     const std::vector<cSensorImage*> & aVSens   = aSet.VSens() ;
 
+    cWeightAv<tREAL8,tREAL8> aWeightedSqRes;
+    cWeightAv<tREAL8,tREAL8> aUW_SqRes;
 
     // StdOut() << "GCP " << aVMesGCP.size() << " " << aVMesIm.size() << " " << aVSens.size() << std::endl;
 
@@ -131,7 +133,7 @@ void cMMVII_BundleAdj::OneItere_GCP()
             if (!aGCP_UK[aK]) continue;
             aNewGCP.MesGCP()[aK].mPt = aGCP_UK[aK]->Pt();
         }
-        if (mVerbose)
+        if (mVerbose && false)
         {
             StdOut() << "  * Gcp0=" << aSet.AvgSqResidual() ;
             StdOut() << " , GcpNew=" << aNewGCP.AvgSqResidual() ; // getchar();
@@ -196,6 +198,8 @@ void cMMVII_BundleAdj::OneItere_GCP()
                 aNbImVis++;
                 cPt2dr aResidual = aPIm - aSens->Ground2Image(aPGr);
                 tREAL8 aWeightImage =   aGCPIm_Weighter.SingleWOfResidual(aResidual);
+                aWeightedSqRes.Add(aWeightImage,SqN2(aResidual));
+                aUW_SqRes.Add(1.0,SqN2(aResidual));
                 cCalculator<double> * anEqColin =  aSens->GetEqColinearity();
                 // the "obs" are made of 2 point and, possibily, current rotation (for PC cams)
                 std::vector<double> aVObs = aPIm.ToStdVector();
@@ -252,10 +256,13 @@ void cMMVII_BundleAdj::OneItere_GCP()
 
     if (mVerbose && (aNbGCP!=0))
     {
+
+        StdOut() << "  WeightedGcp=" << std::sqrt(aWeightedSqRes.Average())
+                  << " UWGcp=" << std::sqrt(aUW_SqRes.Average()) ; // getchar();
         StdOut() << " PropVis1Im=" << aNbGCPVis /double(aNbGCP)
                  << " AvgVis=" << aAvgVis/double(aNbGCP)
                  << " NonVis=" << aAvgNonVis/double(aNbGCP)
-                    ;
+        ;
         StdOut() << std::endl;
     }
 }

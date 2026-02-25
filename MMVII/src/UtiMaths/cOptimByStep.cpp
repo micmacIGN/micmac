@@ -128,7 +128,162 @@ template <const int Dim> bool cOptimByStep<Dim>::DoOneStep(tREAL8 aStep)
 template class cOptimByStep<1>;
 template class cOptimByStep<2>;
 template class cOptimByStep<3>;
+template class cOptimByStep<4>;
+template class cOptimByStep<5>;
 
+/*  ******************************************* */
+/*                                              */
+/*            cOptimizeRotAndVUnit              */
+/*                                              */
+/*  ******************************************* */
+
+class cCdtInitV
+{
+     public :
+        tREAL8 SqDist(const cCdtInitV&) const;
+        cPt4dr mQuat;
+        cPt3dr mVecOnSph;
+        tREAL8 mScore;
+        bool   mFree;
+};
+
+
+tREAL8 cCdtInitV::SqDist(const cCdtInitV& aCdt) const
+{
+    return SqN2(mQuat-aCdt.mQuat) + SqN2(mVecOnSph-aCdt.mVecOnSph);
+}
+
+
+/** Extract the best "Free" Candidate, and marq all its neighboor in Ray aDistMin as non free */
+cCdtInitV * ExtractMin(std::vector<cCdtInitV> &  aVCdt,tREAL8 aDistMin,tREAL8 * aScMaxNeigh=nullptr)
+{
+    cCdtInitV * aRes = nullptr;
+    tREAL8      aScMin = 1e20;
+
+    // extract the minimal cdt that is still free
+    for (auto & aCdt : aVCdt)
+    {
+        if (aCdt.mFree && (aCdt.mScore < aScMin))
+        {
+            aRes = &aCdt;
+            aScMin = aCdt.mScore;
+        }
+    }
+
+    // if we got it, marks its neighbours as not free
+
+    if (aRes)
+    {
+        if (aScMaxNeigh)
+            *aScMaxNeigh = aScMin;
+        tREAL8 aD2 = Square(aDistMin);
+        for (auto & aCdt : aVCdt)
+            if (aCdt.mFree && (aCdt.SqDist(*aRes) < aD2))
+            {
+                aCdt.mFree = 0;
+                if (aScMaxNeigh)
+                    *aScMaxNeigh = std::max(*aScMaxNeigh,aCdt.mScore);
+            }
+    }
+
+    return aRes;
+}
+
+
+
+cOptimizeRotAndVUnit::cOptimizeRotAndVUnit(int aNbSamleRot,int aNbSampleSphere,bool isSignAmb) :
+    mNbSampleRot    (aNbSamleRot),
+    mNbSampleSphere (aNbSampleSphere),
+    mIsSignAmb      (isSignAmb),
+    mCurV0          (cPt3dr(1,0,0),"","")
+{
+
+}
+
+std::pair<tRotR,cPt3dr>  cOptimizeRotAndVUnit::P5toRotP3(const cPtxd<tREAL8,5>& aPt) const
+{
+    cPt3dr aWPK(aPt.x(),aPt.y(),aPt.z());
+    cPt2dr aDVert(aPt.t(),aPt.u());
+
+    return std::pair<tRotR,cPt3dr>(mCurRot0*tRotR::RotFromWPK(aWPK), mCurV0.GetPNorm(aDVert));
+}
+
+cPt1dr  cOptimizeRotAndVUnit::Value(const cPtxd<tREAL8,5>& aPt5) const
+{
+   auto [aRot,aVec] = P5toRotP3(aPt5);
+   return cPt1dr(ScoreRotAndVect(aRot,aVec));
+}
+std::pair<tREAL8,std::pair<tRotR,cPt3dr>>
+           cOptimizeRotAndVUnit::ComputeSolInit(tREAL8 aDistNeigh,tREAL8 anEpsilon,int aNbTest,tREAL8 aDeltaSc)
+{
+    //  Create object for sampling Rot & Sphere
+    cSampleQuat     aSQuat(mNbSampleRot,true); // true => sampling for rotation
+    // mIsSignAmb : projective, if V and -V are equivalent
+    cSampleSphere3D aSSph(mNbSampleSphere,mIsSignAmb);
+
+
+    std::vector<cCdtInitV> mVCdts; // will store the score, for extracting multiple max loc
+    int aNbCdt = aSQuat.NbRot()*aSSph.NbSamples();
+    mVCdts.reserve(aNbCdt);
+
+    //  Parse the rotation and the sphere and store the score in mVCdts
+    for (int aKQ=0 ; aKQ<(int)aSQuat.NbRot() ; aKQ++)
+    {
+        cPt4dr aQuat =   aSQuat.KthQuat(aKQ);
+        tRotR aRot(Quat2MatrRot(aQuat),false);
+        for (int aKV=0 ; aKV<aSSph.NbSamples() ; aKV++)
+        {
+            cPt3dr aVecOnSph = aSSph.KthPt(aKV);
+            tREAL8 aScore = ScoreRotAndVect(aRot,aVecOnSph);
+
+            cCdtInitV aCdt;
+            aCdt.mVecOnSph = aVecOnSph;
+            aCdt.mQuat = aQuat;
+            aCdt.mScore = aScore;
+            aCdt.mFree  = true;
+            mVCdts.push_back(aCdt);
+        }
+    }
+
+    cCdtInitV * aCdtMin =  ExtractMin(mVCdts,aDistNeigh); // Extract the best candidate
+    MMVII_INTERNAL_ASSERT_always(aCdtMin!=nullptr,"No cdt in InitVerticalAnd2OthogClino");
+    tREAL8 aThSc0 =  2.0* aCdtMin->mScore + aDeltaSc;
+
+    tREAL8 aBestScore = 1e10;
+    tRotR aRotOpt;
+    cPt3dr aVectOpt;
+    while (aNbTest>0)
+    {
+        mCurRot0 = tRotR (Quat2MatrRot(aCdtMin->mQuat),false);
+        mCurV0.SetPNorm(aCdtMin->mVecOnSph);
+
+        cOptimByStep<5> anOptim(*this,true,1.0);
+        tREAL8 aStep0 = 1.0 /(mNbSampleRot+mNbSampleSphere);
+        auto [aScOpt,aPt5Opt] = anOptim.Optim(cPtxd<tREAL8,5>::PCste(0),aStep0,anEpsilon,1/sqrt(2.0));
+        if (aScOpt<aBestScore)
+        {
+            aBestScore = aScOpt;
+            auto aPair = P5toRotP3(aPt5Opt);
+            aRotOpt = aPair.first;
+            aVectOpt = aPair.second;
+        }
+        aCdtMin =  ExtractMin(mVCdts,aDistNeigh);
+
+        if (aCdtMin==nullptr)
+        {
+            aNbTest=0;
+        }
+        else
+        {
+           if (aCdtMin->mScore>aThSc0)
+              aNbTest=0;
+        }
+        aNbTest--;
+    }
+
+    return std::pair<tREAL8,tSol>(aBestScore,tSol(aRotOpt,aVectOpt));
+//    StdOut()  << " --VVV=" << aVectOpt << " D1=" << aRotOpt.AxeI() << " " << aRotOpt.AxeJ() << "\n";
+}
 
 
 };

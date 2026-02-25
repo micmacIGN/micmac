@@ -1098,11 +1098,14 @@ void BenchImAndZ()
      }
 }
 
+void BenchElemBA();
+
 
 void BenchCentralePerspective(cParamExeBench & aParam)
 {
     if (! aParam.NewBench("CentralPersp")) return;
 
+    BenchElemBA();
     BenchAiconCamera();
 
    // Test the accuracy of tabulation on dist/undist

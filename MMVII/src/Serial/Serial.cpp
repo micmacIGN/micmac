@@ -243,7 +243,7 @@ template <class Type,int Dim> void AddData(const  cAuxAr2007 & anAux, cPtxd<Type
 }
 
 
-template  void AddData(const  cAuxAr2007 & anAux, cPtxd<tREAL8,4>  &  aVal) ;
+// template  void AddData(const  cAuxAr2007 & anAux, cPtxd<tREAL8,4>  &  aVal) ;
 
 #define MACRO_INSTANTIATE_AddDataPtxD(DIM)\
 template  void AddData(const  cAuxAr2007 & anAux, cPtxd<tREAL4,DIM>  &  aVal) ;\
@@ -254,6 +254,8 @@ template  void AddData(const  cAuxAr2007 & anAux, cPtxd<tINT4,DIM>  &  aVal) ;
 MACRO_INSTANTIATE_AddDataPtxD(1)
 MACRO_INSTANTIATE_AddDataPtxD(2)
 MACRO_INSTANTIATE_AddDataPtxD(3)
+MACRO_INSTANTIATE_AddDataPtxD(4)
+MACRO_INSTANTIATE_AddDataPtxD(5)
 
 void AddData(const  cAuxAr2007 & anAux, tNamePair  &  aVal) 
 {

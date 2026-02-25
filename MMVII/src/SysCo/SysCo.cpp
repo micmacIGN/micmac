@@ -99,8 +99,16 @@ class cSysCoLocal : public cSysCo
 public :
     tPt Value(const tPt & in)   const override; //< to GeoC: error
     tPt Inverse(const tPt & in) const override; //< to GeoC: error
+
+     void SetVertical(const tPt &)   override;
+     tPt  getCsteUpDirVert() const override;
+     bool isVerticalCste()   const override;
+
 protected:
     cSysCoLocal(const std::string & def, bool aDebug);
+
+    bool   mIsVerticalized;
+    cPt3dr mUpVert;
 };
 
 
@@ -248,6 +256,28 @@ cRotation3D<tREAL8> cSysCo::getRot2Vertical(const tPt &)   const
     return cRotation3D<tREAL8>::Identity();
 }
 
+cPt3dr cSysCo::getUpDirVert(const tPt & aPt)   const
+{
+    // To check with JMM
+    return getRot2Vertical(aPt).Value(cPt3dr(0,0,1));
+}
+
+bool cSysCo::isVerticalCste()   const
+{
+     return false;
+}
+
+cPt3dr  cSysCo::getCsteUpDirVert() const
+{
+    MMVII_INTERNAL_ERROR("No getCsteUpDirVert");
+    return cPt3dr(0,0,0);
+}
+void cSysCo::SetVertical(const tPt &)
+{
+    MMVII_INTERNAL_ERROR("No SetVertical");
+}
+
+
 tREAL8 cSysCo::getRadiusApprox(const tPt &in) const
 {
     auto inGeoc = Value(in);
@@ -349,7 +379,8 @@ tPtrSysCo cSysCo::FromFile(const std::string &aNameFile, bool aDebug)
 //------------------------------------------------------------
 
 cSysCoLocal::cSysCoLocal(const std::string &aDef, bool aDebug) :
-    cSysCo(aDef, aDebug)
+    cSysCo             (aDef, aDebug),
+    mIsVerticalized    (false)
 {
     mType = eSysCo::eLocalSys;
 }
@@ -366,6 +397,18 @@ tPt3dr cSysCoLocal::Inverse(const tPt & in) const //< from GeoC
     MMVII_INTERNAL_ASSERT_User(false, eTyUEr::eSysCo,
                                "Can not convert SysCoLocal from Geocentric")
     return {};
+}
+void cSysCoLocal::SetVertical(const tPt &aV)
+{
+    mIsVerticalized = true;
+    mUpVert = aV;
+}
+bool cSysCoLocal::isVerticalCste() const {return mIsVerticalized;}
+
+cPt3dr  cSysCoLocal::getCsteUpDirVert() const
+{
+    MMVII_INTERNAL_ASSERT_strong(mIsVerticalized, "cSysCoLocal::getCsteUpDirVert");
+    return mUpVert;
 }
 
 //------------------------------------------------------------

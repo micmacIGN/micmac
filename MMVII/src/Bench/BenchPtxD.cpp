@@ -105,8 +105,59 @@ template <class TypePt> void  TestDist(TypePt aPt,double aN1,double aN2,double a
 
 }
 
+template <const int Dim> void BenchIteratorPt(const cPtxd<int,Dim> & aP0,const cPtxd<int,Dim> & aP1)
+{
+  cPixBox<Dim> aBox(aP0,aP1);
+  int aNb=0;
+  cPtxd<int,Dim> aSum = cPtxd<int,Dim>::PCste(0) ;
+
+  for (const auto & aPix : aBox)
+  {
+      aSum += aPix;
+      aNb++;
+  }
+  cPtxd<tREAL8,Dim> aTheoAvg = ToR(aP1-cPtxd<int,Dim>::PCste(1)+aP0) / 2.0;
+  tREAL8 aDiff =Norm2(aTheoAvg*tREAL8(aNb) - ToR(aSum) );
+
+  /*
+  StdOut() << "PPP " << aNb
+           << " " << aBox.NbElem()
+           << " Sum=" << aSum << " Avg=" << aTheoAvg
+           << " DDDD=" << aDiff
+           << "\n";
+ */
+  MMVII_INTERNAL_ASSERT_bench(aNb==aBox.NbElem(),"BenchIteratorPt::Nb");
+  MMVII_INTERNAL_ASSERT_bench( aDiff<1e-10,"BenchIteratorPt::Nb");
+
+//  MMVII_INTERNAL_ASSERT_bench(aSum== ToI(aTheoAvg*tREAL8(aNb)),"BenchIteratorPt::Nb");
+
+}
+
+template <const int Dim> void BenchIteratorPt()
+{
+    BenchIteratorPt(cPtxd<int,Dim>::PCste(-1),cPtxd<int,Dim>::PCste(2));
+
+    BenchIteratorPt(cPtxd<int,Dim>::PCste(0),cPtxd<int,Dim>::PCste(2));
+
+    cPtxd<int,Dim> aP0;
+    cPtxd<int,Dim> aP1;
+
+    for (int aD=0 ; aD<Dim ; aD++)
+    {
+        aP0[aD] = 1+aD;
+        aP1[aD] = 3 + 2*aD;
+    }
+    BenchIteratorPt(aP0,aP1);
+}
+
 void  Bench_0000_Ptxd(cParamExeBench & aParam)
 {
+   BenchIteratorPt<1> ();
+   BenchIteratorPt<2> ();
+   BenchIteratorPt<3> ();
+   BenchIteratorPt<4> ();
+   BenchIteratorPt<5> ();
+    
     for (int aK=0 ; aK<8 ; aK++)
     {
         cPt2di aP0 = FreemanV8[aK];

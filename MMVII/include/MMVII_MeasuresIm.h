@@ -66,6 +66,8 @@ struct cSet2D3D : public cMemCheck
          void AddPair(const cPt2dr&,const cPt3dr&,double aWeight=1.0);
 
          const tCont2D3D &  Pairs() const;
+          tCont2D3D &  Pairs() ;
+
 	 const tPair &  KthPair(int aK) const;
 	 size_t NbPair() const;
          void  Clear() ;
@@ -324,8 +326,12 @@ class cSetHomogCpleIm
         const std::vector<cHomogCpleIm> & SetH() const;
         std::vector<cHomogCpleIm> & SetH() ;
 
-	void Add(const cHomogCpleIm &);
-	void Clear();
+        void Add(const cHomogCpleIm &);
+        /** When we want to use Set Measure Images like Hom (WARN: dont merge when points with
+         *  same coodinates already exist, this woul be longer : and another function to write if needed) */
+        void AddPairSet(const cSetMesPtOf1Im&,const cSetMesPtOf1Im&);
+        void Clear();
+
 
 
       private :
@@ -420,9 +426,9 @@ class cComputeMergeMulTieP : public cMemCheck
         cComputeMergeMulTieP
         (
              const  std::vector<std::string> & aVNames,
-	     cInterfImportHom * =nullptr,
-	     cPhotogrammetricProject*  aPhP = nullptr,
-	     bool WithImageIndex = false
+              cInterfImportHom * =nullptr,
+              cPhotogrammetricProject*  aPhP = nullptr,
+              bool WithImageIndex = false
         );
 
         /// Construct a sub-structure corresponing to the name selected

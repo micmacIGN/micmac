@@ -91,7 +91,13 @@ template <>  cPt2di cStrIO<cPt2di>::FromStr(const std::string & aStr);
 */
 
 #ifndef _MSC_VER
-template <>  const std::string cStrIO<char>::msNameType;
+template <>  const std::string cStrIO<tU_INT1>::msNameType;
+template <>  const std::string cStrIO<tINT1>::msNameType;
+template <>  const std::string cStrIO<tU_INT2>::msNameType;
+template <>  const std::string cStrIO<tINT2>::msNameType;
+template <>  const std::string cStrIO<tREAL4>::msNameType;
+template <>  const std::string cStrIO<tREAL8>::msNameType;
+//template <>  const std::string cStrIO<char>::msNameType;
 template <>  const std::string cStrIO<bool>::msNameType;
 template <>  const std::string cStrIO<int>::msNameType;
 template <>  const std::string cStrIO<double>::msNameType;

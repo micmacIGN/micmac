@@ -6,6 +6,7 @@
 #include "SymbDer/SymbolicDerivatives.h"
 #include "SymbDer/SymbDer_MACRO.h"
 #include "ComonHeaderSymb.h"
+#include "MMVII_PhgrDist.h"
 
 using namespace NS_SymbolicDerivative;
 

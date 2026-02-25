@@ -25,6 +25,7 @@ namespace MMVII
 
 cPt3dr  BundleInters(cPt3dr & aABC,const tSeg3dr & aSeg1,const tSeg3dr & aSeg2,tREAL8 aW12)
 {
+  // StdOut() << "BundleIntersBundleIntersBundleIntersBundleIntersBundleInters\n";
    cPt3dr  aV1   = aSeg1.V12();
    cPt3dr  aV2   = aSeg2.V12();
    cPt3dr  aNorm = aV1 ^ aV2;
@@ -32,6 +33,8 @@ cPt3dr  BundleInters(cPt3dr & aABC,const tSeg3dr & aSeg1,const tSeg3dr & aSeg2,t
    cDenseMatrix<tREAL8> aMat =  M3x3FromCol(aV1,-aV2,aNorm);
    aABC = SolveCol(aMat,aSeg2.P1()-aSeg1.P1());
 
+   // We need a draw, but the formula is correct also it does not use ABC.y()
+   // P2 - P1 = x V1 - V2
    return aSeg1.P1() + aV1 * aABC.x() + aNorm * (aABC.z() * (1.0-aW12));
 }
 
@@ -310,6 +313,22 @@ std::pair<cPlane3D,tREAL8> cPlane3D::RansacEstimate(const std::vector<cPt3dr> & 
 
    return std::pair<cPlane3D,tREAL8>(cPlane3D::From3Point(aVPts.at(anInd.x()),aVPts.at(anInd.y()),aVPts.at(anInd.z())),aCost);
 
+}
+
+
+std::pair<cPlane3D,tREAL8> cPlane3D::LSQEstimate(const std::vector<cPt3dr> & aVPt,const std::vector<tREAL8>* aVW)
+{
+    cAffineSpace<3> aSp =  cAffineSpace<3>::LstSqEstimate(aVPt,2,aVW);
+
+    cPlane3D aPl = cPlane3D::FromP0And2V(aSp.P0(),aSp.VecSp().at(0),aSp.VecSp().at(1));
+    cWeightAv<tREAL8,tREAL8> aWS;
+    for (size_t aKPt=0 ; aKPt<aVPt.size() ; aKPt++)
+    {
+        tREAL8 aW = aVW ? aVW->at(aKPt) : 1.0;
+        aWS.Add(aW,aPl.Dist(aVPt.at(aKPt)));
+    }
+
+    return std::pair<cPlane3D,tREAL8>(aPl,aWS.Average());
 }
 
 

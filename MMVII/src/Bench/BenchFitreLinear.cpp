@@ -4,19 +4,69 @@
 namespace MMVII
 {
 
+tREAL8 SqAvg_ThVal(int aSz,int aCenter,int aVal)
+{
+   return   (std::abs(aCenter-aVal) <= aSz ) ? (1/(1.0+2*aSz)) : 0.0;
+}
+
+template <class Type> void TestSquareAverage(cPt2di aP0,cPt2di aP1,int aNbIter,int aSzX,int aSzY)
+{
+   cPt2di aPMil = (aP0+aP1) / 2;
+
+   // compute the Average by N Iteration
+   cIm2D<Type> aImDirNIt  =  cIm2D<Type>::DiracImage (aP0,aP1,1.0,aPMil);
+   cDataIm2D<Type> & aDImNIt = aImDirNIt.DIm();
+
+
+   for (int aKIter =0 ; aKIter<aNbIter ; aKIter++)
+   {
+      SquareAvgFilter(aDImNIt,1,aSzX,aSzY);
+
+      // if NbIter=1, we can compute easily the theoreticall value
+      if  (aKIter==0)
+      {
+           for (const auto & aPix : aDImNIt)
+           {
+                tREAL8 aThVX = SqAvg_ThVal(aSzX,aPMil.x(),aPix.x());
+                tREAL8 aThVY = SqAvg_ThVal(aSzY,aPMil.y(),aPix.y());
+                tREAL8 aThVal = aThVX * aThVY;
+                tREAL8 aValIm = aDImNIt.GetV(aPix);
+
+                MMVII_INTERNAL_ASSERT_bench(std::abs(aThVal-aValIm)< 1e-8 ,"Test Elem Squar Avg")
+           }
+      }
+   }
+
+   // make directly the computation of N Iter
+   cIm2D<Type> aImDirIter =  cIm2D<Type>::DiracImage (aP0,aP1,1.0,aPMil);
+   cDataIm2D<Type> & aDImIter = aImDirIter.DIm();
+   SquareAvgFilter(aDImIter,aNbIter,aSzX,aSzY);
+   // Check that 2 computation of iteration lead to same results
+   MMVII_INTERNAL_ASSERT_bench(aDImIter.LInfDist(aDImNIt)< 1e-8 ,"Test-Iter Squar Avg")
+
+   // Test normalization, const in => const out ?
+   {
+      aDImIter.InitCste(1.0); // Cste
+      aDImNIt.InitCste(1.0); // Cste
+      SquareAvgFilter(aDImIter,aNbIter,aSzX,aSzY);
+
+      double aD = aDImIter.LInfDist(aDImNIt);
+      MMVII_INTERNAL_ASSERT_bench(aD< 1e-8 ,"Test Normal in Sq Avg ");
+   }
+
+// StdOut() << "TestSquareAverage===============TestSquareAverage \n";// getchar();
+}
 
 template <class Type> void TestFilterExp(cPt2di aP0,cPt2di aP1,const Type & aV0)
 {
    // Check on "Dirac" image that we get the expected exponential response
    cPt2di aPMil = (aP0+aP1) / 2;
 
-   cIm2D<Type> aImX(aP0,aP1,nullptr,eModeInitImage::eMIA_Null);
+   cIm2D<Type> aImX =  cIm2D<Type>::DiracImage (aP0,aP1,aV0,aPMil);
    cDataIm2D<Type> & aDImX = aImX.DIm();
-   aDImX.InitDirac(aPMil,aV0);
 
-   cIm2D<Type> aImXY(aP0,aP1,nullptr,eModeInitImage::eMIA_Null);
+   cIm2D<Type> aImXY =  cIm2D<Type>::DiracImage (aP0,aP1,aV0,aPMil);
    cDataIm2D<Type> & aDImXY = aImXY.DIm();
-   aDImXY.InitDirac(aPMil,aV0);
 
  
    cRect2 aRect2(aP0+cPt2di(1,2),aP1-cPt2di(4,5));
@@ -150,6 +200,20 @@ void BenchFilterLinear(cParamExeBench & aParam)
    TestFilterExp<tREAL8>(cPt2di(3,2),cPt2di(20,30),1.0);
    TestFilterExp<tREAL16>(cPt2di(-4,-5),cPt2di(20,30),1.0);
    TestFilterExp<int>(cPt2di(0,0),cPt2di(20,30),1000000);
+
+   for (int aNbIter = 1 ; aNbIter<=3 ; aNbIter++)
+   {
+/*
+       TestSquareAverage<tREAL8>(cPt2di(-2,-3),cPt2di(70,60),aNbIter,2,2);
+       TestSquareAverage<tREAL8>(cPt2di(-2,-3),cPt2di(70,60),aNbIter,2,1);
+       TestSquareAverage<tREAL8>(cPt2di(-2,-3),cPt2di(70,60),aNbIter,3,4);
+*/
+
+       TestSquareAverage<tREAL8>(cPt2di(-2,-3),cPt2di(70,60),aNbIter,1,1);
+       TestSquareAverage<tREAL8>(cPt2di(-2,-3),cPt2di(70,60),aNbIter,0,1);
+       TestSquareAverage<tREAL8>(cPt2di(-2,-3),cPt2di(70,60),aNbIter,1,0);
+   }
+
    aParam.EndBench();
 }
 

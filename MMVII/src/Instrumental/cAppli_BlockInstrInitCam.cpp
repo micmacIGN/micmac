@@ -78,10 +78,7 @@ int cAppli_BlockInstrInitCam::Exe()
     size_t aNbCam = mBlock->NbCams();
 
     //  add all the camera
-    for (const auto & aNameIm :  VectMainSet(0))
-    {
-       mBlock->AddImagePose(aNameIm);
-    }
+     mBlock->AddImagesPoses(VectMainSet(0));
 
     //  initialize the sigma of each pair of cams & compute the score of each cam
     std::vector<tREAL8>  aVScoreCam(aNbCam,0.0); // Cumultated score
@@ -110,19 +107,31 @@ int cAppli_BlockInstrInitCam::Exe()
     // compute num of master
     cWhichMin<size_t,tREAL8> aMinK;
     for (size_t aKC1 = 0 ; aKC1<aNbCam ; aKC1++)
+    {
         aMinK.Add(aKC1,aVScoreCam.at(aKC1));
-    int aNumMaster = aMinK.IndexExtre();
+    }
 
-    mBlock->CalBlock().SetCams().SetNumMaster(aNumMaster);
-    StdOut() << " NUM-MASTER " << aNumMaster << "\n";
+    int aNumMaster = mBlock->CalBlock().SetCams().NumMaster();
+    if (aNumMaster<0)
+    {
+        aNumMaster = aMinK.IndexExtre();
+
+        mBlock->CalBlock().SetCams().SetNumMaster(aNumMaster);
+        StdOut() << " NUM-MASTER " << aNumMaster << "\n";
+    }
 
 
     //  initialise the relative pose in the ARBITRARY coord syst of master cam
     for (size_t aKC1=0 ; aKC1<aNbCam ; aKC1++)
     {
         const auto & aSg_Pose_Sigm = mBlock->ComputeCalibCamsInit(aNumMaster,aKC1);
-        mBlock->CalBlock().SetCams().KthCam(aKC1).SetPose(std::get<tPoseR>(aSg_Pose_Sigm));
+        mBlock->CalBlock().SetCams().KthCam(aKC1).SetPose(std::get<tPoseR>(aSg_Pose_Sigm));           
     }
+
+    mBlock->CalBlock().ShowDescr(eTyInstr::eCamera);
+    //const std::map<std::string,cIrb_Desc1Intsr> & DescrIndiv() const;
+
+
 
     if (mAvgSigma)
        mBlock->CalBlock().AvgSigma();

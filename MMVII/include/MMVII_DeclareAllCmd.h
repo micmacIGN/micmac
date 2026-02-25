@@ -126,17 +126,23 @@ extern cSpecMMVII_Appli  TheSpec_TutoSerial;
 extern cSpecMMVII_Appli  TheSpec_TutoFormalDeriv;
 extern cSpecMMVII_Appli  TheSpec_ExportUndistMesIm;
 extern cSpecMMVII_Appli  TheSpecAppliExtractLine;
+extern cSpecMMVII_Appli  TheSpecAppliBubbles;
+extern cSpecMMVII_Appli  TheSpecAppliFranges;
+
 extern cSpecMMVII_Appli  TheSpec_CERN_ImportClino;
 extern cSpecMMVII_Appli  TheSpec_MMV2_MesIm_2_MMV1;
 extern cSpecMMVII_Appli TheSpec_MergeMesImGCP;
 extern cSpecMMVII_Appli  TheSpec_ExifData;
-
 extern cSpecMMVII_Appli  TheSpec_PerturbRandomOri;
 extern cSpecMMVII_Appli  TheSpec_ImportTriplet;
 extern cSpecMMVII_Appli  TheSpec_ArboTriplet;
 extern cSpecMMVII_Appli  TheSpec_GCPBascule;
 extern cSpecMMVII_Appli  TheSpec_CheckBoardTargetRefine;
+extern cSpecMMVII_Appli  TheSpec_GCPAbsOri;
 
+
+extern cSpecMMVII_Appli  TheSpecAppliBenchAPBI;
+extern cSpecMMVII_Appli  TheSpecAppliTestElemBundle;
 
 };
 

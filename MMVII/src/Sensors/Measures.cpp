@@ -117,6 +117,29 @@ void AddData(const  cAuxAr2007 & anAux,cSetHomogCpleIm & aSet)
 }
 
 
+void cSetHomogCpleIm::AddPairSet(const cSetMesPtOf1Im& aSet1,const cSetMesPtOf1Im& aSet2)
+{
+  // [1] Create a dictionnary on aSet1  to add correspondance Name <-> Index
+   t2MapStrInt  aMap1;
+
+   const std::vector<cMesIm1Pt> & aSetM1 = aSet1.Measures();
+   for (const auto & aMes1 : aSetM1)
+       aMap1.Add(aMes1.mNamePt);
+
+   //  [2] Use this dico to create the homologous
+   for (const auto & aMes2 : aSet2.Measures())
+   {
+       int anInd =  aMap1.Obj2I(aMes2.mNamePt,SVP::Yes) ;
+        if ((anInd >=0) && (!starts_with(aMes2.mNamePt,MMVII_NONE)))
+        {
+            // StdOut() << "AddPairSetAddPairSet " << aMes2.mNamePt << "\n";
+            Add(cHomogCpleIm(aSetM1.at(anInd).mPt,aMes2.mPt));
+        }
+   }
+
+}
+
+
 void cSetHomogCpleIm::Clear()
 {
 	mSetH.clear();
@@ -330,7 +353,7 @@ void cSetMesGndPt::ExtractMes1Im(cSet2D3D&  aS23,const std::string &aNameIm,bool
     for (size_t aKp=0 ;  aKp<mMesGCP3D.size() ; aKp++)
     {
          const cPt2dr * aP2 = mMesImOfPt[aKp].PtOfIm(aNumIm);
-	 if (aP2)
+         if (aP2)
             aS23.AddPair(*aP2,mMesGCP3D[aKp].mPt);
     }
 }
@@ -937,6 +960,8 @@ void cSet2D3D::AddPair(const cPt2dr& aPIm,const cPt3dr& aPGround,double aWeight)
 
 
 const cSet2D3D::tCont2D3D &  cSet2D3D::Pairs() const { return mPairs;}
+cSet2D3D::tCont2D3D &  cSet2D3D::Pairs() { return mPairs;}
+
 
 const cWeightedPair2D3D &  cSet2D3D::KthPair(int aK) const {return mPairs.at(aK);}
 size_t cSet2D3D::NbPair() const {return mPairs.size();}

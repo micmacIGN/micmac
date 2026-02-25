@@ -119,6 +119,7 @@ void BenchExtre(cParamExeBench & aParam);  ///< Test Extremum computations, refi
 void BenchStat(cParamExeBench & aParam);
 
 void BenchGlobImage(cParamExeBench & aParam); ///< Global bench on image
+void BenchAPBI(cParamExeBench & aParam);
 void BenchFilterImage1(cParamExeBench & aParam);
 void BenchFilterLinear(cParamExeBench & aParam);
 void BenchGeom(cParamExeBench & aParam);

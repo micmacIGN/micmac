@@ -7,6 +7,22 @@
 namespace MMVII
 {
 
+tREAL8 RankWeigthedAverage(const std::vector<tREAL8>& aResInit,tREAL8 aPow,bool CosTransf,tREAL8 aRkMin)
+{
+   std::vector<tREAL8> aResSort = aResInit;
+   std::sort(aResSort.begin(),aResSort.end());
+
+   cWeightAv<tREAL8,tREAL8> aWAvg;
+   for (size_t aK = 0 ; aK<aResSort.size(); aK++)
+   {
+       tREAL8 aRnk = (aK+0.5) / (aResSort.size());
+       tREAL8 aW = CosTransf ?  1+std::cos(M_PI*aRnk) : (1.0-aRnk);
+       aWAvg.Add(aRkMin+std::pow(aW,aPow),aResSort.at(aK));
+   }
+   return aWAvg.Average();
+}
+
+
 // return the variance of  exponential distribution of parameter "a" ( i.e proportiona to  "a^|x|")
 double Sigma2FromFactExp(double a)
 {
@@ -607,6 +623,14 @@ cStdStatRes::cStdStatRes() :
 {
 }
 
+cStdStatRes::cStdStatRes(const std::vector<tREAL8> & aVecR) :
+    cStdStatRes()
+{
+    for (const auto & aVal : aVecR)
+       Add(aVal);
+}
+
+
 void cStdStatRes::Add(tREAL8 aVal)
 {
      mVRes.push_back(aVal);
@@ -625,6 +649,27 @@ tREAL8  cStdStatRes::Min() const {return mBounds.VMin();}
 tREAL8  cStdStatRes::Max() const {return mBounds.VMax();}
 int     cStdStatRes::NbMeasures() const {return mVRes.size();}
 const std::vector<tREAL8>  & cStdStatRes::VRes() const {return mVRes;}
+
+
+tREAL8  cStdStatRes::ErrAtKth(int aK) const {return IKthVal(mVRes,aK) ;}
+tREAL8  cStdStatRes::ErrAtKthLast(int aK) const
+{
+   return ErrAtKth(mVRes.size() - (aK+1));
+}
+
+
+int cStdStatRes::IndVal(tREAL8 aV,bool SVP) const
+{
+    for (size_t aK=0 ; aK<mVRes.size() ; aK++)
+        if (mVRes.at(aK) == aV)
+            return aK;
+    MMVII_INTERNAL_ASSERT_strong(SVP,"Cannot find value in  cStdStatRes::IndVal");
+    return -1;
+}
+int cStdStatRes::IndMax() const
+{
+    return IndVal(Max());
+}
 
 
 tREAL8  cStdStatRes::UBDevStd(tREAL8 aDef) const

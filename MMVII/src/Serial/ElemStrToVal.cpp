@@ -95,6 +95,8 @@ template <class TypeEnum> class cE2Str
           return aRes;
      }
 
+     static std::vector<TypeEnum> AllVals() { return VecOfPat(".*",true); }
+
      static std::vector<bool> VecBoolOfPat(const std::string & aPat,bool AcceptEmpy)
      {
          std::vector<TypeEnum>  aVEnum = VecOfPat(aPat,AcceptEmpy);
@@ -130,6 +132,10 @@ template <> std::string   StrAllVall<TypeEnum>()\
 template <> std::vector<TypeEnum> SubOfPat<TypeEnum>(const std::string & aPat,bool AcceptEmpty)\
 {\
    return cE2Str<TypeEnum>::VecOfPat(aPat,AcceptEmpty);\
+}\
+template <> std::vector<TypeEnum> AllEnumValues<TypeEnum>()\
+{\
+   return cE2Str<TypeEnum>::AllVals();\
 }\
 template <> tSemA2007  AC_ListVal<TypeEnum>()\
 {\
@@ -409,6 +415,15 @@ template<> cE2Str<eTyClino>::tMapE2Str cE2Str<eTyClino>::mE2S
                 {eTyClino::eSpring,"Spring"}
            };
 
+template<> cE2Str<eModeFusionData>::tMapE2Str cE2Str<eModeFusionData>::mE2S
+           {
+                {eModeFusionData::eMerge,"Merge"},
+                {eModeFusionData::eOverWrite,"OverWrite"},
+                {eModeFusionData::eDoNothing,"DoNothing"},
+                {eModeFusionData::eError,"Error"}
+           };
+
+
 template<> cE2Str<eTyInstr>::tMapE2Str cE2Str<eTyInstr>::mE2S
            {
                 {eTyInstr::eCamera,"Camera"},
@@ -452,6 +467,20 @@ template<> cE2Str<eTyCodeTarget>::tMapE2Str cE2Str<eTyCodeTarget>::mE2S
                 {eTyCodeTarget::eIGNDroneTop,"IGNDroneTop"},
                 {eTyCodeTarget::eCERN,"CERN"}
            };
+
+template<> cE2Str<eModResBund>::tMapE2Str cE2Str<eModResBund>::mE2S
+           {
+                {eModResBund::eAngle,"Angle"},
+                {eModResBund::eProduct,"Product"},
+                {eModResBund::eDet12,"Det12"},
+                {eModResBund::eDist12,"Dist12"},
+                {eModResBund::eAng12,"Ang12"}
+           };
+bool ModResBund_IsMode12(eModResBund aMode)
+{
+    return (int) aMode >= (int) eModResBund::eDet12;
+}
+
 
 template<> cE2Str<eMTDIm>::tMapE2Str cE2Str<eMTDIm>::mE2S
            {
@@ -661,6 +690,7 @@ void BenchEnum(cParamExeBench & aParam)
     TplBenchEnum<eModeCaracMatch>();
     TplBenchEnum<eDCTFilters>();
     TplBenchEnum<eTyCodeTarget>();
+    TplBenchEnum<eModResBund>();
     TplBenchEnum<eTypeSerial>();
     TplBenchEnum<eTAAr>();
     TplBenchEnum<eMTDIm>();
@@ -670,6 +700,7 @@ void BenchEnum(cParamExeBench & aParam)
     TplBenchEnum<eImatchCrit>();
     TplBenchEnum<eTyClino>();
     TplBenchEnum<eTyInstr>();
+    TplBenchEnum<eTyCodeTarget>();
 
 
     aParam.EndBench();
@@ -1183,6 +1214,10 @@ MACRO_INSTANTITATE_STRIO_CPTXD(int,3)
 MACRO_INSTANTITATE_STRIO_CPTXD(double,3)
 
 
+MACRO_INSTANTITATE_STRIO_CPTXD(int,4)
+MACRO_INSTANTITATE_STRIO_CPTXD(double,4)
+MACRO_INSTANTITATE_STRIO_CPTXD(int,5)
+MACRO_INSTANTITATE_STRIO_CPTXD(double,5)
 
 
 
@@ -1262,6 +1297,7 @@ MACRO_INSTANTITATE_STRIO_ENUM(eModePaddingEpip,"ModePadEpip")
 MACRO_INSTANTITATE_STRIO_ENUM(eModeCaracMatch,"ModeCaracMatch")
 MACRO_INSTANTITATE_STRIO_ENUM(eDCTFilters,"DCTFilters")
 MACRO_INSTANTITATE_STRIO_ENUM(eTyCodeTarget,"TypeCodedTarget")
+MACRO_INSTANTITATE_STRIO_ENUM(eModResBund,"ModeResidualBundle")
 MACRO_INSTANTITATE_STRIO_ENUM(eModeTestPropCov,"TestPropCov")
 MACRO_INSTANTITATE_STRIO_ENUM(eMTDIm,"TypeMTDIm")
 MACRO_INSTANTITATE_STRIO_ENUM(eFormatExtern,"ExternalFormat")
@@ -1270,6 +1306,7 @@ MACRO_INSTANTITATE_STRIO_ENUM(eTAAr,"TypeAAr")
 MACRO_INSTANTITATE_STRIO_ENUM(eTA2007,"TA2007")
 MACRO_INSTANTITATE_STRIO_ENUM(eTySC,"TySC")
 MACRO_INSTANTITATE_STRIO_ENUM(eTyUnitAngle,"AngleUnit")
+MACRO_INSTANTITATE_STRIO_ENUM(eModeFusionData,"ModeFusionData")
 MACRO_INSTANTITATE_STRIO_ENUM(eTyClino,"TypeClino")
 MACRO_INSTANTITATE_STRIO_ENUM(eTyInstr,"TypeInstr")
 
@@ -1375,6 +1412,11 @@ template <>  int cStrIO<int>::FromStr(const std::string & aStr)
     return anI;
 }
 template <>  const std::string cStrIO<int>::msNameType = "int";
+template <>  const std::string cStrIO<tINT2>::msNameType = "int2";
+template <>  const std::string cStrIO<tU_INT1>::msNameType = "u_int1";
+template <>  const std::string cStrIO<tREAL4>::msNameType = "float";
+
+
 
 std::string ToStr(int aVal,int aSzMin)
 {
@@ -1495,5 +1537,7 @@ template <>  std::string cStrIO<std::string>::FromStr(const std::string & aStr)
 }
 
 template <>  const std::string cStrIO<std::string>::msNameType = "string";
+
+
 
 };

@@ -14,6 +14,7 @@
 #include "MMVII_Geom2D.h"
 #include "Formulas_ClinoBloc.h"
 #include "Formulas_ClinoRot.h"
+#include "Formulas_CalibBundles.h"
 
 #include "MMVII_PCSens.h"
 #include "MMVII_2Include_Serial_Tpl.h"
@@ -367,6 +368,27 @@ cCalculator<double> * Old_EqClinoRot(bool WithDerive,int aSzBuf,bool ReUse)  // 
     return StdAllocCalc(NameFormula(cFormulaClinoRot(),WithDerive),aSzBuf,false,ReUse);
 }
 
+
+cCalculator<double> * EqBundleElem_Cam1(eModResBund aMode,bool WithDerive,int aSzBuf,bool ReUse)  // RIGIDBLOC
+{
+    return  ModResBund_IsMode12(aMode) ?
+               nullptr                :
+               StdAllocCalc(NameFormula(cFormulaBundleElem_Cam1(aMode),WithDerive),aSzBuf,false,ReUse);
+}
+cCalculator<double> * EqBundleElem_Cam2(eModResBund aMode,bool WithDerive,int aSzBuf,bool ReUse)  // RIGIDBLOC
+{
+    return   ModResBund_IsMode12(aMode) ?
+                 nullptr                :
+                 StdAllocCalc(NameFormula(cFormulaBundleElem_Cam2(aMode),WithDerive),aSzBuf,false,ReUse);
+}
+
+cCalculator<double> * EqBundleElem_Cam12(eModResBund aMode,bool WithDerive,int aSzBuf,bool ReUse)  // RIGIDBLOC
+{
+    return   ModResBund_IsMode12(aMode) ?
+                 StdAllocCalc(NameFormula(cFormulaBundleElem_CamDet12(aMode),WithDerive),aSzBuf,false,ReUse):
+                 nullptr ;
+}
+// cFormulaBundleElem_Cam1
 // topo subframe with dist parameter
 template <class Type> cCalculator<Type> * TplEqTopoSubFrame(bool WithDerive,int aSzBuf)
 {
@@ -854,6 +876,16 @@ int cAppliGenCode::Exe()
        GenCodesFormula((tREAL8*)nullptr,cFormulaRattBRExist(),WithDer); // RIGIDBLOC
        GenCodesFormula((tREAL8*)nullptr,cFormulaClino(0,3),WithDer);
        GenCodesFormula((tREAL8*)nullptr,cFormulaVNormOrthog(),WithDer);
+
+       for (const auto aMode : {eModResBund::eAngle,eModResBund::eProduct})
+       {
+            GenCodesFormula((tREAL8*)nullptr,cFormulaBundleElem_Cam1(aMode),WithDer);
+            GenCodesFormula((tREAL8*)nullptr,cFormulaBundleElem_Cam2(aMode),WithDer);
+       }
+       for (const auto aMode : {eModResBund::eDet12,eModResBund::eDist12,eModResBund::eAng12})
+       {
+           GenCodesFormula((tREAL8*)nullptr,cFormulaBundleElem_CamDet12(aMode),WithDer);
+       }
 
        GenCodesFormula((tREAL8*)nullptr,cFormulaClinoBloc(),WithDer); // CLINOBLOC
        GenCodesFormula((tREAL8*)nullptr,cFormulaClinoRot(),WithDer); // CLINOBLOC

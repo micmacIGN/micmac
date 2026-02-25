@@ -34,6 +34,8 @@ template <class Type> inline cPtxd<Type,3> PSymXY (const cPtxd<Type,3> & aP)
 //  Cylindric coordinates, 
 cPt3dr Cart2Cyl(const cPt3dr & aPtCart);
 cPt3dr Cyl2Cart(const cPt3dr & aPtspher);
+cPt3dr cart2spher(const cPt3dr & aPtCart);
+cPt3dr spher2cart(const cPt3dr & aPtspher);
 
 
 
@@ -221,12 +223,18 @@ template <class Type> class cRotation3D
     private :
        cDenseMatrix<Type>  mMat;
 };
-
 typedef cRotation3D<tREAL8> tRotR;
 
 template <class Type>
 void AddData(const  cAuxAr2007 & anAux,cRotation3D<Type>&);
+void AddData(const  cAuxAr2007 & anAux,tRotR&);
+/** Make aq "pretty print" of line aY of matrice Rot,  assume |coeffs| <=1,
+ * print them as int, assure a "perfect" allignment */
+void PP_1Line_MatRot(const cMatrix<tREAL8> & aMat,int aY,size_t aNbChar=4);
 
+/// Make a pretty print of full matric
+void PP_Full_MatRot(const cMatrix<tREAL8> & aMat,size_t aNbChar=4);
+void PP_Full_2MatRot(const cMatrix<tREAL8> & aMat1,const cMatrix<tREAL8> & aMat2,size_t aNbChar=4);
 
 
 /**  Class for 3D "affine" rotation of vector
@@ -583,6 +591,7 @@ class cSampleQuat
 
 
          cPt4dr  KthQuat(int aK) const; ///< Main method return the number of rot
+         tRotR   KthRot(int aK) const;
          size_t NbRot() const;  ///< Accessor
          size_t NbStep() const;  ///< Accessor
 
@@ -632,7 +641,8 @@ class cSampleHyperCube
 class cSampleSphere3D
 {
    public :
-      cSampleSphere3D(int aNbStep);
+      cSampleSphere3D(int aNbStep,bool isProj=false);
+
       cPt3dr KthPt(int aK) const;
       int NbSamples() const;
    private :

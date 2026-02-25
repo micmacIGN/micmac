@@ -133,7 +133,7 @@ class cAppliExtractLine : public cMMVII_Appli
 	bool                     mAccurateHough;
 	std::vector<double>      mThreshCpt;
         tREAL8                   mTransparencyCont;
-        cExtractLines<tIm>*      mExtrL;
+        cExtractCurves<tIm>*      mExtrL;
 	int                      mZoomImL;
         std::vector<cHoughPS>    mVPS;
         std::vector<cParalLine>  mParalLines;
@@ -283,7 +283,7 @@ void  cAppliExtractLine::DoOneImage(const std::string & aNameIm)
     cIm2D<tIm> anIm = cIm2D<tIm>::FromFile(mNameCurIm);
     tREAL8  aTrhsCumulLow  = mRelThrsCumulLow   * Norm2(anIm.DIm().Sz());
 //   [[maybe_unused]] tREAL8  aTrhsCumulHigh = mRelThrsCumulHigh * Norm2(anIm.DIm().Sz());
-    mExtrL = new cExtractLines<tIm> (anIm);
+    mExtrL = new cExtractCurves<tIm> (anIm);
 
     // Compute Gradient and extract max-loc in gradient direction
     cAutoTimerSegm  anATSDerAndMasq (mTimeSeg,"DericheAndMasq");
@@ -492,7 +492,8 @@ void cAppliExtractLine::MakeVisu(const std::string & aNameIm)
     if (mGenVisu>=2)
     {
          cRGBImage aImV= mExtrL->MakeImageMaxLoc(mTransparencyCont);
-         aImV.ToJpgFileDeZoom(mPhProj.DirVisuAppli() + "DetectL_"+ aNameTif,1);
+         //aImV.ToJpgFileDeZoom(mPhProj.DirVisuAppli() + "DetectL_"+ aNameTif,1,{"QUALITY=100"});
+         aImV.ToFile(mPhProj.DirVisuAppli() + "DetectL_"+ aNameTif);
     }
 
     //  [2]  Visu module of gradient
