@@ -174,7 +174,10 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
 
         mMeasuredTargets = mPhProj.LoadGCP3DFromFolder(mPhProj.DPGndPt3D().DirIn());
 
+        //compute target to ground mappings as 3D similarities
         mTargets2WorldMappings = computeTargets2WorldMappings();
+
+        //save computed mappings as target attributes
         SaveInFile(mTargets2WorldMappings, cSetTargetMap::NameFile(mPhProj, mTargets2WorldMappings.Name(), false));
 
         for (const auto& aCam:mVCams)
@@ -189,7 +192,7 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
                 mCurrTgtCode = aTgt;
                 bool isOk;
                 //auto aBox = doTargetRefine(isOk);
-                //if (mCurrCam->NameImage() == "K127_202409211622-00-cam-22348125-81-66384840717079-66.tiff" && mCurrTgtCode != "35")
+                if (mCurrCam->NameImage() == "K127_202409211622-00-cam-22348125-85-66396858155807-70.tiff" && mCurrTgtCode != "35")
                 //if (mCurrCam->NameImage() == "cam125_az1_0000.tiff")
                 {
                     StdOut() << aTgt<<std::endl;
@@ -230,20 +233,25 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
 
     cSetTargetMap cAppli_CheckBoardTargetRefine::computeTargets2WorldMappings()
     {
+        //for each target compute ground coordinates of arbitrary target base points (typically corners)
         std::map<std::string, std::vector<cPt3dr>> aMTargetsWorldBasePoints = computeTargetsWorldBasePoints();
-        //then adjust
-        cSetTargetMap aTarget2WorldMappings(mPhProj.DPGndPt3D().DirOut());
+
+        cSetTargetMap aTarget2WorldMappings(mPhProj.DPGndPt3D().DirOut());//set of target 2 ground mappings (useful for serialisation)
 
         for (const auto& aTgtWrldBsePts:aMTargetsWorldBasePoints)
         {
             const std::string& aTgtCode = aTgtWrldBsePts.first;
+
             tREAL8 aRes;
             cSimilitud3D<tREAL8> aTgt2WrldMap;
             aTgt2WrldMap = aTgt2WrldMap.StdGlobEstimate(get3DBasePoints(), aTgtWrldBsePts.second,
                                                         &aRes, nullptr, cParamCtrlOpt::Default());
             aTarget2WorldMappings.AddTargetMap(cTargetMap(aTgtCode, aTgt2WrldMap));
-            StdOut() << "Input pts: " << get2DBasePoints() << " Output pts: " << aTgtWrldBsePts.second << std::endl;
-            StdOut() << "3D Simil. Adjust. Res. " << aTgtCode << " --> " << aRes << std::endl;
+
+            if (mShow) {StdOut() << "nb. base bundle for tg. " << aTgtCode << " --> " << aTgtWrldBsePts.second.size()
+                         <<std::endl;
+            StdOut() << "3D Simil adj.: " << get2DBasePoints() << " --> " << aTgtWrldBsePts.second << std::endl;
+            StdOut() << " : " << aRes << std::endl;}
         }
 
         return aTarget2WorldMappings;
@@ -251,30 +259,34 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
 
     std::map<std::string, std::vector<cPt3dr>> cAppli_CheckBoardTargetRefine::computeTargetsWorldBasePoints()
     {
+        //this will associate a target code to a vector of vector of 3d "base" bundles
         std::map<std::string, std::vector<std::vector<tSeg3dr>>> aMTargetsBaseBundles;
 
         for (const auto& aCam:mVCams)
         {
+            //load im. measurements/2d affinity obtained from previous extraction
             cSetMesPtOf1Im aImMeasures = mPhProj.LoadMeasureIm(aCam->NameImage());
             std::vector<cSaveExtrEllipe> aVEllipsesExtrinsics;
             ReadFromFile(aVEllipsesExtrinsics, cSaveExtrEllipe::NameFile(mPhProj, aImMeasures, true));
 
-            for (const auto& aEllipseExtrinsics:aVEllipsesExtrinsics)
+            for (const auto& aEllipseExtrinsics:aVEllipsesExtrinsics)//= for each extracted target
             {
                 const std::string& aTargetCode = aEllipseExtrinsics.mNameCode;
-
                 std::vector<tSeg3dr> aVBaseBundles = {};
-                for (const auto& aBasePt:get2DBasePoints())
-                {
-                    cPt2dr aTransformedBasePt = aEllipseExtrinsics.mAffIm2Ref.Inverse(aBasePt);
-                    tSeg3dr aBundle = aCam->Image2Bundle(aTransformedBasePt);
-                    aVBaseBundles.push_back(aBundle);
 
+                for (const auto& aBasePt:get2DBasePoints())//get base points (usually corners)
+                {
+                    //based on affinity computed at the extraction step, predict base pt. coords. in current view
+                    cPt2dr aTransformedBasePt = aEllipseExtrinsics.mAffIm2Ref.Inverse(aBasePt);
+                    tSeg3dr aBundle = aCam->Image2Bundle(aTransformedBasePt);//compute base bundle
+                    aVBaseBundles.push_back(aBundle);//add the bundle to the vector of base bundles
+
+                    //initialize the key,value pair if it's the first vector for current target
                     if (!aMTargetsBaseBundles.count(aTargetCode)) aMTargetsBaseBundles[aTargetCode] = {{},{},{},{}};
                 }
 
-                for (decltype(get2DBasePoints().size()) ix = 0; ix < get2DBasePoints().size(); ++ix)
-                {
+                for (decltype(get2DBasePoints().size()) ix = 0; ix < get2DBasePoints().size(); ++ix)//there is one base bundles vector
+                {                                                                                   //for each target base point
                     aMTargetsBaseBundles[aTargetCode][ix].push_back(aVBaseBundles[ix]);
                 }
             }
@@ -450,7 +462,7 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
 
                 //stolen from cSimulTarget.cpp
                 //StdOut() << "Begin gaussbicub" << std::endl;
-                cRessampleWeigth aRW = cRessampleWeigth::GaussBiCub(ToR(aPix)+aImOffSet,aLocalIm2Tgt,1.0);
+                cRessampleWeigth aRW = cRessampleWeigth::GaussBiCub(ToR(aPix)+aImOffSet,aLocalIm2Tgt,4);
                 //StdOut() << "Ok gaussbicub" << std::endl;
                 const std::vector<cPt2di>  & aVPts = aRW.mVPts;
                 if (!aVPts.empty())
