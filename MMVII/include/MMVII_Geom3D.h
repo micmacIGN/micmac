@@ -227,7 +227,7 @@ typedef cRotation3D<tREAL8> tRotR;
 
 template <class Type>
 void AddData(const  cAuxAr2007 & anAux,cRotation3D<Type>&);
-void AddData(const  cAuxAr2007 & anAux,tRotR&);
+//void AddData(const  cAuxAr2007 & anAux,tRotR&);
 /** Make aq "pretty print" of line aY of matrice Rot,  assume |coeffs| <=1,
  * print them as int, assure a "perfect" allignment */
 void PP_1Line_MatRot(const cMatrix<tREAL8> & aMat,int aY,size_t aNbChar=4);
