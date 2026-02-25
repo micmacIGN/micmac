@@ -271,6 +271,8 @@ template <class Type> class cIsometry3D
        cIsometry3D(const tPt& aTr,const tRot &);
        tTypeMapInv  MapInverse() const; // {return cIsometry3D(-mRot.Inverse(mTr),mRot.MapInverse());}
        tTypeMap  operator* (const tTypeMap &) const;
+       tTypeMap  ScaleTr (Type aScale) const;
+
        static tTypeMap Identity();
 
        ///  Distance with normalisation to unity on center, W= weight of center dist vs rot
@@ -416,7 +418,12 @@ template <class Type> class cSimilitud3D
        cRotation3D<Type>  mRot;
 };
 typedef cSimilitud3D<tREAL8>  tSim3dR;
+
+///  Tr ->   aSim.Value(aR.Tr();   R -> Sym.Rot *  R
 template <class Type> cIsometry3D<Type>    TransfoPose(const cSimilitud3D<Type> & aSim,const cIsometry3D<Type> & aR);
+
+///  Compute the similitude tha make P0 Identity and P0/P1 unit base
+tSim3dR  SimOfPosesRef(const tSim3dR & aP0,const tSim3dR & aP1);
 
 /// V1 and V2 being pose "identic" but in different repair, compute the transfer similitude that best align
 std::pair<tREAL8,tSim3dR>   EstimateSimTransfertFromPoses(const std::vector<tPoseR> & aV1,const std::vector<tPoseR> & aV2);

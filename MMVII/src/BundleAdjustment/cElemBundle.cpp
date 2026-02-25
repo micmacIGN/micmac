@@ -38,6 +38,8 @@ class cElemBA
        eModResBund                        mMode;
        bool                               isMode12;
        std::vector<tPoseR>                mCurPose;
+       tPoseR                             mPoseRef;
+       tREAL8                             mScaleRef;
        int                                mSzBuf;       ///<  Sz Buf for calculator
        cCalculator<double> *              mEqElemCam1;  ///< Colinearity equation
        cCalculator<double> *              mEqElemCam2;
@@ -72,7 +74,13 @@ cElemBA::cElemBA(eModResBund aMode,const std::vector<tPoseR>& aVPose) :
     mRot2       (aVPose.at(1).Rot())
 
 {
-    MMVII_INTERNAL_ASSERT_always(mCurPose.at(0).DistPose(tPoseR::Identity(),1.0)==0,"Pose0!=Id in cElemBA");
+    mPoseRef = mCurPose.at(0);
+    mScaleRef = Norm2(mCurPose.at(0).Tr() -mCurPose.at(1).Tr());
+
+    for (auto & aPose : mCurPose)
+        aPose = (mPoseRef.MapInverse()*aPose).ScaleTr(1.0/mScaleRef);
+
+    MMVII_INTERNAL_ASSERT_always(mCurPose.at(0).DistPose(tPoseR::Identity(),1.0)<1e-7,"Pose0!=Id in cElemBA");
     MMVII_INTERNAL_ASSERT_always((Norm2(mCurPose.at(1).Tr())-1.0)<1e-8,"Norma base in cElemBA");
 
     mSetInterv.AddOneObj(&mTr2);
@@ -165,14 +173,13 @@ void cElemBA::AddHomBundle_Cam12(const cPt3dr & aDirB1,const cPt3dr & aDirB2,tRE
           aVect(2) = aScalW.x();
           aVect(3) = aScalW.y();
           aVect(4) = aScalW.z();
-          if (1)
+          if (0)
           {
              mSys->AddObservationLinear(aWeight,aVect,-aRes);
           }
           else
           {
-            // Do not work, because CurSol != 0, and must be used in RHS, why ???
-            // I thought with OnUpdate mecanism, current sol were alway 0 ??
+            // Work now with correction on "IO_UnKnowns"
              mSystAA->PublicAddObservation(aWeight,aVect,-aRes);
           }
           mRes1.Add(1.0,std::abs(aRes));
@@ -227,16 +234,12 @@ void cElemBA::AddHomBundle_Cam1Cam2(const cPt3dr & aDirB1,const cPt3dr & aDirB2,
 
 void cElemBA::OneIter(tREAL8 aLVM,const std::vector<tPoseR> * aVRef)
 {
-  //  StdOut() << "  PIN " << mTr2.RawPNorm() << "\n";
 
-     StdOut() << " GLOB " << __LINE__ << "=> " << Sys()->CurGlobSol() << "\n";
-
+    // Do the computation
     const auto & aVectSol =  mSys->SolveUpdateReset(aLVM);
-    StdOut() << " GLOB " << __LINE__ << "=> " << Sys()->CurGlobSol() << "\n";
-
     mSetInterv.SetVUnKnowns(aVectSol);
-    StdOut() << " GLOB " << __LINE__ << "=> " << Sys()->CurGlobSol() << "\n";
 
+    // Transferate the result to poses (as they
 
     mCurPose.at(1) = tPoseR(mTr2.GetPNorm(),mRot2.Rot());
     for (size_t aKP=2 ; aKP<mCurPose.size() ; aKP++)
@@ -267,7 +270,7 @@ class cBenchElemBA
 
          size_t              mNbPose;
          std::vector<tPoseR> mVPoseGT;    //<  Ground truth poses
-         std::vector<tPoseR> mVPosePert;  //< Perturbation
+         std::vector<tPoseR> mVPosePert;  //< Perturbated
 
          /// return the minimal distance  of center (GT&Pert) to "Pt"
          tREAL8  DMinCenter(const cPt3dr &,const std::vector<int> &aVIndexe) const;
@@ -287,6 +290,8 @@ cBenchElemBA::cBenchElemBA(size_t aNbPose,cPt2dr aSIgTrRot) :
         tPoseR aPoseGT =  tPoseR::RandomIsom3D(1.0);
         tPoseR aPert = tPoseR(cPt3dr::PRandInSphere()*aSIgTrRot.x(),tRotR::RandomRot(aSIgTrRot.y()));
         tPoseR  aPosePert = aPoseGT * aPert;
+
+/*
         if (aK==0)
         {
             aPoseGT =   tPoseR::Identity();
@@ -297,10 +302,12 @@ cBenchElemBA::cBenchElemBA(size_t aNbPose,cPt2dr aSIgTrRot) :
              aPoseGT.Tr()   = VUnit(aPoseGT.Tr());
              aPosePert.Tr() = VUnit(aPosePert.Tr());
         }
+*/
 
         StdOut()  << "GT " << aPoseGT.Tr() << " PERT " << aPosePert.Tr() << "\n";
         mVPoseGT.push_back(aPoseGT);
         mVPosePert.push_back(aPosePert);
+
     }
 }
 
@@ -409,13 +416,15 @@ cCollecSpecArg2007 & cAppliTestElemBundle::ArgObl(cCollecSpecArg2007 & anArgObl)
 
 cCollecSpecArg2007 & cAppliTestElemBundle::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
+	//std::vector<std::vector<std::string>> aVS;
+	// std::vector<std::pair<std::string,std::string>> aVS;
+
+
     return anArgOpt
          << AOpt2007(mNbIter,"NbIter","Number of iteration",{eTA2007::HDV})
          << AOpt2007(mSigTrRot,"SigTR","Sigma Noise Tr/Rot",{eTA2007::HDV})
          << AOpt2007(mLVM,"LVM","Levenberg/Markard parameter",{eTA2007::HDV})
          << AOpt2007(mNbSamples,"NbS","Number of samples",{eTA2007::HDV})
-
-
 
          /*  << AOpt2007(mShowSteps,"ShowSteps","Show detail of computation steps by steps",{eTA2007::HDV})
            << AOpt2007(mZoomImL,"ZoomImL","Zoom for images of line",{eTA2007::HDV})

@@ -670,6 +670,12 @@ template <class Type> cIsometry3D<Type>  cIsometry3D<Type>::MapInverse() const
     return cIsometry3D<Type>(-mRot.Inverse(mTr),mRot.MapInverse());
 }
 
+template <class Type> cIsometry3D<Type>  cIsometry3D<Type>::ScaleTr (Type aScale) const
+{
+   return cIsometry3D<Type>(mTr*aScale,mRot);
+}
+
+
 template <class Type> cIsometry3D<Type> cIsometry3D<Type>::operator * (const tTypeMap & aS2) const
 {
 	// mTr + R (mTr2 +R2*aP)
