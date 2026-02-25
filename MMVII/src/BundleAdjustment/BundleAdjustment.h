@@ -494,7 +494,7 @@ public :
 
 protected :
     /**  Add observation for 1 Patch of point */
-    void Add1Patch(const cPt3dr &aPGround, const std::string & aScanName);
+    tREAL8 Add1Patch(const cPt3dr &aPGround, const std::string & aScanName); // returns min residual for this point
 
     void AddPatchDist(const cPt3dr &aPGround, const std::vector<cData1ImLidPhgr> &aVData) ;
 

@@ -621,7 +621,7 @@ cBA_LidarLidarRaster::~cBA_LidarLidarRaster()
 {
 }
 
-
+#define SCANSCANDEBUGSZ 10
 
 void cBA_LidarLidarRaster::AddObs()
 {
@@ -630,11 +630,28 @@ void cBA_LidarLidarRaster::AddObs()
     mNbUsedObs = 0;
     for (auto & aScan : mVScans)
     {
+#ifdef SCANSCANDEBUGSZ
+        cIm2D<tREAL4> aResImage(aScan.mLidarRaster->InternalCalib()->SzPix(),0,eModeInitImage::eMIA_Null);
+        auto & aResImageData = aResImage.DIm();
+#endif
+
         for (const auto& aPatch : aScan.mLPatchesP)
         {
-            Add1Patch(aScan.mLidarRaster->Image2Ground(*aPatch.begin()),
-                      aScan.mScanName);
+            [[maybe_unused]] auto aMinRes = Add1Patch(aScan.mLidarRaster->Image2Ground(*aPatch.begin()),
+                                                      aScan.mScanName);
+#ifdef SCANSCANDEBUGSZ
+            auto aC = *aPatch.begin();
+            for (int y=aC.y()-SCANSCANDEBUGSZ; y<=aC.y()+SCANSCANDEBUGSZ;++y)
+                for (int x=aC.x()-SCANSCANDEBUGSZ; x<=aC.x()+SCANSCANDEBUGSZ;++x)
+                    aResImageData.SetVTruncIfInside({x,y}, aMinRes);
+#endif
         }
+
+#ifdef SCANSCANDEBUGSZ
+        std::string aPath = mPhProj->DirVisuAppli() + aScan.mScanName + "_iter_" + ToStr(mBA.NbIter())+ ".tif";
+        aResImageData.ToFile(aPath);
+#endif
+
     }
     if (mLastResidual.SW() != 0)
         StdOut() << "  * Lid/Lid Residual dist " << std::sqrt(mLastResidual.Average())
@@ -680,10 +697,11 @@ void cBA_LidarLidarRaster::SetVUkVObs
     aGradIm.PushInStdVector(aVObs);
 }
 
-void  cBA_LidarLidarRaster::Add1Patch(const cPt3dr & aPGround, const std::string & aScanName)
+tREAL8 cBA_LidarLidarRaster::Add1Patch(const cPt3dr & aPGround, const std::string & aScanName)
 {
     std::vector<cData1ImLidPhgr> aVData; // for each image where patch is visible will store the data
     cWeightAv<tREAL8>   aAvgRes;    // compute average residual
+    tREAL8 aMinResidual = INFINITY;
 
     //  Parse all the scans, we will select the ones where the patch is visible
     for (auto & aScanData: mVScans)
@@ -707,18 +725,20 @@ void  cBA_LidarLidarRaster::Add1Patch(const cPt3dr & aPGround, const std::string
                 auto aVGr = aGenDImDist.GetValueAndGradInterpol(*mInterp,aPIm); // extract pair Value/Grad of image
                 aData.mVGr = {aVGr};
                 tREAL8 aValIm = aData.mVGr.at(0).first;   // value of first/central pixel in this image
-                tREAL8 aResidual = fabs(aValIm-aDist);
-                if (aResidual>mThreshold + 1./mBA.NbIter())
+                tREAL8 aResidual = aValIm-aDist;
+                if (fabs(aResidual)<fabs(aMinResidual))
+                    aMinResidual = aResidual;
+                if (fabs(aResidual)>mThreshold + 1./mBA.NbIter())
                     continue;
                 //std::cout<< "res "<<aResidual<<"\n";
-                aAvgRes.Add(1.0,aResidual);  // compute std deviation
+                aAvgRes.Add(1.0,fabs(aResidual));  // compute std deviation
                 aVData.push_back(aData); // memorize the data for this image
             }
         }
     }
 
     // if less than 1 scan to: nothing valuable to do
-    if (aVData.size()<1) return;
+    if (aVData.size()<1) return 0.;
 
     mNbUsedPoints++;
     mNbUsedObs+=aVData.size();
@@ -730,6 +750,7 @@ void  cBA_LidarLidarRaster::Add1Patch(const cPt3dr & aPGround, const std::string
 
     AddPatchDist(aPGround,aVData);
 
+    return aMinResidual;
 }
 
 
