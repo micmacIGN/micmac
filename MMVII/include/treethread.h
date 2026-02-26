@@ -6,11 +6,12 @@
 #include <thread>
 #include <mutex>
 #include <atomic>
+#include <memory>
 
 namespace MMVII
 {
 
-/**  Add MPD :  the class cBaseTreeThreads is added 
+/**  Add MPD :  the class cBaseTreeThreads is added
 
 class cBaseTreeThreads
 {
@@ -68,8 +69,8 @@ class cBaseTreeThreads
  *  The user has to construct his tree structure, construct a TreeThreads object instantiated with
  *   pointer-like type on MyNode (the very same type that depends() returns), and
  *   call pass the root node of the tree to the exec method of TreeThreads object:
- * 
- * 
+ *
+ *
  * >  int nbThread = 8;
  * >  MyNodePtr myRoot = ... ;
  * >  TreeThreads<MyNode::MyNodePtr> treeThreads;
@@ -78,13 +79,13 @@ class cBaseTreeThreads
  *  WARNING: all pointers to user node (i.e. myRoot and all those returned by MyNode::depends() must
  * be valid at least until the node has been executed (its finalize() method called).
  * Best it to wait that TreeThreads::exec() terminates.
- * 
+ *
  */
 
 
 // T must be a pointer-like type to user Node (i.e. "MyNode *", "std::shared_ptr<MyNode>", ...)
 template<class T>
-class TreeThreads 
+class TreeThreads
 {
 public:
 
@@ -139,7 +140,7 @@ private:
     void ExecLoop();                                        // This will be executed by each of the NbThread threads
 
     std::deque<typename Node::PNode> mReadyQueue;           // List of pointer to nodes ready to be executed. Running nodes are removed from this list before being executed
-    std::mutex mMutex_ReadyQueue;                           // Mutex to protect push in and pop from the readyQueue from multiple threads. 
+    std::mutex mMutex_ReadyQueue;                           // Mutex to protect push in and pop from the readyQueue from multiple threads.
 };
 
 
@@ -155,7 +156,7 @@ void TreeThreads<T>::Exec(T root, int nbThread)
     for (int i = 0; i < nbThread; ++i) 													// We start nbThread and each will execute ExecLoop
         threadList.emplace_back(std::thread(&TreeThreads::ExecLoop, this));
     for (auto& t : threadList)
-		t.join();                       												// We wait that all threads are finished
+        t.join();                       												// We wait that all threads are finished
 }
 
 template <class T>
@@ -168,7 +169,7 @@ void TreeThreads<T>::ExecLoop()
         typename Node::PNode node;
         {
             // This lock protect mReadyQueue  access/modifying from different threads. The lock is removed at the end of this code bloc (destructor called)
-            std::lock_guard<std::mutex> lock(mMutex_ReadyQueue);			
+            std::lock_guard<std::mutex> lock(mMutex_ReadyQueue);
             if (mReadyQueue.empty())
                 return;             // No more node to execute: end of this thread, it will be really ended in the 't.join()' above from the main thread
             node = mReadyQueue.front();
@@ -177,7 +178,7 @@ void TreeThreads<T>::ExecLoop()
         node->finalize();           // do the job
         // Atomically decrement parent not-terminated-child count and return true if this was the last terminated child
         if (node->isLastChild()) {
-			// Protect the mReadyQueue and add this node's parent: all its childs have terminated
+            // Protect the mReadyQueue and add this node's parent: all its children have terminated
             std::lock_guard<std::mutex> lock(mMutex_ReadyQueue);
             mReadyQueue.push_back(node->parent());
         }
@@ -187,8 +188,8 @@ void TreeThreads<T>::ExecLoop()
 
 /* NB:
  * The readyQueue may be empty between mReadyQueue.pop_front() and mReadyQueue.push_back(node->parent) and
- *   this we'll stop all others threads.
- * But we will add one and oly one node to readyQueue and it will be executed by this thread in the following
+ *   then all others threads will be stopped (terminated).
+ * But we will add one and only one node to readyQueue and it will be executed by this current thread in the following
  *   iteration of the loop.
  * Hence, the number of remaining nodes can't be greater than the number of threads, so we always garantee
  *   a maximal usage of the threads.
