@@ -241,6 +241,9 @@ template<class Type> const cDenseVect<Type>   & cLeasSqtAA<Type>::tARhs () const
 template<class Type> cDenseMatrix<Type> & cLeasSqtAA<Type>::tAA ()   {return mtAA;}
 template<class Type> cDenseVect<Type>   & cLeasSqtAA<Type>::tARhs () {return mtARhs;}
 
+template<class Type> cLeasSqtAA<Type> * cLeasSqtAA<Type>::Get_tAA(bool) {return this;}
+
+
 template<class Type> cDenseVect<Type> cLeasSqtAA<Type>::SpecificSparseSolve()
 {
    const  cDataIm2D<Type> & aDIm = mtAA.DIm();
@@ -423,6 +426,13 @@ template<class Type> Type cLinearOverCstrSys<Type>::VarCurSol()  const
 template<class Type> cLinearOverCstrSys<Type>::~cLinearOverCstrSys()
 {
 }
+
+template<class Type> cLeasSqtAA<Type> * cLinearOverCstrSys<Type>::Get_tAA(bool SVP)
+{
+    MMVII_INTERNAL_ASSERT_strong(SVP,"cLinearOverCstrSys<Type>::Get_tAA")
+    return nullptr;
+}
+
 
 template<class Type> int cLinearOverCstrSys<Type>::NbVar() const
 {

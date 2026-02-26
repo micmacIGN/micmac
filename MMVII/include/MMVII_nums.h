@@ -1083,7 +1083,7 @@ template <class Type> class  cPolynom
            cPolynom<Type> operator * (const  Type & aVal) const;
            cPolynom<Type> Deriv() const;
 
-	   cPolynom<Type> & operator += (const cPolynom<Type> & aP2);
+           cPolynom<Type> & operator += (const cPolynom<Type> & aP2);
 
            std::vector<Type> RealRoots(const Type & aTol,int ItMax) const;
 

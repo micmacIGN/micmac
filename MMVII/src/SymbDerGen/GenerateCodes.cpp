@@ -371,15 +371,15 @@ cCalculator<double> * Old_EqClinoRot(bool WithDerive,int aSzBuf,bool ReUse)  // 
 
 cCalculator<double> * EqBundleElem_Cam1(eModResBund aMode,bool WithDerive,int aSzBuf,bool ReUse)  // RIGIDBLOC
 {
-    return  ModResBund_IsMode12(aMode) ?
-               nullptr                :
-               StdAllocCalc(NameFormula(cFormulaBundleElem_Cam1(aMode),WithDerive),aSzBuf,false,ReUse);
+    return  ModResBund_IsModeGen(aMode) ?
+               StdAllocCalc(NameFormula(cFormulaBundleElem_Cam1(aMode),WithDerive),aSzBuf,false,ReUse) :
+               nullptr;
 }
 cCalculator<double> * EqBundleElem_Cam2(eModResBund aMode,bool WithDerive,int aSzBuf,bool ReUse)  // RIGIDBLOC
 {
-    return   ModResBund_IsMode12(aMode) ?
-                 nullptr                :
-                 StdAllocCalc(NameFormula(cFormulaBundleElem_Cam2(aMode),WithDerive),aSzBuf,false,ReUse);
+    return   ModResBund_IsModeGen(aMode) ?
+                StdAllocCalc(NameFormula(cFormulaBundleElem_Cam2(aMode),WithDerive),aSzBuf,false,ReUse) :
+                nullptr;
 }
 
 cCalculator<double> * EqBundleElem_Cam12(eModResBund aMode,bool WithDerive,int aSzBuf,bool ReUse)  // RIGIDBLOC

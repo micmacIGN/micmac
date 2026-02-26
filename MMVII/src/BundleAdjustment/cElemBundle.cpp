@@ -21,6 +21,7 @@ class cElemBA
        void AddHomBundle_Cam1Cam2(const cPt3dr & aDirB0,const cPt3dr & aDirB1,tREAL8 aW,tREAL8 aEpsilon=1e-6);
 
        void OneIter(tREAL8 aLVM,const std::vector<tPoseR> * aVRef);
+       cResolSysNonLinear<double> *  Sys();   ///< Accesor
    private :
 
        void AddHomBundle_Cam1(cSetIORSNL_SameTmp<tREAL8> &,const cPt3dr & aDirB0,tREAL8  aWeight);
@@ -37,6 +38,8 @@ class cElemBA
        eModResBund                        mMode;
        bool                               isMode12;
        std::vector<tPoseR>                mCurPose;
+       tPoseR                             mPoseRef;
+       tREAL8                             mScaleRef;
        int                                mSzBuf;       ///<  Sz Buf for calculator
        cCalculator<double> *              mEqElemCam1;  ///< Colinearity equation
        cCalculator<double> *              mEqElemCam2;
@@ -45,6 +48,8 @@ class cElemBA
       // cCalculator<double> *              mEqElemCamN;
        cSetInterUK_MultipeObj<double>     mSetInterv;   ///< coordinator for autom numbering
        cResolSysNonLinear<double> *       mSys;   ///< Solver
+       cLeasSqtAA<tREAL8> *               mSystAA;  ///< Pointer to dense solver
+      // cLinearOverCstrSys<tREAL8> *       mLinSys;
        cP3dNormWithUK                     mTr2;   ///< Unknown normaized trace for unit
        cRotWithUK                         mRot2;
        std::vector<cPoseWithUK*>          mPoseN;
@@ -56,7 +61,7 @@ class cElemBA
 
 cElemBA::cElemBA(eModResBund aMode,const std::vector<tPoseR>& aVPose) :
     mMode       (aMode),
-    isMode12    (ModResBund_IsMode12(mMode)),
+    isMode12    (! ModResBund_IsModeGen(mMode)),
     mCurPose    (aVPose),
     mSzBuf      (1),
     mEqElemCam1 (EqBundleElem_Cam1(mMode,true,mSzBuf,true)),
@@ -65,23 +70,37 @@ cElemBA::cElemBA(eModResBund aMode,const std::vector<tPoseR>& aVPose) :
   //  mEqElemCamN (nullptr),
     mSetInterv  (),
     mSys        (nullptr),
-    mTr2        (aVPose.at(1).Tr(),"BAElem","Base1"),
-    mRot2       (aVPose.at(1).Rot())
+    mTr2        (cPt3dr(0,0,1),"BAElem","Base1"),
+    mRot2       (tRotR::Identity())
 
 {
-    MMVII_INTERNAL_ASSERT_always(mCurPose.at(0).DistPose(tPoseR::Identity(),1.0)==0,"Pose0!=Id in cElemBA");
+    mPoseRef = mCurPose.at(0);
+    mScaleRef = Norm2(mCurPose.at(0).Tr() -mCurPose.at(1).Tr());
+
+    for (auto & aPose : mCurPose)
+    {
+        // PoseRef  C1 ->W
+       aPose = (mPoseRef.MapInverse()*aPose).ScaleTr(1.0/mScaleRef);
+       // aPose = (aPose*mPoseRef.MapInverse()).ScaleTr(1.0/mScaleRef);
+    }
+    mTr2.SetPNorm(mCurPose.at(1).Tr());
+    mRot2.SetRot(mCurPose.at(1).Rot());
+
+
+    MMVII_INTERNAL_ASSERT_always(mCurPose.at(0).DistPose(tPoseR::Identity(),1.0)<1e-7,"Pose0!=Id in cElemBA");
     MMVII_INTERNAL_ASSERT_always((Norm2(mCurPose.at(1).Tr())-1.0)<1e-8,"Norma base in cElemBA");
 
     mSetInterv.AddOneObj(&mTr2);
     mSetInterv.AddOneObj(&mRot2);
 
-    for (size_t aKP=2 ; aKP<aVPose.size() ; aKP++)
+    for (size_t aKP=2 ; aKP<mCurPose.size() ; aKP++)
     {
-        mPoseN.push_back(new cPoseWithUK(aVPose.at(aKP)));
+        mPoseN.push_back(new cPoseWithUK(mCurPose.at(aKP)));
         mSetInterv.AddOneObj(mPoseN.back());
     }
 
     mSys = new cResolSysNonLinear<double>(eModeSSR::eSSR_LsqDense,mSetInterv.GetVUnKnowns());
+    mSystAA = mSys->SysLinear()->Get_tAA();
 }
 
 cElemBA::~cElemBA()
@@ -90,11 +109,9 @@ cElemBA::~cElemBA()
     delete mSys;
 }
 
-tSeg3dr  cElemBA::Bundle(int aKPose,const cPt3dr & aDirBundle) const
-{
-    const tPoseR & aPose = mCurPose.at(aKPose);
-    return tSeg3dr(aPose.Tr(),aPose.Value(aDirBundle));
-}
+cResolSysNonLinear<double> *  cElemBA::Sys() {return mSys;}
+
+
 
 void cElemBA::AddHomBundle_Cam1
      (
@@ -134,6 +151,44 @@ void cElemBA::AddHomBundle_Cam2
 
 void cElemBA::AddHomBundle_Cam12(const cPt3dr & aDirB1,const cPt3dr & aDirB2,tREAL8  aWeight)
 {
+      if (mMode==eModResBund::eLinDet12)
+      {
+       // As the
+       //  [B , Uu , R(Id+W) u2] = [R'B , R'u1 , u2 + W^u2] = [R'(B+A da + B db), R'u1 ,u2 + W ^u2]
+       //   [R'B,R'u1,::u2] + [R'(A da + B db),R'u1,u2] +  [R'B,R'u1,  W^u2]
+       //   [B,u1,Ru2]   + [A da+ B db,u1,R u2] 
+
+          cPt3dr aU02 = mRot2.Rot().Value(aDirB2);
+          cPt3dr aN0 = aDirB1 ^ aU02;
+          cPt3dr aB0 =  mTr2.RawPNorm();
+
+          cDenseVect<tREAL8> aVect(5);
+
+          aVect(0) = Scal(aN0, mTr2.U());
+          aVect(1) = Scal(aN0, mTr2.V());
+          tREAL8 aRes = Scal(aB0,aN0);
+
+          cPt3dr aUP1 = mRot2.Rot().Inverse(aDirB1);
+          cPt3dr aBP  = mRot2.Rot().Inverse(aB0);
+
+          cPt3dr aScalW =   (aBP*Scal(aUP1,aDirB2) - aUP1 *Scal(aBP,aDirB2) ) * -1.0;
+
+          aVect(2) = aScalW.x();
+          aVect(3) = aScalW.y();
+          aVect(4) = aScalW.z();
+          if (0)
+          {
+             mSys->AddObservationLinear(aWeight,aVect,-aRes);
+          }
+          else
+          {
+            // Work now with correction on "IO_UnKnowns"
+             mSystAA->PublicAddObservation(aWeight,aVect,-aRes);
+          }
+          mRes1.Add(1.0,std::abs(aRes));
+          mRes2.Add(1.0,std::abs(aRes));
+         return;
+      }
       std::vector<int> aVIndGlob ;
       std::vector<double> aVObs = Append(aDirB1.ToStdVector(),aDirB2.ToStdVector());
       mTr2.AddIdexesAndObs(aVIndGlob,aVObs);
@@ -144,18 +199,35 @@ void cElemBA::AddHomBundle_Cam12(const cPt3dr & aDirB1,const cPt3dr & aDirB2,tRE
       for (size_t aK=0 ; aK<mEqElemCam12->NbElem() ; aK++)
       {
           tREAL8 aRes = std::abs(mEqElemCam12->ValComp(0,aK));
+
+         /* StdOut()  << "CCC " << mEqElemCam12->ValComp(0,aK) << " DDD " ;
+          for (int aD=0 ; aD<5 ; aD++)
+              StdOut()  << " " <<  mEqElemCam12->DerComp(0,aK,aD) ;
+          StdOut()<< "\n";*/
+
           mRes1.Add(1.0,aRes);
           mRes2.Add(1.0,aRes);
       }
+
 }
 
-void cElemBA::AddHomBundle_Cam1Cam2(const cPt3dr & aDirB1,const cPt3dr & aDirB2,tREAL8 aW,tREAL8 aEpsilon)
+tSeg3dr  cElemBA::Bundle(int aKPose,const cPt3dr & aDirBundle) const
 {
-    tSeg3dr aSeg1 = Bundle(0,aDirB1);
-    tSeg3dr aSeg2 = Bundle(1,aDirB2);
+    const tPoseR & aPose = mCurPose.at(aKPose);
+    return tSeg3dr(mPoseRef.Value(aPose.Tr())/mScaleRef,mPoseRef.Value(aPose.Value(aDirBundle))/mScaleRef);
+}
 
-    if (NormInf(aSeg1.V12() ^ aSeg2.V12()) < aEpsilon)
+
+void cElemBA::AddHomBundle_Cam1Cam2(const cPt3dr & aDirB1,const cPt3dr & aDirB2,tREAL8 aW,tREAL8 aEpsilon)
+{   
+    cPt3dr aDirLoc1 = mPoseRef.Rot().Inverse(aDirB1);
+    cPt3dr aDirLoc2 = mPoseRef.Rot().Inverse(aDirB2);
+
+   // StdOut()  << "HHHH " << Norm2(aSeg1.V12()) << " " << Norm2(aSeg2.V12()) << "\n";
+
+    if (NormInf(aDirLoc1 ^ aDirLoc2) < aEpsilon)
         return;
+
 
     if (isMode12)
     {
@@ -163,31 +235,48 @@ void cElemBA::AddHomBundle_Cam1Cam2(const cPt3dr & aDirB1,const cPt3dr & aDirB2,
     }
     else
     {
+        tSeg3dr aSeg1 = Bundle(0,aDirB1);
+        tSeg3dr aSeg2 = Bundle(1,aDirB2);
+
        cPt3dr aPGround = BundleInters(aSeg1,aSeg2,0.5);
 
+       tSegComp3dr aSC1(aSeg1);
+       tSegComp3dr aSC2(aSeg2);
+
+      // StdOut() << " DDD " << aSC1.Dist(aPGround) << " " << aSC2.Dist(aPGround) << "\n"; // getchar();
        cSetIORSNL_SameTmp<tREAL8>  aStrSubst(aPGround.ToStdVector(),{});
 
-       AddHomBundle_Cam1(aStrSubst,aDirB1,aW);
-       AddHomBundle_Cam2(aStrSubst,aDirB2,aW);
+       AddHomBundle_Cam1(aStrSubst, aDirB1,aW);
+       AddHomBundle_Cam2(aStrSubst, aDirB2,aW);
        mSys->R_AddObsWithTmpUK(aStrSubst);
     }
 }
 
 void cElemBA::OneIter(tREAL8 aLVM,const std::vector<tPoseR> * aVRef)
 {
-  //  StdOut() << "  PIN " << mTr2.RawPNorm() << "\n";
+
+    // Do the computation
     const auto & aVectSol =  mSys->SolveUpdateReset(aLVM);
     mSetInterv.SetVUnKnowns(aVectSol);
+
+    // Transferate the result to poses (as they
 
     mCurPose.at(1) = tPoseR(mTr2.GetPNorm(),mRot2.Rot());
     for (size_t aKP=2 ; aKP<mCurPose.size() ; aKP++)
         mCurPose.at(aKP) = mPoseN.at(aKP-2)->Pose();
 
     StdOut() // << "  POUT " << mTr2.RawPNorm()
-             << " Res=" << mRes1.Average() << " " << mRes2.Average()
-             << " DeltaTr=" << 1e4*Norm2( mCurPose.at(1).Tr()-aVRef->at(1).Tr())
-             << " DeltaRot=" << 1e4*mCurPose.at(1).Rot().Dist(aVRef->at(1).Rot())
-             << "\n";
+             << " Res=" << mRes1.Average() << " " << mRes2.Average() ;
+
+    {
+       tPoseR aPoseRef = (mPoseRef.MapInverse()*aVRef->at(1)).ScaleTr(1.0/mScaleRef);
+
+       StdOut()   << " DeltaTr=" << 1e4*Norm2( mCurPose.at(1).Tr()-aPoseRef.Tr())
+                << " DeltaRot=" << 1e4*mCurPose.at(1).Rot().Dist(aPoseRef.Rot()) ;
+        StdOut()        << "\n";
+    }
+
+
    // StdOut()  << "UUUUUUUUUUUUUUppdattte  mCuuuuuurPoosse\n";
 
     mRes1.Reset();
@@ -196,56 +285,112 @@ void cElemBA::OneIter(tREAL8 aLVM,const std::vector<tPoseR> * aVRef)
 
 /* *************************************************** */
 /*                                                     */
+/*                 cParamBenchElemBA                   */
+/*                                                     */
+/* *************************************************** */
+
+class cParamBenchElemBA
+{
+    public :
+      cParamBenchElemBA() ;
+
+       eModResBund    mMode;
+       int            mNbIter;
+       cPt2dr         mSigTrRot;
+       tREAL8         mLVM;
+       int            mNbSamples;
+
+       //  ---- Parameters for generating bundles
+       cPt3dr         mCenterGP;  // centre of ground points
+       tREAL8         mRayGP;     // Ray of Groun Point Sphere
+       tREAL8         mDistAvoid; // Distance min to center of poses in
+};
+
+cParamBenchElemBA::cParamBenchElemBA() :
+   mMode             (eModResBund::eNbVals),
+   mNbIter           (10),
+   mSigTrRot         (0.1,0.1),
+   mLVM              (1e-5),
+   mNbSamples        (100),
+   mCenterGP         (0,0,10.0),
+   mRayGP            (5.0),
+   mDistAvoid        (0.5)
+{
+}
+
+// cPt3dr(0,0,10),5.0,{0,1},0.5
+/* *************************************************** */
+/*                                                     */
 /*                 cBenchElemBA                        */
 /*                                                     */
 /* *************************************************** */
 
 
-class cBenchElemBA
+class cGenPoseBenchElemBA
 {
      public :
-         cBenchElemBA(size_t aNbPose,cPt2dr aSIgTrRot);
+         cGenPoseBenchElemBA(size_t aNbPose,const cParamBenchElemBA&);
+
+         ///  Generate bundle perfect in ground truh
+         std::vector<cPt3dr> GenBundle(const cPt3dr &,tREAL8,const std::vector<int>&,tREAL8) const;
+
+         std::vector<cPt3dr> GenBundle(const std::vector<int>&) const;
 
          size_t              mNbPose;
          std::vector<tPoseR> mVPoseGT;    //<  Ground truth poses
-         std::vector<tPoseR> mVPosePert;  //< Perturbation
+         std::vector<tPoseR> mVPosePert;  //< Perturbated
 
+         cParamBenchElemBA  mParam;
+
+     private :
          /// return the minimal distance  of center (GT&Pert) to "Pt"
          tREAL8  DMinCenter(const cPt3dr &,const std::vector<int> &aVIndexe) const;
 
          /// return a point in a sphere that is enough far of both GT & Pert
          cPt3dr RandomPt(const cPt3dr&,tREAL8,const std::vector<int>&,tREAL8) const;
 
-         ///  Generate bundle perfect in ground truh
-         std::vector<cPt3dr> GenBundle(const cPt3dr &,tREAL8,const std::vector<int>&,tREAL8) const;
 };
 
-cBenchElemBA::cBenchElemBA(size_t aNbPose,cPt2dr aSIgTrRot) :
-    mNbPose (aNbPose)
+cGenPoseBenchElemBA::cGenPoseBenchElemBA(size_t aNbPose,const cParamBenchElemBA& aParamBA) :
+    mNbPose (aNbPose),
+    mParam  (aParamBA)
 {
+    // used to be a parameter, but could not solve the internal normalistion in
+    bool NormInit = true;
+    std::vector<int> aVIndexes;
     for (size_t aK=0 ; aK<aNbPose ; aK++)
     {
-        tPoseR aPoseGT =  tPoseR::RandomIsom3D(1.0);
-        tPoseR aPert = tPoseR(cPt3dr::PRandInSphere()*aSIgTrRot.x(),tRotR::RandomRot(aSIgTrRot.y()));
+        //  -- generate random rot assuring far enough of previous -----------
+        tRotR  aRotGT = tRotR::RandomRot();
+        cPt3dr aCenterGT = RandomPt(cPt3dr(0,0,0),1.0,aVIndexes,0.5);
+        tPoseR aPoseGT(aCenterGT,aRotGT);
+
+        // --- generate smal perturbation then perturbated pose
+        tPoseR aPert = tPoseR(cPt3dr::PRandInSphere()*aParamBA.mSigTrRot.x(),tRotR::RandomRot(aParamBA.mSigTrRot.y()));
         tPoseR  aPosePert = aPoseGT * aPert;
-        if (aK==0)
+
+        // --  assure that pose are normalized
+        if (NormInit)
         {
-            aPoseGT =   tPoseR::Identity();
-            aPosePert = tPoseR::Identity();
-        }
-        if (aK==1)
-        {
-             aPoseGT.Tr()   = VUnit(aPoseGT.Tr());
-             aPosePert.Tr() = VUnit(aPosePert.Tr());
+           if (aK==0)  // First pose is identity
+           {
+               aPoseGT =   tPoseR::Identity();
+               aPosePert = tPoseR::Identity();
+           }
+           if (aK==1)  // distance C0-C1 is 1.0
+           {
+               aPoseGT.Tr()   = VUnit(aPoseGT.Tr());
+               aPosePert.Tr() = VUnit(aPosePert.Tr());
+           }
         }
 
-        StdOut()  << "GT " << aPoseGT.Tr() << " PERT " << aPosePert.Tr() << "\n";
         mVPoseGT.push_back(aPoseGT);
         mVPosePert.push_back(aPosePert);
+        aVIndexes.push_back(aK);
     }
 }
 
-tREAL8  cBenchElemBA::DMinCenter(const cPt3dr & aPt,const std::vector<int>& aVIndexe) const
+tREAL8  cGenPoseBenchElemBA::DMinCenter(const cPt3dr & aPt,const std::vector<int>& aVIndexe) const
 {
     tREAL8 aDMin =1e10;
 
@@ -258,7 +403,7 @@ tREAL8  cBenchElemBA::DMinCenter(const cPt3dr & aPt,const std::vector<int>& aVIn
     return aDMin;
 }
 
-cPt3dr cBenchElemBA::RandomPt(const cPt3dr& aCenter,tREAL8 aRay,const std::vector<int>& aVIndexe,tREAL8 aDMin) const
+cPt3dr cGenPoseBenchElemBA::RandomPt(const cPt3dr& aCenter,tREAL8 aRay,const std::vector<int>& aVIndexe,tREAL8 aDMin) const
 {
     for (int aK=0 ;aK<1e5 ; aK++)
     {
@@ -273,7 +418,7 @@ cPt3dr cBenchElemBA::RandomPt(const cPt3dr& aCenter,tREAL8 aRay,const std::vecto
 
 
 std::vector<cPt3dr>
-    cBenchElemBA::GenBundle(const cPt3dr & aC,tREAL8 aRay,const std::vector<int>& aVInd,tREAL8 aDMin) const
+    cGenPoseBenchElemBA::GenBundle(const cPt3dr & aC,tREAL8 aRay,const std::vector<int>& aVInd,tREAL8 aDMin) const
 {
     std::vector<cPt3dr>  aRes;
 
@@ -304,7 +449,9 @@ void BenchElemBA()
 
 
 
-class cAppliTestElemBundle : public cMMVII_Appli
+
+class cAppliTestElemBundle : public cMMVII_Appli,
+                             public cParamBenchElemBA
 {
      public :
         cAppliTestElemBundle(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
@@ -315,23 +462,13 @@ class cAppliTestElemBundle : public cMMVII_Appli
         int Exe() override;
 
      private :
-
-        eModResBund    mMode;
-        int            mNbIter;
-        cPt2dr         mSigTrRot;
-        tREAL8         mLVM;
-        int            mNbSamples;
 };
 
 
 
 
 cAppliTestElemBundle::cAppliTestElemBundle(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
-    cMMVII_Appli      (aVArgs,aSpec),
-    mNbIter           (10),
-    mSigTrRot         (0.1,0.1),
-    mLVM              (1e-5),
-    mNbSamples        (1000)
+    cMMVII_Appli      (aVArgs,aSpec)
 {
 
 }
@@ -350,27 +487,19 @@ cCollecSpecArg2007 & cAppliTestElemBundle::ArgObl(cCollecSpecArg2007 & anArgObl)
 
 cCollecSpecArg2007 & cAppliTestElemBundle::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
+
     return anArgOpt
          << AOpt2007(mNbIter,"NbIter","Number of iteration",{eTA2007::HDV})
          << AOpt2007(mSigTrRot,"SigTR","Sigma Noise Tr/Rot",{eTA2007::HDV})
          << AOpt2007(mLVM,"LVM","Levenberg/Markard parameter",{eTA2007::HDV})
          << AOpt2007(mNbSamples,"NbS","Number of samples",{eTA2007::HDV})
-
-
-
-         /*  << AOpt2007(mShowSteps,"ShowSteps","Show detail of computation steps by steps",{eTA2007::HDV})
-           << AOpt2007(mZoomImL,"ZoomImL","Zoom for images of line",{eTA2007::HDV})
-           << AOpt2007(mRelThrsCumulLow,"ThrCumLow","Low Thresold relative for cumul in histo",{eTA2007::HDV})
-           << AOpt2007(mRelThrsCumulHigh,"ThrCumHigh","Low Thresold relative for cumul in histo",{eTA2007::HDV})
-               << mPhProj.DPPointsMeasures().ArgDirInOpt("","Folder for ground truth measure")
-                       */
-            ;
+        ;
 }
 
 
 int cAppliTestElemBundle::Exe()
 {
-    cBenchElemBA aBench2(2,mSigTrRot);
+    cGenPoseBenchElemBA aBench2(2,*this);
 
     cElemBA aBA(mMode,aBench2.mVPosePert);
 
@@ -385,12 +514,11 @@ int cAppliTestElemBundle::Exe()
     {
         for (const auto & aVBund : aVVBund)
         {
-           // std::vector<cPt3dr> aVBund= aBench2.GenBundle(cPt3dr(0,0,10),5.0,{0,1},0.5);
            aBA.AddHomBundle_Cam1Cam2(aVBund.at(0),aVBund.at(1),1.0);
         }
         aBA.OneIter(mLVM,&aBench2.mVPoseGT);
+
     }
-    //StdOut() << "BenchElemBABenchElemBABenchElemBABenchElemBA\n"; getchar();
 
     return EXIT_SUCCESS;
 }

@@ -482,7 +482,11 @@ template <class Type> void  cResolSysNonLinear<Type>::AddObservationLinear
      cDenseVect<Type> aNewCoeff = aCoeff.Dup();
 #if (WithNewLinearCstr)
      for (int aK=0 ; aK<mNbVar ; aK++)
+     {
+
          aNewRHS -=  mCurGlobSol(aK) * aCoeff(aK);  // -A' X0'
+     }
+    // StdOut() << " CURSSS " << mCurGlobSol << "\n"; getchar();
       mLinearConstr->SubstituteInDenseLinearEquation(aNewCoeff,aNewRHS);
 #else
 

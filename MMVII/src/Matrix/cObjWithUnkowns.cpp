@@ -324,23 +324,46 @@ template <class Type> void cSetInterUK_MultipeObj<Type>::AddOneInterv(cPtxd<Type
 
 template <class Type> void cSetInterUK_MultipeObj<Type>::IO_UnKnowns(cDenseVect<Type> & aVect,bool isSetUK)
 {
+    // for now we offer the possibility to maintain dynamically the old behaviour
+    bool OLDBehave = AppliSpecValue("OldOnUpdate") != MMVII_NONE;
+   // StdOut() << "          --- OLDBehaveOLDBehaveOLDBehaveOLDBehaveOLDBehaveOL  " << OLDBehave << "\n";
+
     size_t anIndex=0; // index that will parse all unknowns
+    typedef std::pair<int,Type *> tModif;
 
     for (auto &   aVinterv : mVVInterv) // parse object
     {
+        std::vector<tModif> aVModif;
+
         for (auto & anInterv : aVinterv.mVInterv) // parse interv of 1 object
         {
             for (size_t aK=0 ; aK<anInterv.mNb ; aK++)  // parse element of the interv
             {
-                Type & aVal = aVect(anIndex++); // memorize ref to element of vector and increase
+                Type & aVal = aVect(anIndex); // memorize ref to element of vector and increase
+                aVModif.push_back(tModif(anIndex++,&  anInterv.mVUk[aK] ));
                 if (isSetUK)
+                {
                     anInterv.mVUk[aK] = aVal;
+
+                }
                 else
                     aVal =  anInterv.mVUk[aK];
             }
         }
         if (isSetUK)
+        {
+    //        StdOut() << OLDBehave << " OnuuuuuuuUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUuuuuuupp \n";
             aVinterv.mObj->OnUpdate();
+            // MODIF MPD : BIG BUG , if the Var wher modified it muste the Vect must be updated !!!
+            if (! OLDBehave)
+             {
+               for (auto [anInd,anAdr] : aVModif )
+               {
+      //             StdOut() << " MOD " << aVect(anInd) << " => " << *anAdr << "\n";
+                   aVect(anInd) = * anAdr;
+               }
+            }
+        }
     }
 }
 
