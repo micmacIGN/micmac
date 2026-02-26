@@ -1,0 +1,3 @@
+- Rewrite README
+- Test on Windows !
+- Final test on GitHub
