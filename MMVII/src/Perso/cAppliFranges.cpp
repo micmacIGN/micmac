@@ -37,7 +37,7 @@ class cCurvFrange
        cCurvFrange(const cBox2di &);
 
        /// Create points from the average,  z is the weighting
-       std::vector<cPt3dr>  ExtractCurve() const;
+       std::vector<cPt3dr>  ExtractCurve(const cPt2dr & anOffset) const;
 
        /// Add a pix for averaging
        void AddPix(const cPt2di & aPix,tREAL8 aW);
@@ -71,7 +71,7 @@ void cCurvFrange::AddPix(const cPt2di & aPix,tREAL8 aW)
 
 
 // Extract average point with no null weighting
-std::vector<cPt3dr>  cCurvFrange::ExtractCurve() const
+std::vector<cPt3dr>  cCurvFrange::ExtractCurve(const cPt2dr & anOffset) const
 {
    std::vector<cPt3dr> aRes;
    for (size_t anY =0 ; anY<mAvX.size() ; anY++)
@@ -79,7 +79,7 @@ std::vector<cPt3dr>  cCurvFrange::ExtractCurve() const
        const auto & anAv = mAvX.at(anY);
        if (anAv.SW() != 0)
        {
-           aRes.push_back(cPt3dr(anAv.Average(),anY,anAv.SW()));
+           aRes.push_back(cPt3dr(anAv.Average()+anOffset.x(),anY+anOffset.y(),anAv.SW()));
        }
    }
    return aRes;
@@ -177,6 +177,7 @@ class cAppliFranges : public cMMVII_Appli
 
         tREAL8                   mWidhMinAll;    ///< Witdh Min of Connected compenent
         tREAL8                   mWidhMinBorder; ///< Idem but for border image
+        tREAL8                   mMinHeightBorderRight;
         bool                     mDoVisu;        ///< Do we generate visualisation
         std::vector<std::string> mParamStack;    ///< Param for image stacking if any
 
@@ -214,6 +215,7 @@ cAppliFranges::cAppliFranges(const std::vector<std::string> & aVArgs,const cSpec
     mNbIter           (5),
     mWidhMinAll       (200.0),
     mWidhMinBorder    (300.0),
+    mMinHeightBorderRight (200.0),
     mDoVisu           (false),
     mParamStack       {},
     //----------  Mandatory init of images --------
@@ -247,6 +249,7 @@ cCollecSpecArg2007 & cAppliFranges::ArgOpt(cCollecSpecArg2007 & anArgOpt)
             << AOpt2007(mDoVisu,"DoVisu","Generate Visualisation ?",{eTA2007::HDV})
             << AOpt2007(mWidhMinAll,"MinWidth","Minimal witdh, general case",{eTA2007::HDV})
             << AOpt2007(mWidhMinBorder,"BorderMinWidth","Minimal witdh for border",{eTA2007::HDV})
+            << AOpt2007(mMinHeightBorderRight,"MinHeightBorderRight","Minimal Heitgh for right border",{eTA2007::HDV})
             << AOpt2007(mParamStack,"Stack","Stacking parm [Pat,Nb,Mode] ",{{eTA2007::ISizeV,"[3,3]"}})
      ;
 }
@@ -299,9 +302,17 @@ bool cAppliFranges::ConnectedCompIsValide(const std::vector<cPt2di> & aVPts,cons
             return false;
     }
 
-    // CC must fill the entire hight
-    if (aBox.P0().y()!= 1) return false;
-    if (aBox.P1().y()!= mCurSz.y()-2) return false;
+      // right border, component may have been cut, relax constraint on height
+     if (aBox.P1().x() >=  mCurSz.x()-10)
+     {
+         if (aBox.Sz().y() < mMinHeightBorderRight) return false;
+     }
+     else  // Do not touch the right must be full height
+     {
+       // CC must fill the entire hight
+       if (aBox.P0().y()!= 1) return false;
+       if (aBox.P1().y()!= mCurSz.y()-2) return false;
+     }
 
     // So far, so good ...
     return true;
@@ -498,7 +509,7 @@ void  cAppliFranges::DoOneImage(const std::string & aNameIm)
     {
         cExportFrange anEF;
         anEF.mLabel = aKC;
-        anEF.mVPts = mCurves.at(aKC).ExtractCurve();
+        anEF.mVPts = mCurves.at(aKC).ExtractCurve(cPt2dr(0,mIntY.y()));
         for (const auto aPt : anEF.mVPts)
         {
             AddOneReportCSV(mIdExport,{ToStr(aKC),ToStr(aPt.x()),ToStr(aPt.y()),ToStr(aPt.z())});
@@ -535,7 +546,7 @@ void cAppliFranges::MakeVisu()
     }
     for (const auto & aFr : mCurves)
     {
-        for (const auto & aPt : aFr.ExtractCurve())
+        for (const auto & aPt : aFr.ExtractCurve(cPt2dr(0,0)))
         {
              aIRGB.SetRGBPix(ToI(Proj(aPt)),cRGBImage::Red);
         }

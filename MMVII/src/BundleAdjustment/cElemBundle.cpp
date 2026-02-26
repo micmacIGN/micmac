@@ -334,6 +334,8 @@ class cGenPoseBenchElemBA
          ///  Generate bundle perfect in ground truh
          std::vector<cPt3dr> GenBundle(const cPt3dr &,tREAL8,const std::vector<int>&,tREAL8) const;
 
+         std::vector<cPt3dr> GenBundle(const std::vector<int>&) const;
+
          size_t              mNbPose;
          std::vector<tPoseR> mVPoseGT;    //<  Ground truth poses
          std::vector<tPoseR> mVPosePert;  //< Perturbated
