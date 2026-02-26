@@ -27,11 +27,29 @@ cCamSimul::cCamSimul() :
 {
 }
 
+
+cCamSimul::cCamSimul(const cPt3dr& aCenterGround, double aProfMin, double aProfMax) :
+    mCenterGround (aCenterGround),
+    mProfMin      (aProfMin),
+    mProfMax      (aProfMax),
+    mBsHMin       (0.1),
+    mBsHMax       (0.5),
+    mRandInterK   (0.1)
+{
+}
+
+
 cCamSimul::~cCamSimul()
 {
     DeleteAllAndClear(mListCam);
     DeleteAllAndClear(mListCalib);
 }
+
+const std::vector<cSensorCamPC *> &cCamSimul::ListCam() const
+{
+    return mListCam;
+}
+
 
 bool cCamSimul::ValidateCenter(const cPt3dr & aP2) const
 { 
