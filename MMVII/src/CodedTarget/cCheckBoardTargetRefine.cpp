@@ -407,6 +407,8 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
 
     void cAppli_CheckBoardTargetRefine::CurrTgtExtent(bool& isOk)
     {
+        StdOut() << "BEGIN TARGET EXTENT" << std::endl;
+
         auto aVBasePts = get2DBasePoints();
         auto aVWrldBasePts = target2World(mCurrTgtCode, aVBasePts);
         std::vector<tREAL8> aVXImBasePts;
@@ -429,12 +431,16 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
             isOk = true;
             mCurrTgtExtent = cBox2dr(aImUL,aImLR);
         }
-        isOk = false;
-        mCurrTgtExtent = cBox2dr::Empty();
+        else
+        {
+            isOk = false;
+            mCurrTgtExtent = cBox2dr::Empty();
+        }
    }
 
     void cAppli_CheckBoardTargetRefine::TargetSample(bool& isOk)
    {
+        StdOut() << "BEGIN TARGET SAMPLE" << std::endl;
         cPt2dr& aImOffSet = mCurrTgtExtent.P0ByRef();//save the offset for camera back projection
         tIm aIm(ToI(mCurrTgtExtent.Sz()));
         auto& aDim = aIm.DIm();
@@ -483,7 +489,12 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
 
         if (mVisu)
         {
+            tIm aCropIm(ToI(mCurrTgtExtent.Sz()));
+            auto& aCDim = aCropIm.DIm();
+            auto aCurrIm = tIm::FromFile(mCurrCam->NameImage());
+            aCDim.CropIn(ToI(aImOffSet), aCurrIm.DIm());
             aDim.ToFile(NameVisu(mCurrCam->NameImage(), "Tgt" + mCurrTgtCode));
+            aCDim.ToFile(NameVisu(mCurrCam->NameImage(),"True" + mCurrTgtCode));
         }
     }
 
