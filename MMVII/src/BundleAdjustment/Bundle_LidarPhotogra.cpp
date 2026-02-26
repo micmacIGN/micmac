@@ -605,8 +605,7 @@ cBA_LidarLidarRaster::cBA_LidarLidarRaster(cPhotogrammetricProject * aPhProj,
     {
         cStaticLidar * aScan = mBA.AddStaticLidar(aNameSens);
         StdOut() << "Add Scan " << aNameSens << "\n";
-        mVScans.push_back({aNameSens, aScan, {},
-                           cStdWeighterResidual(sqrt(mWFactor)*aScan->Sigma(), -1, mThreshold, 0)}); // TODO not used for now
+        mVScans.push_back({aNameSens, aScan, {}});
     }
 
     // Creation of the patches, here juste center point
@@ -614,6 +613,28 @@ cBA_LidarLidarRaster::cBA_LidarLidarRaster(cPhotogrammetricProject * aPhProj,
     {
         aScanData.mLidarRaster->MakePatches(aScanData.mLPatchesP,aBA.VSCPC(),1,5);
         StdOut() << "Nb patches for " << aScanData.mScanName << ": " << aScanData.mLPatchesP.size() << "\n";
+
+        for (auto &aTestRasterPoint: {cPt2di(10672,2238), cPt2di(2552,2121) })
+            StdOut() << "Test " << aScanData.mScanName << " " << aTestRasterPoint << ": "
+                     << aScanData.mLidarRaster->Image2Ground(aTestRasterPoint) <<"\n";
+    }
+
+    // create the weighters map
+    UpdateWeightersMap();
+}
+
+void cBA_LidarLidarRaster::UpdateWeightersMap()
+{
+    std::cout << "up weighters, th="<<mThreshold*(1+10./mBA.NbIter())<<"\n";
+    for (auto & aScanDataA: mVScans)
+    {
+        for (auto & aScanDataB: mVScans)
+        {
+            tREAL8 aSigmaAB = sqrt(aScanDataA.mLidarRaster->Sigma()*aScanDataA.mLidarRaster->Sigma()
+                                   +aScanDataB.mLidarRaster->Sigma()*aScanDataB.mLidarRaster->Sigma());
+            mWeightersMap[aScanDataA.mScanName+"-"+aScanDataB.mScanName]
+                = cStdWeighterResidual(sqrt(mWFactor)*aSigmaAB, mThreshold*(1+10./mBA.NbIter()), 1., 1);
+        }
     }
 }
 
@@ -621,33 +642,39 @@ cBA_LidarLidarRaster::~cBA_LidarLidarRaster()
 {
 }
 
-#define SCANSCANDEBUGSZ 10
+
+#define SCANSCANDEBUG
 
 void cBA_LidarLidarRaster::AddObs()
 {
     mLastResidual.Reset();
     mNbUsedPoints = 0;
     mNbUsedObs = 0;
+
+    // update the weighters map
+    UpdateWeightersMap();
+
     for (auto & aScan : mVScans)
     {
-#ifdef SCANSCANDEBUGSZ
+#ifdef SCANSCANDEBUG
         cIm2D<tREAL4> aResImage(aScan.mLidarRaster->InternalCalib()->SzPix(),0,eModeInitImage::eMIA_Null);
         auto & aResImageData = aResImage.DIm();
+        int aPtSize = 1 + aScan.mLidarRaster->InternalCalib()->SzPix().x()/1000;
 #endif
 
         for (const auto& aPatch : aScan.mLPatchesP)
         {
             [[maybe_unused]] auto aMinRes = Add1Patch(aScan.mLidarRaster->Image2Ground(*aPatch.begin()),
                                                       aScan.mScanName);
-#ifdef SCANSCANDEBUGSZ
+#ifdef SCANSCANDEBUG
             auto aC = *aPatch.begin();
-            for (int y=aC.y()-SCANSCANDEBUGSZ; y<=aC.y()+SCANSCANDEBUGSZ;++y)
-                for (int x=aC.x()-SCANSCANDEBUGSZ; x<=aC.x()+SCANSCANDEBUGSZ;++x)
+            for (int y=aC.y()-aPtSize; y<=aC.y()+aPtSize;++y)
+                for (int x=aC.x()-aPtSize; x<=aC.x()+aPtSize;++x)
                     aResImageData.SetVTruncIfInside({x,y}, aMinRes);
 #endif
         }
 
-#ifdef SCANSCANDEBUGSZ
+#ifdef SCANSCANDEBUG
         std::string aPath = mPhProj->DirVisuAppli() + aScan.mScanName + "_iter_" + ToStr(mBA.NbIter())+ ".tif";
         aResImageData.ToFile(aPath);
 #endif
@@ -715,7 +742,6 @@ tREAL8 cBA_LidarLidarRaster::Add1Patch(const cPt3dr & aPGround, const std::strin
             cData1ImLidPhgr  aData; // data that will be filled
             aData.mScanAName = aScanName;
             aData.mScanBName = aScanData.mScanName;
-            aData.mWeighter = aScanData.mWeighter; // TODO: use scan A and B weights
             cPt2dr aPIm = aScanTo->Ground2Image(aPGround); // extract the image  projection
             tREAL8 aDist = Norm2(aPGround-aScanTo->Center());
             if (!aScanTo->IsValidPoint(aPIm))
@@ -728,8 +754,8 @@ tREAL8 cBA_LidarLidarRaster::Add1Patch(const cPt3dr & aPGround, const std::strin
                 tREAL8 aResidual = aValIm-aDist;
                 if (fabs(aResidual)<fabs(aMinResidual))
                     aMinResidual = aResidual;
-                if (fabs(aResidual)>mThreshold + 1./mBA.NbIter())
-                    continue;
+                //if (fabs(aResidual)>mThreshold*(1+10./mBA.NbIter())) // TODO!!! Why is it mandatory??
+                //    continue;
                 //std::cout<< "res "<<aResidual<<"\n";
                 aAvgRes.Add(1.0,fabs(aResidual));  // compute std deviation
                 aVData.push_back(aData); // memorize the data for this image
@@ -767,10 +793,8 @@ void cBA_LidarLidarRaster::AddPatchDist
         std::vector<int>       aVIndUk;
         std::vector<tREAL8>    aVObs;
         SetVUkVObs (aPGround,&aVIndUk,aVObs,aData,0);
-        //aSys->CalcAndAddObs(mEq,aVIndUk,aVObs,aData.mWeighter);
         aSys->CalcAndAddObs(mEq,aVIndUk,aVObs,
-                            1e-6);
-        //                    cStdWeighterResidual(1,1,0.1,1));
+                            mWeightersMap.at(aData.mScanAName+"-"+aData.mScanBName));
     }
 }
 

@@ -28,7 +28,7 @@ class cBA_BlockInstr;
  *
  *    W(R) =
  *          0 if R>Thrs
- *          1/Sigma0^2  * (1/(1+ (R/SigmaAtt)^Exp)) 
+ *          1/Sigma0^2  * (1/(1+ (R2/SigmaAtt2)^(Exp/2)))
  *
  */
 
@@ -46,7 +46,7 @@ class cStdWeighterResidual : public cResidualWeighter<tREAL8>
 	 tStdVect WeightOfResidual(const tStdVect &) const override;
 
      private :
-       // W(R) =  1/Sigma0^2  * (1/(1+ (R/SigmaAtt)^Exp))  ;  W(R) =0 if R>Thrs
+       // W(R) =  1/Sigma0^2  * (1/(1+ (R2/SigmaAtt2)^(Exp/2)))  ;  W(R) =0 if R>Thrs
          tREAL8   mWGlob;
 	 bool     mWithAtt;
 	 tREAL8   mSig2Att;
@@ -337,7 +337,6 @@ class cData1ImLidPhgr
         std::string mScanBName;    //< secondary scan id to get uk (only for llidar/lidar adj)
         size_t mKIm;  ///< num of images where the patch is seen (only for lidar/im adj)
         std::vector<std::pair<tREAL8,cPt2dr>> mVGr; ///< pair of radiometry/gradient, in image,  for each point of the patch
-        cStdWeighterResidual mWeighter;  //< obs weighter, combining both sensors
 };
 
 
@@ -446,7 +445,6 @@ struct cStaticLidarBAData
     std::string                    mScanName;      //< scan id
     cStaticLidar *                 mLidarRaster;   //< raster representations of lidar
     std::list<std::set<cPt2di>>    mLPatchesP;     //< set of patches as px in raster, consituted by 3D points in a lidar scan
-    cStdWeighterResidual           mWeighter;      //< scan weighter, depends on scan sigma and user factor
 };
 
 /**
@@ -492,6 +490,8 @@ public :
     /// add observation
     void AddObs() override;
 
+    void UpdateWeightersMap(); // create or update map, on each iteration
+
 protected :
     /**  Add observation for 1 Patch of point */
     tREAL8 Add1Patch(const cPt3dr &aPGround, const std::string & aScanName); // returns min residual for this point
@@ -507,6 +507,7 @@ protected :
          ) override;
 
     std::vector<cStaticLidarBAData>   mVScans;      ///< vector of raster representations of lidar
+    std::map<std::string,cStdWeighterResidual> mWeightersMap;   ///< map from "nameScanA-nameScanB" to the appropriate weighter
     tREAL8                            mThreshold;   ///< distance where scan points are supposed to be hidden (mThreshold+1./NbIter)
 };
 

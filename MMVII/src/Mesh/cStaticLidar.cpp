@@ -1116,6 +1116,7 @@ void cStaticLidar::MakeVisu(const cPhotogrammetricProject & aPhProj) const
     MMVII_INTERNAL_ASSERT_tiny(mAreRastersReady, "Error: rasters not ready");
     auto & aRasterDistData = mRasterDistance->DIm();
     double aDistMax = 0.;
+    int aPtSize = 1 + mRasterDistance->DIm().SzX()/1000;
     for (auto & aPt :  aRasterDistData)
     {
         if (aRasterDistData.GetV(aPt)>aDistMax)
@@ -1126,7 +1127,7 @@ void cStaticLidar::MakeVisu(const cPhotogrammetricProject & aPhProj) const
     {
         //aImDist8b.SetRGBPoint(ToR(aCenter)-cPt2dr(0.,0.), cRGBImage::Red);
         //aImDist8b.RawSetPoint(aCenter, cRGBImage::Red);
-        aImDist8b.FillRectangle(cRGBImage::Red, aCenter-cPt2di(0,0), aCenter+cPt2di(1,1), {0.,0.,0.});
+        aImDist8b.FillRectangle(cRGBImage::Red, aCenter-cPt2di(aPtSize,aPtSize), aCenter+cPt2di(aPtSize,aPtSize), {0.,0.,0.});
     }
     std::string aPath = aPhProj.DirVisuAppli() + mStationName + "_" + mScanName + "_patches.png";
     aImDist8b.ToFile(aPath);
