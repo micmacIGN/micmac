@@ -1,0 +1,253 @@
+diff --git a/bin/Bckup-Mk-MMVII.makefile b/bin/Bckup-Mk-MMVII.makefile
+deleted file mode 100755
+index 4018a689d..000000000
+--- a/bin/Bckup-Mk-MMVII.makefile
++++ /dev/null
+@@ -1,69 +0,0 @@
+-#
+-#== Directories
+-#
+-MMDir=/home/ubuntu/Desktop/MMM/micmac/
+-MMV2Dir=${MMDir}MMVII/
+-MMV2DirSrc=${MMV2Dir}src/
+-MMV2DirBin=${MMV2Dir}bin/
+-MMV2Objects=${MMV2Dir}object/
+-MMV2DirIncl=${MMV2Dir}include/
+-#
+-#=========== Sous directory des sources
+-#
+-MMV2DirTLE=${MMV2DirSrc}TestLibsExtern/
+-SrcTLE=$(wildcard ${MMV2DirTLE}*.cpp)
+-ObjTLE=$(SrcTLE:.cpp=.o) 
+-#
+-MMV2DirT4MkF=${MMV2DirSrc}Test4Mkfile/
+-Src4Mkf= $(wildcard ${MMV2DirT4MkF}*.cpp)
+-ObjMkf= $(Src4Mkf:.cpp=.o) 
+-#
+-MMV2DirBench=${MMV2DirSrc}Bench/
+-SrcBench= $(wildcard ${MMV2DirBench}*.cpp)
+-ObjBench= $(SrcBench:.cpp=.o) 
+-#
+-#    => Le Main
+-#
+-MAIN=${MMV2DirSrc}main.cpp
+-#============ Calcul des objets
+-#
+-OBJ= ${ObjTLE} ${ObjMkf} ${ObjBench}
+-#
+-#=========  Header ========
+-#
+-#
+-HEADER=$(wildcard ${MMV2DirIncl}*.h)
+-#
+-#  Binaries
+-#== CFLAGS etc...
+-#
+-CXX=g++
+-CFlags="-std=c++11" -I${MMV2Dir}
+-LibsFlags= ${MMDir}/lib/libelise.a -lX11 
+-MMV2Exe=MMVII
+-#
+-${MMV2DirBin}${MMV2Exe} :  ${OBJ}
+-	${CXX}  ${MAIN} ${CFlags}  ${OBJ}  ${LibsFlags}  -o ${MMV2DirBin}${MMV2Exe}
+-#
+-#
+-# Objects
+-#
+-#
+-${MMV2DirTLE}%.o :  ${MMV2DirTLE}%.cpp   ${HEADER}
+-	${CXX} -c  $< ${CFlags} -o $@
+-${MMV2DirT4MkF}%.o :  ${MMV2DirT4MkF}%.cpp ${HEADER}
+-	${CXX} -c  $< ${CFlags} -o $@
+-${MMV2DirBench}%.o :  ${MMV2DirBench}%.cpp ${HEADER}
+-	${CXX} -c  $< ${CFlags} -o $@
+-#
+-#       ===== TEST ========================================
+-#
+-all : ${MMV2DirBin}${MMV2Exe} ${OBJ}
+-	${CXX}  ${MAIN} ${CFlags}  ${OBJ}  ${LibsFlags}  -o ${MMV2DirBin}${MMV2Exe}
+-ShowBench :
+-	echo ${SrcBench}
+-	echo ${ObjBench}
+-ShowObj :
+-	echo ${OBJ}
+-	echo ${HEADER}
+-#
+diff --git a/bin/Makefile b/bin/Makefile
+deleted file mode 100755
+index d591dc276..000000000
+--- a/bin/Makefile
++++ /dev/null
+@@ -1,4 +0,0 @@
+-all:
+-	@echo "Please, use the cmake based build system"
+-	@echo "(read micmac/MMVII/Readme.md)"
+-	@echo "or use make -f Makefile.legacy"
+diff --git a/bin/Makefile.legacy b/bin/Makefile.legacy
+deleted file mode 100755
+index 8b4a1ade8..000000000
+--- a/bin/Makefile.legacy
++++ /dev/null
+@@ -1,93 +0,0 @@
+-# make CC=gcc-10 CPP=g++-10 CXX=g++-10 LD=g++-10
+-# =========== Directories
+-
+-MMV1_DIR=../..
+-MMV1_LIBDIR=${MMV1_DIR}/lib
+-MMV2_DIR=${MMV1_DIR}/MMVII
+-MMV2_BINDIR=${MMV2_DIR}/bin
+-MMV2_SRCDIR=${MMV2_DIR}/src
+-MMV2_INCDIR=${MMV2_DIR}/include
+-MMV2_EXTINCDIR=${MMV2_DIR}/ExternalInclude
+-MMV2_EXE=${MMV2_BINDIR}/MMVII
+-
+-MMV2_GENDIR=${MMV2_SRCDIR}/GeneratedCodes
+-
+-# =========== Includes & Libraries
+-EIGEN_DIR=${MMV2_EXTINCDIR}/eigen-3.4.0
+-MMV1_INCLUDES=-I ${MMV1_DIR}/include
+-MMV2_INCLUDES=-I ${MMV2_INCDIR} -I ${EIGEN_DIR}
+-
+-MMV2_LIBNAME=P2007
+-MMV2_LIB=${MMV2_BINDIR}/lib${MMV2_LIBNAME}.a
+-MMV1_LIBS=${MMV1_LIBDIR}/libelise.a ${MMV1_LIBDIR}/libANN.a
+-## MacOS : may be -lstdc++fs should be replaced by -lc++experimental
+-EXT_LIBS=-lpthread -lX11 -lstdc++fs
+-
+-
+-
+-# =========== Compiler & Flags
+-CXX=g++
+-LD=g++
+-CXXFLAGS=-fopenmp -std=c++17 -Wall  -Werror -O3 -fPIC  ${MMV2_INCLUDES} ${MMV1_INCLUDES}
+-LDFLAGS=-fopenmp
+-
+-
+-# ===========  Use ccache if found
+-CCACHE:=${shell which ccache}
+-ifneq (,${CCACHE})
+-  override CXX:=${CCACHE} ${CXX}
+-endif
+-
+-
+-# ============ Targets
+-.phony: all clean genclean distclean
+-all: ${MMV2_EXE}
+-
+-clean:
+-	rm -f ${OBJS} ${DEPS} ${MMV2_EXE} ${MMV2_LIB}
+-
+-genclean:
+-	-rm -f ${MMV2_GENDIR}/*
+-
+-distclean: clean genclean
+-
+-
+-# =========== Build Lib
+-SRC_REGGEN=${MMV2_GENDIR}/cName2CalcRegisterAll.cpp
+-${SRC_REGGEN}:
+-	mkdir -p ${MMV2_GENDIR}
+-	cp ${MMV2_INCDIR}/SymbDer/cName2CalcRegisterAll.cpp.tmpl $@
+-
+-LIB_SRCS:=${wildcard ${MMV2_SRCDIR}/*/*.cpp}
+-## Force ${REGEN} to be built, but assure only once in LIB_SRCS :
+-LIB_SRCS:=${filter-out ${SRC_REGGEN},${LIB_SRCS}} ${SRC_REGGEN}
+-LIB_OBJS:=${LIB_SRCS:.cpp=.o}
+-
+-
+-%.o: %.cpp Makefile
+-	${CXX} -c  ${CXXFLAGS} $< -o $@
+-
+-${MMV2_LIB}: ${LIB_OBJS}
+-	rm -f $@
+-	ar crs $@ $^
+-
+-# ========== Build Main
+-MAIN_OBJ=${MMV2_SRCDIR}/main.o
+-
+-${MMV2_EXE}: ${MAIN_OBJ} ${MMV2_LIB} ${MMV1_LIBS}
+-	${CXX} ${LDFLAGS} $^ ${EXT_LIBS}  -o $@
+-
+-
+-# =========== Auto dependancies
+-OBJS=${LIB_OBJS} ${MAIN_OBJ}
+-DEPS=${join ${addsuffix ., ${dir ${OBJS}}}, ${notdir ${OBJS:.o=.d}}}
+-
+-.%.d: %.cpp
+-	@set -e; rm -f $@; \
+-	${CXX} -MM -MP -MT '${patsubst %.cpp,%.o,$<} $@' -MF $@ ${CXXFLAGS} $<   2>/dev/null
+-
+-ifneq (${MAKECMDGOALS},clean)
+-ifneq (${MAKECMDGOALS},distclean)
+--include ${DEPS}
+-endif
+-endif
+diff --git a/include/cMMVII_Appli.h b/include/cMMVII_Appli.h
+index cf61769f4..4f352d6d4 100755
+--- a/include/cMMVII_Appli.h
++++ b/include/cMMVII_Appli.h
+@@ -498,7 +498,6 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
+         static const std::string & DirBinMMVII();   ///<  directory where the MMVII binary is
+         static const std::string & TmpDirTestMMVII();     ///< where to put binary file for bench, Export for global bench funtion
+         static const std::string & InputDirTestMMVII();   ///<  where are input files for bench   , Export for global bench funtion
+-        static const std::string & DirMicMacv1();         ///<  Main directory of micmac V1
+         static const std::string & MMV1Bin();             ///< full name of micmac v1 (mm3d) binary
+ 
+         ///  Name of folder specific to the command
+@@ -721,7 +720,6 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
+         static std::string                        mTopDirMMVII;   ///< directory  mother of src/ bin/ ...
+ 
+         static std::string                        mFullBin;       ///< full name of binarie =argv[0]
+-        static std::string                        mDirMicMacv1;   ///< Dir where is located MicMac V1
+         static std::string                        mDirMicMacv2;   ///< Dir where is located MicMac V2
+         static std::string                        mMMV1Bin;       ///< full name of mm3d binary
+         static std::string                        mDirTestMMVII;  ///< Directory for read/write bench files
+diff --git a/src/Appli/cMMVII_Appli.cpp b/src/Appli/cMMVII_Appli.cpp
+index 44743c1c0..084ff95c9 100755
+--- a/src/Appli/cMMVII_Appli.cpp
++++ b/src/Appli/cMMVII_Appli.cpp
+@@ -330,23 +330,12 @@ void cMMVII_Appli::InitMMVIIDirs(const std::string& aMMVIIDir)
+     MakeNameDir(mTopDirMMVII);
+     mDirBinMMVII       = mTopDirMMVII + "bin" + StringDirSeparator();
+     mFullBin           = mDirBinMMVII + MMVIIBin2007;
+-    mDirMicMacv1       = UpDir(mTopDirMMVII);
+     mDirMicMacv2       = mTopDirMMVII;
+     mDirTestMMVII      = mDirMicMacv2 + MMVIITestDir;
+     mDirRessourcesMMVII      = mDirMicMacv2 + MMVIIRessourcesDir;
+     mDirLocalParameters      = mDirMicMacv2 + MMVIILocalParametersDir;
+     mTmpDirTestMMVII   = mDirTestMMVII + "Tmp" + StringDirSeparator();
+     mInputDirTestMMVII = mDirTestMMVII + "Input" + StringDirSeparator();
+-
+-#if (THE_MACRO_MMVII_SYS == MMVII_SYS_L)
+-    mMMV1Bin           = mDirMicMacv1 + "bin/mm3d";
+-#elif (THE_MACRO_MMVII_SYS == MMVII_SYS_A)
+-    mMMV1Bin           = mDirMicMacv1 + "bin/mm3d";
+-#elif (THE_MACRO_MMVII_SYS == MMVII_SYS_W)
+-    mMMV1Bin           = mDirMicMacv1 + "bin/mm3d.exe";
+-#endif
+-
+-
+ }
+ 
+ const std::vector<eSharedPO>    cMMVII_Appli::EmptyVSPO;  ///< Deafaut Vector  shared optional parameter
+@@ -1676,11 +1665,10 @@ std::string cMMVII_Appli::mDirLocalParameters;
+ std::string cMMVII_Appli::mProfileUsage;
+ std::string cMMVII_Appli::mDirProfileUsage;
+ cParamProfile cMMVII_Appli::mParamProfile;
+-std::string cMMVII_Appli::mDirMicMacv1;
+ std::string cMMVII_Appli::mDirMicMacv2;
+ std::string cMMVII_Appli::mVectNameDefSerial;
+ std::string cMMVII_Appli::mTaggedNameDefSerial;
+-std::string cMMVII_Appli::mMMV1Bin;
++std::string cMMVII_Appli::mMMV1Bin = "mm3d";
+ 
+               // static Accessors
+ const std::string & cMMVII_Appli::TmpDirTestMMVII()   {return mTmpDirTestMMVII;}
+@@ -1689,7 +1677,6 @@ const std::string & cMMVII_Appli::TopDirMMVII()       {return mTopDirMMVII;}
+ const std::string & cMMVII_Appli::DirBinMMVII()       {return mDirBinMMVII; }
+ const std::string & cMMVII_Appli::FullBin()           {return mFullBin;}
+ const std::string & cMMVII_Appli::DirTestMMVII()      {return mDirTestMMVII;}
+-const std::string & cMMVII_Appli::DirMicMacv1()       {return mDirMicMacv1;}
+ const std::string & cMMVII_Appli::MMV1Bin()           {return mMMV1Bin;}
+ 
+ 

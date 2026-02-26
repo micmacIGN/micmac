@@ -24,4 +24,7 @@ git commit -m "Build MMVII on GitHub"
 patch <../CMakeLists.patch
 git commit -am "CMakeLists for outside mm3d repository"
 
+git apply ../mm3dbin.patch
+git commit -am "handle mm3d binary"
+
 git remote add origin https://github.com/meynardc/mm2.git
