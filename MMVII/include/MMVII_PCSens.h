@@ -737,18 +737,19 @@ class cCamSimul : public cMemCheck
    public :
       static cCamSimul * Alloc2VIewTerrestrial(eProjPC aProj1,eProjPC aProj2,bool SubVert);
 
+      cCamSimul(const cPt3dr& aCenterGround, double aProfMin, double aProfMax);
       ~cCamSimul();
       static void BenchPoseRel2Cam(cTimerSegm * aTS,bool PerfInter,bool SubVert,bool Planar);
       void TestCam(cSensorCamPC * aCam) const;
 
       const std::vector<cSensorCamPC *> & ListCam() const;
 
-   private :
       /// Add a cam of given type by generating a random calib
       void AddCam(eProjPC aProj1,bool SubVert);
       /// Once computed the calib generate the pose to creat a cam
       void AddCam(cPerspCamIntrCalib *,bool SubVert);
 
+   private :
       ///  Constructor , gives default values to numerical quantities (Prof ...)
       cCamSimul();
       ///  is the new center sufficiently far, but not too much

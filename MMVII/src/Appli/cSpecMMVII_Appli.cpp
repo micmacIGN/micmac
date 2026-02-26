@@ -284,10 +284,10 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpec_ImportTriplet);
         TheVecAll.push_back(&TheSpec_ArboTriplet);
         
-
         TheVecAll.push_back(&TheSpecAppliBenchAPBI);
         TheVecAll.push_back(&TheSpecAppliTestElemBundle);
 
+        TheVecAll.push_back(&TheSpec_EpipGeom);
 
         std::sort(TheVecAll.begin(),TheVecAll.end(),CmpCmd);
    }
