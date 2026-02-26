@@ -30,7 +30,7 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
             int doPredict(const std::string & aImName);
             void doAffInv(const cSensorCamPC * aCam);
             void doReproj(const std::string & aCode);
-            void doTargetRefine(bool& isOk);
+            void TargetRefine(bool& isOk);
             void CurrTgtExtent(bool& isOk);
             std::vector<std::string> MissingTargetsNames(const cSetMesPtOf1Im & aFoundTargets);
             cSetMesPtOf1Im MissingTargetsPredict(const std::string & aImName, const std::vector<std::string> & aVMissingTargetsNames);
@@ -80,6 +80,7 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
             std::map<const cSensorCamPC *, cSetMesGnd3D> mMImSetOfBundles;
             std::unique_ptr<cFullSpecifTarget> mFullSpec;
             cBox2dr mCurrTgtExtent;
+            std::map<cSensorCamPC*,std::map<std::string,std::vector<cPt2dr>>> mMCamTgtBasePts;
 
 
             //----stolen to cCheckBoardTargetExtract
@@ -195,7 +196,7 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
                 mCurrTgtCode = aTgt;
                 bool isOk;
                 StdOut() << aTgt<<std::endl;
-                doTargetRefine(isOk);
+                TargetRefine(isOk);
                 /*if(isOk)
                 {
                     aIm.SetRGBBorderRectWithAlpha(ToI(aBox.Middle()),Norm2(aBox.Sz())/2,10,cRGBImage::Orange,0.1);//0.1 means final opacity = 1-0.1
@@ -234,6 +235,8 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
         //for each target compute ground coordinates of arbitrary target base points (typically corners)
         std::map<std::string, std::vector<cPt3dr>> aMTargetsWorldBasePoints = computeTargetsWorldBasePoints();
 
+
+
         cSetTargetMap aTarget2WorldMappings(mPhProj.DPGndPt3D().DirOut());//set of target 2 ground mappings (useful for serialisation)
 
         for (const auto& aTgtWrldBsePts:aMTargetsWorldBasePoints)
@@ -262,6 +265,7 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
 
         for (const auto& aCam:mVCams)
         {
+            mMCamTgtBasePts[aCam] = {};//init. cam. map.
             //load im. measurements/2d affinity obtained from previous extraction
             cSetMesPtOf1Im aImMeasures = mPhProj.LoadMeasureIm(aCam->NameImage());
             std::vector<cSaveExtrEllipe> aVEllipsesExtrinsics;
@@ -271,17 +275,21 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
             {
                 const std::string& aTargetCode = aEllipseExtrinsics.mNameCode;
                 std::vector<tSeg3dr> aVBaseBundles = {};
+                std::vector<cPt2dr> aVCamBasePts = {};//to be use for residual computation
 
                 for (const auto& aBasePt:get2DBasePoints())//get base points (usually corners)
                 {
                     //based on affinity computed at the extraction step, predict base pt. coords. in current view
                     cPt2dr aTransformedBasePt = aEllipseExtrinsics.mAffIm2Ref.Inverse(aBasePt);
+                    aVCamBasePts.push_back(aTransformedBasePt);
                     tSeg3dr aBundle = aCam->Image2Bundle(aTransformedBasePt);//compute base bundle
                     aVBaseBundles.push_back(aBundle);//add the bundle to the vector of base bundles
 
                     //initialize the key,value pair if it's the first vector for current target
                     if (!aMTargetsBaseBundles.count(aTargetCode)) aMTargetsBaseBundles[aTargetCode] = {{},{},{},{}};
                 }
+
+                mMCamTgtBasePts[aCam][aTargetCode] = aVCamBasePts;
 
                 for (decltype(get2DBasePoints().size()) ix = 0; ix < get2DBasePoints().size(); ++ix)//there is one base bundles vector
                 {                                                                                   //for each target base point
@@ -353,10 +361,6 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
                 cPt3dr(0,mRes-1,0),cPt3dr(mRes-1,mRes-1,0)};
     }
 
-    /*
-     * From here ~ temp. methods to refact/delete (should begin by doSmthg.)
-     */
-
     std::vector<cPt3dr> cAppli_CheckBoardTargetRefine::get3DTargetCorners(std::string& aCode)
     {
         std::vector<cPt3dr> aRes;
@@ -391,13 +395,9 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
         return cAff2D_r(aTr, aVx, aVy);
     }
 
-    /*
-     * From here ~ temp. methods to refact/delete (should begin by doSmthg.)
-     */
-
-    void cAppli_CheckBoardTargetRefine::doTargetRefine(bool& isOk)
+    void cAppli_CheckBoardTargetRefine::TargetRefine(bool& isOk)
     {
-        CurrTgtExtent(isOk);
+        CurrTgtExtent(isOk);//computes current target extent
 
         if (isOk)
         {
@@ -458,7 +458,7 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
             {
                 auto aLocalIm2Tgt = getLocalAff2D(ToR(aPix)+aImOffSet, 0.1);
 
-                //stolen from cSimulTarget.cpp
+                //stolen from cSimulTarget.cpp: anti-aliasing algorithm
                 cRessampleWeigth aRW = cRessampleWeigth::GaussBiCub(ToR(aPix)+aImOffSet,aLocalIm2Tgt,2);
                 const std::vector<cPt2di>  & aVPts = aRW.mVPts;
                 if (!aVPts.empty())
@@ -485,9 +485,11 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
         {
             aDim.ToFile(NameVisu(mCurrCam->NameImage(), "Tgt" + mCurrTgtCode));
         }
-
-        return aIm;
     }
+
+   /*
+     * From here ~ temp. methods to refact/delete (should begin by doSmthg.)
+     */
 
     void cAppli_CheckBoardTargetRefine::doReproj(const std::string & aCode)
     {
