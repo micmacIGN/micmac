@@ -2,12 +2,16 @@ rm -fr MMVII
 
 case "$1" in
   g*) rm -fr micmac ;  git clone git@github.com:micmacIGN/micmac.git ;;
+  h*) rm -fr micmac ;  git clone https://github.com/micmacIGN/micmac.git ;;
   *) ;; 
 esac
 
 cp -a  micmac MMVII || exit 1
 cd MMVII
-git-filter-repo --replace-refs delete-no-add --subdirectory-filter MMVII
+../git-filter-repo --replace-refs delete-no-add --subdirectory-filter MMVII
+
+../tabs.py
+
 git tag -l "*v1*" | xargs -r git tag -d
 
 git branch -m master main
