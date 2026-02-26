@@ -647,9 +647,9 @@ CT197	3.580	-3.306	5.238	0.001
     mForcedPose.Tr() = aT;
     mForcedPose.Rot() =
                         (aRotTSL2MM *
-                         cRotation3D<tREAL8>({aR1.x(), aR1.y(), aR1.z()},
-                                             {aR2.x(), aR2.y(), aR2.z()},
-                                             {aR3.x(), aR3.y(), aR3.z()}, true)
+                         cRotation3D<tREAL8>({aR1.x(), aR2.x(), aR3.x()},
+                                             {aR1.y(), aR2.y(), aR3.y()},
+                                             {aR1.z(), aR2.z(), aR3.z()}, true)
                         ).MapInverse();
     }
 
