@@ -15,19 +15,33 @@ namespace MMVII
 class cElemBA
 {
    public :
-       cElemBA(eModResBund,const std::vector<tPoseR>& aVPose);
+        /// Constructor : Mode of Compensation + Vector of poses
+        cElemBA(eModResBund,const std::vector<tPoseR>& aVPose);
+        /// Free allocated memory
        ~cElemBA();
 
-       void AddHomBundle_Cam1Cam2(const cPt3dr & aDirB0,const cPt3dr & aDirB1,tREAL8 aW,tREAL8 aEpsilon=1e-6);
+       /**  Add one Obs of 2 direction between Cam1 & Cam2 , Noise is used only in test mode for verification that
+            even if bundle intersection is un-accurate, we converge to the good sollution */
+       void AddHomBundle_Cam1Cam2(const cPt3dr & aDirB0,const cPt3dr & aDirB1,tREAL8 aW,tREAL8 aEpsilon=1e-6, tREAL8 aNoise=0);
 
-       void OneIter(tREAL8 aLVM,const std::vector<tPoseR> * aVRef);
+       void OneIter(tREAL8 aLVM);  ///< Iterate one obs have been added
        cResolSysNonLinear<double> *  Sys();   ///< Accesor
+       const std::vector<tPoseR>  &  CurPose() const; ///< Acessor
+
+       tREAL8 AvgRes1() const; /// Average of residual of Cam1
+       tREAL8 AvgRes2() const;  /// Average of residual of Cam2
+
    private :
+       /// Add obs of Bundle for cam1, to put in Substiution structe - Colinearity
+       void AddEquationColinearity_Cam1(cSetIORSNL_SameTmp<tREAL8> &,const cPt3dr & aDirB0,tREAL8  aWeight);
 
-       void AddHomBundle_Cam1(cSetIORSNL_SameTmp<tREAL8> &,const cPt3dr & aDirB0,tREAL8  aWeight);
-       void AddHomBundle_Cam2(cSetIORSNL_SameTmp<tREAL8> &,const cPt3dr & aDirB1,tREAL8  aWeight);
-       void AddHomBundle_Cam12(const cPt3dr & aDirB1,const cPt3dr & aDirB2,tREAL8  aWeight);
+       /// Add obs of Bundle for cam2, to put in Substiution structe  - Colinearity
+       void AddEquationColinearity_Cam2(cSetIORSNL_SameTmp<tREAL8> &,const cPt3dr & aDirB1,tREAL8  aWeight);
 
+       /// Add obs for Cam 1 & 2, no point computed/No Schuur -> Coplanarity
+       void AddEquationCoplanarity(const cPt3dr & aDirB1,const cPt3dr & aDirB2,tREAL8  aWeight);
+
+       /// Compute bundle given camera an local direction
        tSeg3dr  Bundle(int aKCam,const cPt3dr &) const;
 
 
@@ -35,33 +49,30 @@ class cElemBA
 
         //void Add
 
-       eModResBund                        mMode;
-       bool                               isMode12;
-       std::vector<tPoseR>                mCurPose;
-       tPoseR                             mPoseRef;
-       tREAL8                             mScaleRef;
+       eModResBund                        mMode;  ///< Mode of equation
+       bool                               isModeCoplan; ///< is it one mode of co-planarity
+       std::vector<tPoseR>                mCurPose;      ///< Vector of current pose (init then updated)
        int                                mSzBuf;       ///<  Sz Buf for calculator
-       cCalculator<double> *              mEqElemCam1;  ///< Colinearity equation
-       cCalculator<double> *              mEqElemCam2;
-       cCalculator<double> *              mEqElemCam12;
+       cCalculator<double> *              mEqElemCam1;  ///< Colinearity equation - Cam1
+       cCalculator<double> *              mEqElemCam2;   ///< Colinearity equation - Cam2
+       cCalculator<double> *              mEqElemCam12;   ///< Co-planrarity equatipn
 
       // cCalculator<double> *              mEqElemCamN;
        cSetInterUK_MultipeObj<double>     mSetInterv;   ///< coordinator for autom numbering
-       cResolSysNonLinear<double> *       mSys;   ///< Solver
-       cLeasSqtAA<tREAL8> *               mSystAA;  ///< Pointer to dense solver
-      // cLinearOverCstrSys<tREAL8> *       mLinSys;
-       cP3dNormWithUK                     mTr2;   ///< Unknown normaized trace for unit
-       cRotWithUK                         mRot2;
-       std::vector<cPoseWithUK*>          mPoseN;
+       cResolSysNonLinear<double> *       mSys;         ///< Solver
+       cLeasSqtAA<tREAL8> *               mSystAA;      ///< Pointer to dense least square solve (short cut for linDet12 case)
+       cP3dNormWithUK                     mTr2;         ///< Unknown  trans for cam2 force to unity
+       cRotWithUK                         mRot2;        ///< Unknown rotation for cam2
+       std::vector<cPoseWithUK*>          mPoseN;       ///< unkown pose over 2 (to come)
 
-       cWeightAv<tREAL8>                  mRes1;
-       cWeightAv<tREAL8>                  mRes2;
+       cWeightAv<tREAL8>                  mRes1;        ///< Average of residual Cam1
+       cWeightAv<tREAL8>                  mRes2;        ///< Average of residual Cam2
 
 };
 
 cElemBA::cElemBA(eModResBund aMode,const std::vector<tPoseR>& aVPose) :
     mMode       (aMode),
-    isMode12    (! ModResBund_IsModeGen(mMode)),
+    isModeCoplan    (! ModResBund_IsModeGen(mMode)),
     mCurPose    (aVPose),
     mSzBuf      (1),
     mEqElemCam1 (EqBundleElem_Cam1(mMode,true,mSzBuf,true)),
@@ -74,21 +85,13 @@ cElemBA::cElemBA(eModResBund aMode,const std::vector<tPoseR>& aVPose) :
     mRot2       (tRotR::Identity())
 
 {
-    mPoseRef = mCurPose.at(0);
-    mScaleRef = Norm2(mCurPose.at(0).Tr() -mCurPose.at(1).Tr());
-
-    for (auto & aPose : mCurPose)
-    {
-        // PoseRef  C1 ->W
-       aPose = (mPoseRef.MapInverse()*aPose).ScaleTr(1.0/mScaleRef);
-       // aPose = (aPose*mPoseRef.MapInverse()).ScaleTr(1.0/mScaleRef);
-    }
-    mTr2.SetPNorm(mCurPose.at(1).Tr());
-    mRot2.SetRot(mCurPose.at(1).Rot());
-
-
+    //--- Check that pose complies with normalization pre-requirement
     MMVII_INTERNAL_ASSERT_always(mCurPose.at(0).DistPose(tPoseR::Identity(),1.0)<1e-7,"Pose0!=Id in cElemBA");
     MMVII_INTERNAL_ASSERT_always((Norm2(mCurPose.at(1).Tr())-1.0)<1e-8,"Norma base in cElemBA");
+
+    //  --------  Initialize the unknowns ----------------------
+    mTr2.SetPNorm(mCurPose.at(1).Tr());
+    mRot2.SetRot(mCurPose.at(1).Rot());
 
     mSetInterv.AddOneObj(&mTr2);
     mSetInterv.AddOneObj(&mRot2);
@@ -99,6 +102,7 @@ cElemBA::cElemBA(eModResBund aMode,const std::vector<tPoseR>& aVPose) :
         mSetInterv.AddOneObj(mPoseN.back());
     }
 
+    //  ------------------ Create the non linear system -------------------------
     mSys = new cResolSysNonLinear<double>(eModeSSR::eSSR_LsqDense,mSetInterv.GetVUnKnowns());
     mSystAA = mSys->SysLinear()->Get_tAA();
 }
@@ -110,67 +114,76 @@ cElemBA::~cElemBA()
 }
 
 cResolSysNonLinear<double> *  cElemBA::Sys() {return mSys;}
+const std::vector<tPoseR>  &  cElemBA::CurPose() const {return mCurPose;}
+tREAL8 cElemBA::AvgRes1() const {return mRes1.Average();}
+tREAL8 cElemBA::AvgRes2() const {return mRes2.Average();}
 
 
-
-void cElemBA::AddHomBundle_Cam1
+void cElemBA::AddEquationColinearity_Cam1
      (
            cSetIORSNL_SameTmp<tREAL8> & aStrSubst,
            const cPt3dr & aDirB1,
            tREAL8         aWeight
       )
 {
-    std::vector<int> aVIndGlob = {-1,-2,-3};
-    std::vector<double> aVObs = aDirB1.ToStdVector();
+    std::vector<int> aVIndGlob = {-1,-2,-3};  // index of unknwon, only temporary Ground point
+    std::vector<double> aVObs = aDirB1.ToStdVector();  // vector of observation the bundle
 
+    // add the in the subs-struct the equation forcing point to belong to bundle
     mSys->R_AddEq2Subst(aStrSubst,mEqElemCam1,aVIndGlob,aVObs,aWeight);
 
+    // accumulate residual for cam1
     for (int aK=0 ; aK<3 ; aK++)
         mRes1.Add(1.0,std::abs(mEqElemCam1->ValComp(0,aK)));
-
-  //  StdOut() << " R1 " << mRes1.Average() << "\n";
 }
 
-void cElemBA::AddHomBundle_Cam2
+void cElemBA::AddEquationColinearity_Cam2
      (
            cSetIORSNL_SameTmp<tREAL8> & aStrSubst,
            const cPt3dr & aDirB2,
            tREAL8         aWeight
       )
 {
-    std::vector<int> aVIndGlob = {-1,-2,-3};
-    std::vector<double> aVObs = aDirB2.ToStdVector();
-    mTr2.AddIdexesAndObs(aVIndGlob,aVObs);
+    std::vector<int> aVIndGlob = {-1,-2,-3}; //< Index UK, begin with 3D point
+    std::vector<double> aVObs = aDirB2.ToStdVector(); // Obs : begin bundle
+    mTr2.AddIdexesAndObs(aVIndGlob,aVObs);  // Add Obs & UK for unitary translation
     // false dont transpose, we use Cam->Word
-    mRot2.AddIdexesAndObs(aVIndGlob,aVObs,  false);
+    mRot2.AddIdexesAndObs(aVIndGlob,aVObs,  false); // Add Ob & Uk for rotation
+
+    // Add in sub-stru equation forcing point to belong to bundle, taking into account the unknown pose
     mSys->R_AddEq2Subst(aStrSubst,mEqElemCam2,aVIndGlob,aVObs,aWeight);
 
+    // accumulate residual for cam2
     for (int aK=0 ; aK<3 ; aK++)
         mRes2.Add(1.0,std::abs(mEqElemCam2->ValComp(0,aK)));
 }
 
-void cElemBA::AddHomBundle_Cam12(const cPt3dr & aDirB1,const cPt3dr & aDirB2,tREAL8  aWeight)
+void cElemBA::AddEquationCoplanarity(const cPt3dr & aDirB1,const cPt3dr & aDirB2,tREAL8  aWeight)
 {
+      // case where use an "handrafted" linearization (for fun ? and efficiency ?)
       if (mMode==eModResBund::eLinDet12)
       {
-       // As the
-       //  [B , Uu , R(Id+W) u2] = [R'B , R'u1 , u2 + W^u2] = [R'(B+A da + B db), R'u1 ,u2 + W ^u2]
-       //   [R'B,R'u1,::u2] + [R'(A da + B db),R'u1,u2] +  [R'B,R'u1,  W^u2]
-       //   [B,u1,Ru2]   + [A da+ B db,u1,R u2] 
+       // !! The equation of doc is "wrong" because it assumed rotation is coded (Id+W)*R0, and in MMVII we
+       // use instead R0(Id+W) so, the computation is briefly describe bellow with R' R = Id
 
-          cPt3dr aU02 = mRot2.Rot().Value(aDirB2);
-          cPt3dr aN0 = aDirB1 ^ aU02;
+       //  [B , Uu , R(Id+W) u2] = [R'B , R'u1 , u2 + W^u2] = [R'(B+A da + B db), R'u1 ,u2 + W ^u2]
+       //   [R'B,R'u1,u2] + [R'(A da + B db),R'u1,u2] +  [R'B,R'u1,  W^u2]
+       //   [B,u1,Ru2]   + [A da+ B db,u1,R u2] + R'B.(R'u1 ^(W^u2))
+
+          cPt3dr aU02 = mRot2.Rot().Value(aDirB2); // R u2
+          cPt3dr aN0 = aDirB1 ^ aU02;              // u1 ^R u2
           cPt3dr aB0 =  mTr2.RawPNorm();
 
           cDenseVect<tREAL8> aVect(5);
 
-          aVect(0) = Scal(aN0, mTr2.U());
-          aVect(1) = Scal(aN0, mTr2.V());
-          tREAL8 aRes = Scal(aB0,aN0);
+          aVect(0) = Scal(aN0, mTr2.U());  // [A ,u1,R u2]
+          aVect(1) = Scal(aN0, mTr2.V());  // [B,u1,R u2]
+          tREAL8 aRes = Scal(aB0,aN0);   // [B,u1,Ru2]
 
-          cPt3dr aUP1 = mRot2.Rot().Inverse(aDirB1);
-          cPt3dr aBP  = mRot2.Rot().Inverse(aB0);
+          cPt3dr aUP1 = mRot2.Rot().Inverse(aDirB1); // R' u1
+          cPt3dr aBP  = mRot2.Rot().Inverse(aB0);  // R' B
 
+          //  R'B.(R'u1 ^(W^u2)) = R'B (R'u1. W u2- R'u1. u2 W) =   (R'u1.u2 R'B -
           cPt3dr aScalW =   (aBP*Scal(aUP1,aDirB2) - aUP1 *Scal(aBP,aDirB2) ) * -1.0;
 
           aVect(2) = aScalW.x();
@@ -178,6 +191,7 @@ void cElemBA::AddHomBundle_Cam12(const cPt3dr & aDirB1,const cPt3dr & aDirB2,tRE
           aVect(4) = aScalW.z();
           if (0)
           {
+            // old version due to a bug in IO_UnKnowns (vector not modified after on update)
              mSys->AddObservationLinear(aWeight,aVect,-aRes);
           }
           else
@@ -189,21 +203,21 @@ void cElemBA::AddHomBundle_Cam12(const cPt3dr & aDirB1,const cPt3dr & aDirB2,tRE
           mRes2.Add(1.0,std::abs(aRes));
          return;
       }
-      std::vector<int> aVIndGlob ;
-      std::vector<double> aVObs = Append(aDirB1.ToStdVector(),aDirB2.ToStdVector());
-      mTr2.AddIdexesAndObs(aVIndGlob,aVObs);
-      mRot2.AddIdexesAndObs(aVIndGlob,aVObs,  false);
 
+      // geneal case , work with several formulas for residual
+      std::vector<int> aVIndGlob ;// indexe of unknowns
+      // obe begin with two bundles
+      std::vector<double> aVObs = Append(aDirB1.ToStdVector(),aDirB2.ToStdVector());
+      mTr2.AddIdexesAndObs(aVIndGlob,aVObs); // add obs & unknowns of translation
+      mRot2.AddIdexesAndObs(aVIndGlob,aVObs,  false); // add obs & unknowns of rotation
+
+      // Add equation in subst struct
       mSys->R_CalcAndAddObs(mEqElemCam12,aVIndGlob,aVObs,aWeight);
 
+      // compute residual
       for (size_t aK=0 ; aK<mEqElemCam12->NbElem() ; aK++)
       {
           tREAL8 aRes = std::abs(mEqElemCam12->ValComp(0,aK));
-
-         /* StdOut()  << "CCC " << mEqElemCam12->ValComp(0,aK) << " DDD " ;
-          for (int aD=0 ; aD<5 ; aD++)
-              StdOut()  << " " <<  mEqElemCam12->DerComp(0,aK,aD) ;
-          StdOut()<< "\n";*/
 
           mRes1.Add(1.0,aRes);
           mRes2.Add(1.0,aRes);
@@ -211,74 +225,69 @@ void cElemBA::AddHomBundle_Cam12(const cPt3dr & aDirB1,const cPt3dr & aDirB2,tRE
 
 }
 
+
+
 tSeg3dr  cElemBA::Bundle(int aKPose,const cPt3dr & aDirBundle) const
 {
     const tPoseR & aPose = mCurPose.at(aKPose);
-    return tSeg3dr(mPoseRef.Value(aPose.Tr())/mScaleRef,mPoseRef.Value(aPose.Value(aDirBundle))/mScaleRef);
+
+    // bundle , first point is center, second is position of bundle in the pose
+    return tSeg3dr(aPose.Tr(),aPose.Value(aDirBundle));
 }
 
 
-void cElemBA::AddHomBundle_Cam1Cam2(const cPt3dr & aDirB1,const cPt3dr & aDirB2,tREAL8 aW,tREAL8 aEpsilon)
+void cElemBA::AddHomBundle_Cam1Cam2(const cPt3dr & aDirB1,const cPt3dr & aDirB2,tREAL8 aW,tREAL8 aEpsilon,tREAL8 aNoise)
 {   
-    cPt3dr aDirLoc1 = mPoseRef.Rot().Inverse(aDirB1);
-    cPt3dr aDirLoc2 = mPoseRef.Rot().Inverse(aDirB2);
+    // compute the 2 bundle in common repai
+    tSeg3dr aSeg1 = Bundle(0,aDirB1);
+    tSeg3dr aSeg2 = Bundle(1,aDirB2);
 
-   // StdOut()  << "HHHH " << Norm2(aSeg1.V12()) << " " << Norm2(aSeg2.V12()) << "\n";
-
-    if (NormInf(aDirLoc1 ^ aDirLoc2) < aEpsilon)
+    // Test if bundles are almost paralell
+    if (NormInf(aSeg1.V12() ^ aSeg2.V12()) < aEpsilon)
         return;
 
-
-    if (isMode12)
+    if (isModeCoplan)  // Case coplanarity, juste add the equation
     {
-       AddHomBundle_Cam12(aDirB1,aDirB2,aW);
+       AddEquationCoplanarity(aDirB1,aDirB2,aW);
     }
     else
     {
-        tSeg3dr aSeg1 = Bundle(0,aDirB1);
-        tSeg3dr aSeg2 = Bundle(1,aDirB2);
+        // case colinearity
+       cPt3dr aPGround = BundleInters(aSeg1,aSeg2,0.5); // estimate 3D point by bundle intersection
 
-       cPt3dr aPGround = BundleInters(aSeg1,aSeg2,0.5);
+       if (aNoise>0)
+           aPGround = aPGround + cPt3dr::PRandInSphere()*aNoise;
 
-       tSegComp3dr aSC1(aSeg1);
-       tSegComp3dr aSC2(aSeg2);
-
-      // StdOut() << " DDD " << aSC1.Dist(aPGround) << " " << aSC2.Dist(aPGround) << "\n"; // getchar();
+       // create a structure where 3D point will be used, the schurr-substitued
        cSetIORSNL_SameTmp<tREAL8>  aStrSubst(aPGround.ToStdVector(),{});
 
-       AddHomBundle_Cam1(aStrSubst, aDirB1,aW);
-       AddHomBundle_Cam2(aStrSubst, aDirB2,aW);
-       mSys->R_AddObsWithTmpUK(aStrSubst);
+       AddEquationColinearity_Cam1(aStrSubst, aDirB1,aW);  // add colinearity for cam1 in str subsr
+       AddEquationColinearity_Cam2(aStrSubst, aDirB2,aW);  // add colinarity for cam2  in str subst
+       mSys->R_AddObsWithTmpUK(aStrSubst);  // will add the set of equation after schurr eliminate
+
+       if (0)
+       {
+          tSegComp3dr aSC1(aSeg1);
+          tSegComp3dr aSC2(aSeg2);
+
+           StdOut() << " DDD " << aSC1.Dist(aPGround) << " " << aSC2.Dist(aPGround) << "\n"; // getchar();
+       }
     }
 }
 
-void cElemBA::OneIter(tREAL8 aLVM,const std::vector<tPoseR> * aVRef)
+void cElemBA::OneIter(tREAL8 aLVM)
 {
-
-    // Do the computation
+    // --------- Do the computation
     const auto & aVectSol =  mSys->SolveUpdateReset(aLVM);
+    // Update the current unknowns
     mSetInterv.SetVUnKnowns(aVectSol);
 
-    // Transferate the result to poses (as they
-
+    // -------- Transferate the result to poses (as they have differnt struct in uknowns)
     mCurPose.at(1) = tPoseR(mTr2.GetPNorm(),mRot2.Rot());
     for (size_t aKP=2 ; aKP<mCurPose.size() ; aKP++)
         mCurPose.at(aKP) = mPoseN.at(aKP-2)->Pose();
 
-    StdOut() // << "  POUT " << mTr2.RawPNorm()
-             << " Res=" << mRes1.Average() << " " << mRes2.Average() ;
-
-    {
-       tPoseR aPoseRef = (mPoseRef.MapInverse()*aVRef->at(1)).ScaleTr(1.0/mScaleRef);
-
-       StdOut()   << " DeltaTr=" << 1e4*Norm2( mCurPose.at(1).Tr()-aPoseRef.Tr())
-                << " DeltaRot=" << 1e4*mCurPose.at(1).Rot().Dist(aPoseRef.Rot()) ;
-        StdOut()        << "\n";
-    }
-
-
-   // StdOut()  << "UUUUUUUUUUUUUUppdattte  mCuuuuuurPoosse\n";
-
+    // Reset averages
     mRes1.Reset();
     mRes2.Reset();
 }
@@ -304,6 +313,7 @@ class cParamBenchElemBA
        cPt3dr         mCenterGP;  // centre of ground points
        tREAL8         mRayGP;     // Ray of Groun Point Sphere
        tREAL8         mDistAvoid; // Distance min to center of poses in
+       tREAL8         mNoiseInterB;  // Possible noise added in bundle intersection
 };
 
 cParamBenchElemBA::cParamBenchElemBA() :
@@ -314,7 +324,8 @@ cParamBenchElemBA::cParamBenchElemBA() :
    mNbSamples        (100),
    mCenterGP         (0,0,10.0),
    mRayGP            (5.0),
-   mDistAvoid        (0.5)
+   mDistAvoid        (0.5),
+   mNoiseInterB      (0)
 {
 }
 
@@ -331,25 +342,36 @@ class cGenPoseBenchElemBA
      public :
          cGenPoseBenchElemBA(size_t aNbPose,const cParamBenchElemBA&);
 
+         ///  Generate Nb Sample of Set of Bundles corresp to Config; Geom of Ground Point from mParam
+         std::vector<std::vector<cPt3dr>>  GenBundle(const std::vector<int>& aConfig,int aNbSample) const;
+
+         ///  Error Tr/Rot between a sol and ground truth
+         cPt2dr GroundTruthError(const std::vector<tPoseR> &) const;
+
+          const  std::vector<tPoseR>& VPosePert() const;
+     private :
+
+
          ///  Generate bundle perfect in ground truh
          std::vector<cPt3dr> GenBundle(const cPt3dr &,tREAL8,const std::vector<int>&,tREAL8) const;
 
-         std::vector<cPt3dr> GenBundle(const std::vector<int>&) const;
 
-         size_t              mNbPose;
-         std::vector<tPoseR> mVPoseGT;    //<  Ground truth poses
-         std::vector<tPoseR> mVPosePert;  //< Perturbated
-
-         cParamBenchElemBA  mParam;
-
-     private :
          /// return the minimal distance  of center (GT&Pert) to "Pt"
          tREAL8  DMinCenter(const cPt3dr &,const std::vector<int> &aVIndexe) const;
 
          /// return a point in a sphere that is enough far of both GT & Pert
          cPt3dr RandomPt(const cPt3dr&,tREAL8,const std::vector<int>&,tREAL8) const;
 
+
+         size_t              mNbPose;
+         cParamBenchElemBA  mParam;
+         std::vector<tPoseR> mVPoseGT;    //<  Ground truth poses
+         std::vector<tPoseR> mVPosePert;  //< Perturbated
+
+
 };
+
+
 
 cGenPoseBenchElemBA::cGenPoseBenchElemBA(size_t aNbPose,const cParamBenchElemBA& aParamBA) :
     mNbPose (aNbPose),
@@ -389,6 +411,8 @@ cGenPoseBenchElemBA::cGenPoseBenchElemBA(size_t aNbPose,const cParamBenchElemBA&
         aVIndexes.push_back(aK);
     }
 }
+
+const  std::vector<tPoseR>& cGenPoseBenchElemBA::VPosePert() const {return mVPosePert;}
 
 tREAL8  cGenPoseBenchElemBA::DMinCenter(const cPt3dr & aPt,const std::vector<int>& aVIndexe) const
 {
@@ -434,6 +458,33 @@ std::vector<cPt3dr>
     return aRes;
 }
 
+
+ std::vector<std::vector<cPt3dr>> cGenPoseBenchElemBA::GenBundle(const std::vector<int>& aConfig,int aNb) const
+{
+     std::vector<std::vector<cPt3dr>> aVVBund;
+     for (int aK=0 ; aK<aNb ; aK++)
+     {
+         std::vector<cPt3dr> aVBund= GenBundle(mParam.mCenterGP,mParam.mRayGP,aConfig,mParam.mDistAvoid);
+         aVVBund.push_back(aVBund);
+     }
+
+     return aVVBund;
+}
+
+cPt2dr cGenPoseBenchElemBA::GroundTruthError(const std::vector<tPoseR> & aVPose) const
+{
+    MMVII_INTERNAL_ASSERT_always(mNbPose==aVPose.size(),"cGenPoseBenchElemBA::GroundTruthError");
+
+    cPt2dr aRes(0,0);
+
+    for (size_t aKP=0 ; aKP<mNbPose; aKP++)
+    {
+        aRes.x() += Norm2(aVPose.at(aKP).Tr()-mVPoseGT.at(aKP).Tr());
+        aRes.y() += aVPose.at(aKP).Rot().Dist(mVPoseGT.at(aKP).Rot());
+    }
+
+    return aRes;
+}
 
 
 void BenchElemBA()
@@ -493,6 +544,7 @@ cCollecSpecArg2007 & cAppliTestElemBundle::ArgOpt(cCollecSpecArg2007 & anArgOpt)
          << AOpt2007(mSigTrRot,"SigTR","Sigma Noise Tr/Rot",{eTA2007::HDV})
          << AOpt2007(mLVM,"LVM","Levenberg/Markard parameter",{eTA2007::HDV})
          << AOpt2007(mNbSamples,"NbS","Number of samples",{eTA2007::HDV})
+         << AOpt2007(mNoiseInterB,"NIB","Noise in bundle intersection",{eTA2007::HDV})
         ;
 }
 
@@ -501,23 +553,24 @@ int cAppliTestElemBundle::Exe()
 {
     cGenPoseBenchElemBA aBench2(2,*this);
 
-    cElemBA aBA(mMode,aBench2.mVPosePert);
+    cElemBA aBA(mMode,aBench2.VPosePert());
 
-    std::vector<std::vector<cPt3dr>> aVVBund;
-    for (int aK=0 ; aK<mNbSamples ; aK++)
-    {
-        std::vector<cPt3dr> aVBund= aBench2.GenBundle(cPt3dr(0,0,10),5.0,{0,1},0.5);
-        aVVBund.push_back(aVBund);
-    }
+    std::vector<std::vector<cPt3dr>> aVVBund =  aBench2.GenBundle({0,1},mNbSamples);
+
 
     for (int aKIter= 0 ; aKIter<mNbIter ; aKIter++)
     {
         for (const auto & aVBund : aVVBund)
         {
-           aBA.AddHomBundle_Cam1Cam2(aVBund.at(0),aVBund.at(1),1.0);
+           aBA.AddHomBundle_Cam1Cam2(aVBund.at(0),aVBund.at(1),1e-5,mNoiseInterB);
         }
-        aBA.OneIter(mLVM,&aBench2.mVPoseGT);
+        tREAL8 aRes1 = aBA.AvgRes1() ;
+        tREAL8 aRes2 = aBA.AvgRes2() ;
+        aBA.OneIter(mLVM);
 
+        StdOut()  << " RESIDUAL " << aRes1 << " " << aRes2
+                   << " GT/Diff " << aBench2.GroundTruthError(aBA.CurPose())
+                   << "\n";
     }
 
     return EXIT_SUCCESS;
