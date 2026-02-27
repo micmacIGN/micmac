@@ -1,5 +1,6 @@
 //#include "MMVII_Sensor.h"
 #include "CodedTarget.h"
+#include "MMVII_ImageMorphoMath.h"
 #include "MMVII_Interpolators.h"
 #include "MMVII_PCSens.h"
 #include "cMMVII_Appli.h"
@@ -54,6 +55,7 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
             //--mandatory
             cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override;
             cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override;
+            void doComputeTransFunc(tDIm* aDIn, tDIm* aDOut);
             cPhotogrammetricProject mPhProj;
             /*
              *
@@ -197,6 +199,7 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
                 bool isOk;
                 StdOut() << aTgt<<std::endl;
                 TargetRefine(isOk);
+                break;
                 /*if(isOk)
                 {
                     aIm.SetRGBBorderRectWithAlpha(ToI(aBox.Middle()),Norm2(aBox.Sz())/2,10,cRGBImage::Orange,0.1);//0.1 means final opacity = 1-0.1
@@ -206,7 +209,7 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
 
             }
             StdOut() << aCam->NameImage() << std::endl;
-
+            break;
             //aIm.ToJpgFileDeZoom(NameVisu(mCurrCam->NameImage(), "Ref"), 1, {"QUALITY=90"});
 
 
@@ -443,7 +446,7 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
         StdOut() << "BEGIN TARGET SAMPLE" << std::endl;
         cPt2dr& aImOffSet = mCurrTgtExtent.P0ByRef();//save the offset for camera back projection
         tIm aIm(ToI(mCurrTgtExtent.Sz()));
-        auto& aDim = aIm.DIm();
+        auto* aDim = &aIm.DIm();
 
         auto aVTgt3DPts = get3DTargetCorners(mCurrTgtCode);//tgt. base pts. w.r.t. ground frame
         cPlane3D aTgtPlane = cPlane3D::From3Point(aVTgt3DPts[0], aVTgt3DPts[1], aVTgt3DPts[2]);//gnd. tgt. plane
@@ -478,12 +481,12 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
                             aVal += aW * aDImTgt.GetV(aVPts[aK]);
                         }
                     }
-                    aDim.SetV(aPix,aVal);
+                    aDim->SetV(aPix,aVal);
                 }
             }
             else
             {
-                aDim.SetV(aPix,0);
+                aDim->SetV(aPix,0);
             }
         }
 
@@ -492,15 +495,38 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
             tIm aCropIm(ToI(mCurrTgtExtent.Sz()));
             auto& aCDim = aCropIm.DIm();
             auto aCurrIm = tIm::FromFile(mCurrCam->NameImage());
-            aCDim.CropIn(ToI(aImOffSet), aCurrIm.DIm());
-            aDim.ToFile(NameVisu(mCurrCam->NameImage(), "Tgt" + mCurrTgtCode));
+            auto* aDCurrIm = &aCurrIm.DIm();
+
+            aCDim.CropIn(ToI(aImOffSet), *aDCurrIm);
+            aDim->ToFile(NameVisu(mCurrCam->NameImage(), "Tgt" + mCurrTgtCode));
             aCDim.ToFile(NameVisu(mCurrCam->NameImage(),"True" + mCurrTgtCode));
+
+            doComputeTransFunc(aDCurrIm, aDim);
         }
     }
 
    /*
      * From here ~ temp. methods to refact/delete (should begin by doSmthg.)
      */
+
+    void cAppli_CheckBoardTargetRefine::doComputeTransFunc(tDIm* aDIn, tDIm* aDOut)
+    {
+        //-1- labelized with number of connected components
+        cRect2 aRectInt = aDIn->Dilate(-5);
+        tIm aLabelIm(aRectInt.Sz());
+        tDIm& aDLabelIm = aLabelIm.DIm();
+        for (const auto & aPix : aRectInt)
+        {
+            if (FlagSup8Neigh(*aDIn,aPix).NbConComp() >=4)
+            {
+                aDLabelIm.SetV(aPix,1);
+            }
+        }
+        if (mVisu)
+        {
+            aDLabelIm.ToFile(NameVisu(mCurrCam->NameImage(),"Label"+mCurrTgtCode));
+        }
+    }
 
     void cAppli_CheckBoardTargetRefine::doReproj(const std::string & aCode)
     {
