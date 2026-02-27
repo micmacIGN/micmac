@@ -17,16 +17,19 @@ private:
     cPtxd<T,2> mDir;
 };
 
+
 template<typename T>
 class cEpipolarCouple
 {
 public:
-    explicit cEpipolarCouple();
     
-    cPtxd<T,2> FRommIm1ToIm2
-    cEpipolarCouple FromSensors(const aSensor1* )
+    cPtxd<T,2> Im1ToEpip(const cPtxd<T,2>& aPt);
+    static cEpipolarCouple<T> FromSensors(const cSensorImage* aSensor1, const cSensorImage* aSensor2, int aDegree);
+    
+    static std::tuple<cPt2dr, cPt2dr, cPt2dr, cPt2dr, cSetHomogCpleIm> GenerateData(const cSensorImage *aSensor1, const cSensorImage *aSensor2);
 
 private:
+    explicit cEpipolarCouple();
     cEpipolarSingle<T> mEpipol1;
     cEpipolarSingle<T> mEpipol2;
 };
