@@ -277,7 +277,9 @@ class cPerspCamIntrCalib : public cObj2DelAtEnd,
         /// Interpolate on the curve of un-distorted line
             cPt2dr InterpolOnUDLine(const tSeg2dr&,tREAL8 WeightP1) const;
 
-
+        /// in case of a equirect projection, image coordinates may have to be fixed with modulo 2pi
+            void FixLoop(tVecOut &aVPtInOut) const;
+            void FixLoop(tPtOut &aVPtInOut) const;
     // ==================   Accessors & Modifiers ===================
             const double & F() const;   ///< access to focal
             const cPt2dr & PP() const;  ///< acess to principal point
