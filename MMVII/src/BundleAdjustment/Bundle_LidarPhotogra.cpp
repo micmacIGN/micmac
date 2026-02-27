@@ -625,7 +625,10 @@ cBA_LidarLidarRaster::cBA_LidarLidarRaster(cPhotogrammetricProject * aPhProj,
 
 void cBA_LidarLidarRaster::UpdateWeightersMap()
 {
-    std::cout << "up weighters, th="<<mThreshold*(1+10./mBA.NbIter())<<"\n";
+    tREAL4 aTh = mThreshold*(1+10./mBA.NbIter());
+    std::cout << "up weighters, th="<<aTh<<"\n";
+    if (aTh>10000)
+        aTh = -1;
     for (auto & aScanDataA: mVScans)
     {
         for (auto & aScanDataB: mVScans)
@@ -633,7 +636,7 @@ void cBA_LidarLidarRaster::UpdateWeightersMap()
             tREAL8 aSigmaAB = sqrt(aScanDataA.mLidarRaster->Sigma()*aScanDataA.mLidarRaster->Sigma()
                                    +aScanDataB.mLidarRaster->Sigma()*aScanDataB.mLidarRaster->Sigma());
             mWeightersMap[aScanDataA.mScanName+"-"+aScanDataB.mScanName]
-                = cStdWeighterResidual(sqrt(mWFactor)*aSigmaAB, mThreshold*(1+10./mBA.NbIter()), 1., 1);
+                = cStdWeighterResidual(sqrt(mWFactor)*aSigmaAB, 1., aTh, 1);
         }
     }
 }
@@ -667,8 +670,8 @@ void cBA_LidarLidarRaster::AddObs()
 
         for (const auto& aPatch : aScan.mLPatchesP)
         {
-            //if (*aPatch.begin()==cPt2di(10677, 2481))
-            //    std::cout<<"!\n";
+            if (*aPatch.begin()==cPt2di(4278, 2245)) //10677, 2481
+                std::cout<<"!\n";
             [[maybe_unused]] auto aMinRes = Add1Patch(aScan.mLidarRaster->Image2Ground(*aPatch.begin()),
                                                       aScan.mScanName);
 #ifdef SCANSCANDEBUG
@@ -759,8 +762,14 @@ tREAL8 cBA_LidarLidarRaster::Add1Patch(const cPt3dr & aPGround, const std::strin
                 tREAL8 aResidual = aValIm-aDist;
                 if (fabs(aResidual)<fabs(aMinResidual))
                     aMinResidual = aResidual;
-                if (fabs(aResidual)>mThreshold*(1+10./mBA.NbIter())) // TODO!!! Why is it mandatory??
-                    continue;
+                //std::cout<<aResidual<<" "<<mThreshold*(1+10./mBA.NbIter());
+                /*if (fabs(aResidual)>mThreshold*(1+10./mBA.NbIter()))
+                {
+                    //std::cout<<" would be removed\n";
+                    continue;  // TODO!!! Why is it mandatory??
+                } else {
+                    //std::cout<<"\n";
+                }*/
                 //std::cout<< "res "<<aResidual<<"\n";
                 aAvgRes.Add(1.0,fabs(aResidual));  // compute std deviation
                 aVData.push_back(aData); // memorize the data for this image
