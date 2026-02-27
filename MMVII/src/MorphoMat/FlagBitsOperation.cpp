@@ -102,8 +102,8 @@ template <class Type>  tREAL8   CriterionTopoSadle(const cDataIm2D<Type> & aDIm,
 }
 
 template cFlag8Neigh FlagSup8Neigh(const cDataIm2D<tREAL4> & aDIm,const cPt2di & aPt);
-template tREAL8      CriterionTopoSadle(const cDataIm2D<tREAL4> & aDIm,const cPt2di & aPixC);
-
+template cFlag8Neigh FlagSup8Neigh(const cDataIm2D<tU_INT1> & aDIm,const cPt2di & aPt);
+template tREAL8      CriterionTopoSadle(const cDataIm2D<tREAL4> & aDIm,const cPt2di & aPixC); 
 
 
 };
