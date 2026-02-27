@@ -28,7 +28,6 @@ cCollecSpecArg2007 & cAppli_VisuPoseStr3D::ArgObl(cCollecSpecArg2007 & anArgObl)
     return anArgObl
            << Arg2007(mPatImIn,"Pattern/file of images",{{eTA2007::MPatFile,"0"},{eTA2007::FileDirProj}})
            << mPhProj.DPOrient().ArgDirInMand("Input orientation (Sfm)")
-           << mPhProj.DPMulTieP().ArgDirInMand("Input features")
         ;
 }
 
@@ -39,13 +38,14 @@ cCollecSpecArg2007 & cAppli_VisuPoseStr3D::ArgOpt(cCollecSpecArg2007 & anArgOpt)
            << AOpt2007(mCamScale,"CamScale","Scale camera frustum",{eTA2007::HDV})
            << AOpt2007(mOutfile,"Outfile","Output filename",{eTA2007::HDV})
            << AOpt2007(mBinary,"Bin","Output in binary format",{eTA2007::HDV})
+           << mPhProj.DPMulTieP().ArgDirInOpt("Input features")
         ;
 }
 
 int cAppli_VisuPoseStr3D::Exe()
 {
     mPhProj.FinishInit();
-    mOutfile = ("VisSFM_"+mPhProj.DPOrient().DirIn()+"_"+mPhProj.DPMulTieP().DirIn()+".ply");
+    mOutfile = ("VisSFM_"+mPhProj.DPOrient().DirIn()+ (mPhProj.DPMulTieP().DirInIsInit() ? "_+mPhProj.DPMulTieP().DirIn()" : "")  +".ply");
 
 
     // vector of all image names
@@ -64,13 +64,16 @@ int cAppli_VisuPoseStr3D::Exe()
     Sort2VectFirstOne(aVNames,aVSens);
 
     // read the tie points
-    cComputeMergeMulTieP * aTPts = AllocStdFromMTPFromFolder(
+    cComputeMergeMulTieP * aTPts = nullptr;
+    if (mPhProj.DPMulTieP().DirInIsInit())
+    {
+        aTPts = AllocStdFromMTPFromFolder(
                 mPhProj.DPMulTieP().DirIn(),aVNames,mPhProj,true,false,true);
 
     // intersect in 3d
     for (auto & aPair : aTPts->Pts())
         MakePGround(aPair,aVSens);
-
+    }
 
     WritePly(aTPts,aVSens);
 

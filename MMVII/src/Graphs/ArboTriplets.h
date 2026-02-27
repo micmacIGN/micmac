@@ -60,8 +60,7 @@ public :
     //typedef  std::pair<tPoseR,tPoseR>  tPP;
 
     /// constructor, recursively split the tree, dont parallelize !
-    cNodeArborTriplets(cMakeArboTriplet &,const t3G3_Tree &,int aLevel,
-                       cIPhProj &);
+    cNodeArborTriplets(cMakeArboTriplet &,const t3G3_Tree &,int aLevel);
     /// destructor, recursively free the children
     ~cNodeArborTriplets();
 
@@ -133,7 +132,6 @@ private :
 
     ///
 
-    cIPhProj &                mPhProj;
     int                       mDepth;     ///< level in the hierarchy, used for pretty printing
     t3G3_Tree                 mTree;      ///< tree of triplet
     //std::array<tNodePtr,2>    mChildren;  ///< sub-nodes (if any ...)
@@ -182,7 +180,8 @@ public :
     /// Read tie points structure
     void InitTPtsStruct(const std::string&, std::vector<std::string>&);
 
-
+    cIPhProj & PhProj() { return mPhProj; }
+    cIPhProj const& PhProj() const { return mPhProj; }
 
     tREAL8 WBalance() const {return mWBalance;}  ///< Accessor
     tREAL8 & CostMergeTree() {return mCostMergeTree;}  ///< Accessor

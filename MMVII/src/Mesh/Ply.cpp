@@ -412,42 +412,45 @@ void cAppli_VisuPoseStr3D::WritePly(cComputeMergeMulTieP * & aTPts, const std::v
 
     // add 3d points
     size_t aNum3DPt=0;
-    for (auto aAllConfigs : aTPts->Pts())
+    if (aTPts)
     {
-        const auto & aConfig = aAllConfigs.first;
-        auto & aVals = aAllConfigs.second;
-
-        size_t aNbIm = aConfig.size();
-        size_t aNbPts = aVals.mVIdPts.size();
-
-
-        for (size_t aKPts=0; aKPts<aNbPts; aKPts++)
+        for (auto aAllConfigs : aTPts->Pts())
         {
-            const cPt3dr & aP3D = aVals.mVPGround.at(aKPts);
+            const auto & aConfig = aAllConfigs.first;
+            auto & aVals = aAllConfigs.second;
+
+            size_t aNbIm = aConfig.size();
+            size_t aNbPts = aVals.mVIdPts.size();
 
 
-            for (size_t aKIm=0; aKIm<aNbIm; aKIm++)
+            for (size_t aKPts=0; aKPts<aNbPts; aKPts++)
             {
-                size_t aKImSorted = aConfig.at(aKIm);
+                const cPt3dr & aP3D = aVals.mVPGround.at(aKPts);
 
-                const cPt2dr aPIm = aVals.mVPIm.at(aKPts*aNbIm+aKIm);
-                cSensorImage* aCam = aVSens.at(aKImSorted);
 
-                if (aCam->IsVisibleOnImFrame(aPIm) && aCam->IsVisible(aP3D))
+                for (size_t aKIm=0; aKIm<aNbIm; aKIm++)
                 {
+                    size_t aKImSorted = aConfig.at(aKIm);
 
-                    double aResidual = Norm2(aPIm - aCam->Ground2Image(aP3D));
+                    const cPt2dr aPIm = aVals.mVPIm.at(aKPts*aNbIm+aKIm);
+                    cSensorImage* aCam = aVSens.at(aKImSorted);
 
-                    if (aResidual<mErrProjMax)
+                    if (aCam->IsVisibleOnImFrame(aPIm) && aCam->IsVisible(aP3D))
                     {
-                        std::array<double,3> anArray;
-                        for (int aK=0 ; aK<3 ; aK++)
-                            anArray[aK] = aP3D[aK];
-                        aPlyPts.push_back(anArray);
 
-                        aNum3DPt++;
+                        double aResidual = Norm2(aPIm - aCam->Ground2Image(aP3D));
+
+                        if (aResidual<mErrProjMax)
+                        {
+                            std::array<double,3> anArray;
+                            for (int aK=0 ; aK<3 ; aK++)
+                                anArray[aK] = aP3D[aK];
+                            aPlyPts.push_back(anArray);
+
+                            aNum3DPt++;
+                        }
+
                     }
-
                 }
             }
         }

@@ -26,6 +26,8 @@ cPhotogrammetricProjectMemory::cPhotogrammetricProjectMemory()
 
 cPhotogrammetricProjectMemory::~cPhotogrammetricProjectMemory()
 {
+    for (auto & [aName, aPtr] : mOwnedSensorMap)
+        delete aPtr;
 }
 
 // ==================  Population methods  ==================
@@ -101,9 +103,12 @@ void  cPhotogrammetricProjectMemory::SaveSensor(const cSensorImage &) const
     MMVII_UserError(eTyUEr::eUnClassedError, "cPhotogrammetricProjectMemory::SaveSensor: not supported in memory mode");
 }
 
-void  cPhotogrammetricProjectMemory::SaveCamPC(const cSensorCamPC &) const
+void  cPhotogrammetricProjectMemory::SaveCamPC(const cSensorCamPC & aCam) const
 {
-    MMVII_UserError(eTyUEr::eUnClassedError, "cPhotogrammetricProjectMemory::SaveCamPC: not supported in memory mode");
+    auto & aOwned = mOwnedSensorMap[aCam.NameImage()];
+    delete aOwned;
+    aOwned = new cSensorCamPC(aCam.NameImage(), aCam.Pose(), aCam.InternalCalib());
+    mSensorMap[aCam.NameImage()] = aOwned;
 }
 
 void  cPhotogrammetricProjectMemory::SaveCalibPC(const cPerspCamIntrCalib &) const

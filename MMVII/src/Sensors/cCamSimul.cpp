@@ -753,7 +753,7 @@ cPt3dr  cCamSimul::GenValideCenter(bool SubVert) const
 }
 
 
-void cCamSimul::AddCam(cPerspCamIntrCalib * aPC,bool SubVert)
+void cCamSimul::AddCam(cPerspCamIntrCalib * aPC,bool SubVert,std::string Name)
 {
       cPt3dr aNewC = GenValideCenter(SubVert);
 
@@ -774,16 +774,16 @@ void cCamSimul::AddCam(cPerspCamIntrCalib * aPC,bool SubVert)
       cIsometry3D<tREAL8> aPose(aNewC,aRot);
 
       // now we have a Cam
-      mListCam.push_back(new cSensorCamPC("Test",aPose,aPC));
+      mListCam.push_back(new cSensorCamPC(Name,aPose,aPC));
 }
 
-void cCamSimul::AddCam(eProjPC aProj,bool SubVert)
+void cCamSimul::AddCam(eProjPC aProj,bool SubVert,std::string Name)
 {
     // 1 => means Deg of direct dist is 2 (dir inverse is 5,1,1)
     cPerspCamIntrCalib * aCalib = cPerspCamIntrCalib::RandomCalib(aProj,1);
 
     mListCalib.push_back(aCalib);
-    AddCam(aCalib,SubVert);
+    AddCam(aCalib,SubVert,Name);
 }
 
 cCamSimul * cCamSimul::Alloc2VIewTerrestrial(eProjPC aProj1,eProjPC aProj2,bool SubVert)
@@ -802,7 +802,7 @@ cCamSimul * cCamSimul::AllocNVIewTerrestrial(int aNb,eProjPC aProj,bool SubVert)
 
     for (int aK=0; aK<aNb; aK++)
     {
-        aRes->AddCam(aProj,SubVert);
+        aRes->AddCam(aProj,SubVert,"SimCam"+ToStr(aK));
     }
 
     return aRes;
@@ -1024,7 +1024,7 @@ void Bench_HBA(cParamExeBench & aParam)
         aTS = new cTimerSegm(&cMMVII_Appli::CurrentAppli());
     }
 
-    cCamSimul::BenchHierchBA(aTS,true,true);
+    cCamSimul::BenchHierchBA(aTS,true,false);
 
     delete aTS;
     aParam.EndBench();
@@ -1034,23 +1034,60 @@ void cCamSimul::BenchHierchBA(cTimerSegm * aTS,
                               bool         PerfInter,
                               bool         isSubVert)
 {
-
+    // syntethic triplets and tie points
     int aNbCam = 50;
-    int aNbTri = round_ni((aNbCam-1)/2 * 2.5);
+    int aNbTri = round_ni((aNbCam-1)/2 * 5);
+    int aNbHPts = 20; // per pair of images (approx)
+
+    // tie points outlier settings
+    double aPtOutlierAmpl=20.0;
+    double aPtOutlierRate=0.1;
+
+    // triplet outlier settings
+    double aTriOutNb = aNbTri * 0.2;
+    std::vector<double> aTriOutAmpl({0.5,0.1});
+
+
+
 
     StdOut() << "Nb of cams=" << aNbCam << ", nb of triplets=" << aNbTri << std::endl;
 
-    for (int aK1=0 ; aK1<(int)eProjPC::eNbVals ; aK1++)
+    std::vector<int> aProjTest{0,1,2,3,4,5};
+    for (int aK1=0 ; aK1<aProjTest.size(); aK1++) //(int)eProjPC::eNbVals
     {
-        StdOut() << "Projection " << aK1 << " " << E2Str(eProjPC(aK1));
+        StdOut() << "Projection " << aK1 << " " << E2Str(eProjPC(aProjTest[aK1]));
         getchar();
 
-
+        std::vector<std::string> aSetIm; // set of images that are part of triplet graph
         std::vector<std::pair<int,int>> aEdges; // to make sure triplets form a connected component
         std::vector<bool> aCamVisited(aNbCam,false);
         std::unordered_set<std::array<int,3>, TripletHash> aTriplets;
 
-        cCamSimul * aCamSim = cCamSimul::AllocNVIewTerrestrial(aNbCam,eProjPC(aK1),isSubVert);
+        std::unique_ptr<cCamSimul> aCamSim(cCamSimul::AllocNVIewTerrestrial(aNbCam,eProjPC(aProjTest[aK1]),isSubVert));
+
+        if (0)
+        {
+            // dirty code to save generated poses
+            cMMVII_Appli &  anApTest = cMMVII_Appli::CurrentAppli();
+            cPhotogrammetricProject aPhPSave(anApTest);
+            aPhPSave.FinishInit();
+            const std::string aNameOriTest = "TESCIK";
+            aPhPSave.DPOrient().SetDirOut(aNameOriTest);
+            for (auto aC : aCamSim->mListCam)
+                aPhPSave.SaveCamPC(*aC);
+            getchar();
+        }
+
+        // update PhotogrammetricProjectMemory
+        cMMVII_Appli &  anAp = cMMVII_Appli::CurrentAppli();
+
+        // populate in-memory PhProj with calibrations for all simulated cameras
+        cPhotogrammetricProjectMemory aMemPhProj;
+        for (int aKIm=0 ; aKIm<aNbCam ; aKIm++)
+        {
+            aMemPhProj.AddCalib(aCamSim->mListCam.at(aKIm)->NameImage(),
+                                aCamSim->mListCam.at(aKIm)->InternalCalib());
+        }
 
         // we want to test robustness in perfect degenerate & close to degenertae
         if (PerfInter)
@@ -1058,7 +1095,6 @@ void cCamSimul::BenchHierchBA(cTimerSegm * aTS,
 
 
         // first triplet
-
         while (aTriplets.size()==0)
         {
             // first triplet's id
@@ -1087,7 +1123,8 @@ void cCamSimul::BenchHierchBA(cTimerSegm * aTS,
         }
 
         // keep generating triplets
-        //   (not all nodes are forced to be visited but it's fine)
+        //   (not all nodes are forced to be visited but it's fine
+        //    as long as the graph is connected ie triplet connected by an edge)
         while (aTriplets.size() < aNbTri)
         {
             // current triplet's id
@@ -1098,7 +1135,7 @@ void cCamSimul::BenchHierchBA(cTimerSegm * aTS,
             aCurTri.push_back(aEdges[anEdgeId].first);
             aCurTri.push_back(aEdges[anEdgeId].second);
 
-            // draw one node from unvisited nodes
+            // draw one node from all nodes
             aCurTri.push_back(RandUnif_N(aNbCam-1));
 
             // move to array to make triplet search faster
@@ -1121,7 +1158,7 @@ void cCamSimul::BenchHierchBA(cTimerSegm * aTS,
                 for (int node : t)
                 {
                     // if this camera has not been visited
-                    if (!aCamVisited[node])
+                    //if (!aCamVisited[node]) //not needed and could cause trouble
                     {
                         aCamVisited[node] = 1;
                         aEdges.push_back(std::make_pair(t[0],t[1]));
@@ -1136,11 +1173,114 @@ void cCamSimul::BenchHierchBA(cTimerSegm * aTS,
 
         }
 
-        cTripletSet *  a3Set = new cTripletSet;
+        // update aSetIm necessary for retrieving tie points structure in photogrammetric project
+        for (int aKCV=0; aKCV<aCamVisited.size(); aKCV++)
+        {
+            if (aCamVisited[aKCV]==true)
+                aSetIm.push_back(aCamSim->mListCam[aKCV]->NameImage());
+        }
+        std::sort(aSetIm.begin(),aSetIm.end());
+
+        // generate homologous points
+        StdOut() << "Generate tie points" << std::endl;
+        //cPhotogrammetricProjectMemory::AddMulTieP(const std::string & aNameIm,
+        //                                        const cVecTiePMul & aVec)
+
+        // local map of features that will be later used to update cPhotogrammetricProjectMemory
+        std::map<std::string, cVecTiePMul> aMulTiePMap;
+        for (auto aCam : aCamSim->mListCam)
+        {
+            aMulTiePMap[aCam->NameImage()] = cVecTiePMul();
+        }
+
+        // iterate over all triplets
+        int aPtImIdx=0;
+        for (auto& aT : aTriplets)
+        {
+            // get cams
+            std::vector<cSensorCamPC *> aCams;
+            aCams.push_back(aCamSim->mListCam.at(aT[0]));
+            aCams.push_back(aCamSim->mListCam.at(aT[1]));
+            aCams.push_back(aCamSim->mListCam.at(aT[2]));
+
+            // all possible pairs
+            int aNbKeyPtsInTri=0;
+            for (int aK1Cam=0; aK1Cam<aCams.size(); aK1Cam++)
+            {
+                for (int aK2Cam=aK1Cam+1; aK2Cam<aCams.size(); aK2Cam++)
+                {
+                    // generate aNbHPts points
+                    for (int aKPt=0; aKPt<aNbHPts; aKPt++)
+                    {
+                        cHomogCpleIm aHPair = aCams[aK1Cam]->RandomVisibleCple(*aCams[aK2Cam],1000);
+
+                        // get 3D
+                        cPt3dr aPt3D = aCams[aK1Cam]->PInterBundle(aHPair,*aCams[aK2Cam]);
+
+                        // check if visible in 3rd image (if so, multiple pt)
+                        for (int aK3Cam=0; aK3Cam<aCams.size(); aK3Cam++)
+                        {
+                            if ((aK3Cam!=aK1Cam) && (aK3Cam!=aK2Cam))
+                            {
+                                if (aCams[aK3Cam]->IsVisible(aPt3D))
+                                {
+                                    // save to structure
+                                    cTiePMul aPtCam3(aCams[aK3Cam]->Ground2Image(aPt3D),aPtImIdx);
+                                    aMulTiePMap[aCams[aK3Cam]->NameImage()].mVecTPM.push_back(aPtCam3);
+                                    aNbKeyPtsInTri++;
+                                }
+                            }
+                        }
+                        // save to structure
+                        cTiePMul aPtCam1(aHPair.mP1,aPtImIdx);
+                        cTiePMul aPtCam2(aHPair.mP2,aPtImIdx);
+                        aNbKeyPtsInTri++;
+                        aNbKeyPtsInTri++;
+
+                        aMulTiePMap[aCams[aK1Cam]->NameImage()].mVecTPM.push_back(aPtCam1);
+                        aMulTiePMap[aCams[aK2Cam]->NameImage()].mVecTPM.push_back(aPtCam2);
+
+                        aPtImIdx++;
+                    }
+                }
+            }
+
+            // add outliers
+            //   note1: must be integrated here to check if visible in frame
+            //   note2: coded in a way that certain outliers can be replaced by new outliers
+            //
+            int aNbOutliers = aNbKeyPtsInTri*aPtOutlierRate;
+            for (int aKOut=0; aKOut<aNbOutliers; aKOut++)
+            {
+                int aRandCam = RandUnif_N(3);
+                int aNbKeyPts =  aMulTiePMap[aCams[aRandCam]->NameImage()].mVecTPM.size();
+
+                int aRandIdx = RandUnif_N(aNbKeyPts);
+                cPt2dr aPt = aMulTiePMap[aCams[aRandCam]->NameImage()].mVecTPM.at(aRandIdx).mPt;
+
+                //outlier
+                cPt2dr aDelta = cPt2dr::PRandC()*aPtOutlierAmpl;
+                // make sure still visible in frame
+                if (aCams[aRandCam]->IsVisibleOnImFrame(aPt+aDelta))
+                    aMulTiePMap[aCams[aRandCam]->NameImage()].mVecTPM.at(aRandIdx).mPt = aPt+aDelta;
+
+            }
+
+        } 
+        StdOut() << "DONE Generate tie points" << std::endl;
+
+        // update map of homologous points inside the photogrammetric project
+        for (auto aHStr : aMulTiePMap )
+        {
+            aMemPhProj.AddMulTieP(aHStr.first,aHStr.second);
+        }
+
+
+        std::unique_ptr<cTripletSet>  a3Set(new cTripletSet);
 
         // compute relative orientation of the triplets
         size_t aTriCount=0;
-        for (auto aT : aTriplets)
+        for (auto & aT : aTriplets)
         {
             // generate cams
             cSensorCamPC * aCam1 = aCamSim->mListCam.at(aT[0]);
@@ -1158,58 +1298,103 @@ void cCamSimul::BenchHierchBA(cTimerSegm * aTS,
 
             // save to triplet structure for hierarchical init
             std::vector<cView> aTViews;
-            aTViews.push_back(cView(aPose1,"image_"+ToStr(aT[0])+".tif"));
-            aTViews.push_back(cView(aPose2toPose1,"image_"+ToStr(aT[1])+".tif"));
-            aTViews.push_back(cView(aPose3toPose1,"image_"+ToStr(aT[2])+".tif"));
+            aTViews.push_back(cView(aPose1,aCam1->NameImage()));
+            aTViews.push_back(cView(aPose2toPose1,aCam2->NameImage()));
+            aTViews.push_back(cView(aPose3toPose1,aCam3->NameImage()));
 
-            cTriplet* aThisTri = new cTriplet;
-            aThisTri->Id() = aTriCount;
-            aThisTri->PVec() = aTViews;
+            cTriplet aThisTri;
+            aThisTri.Id() = aTriCount;
+            aThisTri.PVec() = aTViews;
 
-            a3Set->PushTriplet(*aThisTri);
+            a3Set->PushTriplet(aThisTri);
 
             aTriCount++;
 
-            delete aThisTri;
+        }
+        // generate outliers on triplets
+        for (int aKtri=0; aKtri<aTriOutNb; aKtri++)
+        {
+            int aRandTri = RandUnif_N(aNbTri);
+
+            for (int aK=1; aK<3; aK++) //first camera is spared
+            {
+                tPose& aCurP = a3Set->Set()[aRandTri].Pose(aK).Pose();
+                aCurP.Tr() = aCurP.Tr() + cPt3dr::PRandInSphere() * aTriOutAmpl[0];
+                aCurP.Rot() = aCurP.Rot() * tRotR::RandomSmallElem(aTriOutAmpl[1]);
+            }
         }
 
         // run hierarchical init
-        cMMVII_Appli &  anAp = cMMVII_Appli::CurrentAppli();
-
-        // populate in-memory PhProj with calibrations for all simulated cameras
-        cPhotogrammetricProjectMemory aMemPhProj;
-        for (int aKIm=0 ; aKIm<aNbCam ; aKIm++)
-        {
-            std::string aNameIm = "image_" + ToStr(aKIm) + ".tif";
-            aMemPhProj.AddCalib(aNameIm, aCamSim->mListCam.at(aKIm)->InternalCalib());
-        }
-
+        StdOut() << "Start Hierarchical SfM" << std::endl;
         cMakeArboTriplet  aMk3(*a3Set,false,1.0,aMemPhProj,anAp);
 
+        //aMk3.ViscPose() = mViscPose;
+        aMk3.LVM() = 0.001;
+        aMk3.SigmaTPt() = 50;
+        aMk3.FacElim()= 1000;
+        aMk3.NbIterBA() = 3;
+
+        aMk3.InitTPtsStruct("",aSetIm);
+
         aMk3.MakeGraphPose();
-        StdOut() << "MakeGraphPose DONE" << std::endl;
         aMk3.InitialiseCalibs();
-        StdOut() << "InitialiseCalibs DONE" << std::endl;
         aMk3.DoPoseRef();
-        StdOut() << "DoPoseRef DONE" << std::endl;
         aMk3.MakeCnxTriplet();
-        StdOut() << "MakeCnxTriplet DONE" << std::endl;
         aMk3.MakeWeightingGraphTriplet();
-        StdOut() << "MakeWeightingGraphTriplet DONE" << std::endl;
         aMk3.ComputeArbor();
-        StdOut() << "ComputeArbor DONE" << std::endl;
+
+        // retrieve computed poses
+        aMk3.SaveGlobSol();
+        std::map<std::string, cSensorCamPC *> aSolCams = aMemPhProj.SensorMap();
+
+        // compute similarity transformation from GT frame and computed frame
+        std::vector<tPoseR> aVPoseFrameGT;
+        std::vector<tPoseR> aVPoseFrameCalc;
+        for (auto & aCamGT : aCamSim->mListCam)
+        {
+
+            if (aSolCams[aCamGT->NameImage()])
+            {
+                aVPoseFrameGT.push_back(aCamGT->Pose());
+                aVPoseFrameCalc.push_back(aSolCams[aCamGT->NameImage()]->Pose());
+
+                //StdOut() << aCamGT->Pose().Tr() << " " << aSolCams[aCamGT->NameImage()]->Pose().Tr() << std::endl;
+            }
+        }
+        auto [aRes,aSim] = EstimateSimTransfertFromPoses(aVPoseFrameGT,aVPoseFrameCalc);
 
 
-        delete aCamSim;
-        delete a3Set;
+        double ErrTrTotal=0;
+        double ErrRTotal=0;
+        int aNbPoses=0;
+        for (auto aCamGT : aCamSim->mListCam)
+        {
+            if (aSolCams[aCamGT->NameImage()])
+            {
+                tPoseR aPoseCalcInGT = TransfoPose(aSim,aSolCams[aCamGT->NameImage()]->Pose());
+
+                double aErrTrCur  = Norm2(aCamGT->Pose().Tr() - aPoseCalcInGT.Tr());
+                double aErrRotCut = aCamGT->Pose().Rot().Dist(aPoseCalcInGT.Rot());
+
+                ErrTrTotal+=aErrTrCur;
+                ErrRTotal+=aErrRotCut;
+                aNbPoses++;
+
+                StdOut() << "ErrTr=" << aErrTrCur << ", ErrR=" << aErrRotCut
+                         << ", dd " << aCamGT->Pose().Tr() - aPoseCalcInGT.Tr() << std::endl;
+            }
+
+        }
+        StdOut() << "ErrTrAvg=" << ErrTrTotal/aNbPoses << ", ErrRAvg=" << ErrRTotal/aNbPoses << std::endl;
+        getchar();
+
+
+
+
+        // print residuals
+
         /*
-            -
-            -
             - alow introduction of outliers on triplets
-            - generate homologous points
-            - launch hierarch and recover output poses
-            - do bascule on GT poses and compare
-            -  or  calc relative ori from global ori???
         */
 
 

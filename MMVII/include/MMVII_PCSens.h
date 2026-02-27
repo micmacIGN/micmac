@@ -747,9 +747,9 @@ class cCamSimul : public cMemCheck
 
    private :
       /// Add a cam of given type by generating a random calib
-      void AddCam(eProjPC aProj1,bool SubVert);
+      void AddCam(eProjPC aProj1,bool SubVert,std::string Name="Test");
       /// Once computed the calib generate the pose to creat a cam
-      void AddCam(cPerspCamIntrCalib *,bool SubVert);
+      void AddCam(cPerspCamIntrCalib *,bool SubVert,std::string Name="Test");
 
       ///  Constructor , gives default values to numerical quantities (Prof ...)
       cCamSimul();

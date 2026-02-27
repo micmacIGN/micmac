@@ -964,13 +964,16 @@ class cPhotogrammetricProjectMemory : public cIPhProj
                                          cVecTiePMul &,
                                          const std::string & aNameIm,
                                          bool SVP=false) const override;
-        std::string  MulTiePDirIn() const override;  ///< Returns "" (no disk folder)
+        std::string  MulTiePDirIn() const override;  ///< Returns ""
+
+        const std::map<std::string, cSensorCamPC *> & SensorMap() const { return mSensorMap; }  ///< Accessor
 
     private :
         cPhotogrammetricProjectMemory(const cPhotogrammetricProjectMemory &) = delete;
 
         std::map<std::string, cPerspCamIntrCalib *>                    mCalibMap;
-        std::map<std::string, cSensorCamPC *>                          mSensorMap;
+        mutable std::map<std::string, cSensorCamPC *>                  mSensorMap;
+        mutable std::map<std::string, cSensorCamPC *>                  mOwnedSensorMap;  ///< owns sensors written via SaveCamPC (destructor deletes)
         std::map<std::pair<std::string,std::string>, cSetHomogCpleIm>  mHomolMap;
         std::map<std::string, cVecTiePMul>                             mMulTiePMap;
 };
