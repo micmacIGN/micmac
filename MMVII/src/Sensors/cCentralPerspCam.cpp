@@ -416,7 +416,7 @@ const  std::vector<cPt2dr> &  cPerspCamIntrCalib::Values(tVecOut & aV3 ,const tV
      mDir_Proj->Values(aV1,aV0);
      mDir_Dist->Values(aV2,aV1);
      mMapPProj2Im.Values(aV3,aV2);
-     
+     FixLoop(aV3);
      return aV3;
 }
 
@@ -464,6 +464,7 @@ double cPerspCamIntrCalib::DegreeVisibility(const cPt3dr & aP) const
 
      //  For domain where dist is inversible this should be sufficient
      cPt2dr aPIm   = mMapPProj2Im.Value(aPDist);
+     FixLoop(aPIm);
      double aRes1 = mPixDomain.InsidenessWithBox(aPIm);
      // dont want to do inversion too far it may overflow ...
      if (aRes1<-MaxCalc)
@@ -526,7 +527,9 @@ cPt2dr  cPerspCamIntrCalib::Undist(const tPtOut & aP0) const
     cPt3dr aPt = DirBundle(aP0);
     cPt2dr aP1 = Proj(aPt) / aPt.z();
 
-    return mMapPProj2Im.Value(aP1);
+    cPt2dr aPout = mMapPProj2Im.Value(aP1);
+    FixLoop(aPout);
+    return aPout;
 }
 
 cPt2dr  cPerspCamIntrCalib::Redist(const tPtOut & aP0) const
@@ -548,8 +551,30 @@ cPt2dr cPerspCamIntrCalib::InterpolOnUDLine(const tSeg2dr& aSeg,tREAL8 aWeightP1
      return Redist(Centroid(aWeightP1,aPU1,1.0-aWeightP1,aPU2));
 }
 
+void cPerspCamIntrCalib::FixLoop(tPtOut &aPtInOut) const
+{
+    if (mTypeProj==eProjPC::eEquiRect)
+    {
+        if (aPtInOut.x()/mMapPProj2Im.F()> 2*M_PI) aPtInOut.x() -= 2*M_PI*mMapPProj2Im.F();
+        if (aPtInOut.x()/mMapPProj2Im.F() <0) aPtInOut.x() += 2*M_PI*mMapPProj2Im.F();
+    } else {
+        // noting to do
+    }
+}
 
 
+void cPerspCamIntrCalib::FixLoop(tVecOut &aVPtInOut) const
+{
+    if (mTypeProj==eProjPC::eEquiRect)
+    {
+        for (auto & aPtInOut: aVPtInOut)
+        {
+            FixLoop(aPtInOut);
+        }
+    } else {
+        // noting to do
+    }
+}
 
 
 tREAL8  cPerspCamIntrCalib::InvProjIsDef(const tPtOut & aPix ) const
