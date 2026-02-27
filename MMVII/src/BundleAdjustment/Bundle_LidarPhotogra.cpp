@@ -660,10 +660,15 @@ void cBA_LidarLidarRaster::AddObs()
         cIm2D<tREAL4> aResImage(aScan.mLidarRaster->InternalCalib()->SzPix(),0,eModeInitImage::eMIA_Null);
         auto & aResImageData = aResImage.DIm();
         int aPtSize = 1 + aScan.mLidarRaster->InternalCalib()->SzPix().x()/1000;
+        for (int y=0; y<aScan.mLidarRaster->InternalCalib()->SzPix().y();++y)
+            for (int x=0; x<aScan.mLidarRaster->InternalCalib()->SzPix().x();++x)
+                aResImageData.SetV({x,y}, 999);
 #endif
 
         for (const auto& aPatch : aScan.mLPatchesP)
         {
+            //if (*aPatch.begin()==cPt2di(10677, 2481))
+            //    std::cout<<"!\n";
             [[maybe_unused]] auto aMinRes = Add1Patch(aScan.mLidarRaster->Image2Ground(*aPatch.begin()),
                                                       aScan.mScanName);
 #ifdef SCANSCANDEBUG
@@ -754,8 +759,8 @@ tREAL8 cBA_LidarLidarRaster::Add1Patch(const cPt3dr & aPGround, const std::strin
                 tREAL8 aResidual = aValIm-aDist;
                 if (fabs(aResidual)<fabs(aMinResidual))
                     aMinResidual = aResidual;
-                //if (fabs(aResidual)>mThreshold*(1+10./mBA.NbIter())) // TODO!!! Why is it mandatory??
-                //    continue;
+                if (fabs(aResidual)>mThreshold*(1+10./mBA.NbIter())) // TODO!!! Why is it mandatory??
+                    continue;
                 //std::cout<< "res "<<aResidual<<"\n";
                 aAvgRes.Add(1.0,fabs(aResidual));  // compute std deviation
                 aVData.push_back(aData); // memorize the data for this image
@@ -764,7 +769,7 @@ tREAL8 cBA_LidarLidarRaster::Add1Patch(const cPt3dr & aPGround, const std::strin
     }
 
     // if less than 1 scan to: nothing valuable to do
-    if (aVData.size()<1) return 0.;
+    if (aVData.size()<1) return 999;
 
     mNbUsedPoints++;
     mNbUsedObs+=aVData.size();
