@@ -1,6 +1,7 @@
 #include "MMVII_PCSens.h"
 #include "MMVII_DeclareCste.h"
 #include "MMVII_BundleAdj.h"
+#include "MMVII_PoseRel.h"
 
 /**
    \file cConvCalib.cpp  testgit
@@ -12,63 +13,6 @@
 namespace MMVII
 {
 
-class cElemBA
-{
-   public :
-        /// Constructor : Mode of Compensation + Vector of poses
-        cElemBA(eModResBund,const std::vector<tPoseR>& aVPose);
-        /// Free allocated memory
-       ~cElemBA();
-
-       /**  Add one Obs of 2 direction between Cam1 & Cam2 , Noise is used only in test mode for verification that
-            even if bundle intersection is un-accurate, we converge to the good sollution */
-       void AddHomBundle_Cam1Cam2(const cPt3dr & aDirB0,const cPt3dr & aDirB1,tREAL8 aW,tREAL8 aEpsilon=1e-6, tREAL8 aNoise=0);
-
-       void OneIter(tREAL8 aLVM);  ///< Iterate one obs have been added
-       cResolSysNonLinear<double> *  Sys();   ///< Accesor
-       const std::vector<tPoseR>  &  CurPose() const; ///< Acessor
-
-       tREAL8 AvgRes1() const; /// Average of residual of Cam1
-       tREAL8 AvgRes2() const;  /// Average of residual of Cam2
-
-   private :
-       /// Add obs of Bundle for cam1, to put in Substiution structe - Colinearity
-       void AddEquationColinearity_Cam1(cSetIORSNL_SameTmp<tREAL8> &,const cPt3dr & aDirB0,tREAL8  aWeight);
-
-       /// Add obs of Bundle for cam2, to put in Substiution structe  - Colinearity
-       void AddEquationColinearity_Cam2(cSetIORSNL_SameTmp<tREAL8> &,const cPt3dr & aDirB1,tREAL8  aWeight);
-
-       /// Add obs for Cam 1 & 2, no point computed/No Schuur -> Coplanarity
-       void AddEquationCoplanarity(const cPt3dr & aDirB1,const cPt3dr & aDirB2,tREAL8  aWeight);
-
-       /// Compute bundle given camera an local direction
-       tSeg3dr  Bundle(int aKCam,const cPt3dr &) const;
-
-
-        cElemBA(const cElemBA &) = delete;
-
-        //void Add
-
-       eModResBund                        mMode;  ///< Mode of equation
-       bool                               isModeCoplan; ///< is it one mode of co-planarity
-       std::vector<tPoseR>                mCurPose;      ///< Vector of current pose (init then updated)
-       int                                mSzBuf;       ///<  Sz Buf for calculator
-       cCalculator<double> *              mEqElemCam1;  ///< Colinearity equation - Cam1
-       cCalculator<double> *              mEqElemCam2;   ///< Colinearity equation - Cam2
-       cCalculator<double> *              mEqElemCam12;   ///< Co-planrarity equatipn
-
-      // cCalculator<double> *              mEqElemCamN;
-       cSetInterUK_MultipeObj<double>     mSetInterv;   ///< coordinator for autom numbering
-       cResolSysNonLinear<double> *       mSys;         ///< Solver
-       cLeasSqtAA<tREAL8> *               mSystAA;      ///< Pointer to dense least square solve (short cut for linDet12 case)
-       cP3dNormWithUK                     mTr2;         ///< Unknown  trans for cam2 force to unity
-       cRotWithUK                         mRot2;        ///< Unknown rotation for cam2
-       std::vector<cPoseWithUK*>          mPoseN;       ///< unkown pose over 2 (to come)
-
-       cWeightAv<tREAL8>                  mRes1;        ///< Average of residual Cam1
-       cWeightAv<tREAL8>                  mRes2;        ///< Average of residual Cam2
-
-};
 
 cElemBA::cElemBA(eModResBund aMode,const std::vector<tPoseR>& aVPose) :
     mMode       (aMode),
@@ -85,6 +29,7 @@ cElemBA::cElemBA(eModResBund aMode,const std::vector<tPoseR>& aVPose) :
     mRot2       (tRotR::Identity())
 
 {
+
     //--- Check that pose complies with normalization pre-requirement
     MMVII_INTERNAL_ASSERT_always(mCurPose.at(0).DistPose(tPoseR::Identity(),1.0)<1e-7,"Pose0!=Id in cElemBA");
     MMVII_INTERNAL_ASSERT_always((Norm2(mCurPose.at(1).Tr())-1.0)<1e-8,"Norma base in cElemBA");
@@ -105,6 +50,9 @@ cElemBA::cElemBA(eModResBund aMode,const std::vector<tPoseR>& aVPose) :
     //  ------------------ Create the non linear system -------------------------
     mSys = new cResolSysNonLinear<double>(eModeSSR::eSSR_LsqDense,mSetInterv.GetVUnKnowns());
     mSystAA = mSys->SysLinear()->Get_tAA();
+    // in this case, as we short-cut the standard system, we supress this warning
+    if (mMode==eModResBund::eLinDet12)
+        mSys->SetUseWarningNotEnoughObs(false);
 }
 
 cElemBA::~cElemBA()
@@ -298,22 +246,23 @@ void cElemBA::OneIter(tREAL8 aLVM)
 /*                                                     */
 /* *************************************************** */
 
+/**  Class for parametrization of Bench on Elementary bundle adjusment */
 class cParamBenchElemBA
 {
     public :
       cParamBenchElemBA() ;
 
-       eModResBund    mMode;
-       int            mNbIter;
-       cPt2dr         mSigTrRot;
-       tREAL8         mLVM;
-       int            mNbSamples;
+       eModResBund    mMode;      ///< mode of bundle
+       int            mNbIter;    ///< number of iteration
+       cPt2dr         mSigTrRot;  ///< Sigma on trans&rotation for simulation
+       tREAL8         mLVM;       ///< Levenberg-Markard parameters
+       int            mNbSamples; ///< Number of point
 
-       //  ---- Parameters for generating bundles
-       cPt3dr         mCenterGP;  // centre of ground points
-       tREAL8         mRayGP;     // Ray of Groun Point Sphere
-       tREAL8         mDistAvoid; // Distance min to center of poses in
-       tREAL8         mNoiseInterB;  // Possible noise added in bundle intersection
+       //  ---- Parameters for generating points for bundles
+       cPt3dr         mCenterGP;    ///< centre of ground points
+       tREAL8         mRayGP;       ///< Ray of Groun Point Sphere
+       tREAL8         mDistAvoid;   ///< Distance min to center of poses in
+       tREAL8         mNoiseInterB; ///< Possible noise added in bundle intersection
 };
 
 cParamBenchElemBA::cParamBenchElemBA() :
@@ -329,7 +278,6 @@ cParamBenchElemBA::cParamBenchElemBA() :
 {
 }
 
-// cPt3dr(0,0,10),5.0,{0,1},0.5
 /* *************************************************** */
 /*                                                     */
 /*                 cBenchElemBA                        */
@@ -351,10 +299,8 @@ class cGenPoseBenchElemBA
           const  std::vector<tPoseR>& VPosePert() const;
      private :
 
-
          ///  Generate bundle perfect in ground truh
          std::vector<cPt3dr> GenBundle(const cPt3dr &,tREAL8,const std::vector<int>&,tREAL8) const;
-
 
          /// return the minimal distance  of center (GT&Pert) to "Pt"
          tREAL8  DMinCenter(const cPt3dr &,const std::vector<int> &aVIndexe) const;
@@ -363,10 +309,10 @@ class cGenPoseBenchElemBA
          cPt3dr RandomPt(const cPt3dr&,tREAL8,const std::vector<int>&,tREAL8) const;
 
 
-         size_t              mNbPose;
-         cParamBenchElemBA  mParam;
-         std::vector<tPoseR> mVPoseGT;    //<  Ground truth poses
-         std::vector<tPoseR> mVPosePert;  //< Perturbated
+         size_t              mNbPose;     ///< Number of pose
+         cParamBenchElemBA   mParam;      ///< Parameter
+         std::vector<tPoseR> mVPoseGT;    ///< Ground truth poses
+         std::vector<tPoseR> mVPosePert;  ///< Perturbated poses
 
 
 };
@@ -486,10 +432,49 @@ cPt2dr cGenPoseBenchElemBA::GroundTruthError(const std::vector<tPoseR> & aVPose)
     return aRes;
 }
 
+void BenchElemBA(eModResBund aMode)
+{
+   cParamBenchElemBA aParam;
+   if (aMode == eModResBund::eProduct)
+       aParam.mSigTrRot = cPt2dr(0.03,0.01);
+   if ((aMode == eModResBund::eDist12) || (aMode == eModResBund::eAngle))
+       aParam.mSigTrRot = cPt2dr(0.05,0.02);
+   if (aMode==eModResBund::eAng12)
+       aParam.mSigTrRot = cPt2dr(0.01,0.005);
+
+   cGenPoseBenchElemBA aBench2(2,aParam);
+
+   cElemBA aBA(aMode,aBench2.VPosePert());
+
+   std::vector<std::vector<cPt3dr>> aVVBund =  aBench2.GenBundle({0,1},100);
+
+
+   for (int aKIter= 0 ; aKIter<40 ; aKIter++)
+   {
+       for (const auto & aVBund : aVVBund)
+       {
+          aBA.AddHomBundle_Cam1Cam2(aVBund.at(0),aVBund.at(1),1.0,1e-5,0);
+       }
+       aBA.OneIter(1e-5);
+       cPt2dr aRes =  aBench2.GroundTruthError(aBA.CurPose());
+       if (Norm2(aRes) < 1e-8)
+           return;
+
+   }
+   StdOut()   << " GT/Diff " << E2Str(aMode) << " " << aBench2.GroundTruthError(aBA.CurPose()) << "\n";
+   MMVII_INTERNAL_ASSERT_bench(false,"Did not reach convergence in Elem Bundle Adj");
+}
+
 
 void BenchElemBA()
 {
-
+   for (int aNbTest = 0 ; aNbTest<10 ; aNbTest++)
+   {
+       for (int aKMode=0 ; aKMode<(int)eModResBund::eNbVals ; aKMode++)
+       {
+             BenchElemBA(eModResBund(aKMode));
+       }
+   }
 }
 
 /* *************************************************** */
@@ -562,7 +547,7 @@ int cAppliTestElemBundle::Exe()
     {
         for (const auto & aVBund : aVVBund)
         {
-           aBA.AddHomBundle_Cam1Cam2(aVBund.at(0),aVBund.at(1),1e-5,mNoiseInterB);
+           aBA.AddHomBundle_Cam1Cam2(aVBund.at(0),aVBund.at(1),1.0,1e-5,mNoiseInterB);
         }
         tREAL8 aRes1 = aBA.AvgRes1() ;
         tREAL8 aRes2 = aBA.AvgRes2() ;

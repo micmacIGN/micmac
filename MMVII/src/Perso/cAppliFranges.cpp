@@ -509,7 +509,7 @@ void  cAppliFranges::DoOneImage(const std::string & aNameIm)
     {
         cExportFrange anEF;
         anEF.mLabel = aKC;
-        anEF.mVPts = mCurves.at(aKC).ExtractCurve(cPt2dr(0,mIntY.y()));
+        anEF.mVPts = mCurves.at(aKC).ExtractCurve(cPt2dr(0,mIntY.x()));
         for (const auto aPt : anEF.mVPts)
         {
             AddOneReportCSV(mIdExport,{ToStr(aKC),ToStr(aPt.x()),ToStr(aPt.y()),ToStr(aPt.z())});

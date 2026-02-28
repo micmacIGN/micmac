@@ -660,6 +660,9 @@ class cSensorCamPC : public cSensorImage
      /// return the pose of aCam2 relatively to Cam1;  Pose().MapInverse()*aCam2.Pose();
      tPose RelativePose(const cSensorCamPC& aCame) const;
 
+     /// Idem   RelativePose , but enforce norm of base to 1
+     tPose Norm1RelativePose(const cSensorCamPC& aCame) const;
+
 
      // different accessor to the pose
          tPose    Pose()   const;

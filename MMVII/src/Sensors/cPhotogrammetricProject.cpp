@@ -661,6 +661,17 @@ tPoseR cPhotogrammetricProject::ReadPoseCamPC(const std::string & aNameIm,bool *
     return aCamPC->Pose();
 }
 
+cSensorCamPC * cPhotogrammetricProject::ReadCamPCFromFolder
+               (
+                      const std::string& aFolder,
+                      const std::string & aNameIm,
+                      bool ToDeleteAutom,
+                      bool SVP
+               ) const
+{
+    cAutoChgRestoreDefFolder  aCRDF(aFolder,DPOrient(),true); // Chg Folder and restore at destruction
+    return  ReadCamPC(aNameIm,ToDeleteAutom,SVP);
+}
 
 cSensorImage* cPhotogrammetricProject::ReadSensor(const std::string  &aNameIm,bool ToDeleteAutom,bool SVP) const
 {

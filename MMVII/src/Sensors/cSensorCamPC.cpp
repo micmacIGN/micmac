@@ -635,6 +635,12 @@ cIsometry3D<tREAL8>  cSensorCamPC::RelativePose(const cSensorCamPC& aCam2) const
     return Pose().MapInverse()*aCam2.Pose();
 }
 
+tPoseR cSensorCamPC::Norm1RelativePose(const cSensorCamPC& aCam2) const
+{
+    tPoseR aPose = RelativePose(aCam2);
+    return tPoseR(VUnit(aPose.Tr()),aPose.Rot());
+}
+
 
 void cSensorCamPC::OnUpdate()
 {

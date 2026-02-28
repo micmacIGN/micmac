@@ -89,7 +89,7 @@ template <class Type,class Compare, class TParam=DefaultParamHeap<Type> > class 
              SetNoIndex(mElements[0]);
              mElements[0] = mElements[Sz()-1];  
              ResetIndex(0);
-	     mElements.pop_back();
+             mElements.pop_back();
              HeapUp(0);
              return true;
         }
@@ -287,7 +287,7 @@ template <class Type,class Compare> class cKBestValue
       /// number of element currently stored
       int Sz() const {return  mHeap.Sz();}
       /// vector  of element currently stored
-      const std::vector<Type> & Elements() {return mHeap.Elements();}
+      const std::vector<Type> & Elements() const {return mHeap.Elements();}
       /// Heap used for implementation
       tHeap & Heap() {return  mHeap ;}
 

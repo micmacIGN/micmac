@@ -480,14 +480,18 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         std::string AppliSpecValue(const std::string & ) const;
 
 
+        template <typename T> inline T ValWithDef(const T & aVar,const T & aDefVal)
+        {
+            return IsInit(&aVar) ? aVar : aDefVal;
+        }
 
         template <typename T> inline void SetIfNotInit(T & aVar,const T & aValue)
         {
             if (! IsInit(&aVar))
-	    {
+            {
                aVar = aValue;
-	       SetVarInit(&aVar);  //MPD :add 27/02/23 , seems logical, hope no side effect ?
-	    }
+               SetVarInit(&aVar);  //MPD :add 27/02/23 , seems logical, hope no side effect ?
+            }
         }
         static void SignalInputFormat(int); ///< indicate that a xml file was read in the given version
         static bool        OutV2Format() ;  ///<  Do we write in V2 Format
@@ -496,7 +500,7 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         void InitProfile();  ///< init the profile of usage/user ....
         void SetNot4Exe(); ///< Indicate that the appli was not fully initialized
 
-	const cSpecMMVII_Appli & Specs() const; ///< Accessor to appli specification
+        const cSpecMMVII_Appli & Specs() const; ///< Accessor to appli specification
         int NbProcAllowed() const; ///< Accessor to nb of process allowed for the appli
         const std::string & DirProject() const;     ///<  Accessor to directoy of project
         static const std::string & TopDirMMVII();   ///<  main directory of MMVII , upon include,src ..

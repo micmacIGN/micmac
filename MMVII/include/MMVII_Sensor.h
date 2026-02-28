@@ -535,6 +535,7 @@ class cPhotogrammetricProject
 
 	  cSensorCamPC * ReadCamPC(const std::string &,bool ToDeleteAutom,bool SVP=false) const; ///< Create Camera using Input orientation
 	  cSensorCamPC * ReadCamPC(const cDirsPhProj&,const std::string &,bool ToDeleteAutom,bool SVP=false) const; ///< Create Camera using Input orientation
+      cSensorCamPC * ReadCamPCFromFolder(const std::string&,const std::string &,bool ToDeleteAutom,bool SVP=false) const; ///< Create Camera using Input orientation
 
            /// sometime we are only  interested by the pose of the camera
            tPoseR ReadPoseCamPC(const std::string & aNameIm,bool * SVP=nullptr) const;

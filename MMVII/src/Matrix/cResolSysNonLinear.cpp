@@ -25,7 +25,8 @@ cREAL8_RSNL::cREAL8_RSNL(int aNbVar) :
     mVarIsFrozen    (mNbVar,false),
     mNbIter         (0),
     mCurMaxEquiv    (0),
-    mEquivNum       (aNbVar,TheLabelNoEquiv)
+    mEquivNum       (aNbVar,TheLabelNoEquiv),
+    mUseWarningNotEnoughObs (true)
 {
 }
 
@@ -87,7 +88,10 @@ void cREAL8_RSNL::SetAllUnShared()
 }
 
 
-
+void cREAL8_RSNL::SetUseWarningNotEnoughObs(bool aVal)
+{
+    mUseWarningNotEnoughObs = aVal;
+}
 
 /* ************************************************************ */
 /*                                                              */
@@ -829,7 +833,7 @@ template <class Type>
    const cDenseVect<Type> &
           cResolSysNonLinear<Type>::SolveUpdateReset(const Type & aLVM,tVPtr_SUR AfterCstr ,tVPtr_SUR AfterLVM, bool calcCond)
 {
-    if (mNbVar-GetNbLinearConstraints()>currNbObs)
+    if (mUseWarningNotEnoughObs && (mNbVar-GetNbLinearConstraints()>currNbObs) )
     {
            // StdOut()  << "currNbObscurrNbObs " << currNbObs  << " RRRRR=" << currNbObs - mNbVar << std::endl;
         MMVII_DEV_WARNING("Not enough obs for var ");

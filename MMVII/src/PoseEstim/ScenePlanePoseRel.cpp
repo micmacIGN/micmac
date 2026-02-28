@@ -10,19 +10,6 @@
 namespace MMVII
 {
 
-class cPSC_PB ; // Planar Scene Param Bench
-class cPSC_Selec ; // Planar Scene Param Selection
-
-class cPSC_Sol ; // Planar Scene Param Selection
-
-///  Mode of execution of functions that wan be used both for Run-Time en Test
-enum class eModeExec
-{
-    eRunTime,  //< Run time will do just internal test
-    eBench,    //< Bench will make "intensive" test of correctness (on generally "perfect" data)
-    eTest      //< will do Bench and  generate some output (message, images ...) to help comprehension
-};
-
 /* ******************************************* */
 /*                                             */
 /*               cPSC_PB                       */
@@ -67,17 +54,6 @@ cPSC_PB::cPSC_PB(const std::string & aMsg,tPoseR aGTPoseRel,bool isSameSide,eMod
 /*                                             */
 /* ******************************************* */
 
-class cPSC_Sol
-{
-   public :
-    cPSC_Sol(const tPoseR&,tREAL8 aPNeg1,tREAL8 aPNeg2);
-    tREAL8 Score() const;
-     const tPoseR & PoseRel() const;
-   private :
-      tPoseR   mPoseRel;
-      tREAL8   mPropNeg1;  //< Number of coordinate <0 (bad size of bundle)
-      tREAL8   mPropNeg2;
-};
 
 cPSC_Sol::cPSC_Sol(const tPoseR& aPose,tREAL8 aPNeg1,tREAL8 aPNeg2) :
     mPoseRel(aPose),
@@ -90,17 +66,7 @@ tREAL8 cPSC_Sol::Score() const {return mPropNeg1+mPropNeg2;}
 const tPoseR & cPSC_Sol::PoseRel() const {return mPoseRel;}
 
 
-class  cCmpcPSC_Sol_OnScore
-{
-     public :
-         bool operator ()(const cPSC_Sol & aS1,const cPSC_Sol & aS2) const
-         {
-             return aS1.Score() > aS2.Score();
-         }
-};
 
-
-//cKBestValue
 /* ******************************************* */
 /*                                             */
 /*               class cPSC_Sol                */
@@ -120,79 +86,6 @@ cPSC_Selec::cPSC_Selec(tREAL8 aProp):
 {
 
 }
-
-/**
- * @brief cPS_CompPose::cPS_CompPose -> Planar Scene Compute Pose
- * @param aSetCple
- */
-
-
-class cPS_CompPose
-{
-   public :
-        cPS_CompPose( cSetHomogCpleDir &,bool isL1=false,int aKMax=8, const  cPSC_PB * = nullptr);
-
-        typedef std::pair<cPSC_PB,cSetHomogCpleDir>  tResSimul;
-        typedef cKBestValue<cPSC_Sol,cCmpcPSC_Sol_OnScore> tCmpSol;
-
-        /** generate pair 3D of direction that can correpond to coherent camera, can be more
-         "extremate" than with camera, can simulate for example two side of plane.
-         */
-         static tResSimul SimulateDirAny(tREAL8 aMinDistViewPoints,tREAL8 aDistPlane,bool isSameSide,eModeExec); // Steep of plane, may be adjusted
-
-
-         /** generate pair of direction the correspond to camera already in epipolar config, more for
-             debugin than for check */
-         static cSetHomogCpleDir SimulateDirEpip
-                                 (
-                                      tREAL8 aZ,           // Altitude of both camera
-                                      tREAL8 aSteepPlane,  // Z = X * Steep
-                                      tREAL8 aRho,         // Circle of random plane
-                                      bool   BaseIsXP1     // is the base (1,0,0) or (-1,0,0) ?
-                                 );
-   private :
-
-        ///  Compute the 3D homog matrix
-        static cDenseMatrix<tREAL8> ComputeMatHom3D(const cSetHomogCpleDir &,bool isL1,int aKMax,const  cPSC_PB *);
-
-        bool TestOneHypoth
-             (
-                cResulSVDDecomp<tREAL8>& aSvdH,
-                const cPt3dr&ABL,
-                int SignB,
-                const cPt3dr & aSignD,
-                const cPSC_Selec & aSel
-              );
-
-        /// generate a point of view by randomizing Theta
-       // static    cPt3dr RandPointOfView(const cPt2dr & aRhoZ);
-        static    cPt3dr RandPointOfView(int aSign,tREAL8 aDistMinPlane);
-
-
-        /// Utilitary : transferate "Pt" in "Vect" at offset "Index" muliplied by "Mul"
-        static void SetPt( cDenseVect<tREAL8>& aVect,size_t aIndex,const cPt3dr& aPt,tREAL8 aMul);
-
-
-        const cSetHomogCpleDir &   mCpleDir;
-        const  cPSC_PB *           mCurParam;
-        eModeExec                  mMode;
-        const std::vector<cPt3dr>* mCurV1 ;
-        const std::vector<cPt3dr>* mCurV2 ;
-        size_t                     mCurNbPts;
-
-        int                        mKMax;
-        cDenseMatrix<tREAL8>       mMatH ; ///<  Homography matrix
-
-
-        // parameters extract of homog matrix , used to compute polynome
-        tREAL8                     mHM_Det;
-        tREAL8                     mHM_Tr2;
-        tREAL8                     mHM_Tr4;
-
-        size_t                     mNbSolTested; ///< number of sol we try
-        tCmpSol                    mCmpSol;      ///< will a maximum of 2 best solution
-};
-
 
 
 
@@ -702,7 +595,7 @@ bool cPS_CompPose::TestOneHypoth
       //                          C <- E1       E1 <- E2   E2 <-C2
       tPoseR aPC2toC1 = aPC1toE1.MapInverse() * aPE2toE1 * aPC2toE2;
 
-      mCmpSol.Push(cPSC_Sol(aPC2toC1,aScoreP1,aScoreP2));
+      mCmpSol->Push(cPSC_Sol(aPC2toC1,aScoreP1,aScoreP2));
 
 
      if (mCurParam)
@@ -726,7 +619,7 @@ bool cPS_CompPose::TestOneHypoth
 }
 
 
-cPS_CompPose::cPS_CompPose(cSetHomogCpleDir & aSetCple,bool isL1,int aKMax,const  cPSC_PB * aBenchParam) :
+cPS_CompPose::cPS_CompPose(const cSetHomogCpleDir & aSetCple,bool isL1,int aKMax,const  cPSC_PB * aBenchParam) :
     mCpleDir     (aSetCple),
     mCurParam    (aBenchParam),
     mMode        (mCurParam ? mCurParam->Mode() : eModeExec::eRunTime),
@@ -736,7 +629,7 @@ cPS_CompPose::cPS_CompPose(cSetHomogCpleDir & aSetCple,bool isL1,int aKMax,const
     mKMax        (aKMax),
     mMatH        (ComputeMatHom3D(mCpleDir,isL1,mKMax,aBenchParam)),
     mNbSolTested (0),
-    mCmpSol      (cCmpcPSC_Sol_OnScore(),2)
+    mCmpSol      (new tCmpSol(cCmpcPSC_Sol_OnScore(),2))
 {
 
     // [2]  Estimate the paramater a,b,L
@@ -844,7 +737,7 @@ cPS_CompPose::cPS_CompPose(cSetHomogCpleDir & aSetCple,bool isL1,int aKMax,const
     if (mCurParam && mCurParam->IsSameSide())
     {
         int aNbSolOk = 0;
-        for (const auto & aSol:mCmpSol.Elements())
+        for (const auto & aSol:mCmpSol->Elements())
         {
             tREAL8 aDistPose = aSol.PoseRel().DistPose(mCurParam->GTPoseRel(),1.0);
             // Threshold on DistPose is high, generally it's ~ 1e-15, but there seems
@@ -857,13 +750,23 @@ cPS_CompPose::cPS_CompPose(cSetHomogCpleDir & aSetCple,bool isL1,int aKMax,const
     }
 }
 
+cPS_CompPose::~cPS_CompPose()
+{
+   delete mCmpSol;
+}
+
+const cPS_CompPose::tCmpSol & cPS_CompPose::Sols() const
+{
+    return *mCmpSol;
+}
+
 
 void BenchMEP_Coplan()
 {
 
     if (1)
     {
-      // StdOut() << "BenchMEP_CoplanBenchMEP_Coplan \n";
+       StdOut() << "BenchMEP_CoplanBenchMEP_Coplan \n";
        for (int aNbTest=0 ; aNbTest < 100 ; aNbTest++)
        {
            // For reason still to get, there is mor pb with opposite sides

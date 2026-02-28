@@ -166,6 +166,7 @@ class cREAL8_RSNL
           void   SetUnShared(const std::vector<int> &  aVUk);
           void   SetAllUnShared();
 
+          void SetUseWarningNotEnoughObs(bool);  ///< Modifier
           //  ===
 	protected :
           static constexpr int  TheLabelFrozen  =-1;
@@ -182,6 +183,7 @@ class cREAL8_RSNL
           // int                  mNbUnkown;
           int                  mCurMaxEquiv;       ///< Used to label the 
 	  std::vector<int>     mEquivNum;       ///< Equivalence numerotation, used for shared unknowns
+      bool                 mUseWarningNotEnoughObs; ///< Allow to avoid this warning for some special case
 };
 
 

@@ -1,10 +1,30 @@
+#include "MMVII_TplHeap.h"
+
 #include "MMVII_PoseRel.h"
 #include "MMVII_Tpl_Images.h"
-#include "MMVII_TplHeap.h"
 #include "MMVII_HeuristikOpt.h"
 
 namespace MMVII
 {
+
+///  Basic class to store the pose between 2 images
+class cCdtPoseRel2Im
+{
+  public :
+      tPoseR       mPose;  ///< The pose itself
+      tREAL8       mScore; ///< The score /residual : the smaller the better
+      std::string  mMsg;   ///< Message for tuning
+};
+
+///  Comparison of cCdtPoseRel2Im for use in heap
+class  cCmp_cCdtPoseRel2Im
+{
+     public :
+         bool operator ()(const cCdtPoseRel2Im & aS1,const cCdtPoseRel2Im & aS2) const
+         {
+             return aS1.mScore > aS2.mScore;
+         }
+};
 
 /** Class for computing pose estimation between 2 images using
  *  different algorithm . In this first raw, it's quite basic to go fast
@@ -20,77 +40,97 @@ namespace MMVII
  *      # maybe some special treatment of quasi-co-centric (co-centric) image
  */
 
-
-class cCdtPoseRel
-{
-  public :
-      tPoseR       mPose;
-      tREAL8       mScore;
-      std::string  mMsg;
-};
-
-class  cCmp_cCdtPoseRel
-{
-     public :
-         bool operator ()(const cCdtPoseRel & aS1,const cCdtPoseRel & aS2) const
-         {
-             return aS1.mScore > aS2.mScore;
-         }
-};
-
-class cEstimatePosRel2Im :  public cOptimizeRotAndVUnit
+class cEstimatePosRel2Im :  public cOptimizeRotAndVUnit // Herit for combinatorial opt
 {
    public :
-    typedef cKBestValue<cCdtPoseRel,cCmp_cCdtPoseRel> tCmpSol;
+    /// Tyope for storing N Best candidate
+    typedef cKBestValue<cCdtPoseRel2Im,cCmp_cCdtPoseRel2Im> tCmpSol;
 
      cEstimatePosRel2Im
      (
          cPerspCamIntrCalib & aCalib1,
          cPerspCamIntrCalib & aCalib12,
          cSetHomogCpleIm      aSetHom,
-         int                  aNbKBestSol
+         int                  aNbKBestSol,
+         cTimerSegm *          =nullptr
      );
 
+     void DoAllCompute();
+
+     /// Free linear system
      ~cEstimatePosRel2Im();
-     // This method is called with posibly different algorithm & parameters
+
+     /// This method is called with posibly different algorithm & parameters
      void TestNewSol(const tPoseR&,const std::string & aMsg);
 
      void ShowSol(const tPoseR&,const std::string & aMsg);
 
-  private :
-    cEstimatePosRel2Im(const cEstimatePosRel2Im&) = delete;
+     void SetGT(const tPoseR&);
 
-    // Use the essentiall matrix algorithm, on all points, using L1 metric
+  private :
+        //  --- Avoid unwated copies --------------------------------
+    cEstimatePosRel2Im(const cEstimatePosRel2Im&) = delete;
+    cEstimatePosRel2Im& operator = (const cEstimatePosRel2Im&) = delete;
+
+    /// Use the essentiall matrix algorithm, on all points, using L1 metric
     void  EstimPose_By_MatEssL1Glob();
 
-    // Make one try of Ransac with aNb
+    /// Make NbTest try of Ransac with NbPts point
     void  EstimPose_By_MatEssRansac(int aNbPts,int aNbTest);
 
-    // use some heuris
+    /// Test the combinatorial/heuristik opt,  unused for now (slow and not efficient)
     void EstimateHeuristik();
 
-    //  Estimate a vector of angular residual
+    ///  Put in VRes the residual corresponding to Pose, using mVDir1/mVDir2
     void EstimateResidual(std::vector<tREAL8>& aVRes,const tPoseR& aPose) const;
 
+    ///  Score of residual, using ranking weighting
+    tREAL8 RnkW_ScorePose (const tPoseR&) const;
+
+
+    /// RnkW_ScorePose interfaced for cOptimizeRotAndVUnit
     tREAL8 ScoreRotAndVect (const tRotR&,const cPt3dr &) const override;
 
-  //  tREAL8  ScoreOfPose(const tPoseR&) const;
+    ///  Elementary score, +- equiv to angle for now
+    tREAL8 Score2Bundle(const cPt3dr & aP1,const cPt3dr & aP2,const tPoseR& aPose) const;
 
-    cPerspCamIntrCalib &         mCalib1;
+    /// return weighting of given score
+    tREAL8  WeightOfScore(tREAL8 aScore) const;
+
+    ///
+    tPoseR RefineOnePose(const cCdtPoseRel2Im & );
+
+    ///
+    void TestPlane(const cSetHomogCpleDir&);
+
+        //  --------  Data for camera -------------------
+    cPerspCamIntrCalib &         mCalib1;    ///< Calib of first image
     tREAL8                       mFoc1;
     cPerspCamIntrCalib &         mCalib2;
     tREAL8                       mFoc2;
     tREAL8                       mFocMoy;
+
+       //  --------  Data  tie points -------------------
+
     cSetHomogCpleIm              mSetCpleHom;
     cSetHomogCpleDir             mSetCpleDir;
     const std::vector<cPt3dr>&   mVDir1;
     const std::vector<cPt3dr>&   mVDir2;
+
+        // ----------- Data for optimization -----------------
     cLinearOverCstrSys<tREAL8>*  mSysL1;
     cLinearOverCstrSys<tREAL8>*  mSysL2;
 
-    int                          mKMaxME;
-    cCmp_cCdtPoseRel             mCmpSol;
+    int                          mKMaxME;   ///< Store result of direction  in [0-] used for Mat Ess
+    cCmp_cCdtPoseRel2Im          mCmpSol;
     tCmpSol                      mKBestSols;
+    cTimerSegm *                 mTimeSegm;
+
+    tREAL8                       mBestScoreWR;  ///< Store the best score of weighted rank
+    tREAL8                       mEpsBundle;    ///< Value to avoid // bundle in comp
+    tREAL8                       mLVMBundle;    ///< Levenberg markard  parameter
+    tPoseR                       mGTPose;
+    bool                         mWithGT;
 };
 
 cEstimatePosRel2Im::cEstimatePosRel2Im
@@ -98,7 +138,8 @@ cEstimatePosRel2Im::cEstimatePosRel2Im
     cPerspCamIntrCalib & aCalib1,
     cPerspCamIntrCalib & aCalib2,
     cSetHomogCpleIm      aSetHom,
-    int                  aNbKBestSol
+    int                  aNbKBestSol,
+    cTimerSegm *         aTimeSegm
 ) :
    cOptimizeRotAndVUnit(5,4,false),
    mCalib1     (aCalib1),
@@ -113,23 +154,71 @@ cEstimatePosRel2Im::cEstimatePosRel2Im
    mSysL1      (AllocL1_Barrodale<tREAL8>(9)),
    mSysL2      (new cLeasSqtAA<tREAL8>(9)),
    mKMaxME     (MatEss_GetKMax(mSetCpleDir, 1e-6)),
-   mKBestSols  (mCmpSol,aNbKBestSol)
+   mKBestSols  (mCmpSol,aNbKBestSol),
+   mTimeSegm   (aTimeSegm),
+   mBestScoreWR (1e10),
+   mEpsBundle  (1e-4),
+   mLVMBundle  (1e-5),
+   mWithGT     (false)
+
 {
+}
 
-  //  EstimateHeuristik();   // far too long, we supress for now
-    EstimPose_By_MatEssL1Glob();
+void cEstimatePosRel2Im::SetGT(const tPoseR& aPose)
+{
+    mWithGT = true;
+    mGTPose = aPose;
+}
 
-    int aNbPtsMax = std::max(30, (int)mVDir1.size()/2);
-    aNbPtsMax = std::min(100,std::min(aNbPtsMax,(int)mVDir1.size()));
+void cEstimatePosRel2Im::TestPlane(const cSetHomogCpleDir& aSetH)
+{
+   cPS_CompPose aPS(aSetH);
 
-    for (int aNbPt=11 ; aNbPt<aNbPtsMax ; aNbPt++)
+   for (const auto & aP :  aPS.Sols().Elements())
+   {
+       StdOut() << " PLANE " << RnkW_ScorePose(aP.PoseRel()) * mFocMoy
+                << " DGT "   <<  aP.PoseRel().DistPose(mGTPose,1.0) * mFocMoy
+                << "\n";
+    }
+   StdOut() << "NBSPL=" << aPS.Sols().Elements().size() << "\n";
+}
+
+void cEstimatePosRel2Im::DoAllCompute()
+{
+    TestPlane(mSetCpleDir);
     {
-        EstimPose_By_MatEssRansac(aNbPt,20);
+       cAutoTimerSegm aTSMakeIm(mTimeSegm,"L1MatEss");
+      //  EstimateHeuristik();   // far too long, we supress for now
+       EstimPose_By_MatEssL1Glob();
     }
 
-    for (const auto & aCdt : mKBestSols.Elements())
     {
-        ShowSol(aCdt.mPose,aCdt.mMsg);
+       cAutoTimerSegm aTSMakeIm(mTimeSegm,"Ransac");
+
+       int aNbPtsMax = std::max(30, (int)mVDir1.size()/2);
+       aNbPtsMax = std::min(100,std::min(aNbPtsMax,(int)mVDir1.size()));
+
+       for (int aNbPt=11 ; aNbPt<aNbPtsMax ; aNbPt++)
+       {
+           EstimPose_By_MatEssRansac(aNbPt,20);
+       }
+    }
+
+
+    StdOut() << " BEST SC=" << mBestScoreWR  * mFocMoy << "\n";
+
+    {
+       for (int aKIter=0 ; aKIter<1 ; aKIter++)
+       {
+          cAutoTimerSegm aTSMakeIm(mTimeSegm,"BA");
+
+          std::vector<cCdtPoseRel2Im> aVSol = mKBestSols.Elements();
+          for (const auto & aCdt : mKBestSols.Elements())
+          {
+             ShowSol(aCdt.mPose,aCdt.mMsg);
+             RefineOnePose(aCdt);
+          }
+       }
     }
 }
 
@@ -140,33 +229,76 @@ cEstimatePosRel2Im::~cEstimatePosRel2Im()
     delete mSysL2;
 }
 
+tREAL8 cEstimatePosRel2Im::Score2Bundle(const cPt3dr & aP1,const cPt3dr & aP2,const tPoseR& aPose) const
+{
+    tSeg3dr aSeg1(cPt3dr(0.0,0.0,0.0),aP1);
+    tSeg3dr aSeg2( aPose.Tr(),aPose.Value(aP2));
+    cPt3dr aCoeffI;
+    BundleInters(aCoeffI,aSeg1,aSeg2);
+    return  std::abs(aCoeffI.z()) / (1.0+Norm2(aCoeffI)); //+- angle
+}
+
 void cEstimatePosRel2Im::EstimateResidual(std::vector<tREAL8>& aVRes,const tPoseR& aPose) const
 {
-    cPt3dr aC2 = aPose.Tr();
-    tRotR  aRot = aPose.Rot();
-
     aVRes.clear();
     for (size_t aKpt=0 ; aKpt<mVDir1.size() ; aKpt++)
     {
-        tSeg3dr aSeg1(cPt3dr(0.0,0.0,0.0),mVDir1.at(aKpt));
-        tSeg3dr aSeg2(aC2,aC2+aRot.Value(mVDir2.at(aKpt)));
-        cPt3dr aCoeffI;
-        BundleInters(aCoeffI,aSeg1,aSeg2);
-        tREAL8 aRes = std::abs(aCoeffI.z()) / (1.0+Norm2(aCoeffI));
+        tREAL8 aRes = Score2Bundle(mVDir1.at(aKpt),mVDir2.at(aKpt),aPose);
         aVRes.push_back(aRes);
     }
 }
 
-tREAL8  cEstimatePosRel2Im::ScoreRotAndVect (const tRotR& aRot,const cPt3dr & aTr) const
+tREAL8  cEstimatePosRel2Im::WeightOfScore(tREAL8 aScore) const
+{
+   // we consider that the best ranking weighted "mBestScoreWR" is an estimator
+    // of sigma, by the way as it is quite optimistic we multiply by 4
+   return 1.0 / (1.0 + Square(aScore/(4.0*mBestScoreWR)));
+}
+
+tPoseR cEstimatePosRel2Im::RefineOnePose(const cCdtPoseRel2Im & aCdt)
+{
+    std::vector<tPoseR> aVPose{tPoseR::Identity(),aCdt.mPose};
+
+    cElemBA aBA(eModResBund::eLinDet12,aVPose);
+
+    tREAL8 aRes1=0,aRes2=0;
+    for (int aKIter= 0 ; aKIter<5 ; aKIter++)
+    {
+        for (size_t aKP=0 ; aKP<mVDir1.size() ; aKP++)
+        {
+           tREAL8 aScore = Score2Bundle(mVDir1.at(aKP),mVDir2.at(aKP),aBA.CurPose().at(1));
+           tREAL8 aW = WeightOfScore(aScore);
+           aBA.AddHomBundle_Cam1Cam2(mVDir1.at(aKP),mVDir2.at(aKP),aW,mEpsBundle,0);
+        }
+        aRes1 = aBA.AvgRes1() ;
+        aRes2 = aBA.AvgRes2() ;
+        aBA.OneIter(mLVMBundle);
+   }
+
+   FakeUseIt(aRes1);FakeUseIt(aRes2);
+
+   ShowSol(aBA.CurPose().at(1),"BA");
+
+   return aBA.CurPose().at(1);
+}
+
+
+tREAL8 cEstimatePosRel2Im::RnkW_ScorePose (const tPoseR& aPose) const
 {
     std::vector<tREAL8> aVRes;
-    EstimateResidual(aVRes,tPoseR(aTr,aRot));
+    EstimateResidual(aVRes,aPose);
 
-    return RankWeigthedAverage(aVRes,1.0,false);
+    return RankWeigthedAverage(aVRes,1.0,false); // 1.0 Exp , false no cos transfo
 }
+
+tREAL8  cEstimatePosRel2Im::ScoreRotAndVect (const tRotR& aRot,const cPt3dr & aTr) const
+{
+    return RnkW_ScorePose(tPoseR(aTr,aRot));
+}
+
 void cEstimatePosRel2Im::EstimateHeuristik()
 {
-    StdOut() << "BEGIN HEURISTIK \n";
+     StdOut() << "BEGIN HEURISTIK \n";
       auto [aCost,aPair] =  ComputeSolInit(1.0,0.01/mFocMoy,4,10.0/mFocMoy);
 
       ShowSol(tPoseR(aPair.second,aPair.first),"Heuristitk");
@@ -175,14 +307,12 @@ void cEstimatePosRel2Im::EstimateHeuristik()
 
 void cEstimatePosRel2Im::TestNewSol(const tPoseR& aPose,const std::string & aMsg)
 {
-    std::vector<tREAL8> aVRes;
-    EstimateResidual(aVRes,aPose);
-
-    cCdtPoseRel aCdt;
-    aCdt.mScore =    RankWeigthedAverage(aVRes,1.0,false) ;
+    cCdtPoseRel2Im aCdt;
+    aCdt.mScore =   RnkW_ScorePose(aPose);
     aCdt.mMsg = aMsg;
     aCdt.mPose = aPose;
 
+    UpdateMin(mBestScoreWR,aCdt.mScore);
     mKBestSols.Push(aCdt);
 }
 
@@ -191,9 +321,14 @@ void cEstimatePosRel2Im::ShowSol(const tPoseR& aPose,const std::string & aMsg)
     std::vector<tREAL8> aVRes;
     EstimateResidual(aVRes,aPose);
 
+
     StdOut()  << " MSG:" << aMsg << " ";
     StdOut() << " ResRnk=" << RankWeigthedAverage(aVRes,1.0,false)*mFocMoy;
-    for (const auto aProp : {0.5,0.75,0.9,0.95,0.99,1.001})
+    if (mWithGT)
+    {
+        StdOut() << " [GT " <<  aPose.DistPose(mGTPose,1.0) * mFocMoy << "] " ;
+    }
+    for (const auto aProp : {0.5,0.75,0.9,1.001})
     {
         StdOut() << " [P="<< aProp << " R=" << Cst_KthVal(aVRes,aProp)*mFocMoy << "]";
     }
@@ -264,7 +399,8 @@ class cAppli_OriRel2Im : public cMMVII_Appli
          cPerspCamIntrCalib        * mCalib1;
          cPerspCamIntrCalib        * mCalib2;
          cEstimatePosRel2Im  *     mEstimatePose;
-         bool                      mUseOri4GT;
+
+         int                       mNbSolInit;
          int                       mNbSimulPt;
          std::vector<double>       mParamOutLayer;
 
@@ -272,9 +408,17 @@ class cAppli_OriRel2Im : public cMMVII_Appli
          tREAL8                    mFocM;
          cSetHomogCpleDir          * mCpleDir;
          int                       mKMaxME;
+
+
+         bool                      mUseOri4GT;
+         std::string               mFolderOriGT;
          tPoseR                    mGTPose;
          cSensorCamPC *            mPC1GT;
          cSensorCamPC *            mPC2GT;
+
+
+         cTimerSegm                mTimeSegm;
+
 };
 
 cAppli_OriRel2Im::cAppli_OriRel2Im(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
@@ -283,11 +427,13 @@ cAppli_OriRel2Im::cAppli_OriRel2Im(const std::vector<std::string> & aVArgs,const
     mCalib1       (nullptr),
     mCalib2       (nullptr),
     mEstimatePose (nullptr),
-    mUseOri4GT    (false),
+    mNbSolInit    (20),
     mNbSimulPt    (0),
+    mUseOri4GT    (false),
     mGTPose       (tPoseR::Identity()),
     mPC1GT        (nullptr),
-    mPC2GT        (nullptr)
+    mPC2GT        (nullptr),
+    mTimeSegm     (this)
 {
 }
 
@@ -308,9 +454,11 @@ cCollecSpecArg2007 & cAppli_OriRel2Im::ArgOpt(cCollecSpecArg2007 & anArgOpt)
    return       anArgOpt
             <<  mPhProj.DPTieP().ArgDirInOpt()
             <<  mPhProj.DPGndPt2D().ArgDirInOpt()
-            <<  AOpt2007(mUseOri4GT,"OriGT","Set if orientation contains also exterior as a ground truth",{eTA2007::HDV})
-             << AOpt2007(mNbSimulPt,"NbSimulPt","Number os fimulation point, if any",{eTA2007::HDV})
-             << AOpt2007(mParamOutLayer,"OutLayers","Param for generating outlayers [Nb,Sigma]",{{eTA2007::ISizeV,"[2,2]"}})
+            <<  AOpt2007(mUseOri4GT,"UseOriGT","Set if orientation contains also exterior as a ground truth",{eTA2007::HDV})
+            <<  AOpt2007(mFolderOriGT,"OriGT","If ground truth ori != calib")
+            <<  AOpt2007(mNbSimulPt,"NbSimulPt","Number os fimulation point, if any",{eTA2007::HDV})
+            <<  AOpt2007(mNbSolInit,"NbSol0","Number of solution initial (before BA)",{eTA2007::HDV})
+            <<  AOpt2007(mParamOutLayer,"OutLayers","Param for generating outlayers [Nb,Sigma]",{{eTA2007::ISizeV,"[2,2]"}})
 
 
 
@@ -364,12 +512,15 @@ int cAppli_OriRel2Im::Exe()
      OrderMinMax(mIm1,mIm2);
 
      // If we have a ground truth we initialize it
-     // Also in Simul
-     if (mUseOri4GT || mNbSimulPt || IsInit(&mParamOutLayer))
+     // Also in SimulaFolderOri
+     mUseOri4GT = mUseOri4GT ||  IsInit(&mFolderOriGT);
+     if (mUseOri4GT || mNbSimulPt || IsInit(&mParamOutLayer) )
      {
-         mPC1GT = mPhProj.ReadCamPC(mIm1,true);
-         mPC2GT = mPhProj.ReadCamPC(mIm2,true);
-         mGTPose = mPC1GT->RelativePose(*mPC2GT);
+       //  std::string aFolderOri =  IsInit(&mFolderOriGT) ? mFolderOriGT
+         std::string aOriGT = ValWithDef(mFolderOriGT,mPhProj.DPOrient().DirIn());
+         mPC1GT = mPhProj.ReadCamPCFromFolder(aOriGT,mIm1,true);
+         mPC2GT = mPhProj.ReadCamPCFromFolder(aOriGT,mIm2,true);
+         mGTPose = mPC1GT->Norm1RelativePose(*mPC2GT);
      }
 
      // as initialisation are both optional, used to check that one at least is used
@@ -417,7 +568,10 @@ int cAppli_OriRel2Im::Exe()
      mCalib1 =  mPhProj.InternalCalibFromImage(mIm1);
      mCalib2 =  mPhProj.InternalCalibFromImage(mIm2);
 
-    mEstimatePose = new cEstimatePosRel2Im(*mCalib1,*mCalib2,mCpleH,20);
+    mEstimatePose = new cEstimatePosRel2Im(*mCalib1,*mCalib2,mCpleH,mNbSolInit,&mTimeSegm);
+    if (mUseOri4GT)
+        mEstimatePose->SetGT(mGTPose);
+    mEstimatePose->DoAllCompute();
 
     if (mUseOri4GT)
         mEstimatePose->ShowSol(mGTPose,"GT");
