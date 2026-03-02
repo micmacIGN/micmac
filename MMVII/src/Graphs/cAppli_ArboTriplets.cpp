@@ -800,523 +800,22 @@ void cNodeArborTriplets::MergeChildrenSol()
 // getchar();
 }
 
-/* Refinement on bundles (more generic, work with fisheye) */
+/* Refinement on bundles (any camera projection) */
 void cNodeArborTriplets::RefineSolutionGen()
 {
-    // no of images
-    int aTotalImNum = mPMAT->GOP().AllVertices().size();
-    // no of iterations
-    int aNbIter=mPMAT->NbIterBA();
-    // image points weighting function
-    tREAL8 aSigAtt = mPMAT->SigmaTPt();
-    tREAL8 aFactElim = mPMAT->FacElim();
-    std::vector<tREAL8> aThrRange({aSigAtt*aFactElim,aSigAtt*5});
-    tREAL8 aDeltaThr=aThrRange[0]-aThrRange[1];
-
-    // structure storing declared unknowns of BA
-    cSetInterUK_MultipeObj<tREAL8> aSetIntervUK;
-
-
-    // camera parameters and colinearity equations
-    std::vector<cSensorCamPC *> aVCams ;
-    std::vector<cSensorImage *> aVSens ;
-    std::vector<cCalculator<double> *> aVEqCol ;
-
-    // intrinsic parameters considered the same for all images
-    //StdOut() << "Calibration: " << mPMAT->MapI2Str(mLocSols.at(0).mNumPose) << std::endl;
-    //cPerspCamIntrCalib *   aCal = mPMAT->PhProj().InternalCalibFromStdName(mPMAT->MapI2Str(mLocSols.at(0).mNumPose),false);
-
-    // vector of all image names belonging to this tree level
-    std::vector<std::string> aVNames;
-
-
-    // fill in the vector of image names
-    for (auto aLocPose : mLocSols)
-    {
-        std::string aImName = mPMAT->MapI2Str(aLocPose.mNumPose);
-        aVNames.push_back(aImName);
-
-    }
-
-    // sort images alphbetically (and mLocSols accordingly) for AllocStdFromMTPFromFolder
-    Sort2VectFirstOne(aVNames,mLocSols);
-
-    //SaveGlobSol("Init");
-
-    int aCamCurCount=0;
-    for (auto aSol : mLocSols)
-    {
-        std::string aImName = mPMAT->MapI2Str(aSol.mNumPose);
-        //StdOut() << aSol.mNumPose << " " << aImName << std::endl;
-
-        cPerspCamIntrCalib *   aCal = mPMAT->PhProj().InternalCalibFromStdName(mPMAT->MapI2Str(aSol.mNumPose),false);
-
-        cIsometry3D<tREAL8> aPoseChgConv(aSol.mPose.Tr() ,aSol.mPose.Rot() );
-
-        // store camera in a vector
-        aVCams.push_back( new cSensorCamPC(aImName,aPoseChgConv,aCal) );
-        aVSens.push_back( aVCams.at(aCamCurCount) );
-
-        // collinearity equation (calculator)
-        aVEqCol.push_back( aVCams.at(aCamCurCount)->CreateEqColinearityOnBundle(true,100,false) );
-
-        // add/declare the camera as unknonwn
-        aSetIntervUK.AddOneObj(aVCams.at(aCamCurCount));
-
-        aCamCurCount++;
-    }
-    //getchar();
-
-
-    // BA solver
-    cResolSysNonLinear<tREAL8> * aSys = new cResolSysNonLinear<tREAL8>(eModeSSR::eSSR_LsqNormSparse,aSetIntervUK.GetVUnKnowns());
-
-
-    // read the tie points corresponding to your image set
-    cComputeMergeMulTieP aTPts(*mPMAT->TPtsStruct(),aVNames);
-
-
-    // vector storing vectors of pairs of uv coordinates per each config
-    //   (to avoid unnecessary redundant operations)
-    std::vector<std::vector<std::pair<cPt3dr,cPt3dr>>> aVecConfUV(aTPts.Pts().size());
-
+    cBA_ArboTriplets aBA(mPMAT, mLocSols);
 
     StdOut() << " ============\t"
-             << "   #Images " << aVCams.size() << "/" << aTotalImNum
+             << "   #Images " << aBA.NbCams() << "/" << mPMAT->GOP().AllVertices().size()
              << " ============" << std::endl;
-    for (int aIter=0; aIter<aNbIter; aIter++)
-    {
 
-        // add viscosity on poses
-        for (auto & aCam : aVCams)
-        {
-            if ( mPMAT->ViscPose().at(0)>0)
-            {
-                aSys->AddEqFixCurVar(*aCam,aCam->Center(),Square(1.0/mPMAT->ViscPose().at(0)));
-            }
-            if (mPMAT->ViscPose().at(1)>0)
-            {
-                aSys->AddEqFixCurVar(*aCam,aCam->Omega(),Square(1.0/mPMAT->ViscPose().at(1)));
-            }
-        }
+    for (int aIter = 0; aIter < mPMAT->NbIterBA(); aIter++)
+        aBA.OneIteration(aIter);
 
-        // intersect tie-points in 3D
-        for (auto & aPair : aTPts.Pts())
-            MakePGroundFromBundles(aPair,aVSens); //MakePGround(aPair,aVSens); //
+    aBA.UpdateLocSols(mLocSols);
 
-        /* W(R) =
-               0 if R>Thrs
-               1/Sigma0^2  * (1/(1+ (R/SigmaAtt)^Exp))
-        cStdWeighterResidual(tREAL8 aSGlob,tREAL8 aSigAtt,tREAL8 aThr,tREAL8 aExp); */
-
-        tREAL8 aThr = aDeltaThr*(1 - double(aIter)/(aNbIter-1)) + aThrRange[1]; //dynamic, per-iteration thresholding
-        //StdOut() << "aThr=" << aThr << ", Start=" << aThrRange[0] << ", End=" << aThrRange[1] << std::endl;
-        cStdWeighterResidual aTPtsW (1.0,aSigAtt,aThr,2.0);// (1.0,50.0,1000.0,1.0) residual fun for image points
-
-        tREAL8 aMaxRes=0;
-        int aNumAllTiePts=0;
-        int aNumTPts=0;
-        int aNumAll3DPts=0;
-        int aNum3DPts=0;
-        cWeightAv<tREAL8> aWeigthedRes;
-
-        int aConfigNum=0; //track id of current config
-        for (auto aAllConfigs : aTPts.Pts())
-        {
-            const auto & aConfig = aAllConfigs.first;
-            auto & aVals = aAllConfigs.second;
-
-            size_t aNbIm = aConfig.size();
-            size_t aNbPts = aVals.mVIdPts.size();
-
-            aNumAll3DPts+=aNbPts;
-
-            // add to BA
-            for (size_t aKPts=0; aKPts<aNbPts; aKPts++)
-            {
-
-                const cPt3dr & aP3D = aVals.mVPGround.at(aKPts);
-                cSetIORSNL_SameTmp<tREAL8>  aStrSubst(aP3D.ToStdVector());
-
-
-                size_t aNbEqAdded = 0;
-                for (size_t aKIm=0; aKIm<aNbIm; aKIm++)
-                {
-                    size_t aKImSorted = aConfig.at(aKIm);
-
-                    //const cPt2dr aPIm = aVals.mVPIm.at(aKPts*aNbIm+aKIm);
-                    const cPt3dr aPBun (aVals.mVPIm.at(aKPts*aNbIm+aKIm).x(),
-                                        aVals.mVPIm.at(aKPts*aNbIm+aKIm).y(),
-                                        aVals.mVPZ.at(aKPts*aNbIm+aKIm) ) ;
-                    cSensorCamPC* aCam = aVCams.at(aKImSorted);
-
-                    // compute u,v orthogonal to bundle
-                    //    (do it once at first iteration)
-                    if (aIter==0)
-                    {
-                        cPt3dr u = VUnit(VOrthog(aPBun));
-                        cPt3dr v = aPBun ^ u;
-                        aVecConfUV.at(aConfigNum).push_back(std::make_pair(u,v));
-                    }
-
-                    // handle visibility
-                    //
-                    //if (aCam->IsVisibleOnImFrame(aPIm) && aCam->IsVisible(aP3D))
-                    if (aCam->DegreeVisibility(aP3D) >0.0)
-                    {
-                        //cPt3dr aPCam = Pt_W2L(aP);
-                        //cPt2dr(aPCam.x()/aPCam.z(),aPCam.y()/aPCam.z());
-
-                        //cPt2dr aResidual = aPIm - aCam->Ground2Image(aP3D);
-                        cPt3dr aPBunPred = aCam->Pt_W2L(aP3D);
-                        aPBunPred.x() /= aPBunPred.z();
-                        aPBunPred.y() /= aPBunPred.z();
-                        aPBunPred.z() = 1.0;
-                        cPt2dr aResidual { aCam->InternalCalib()->F()  * (aPBun.x() - aPBunPred.x()), //aCal->F()
-                                           aCam->InternalCalib()->F() * (aPBun.y() - aPBunPred.y())}; //aCal->F()
-                        tREAL8 aResNorm = Norm2(aResidual);
-
-                        tREAL8 aWeight = aTPtsW.SingleWOfResidual(aResidual);
-                        StdOut() << "RRRR " << aResidual << " W=" << aWeight << ", "
-                                 << ", 3D=" << aP3D <<  ", F="
-                                 << aCam->InternalCalib()->F() << " "
-                                 << aPBun << " "
-                                 << aPBunPred << "\n";
-
-
-                        cCalculator<double> * aEqCol =  aVEqCol.at(aKIm);
-
-
-                        // add observations:
-                        //    u,v vectors and focal
-                        //    (rot init aded implicitly in PushOwnObsColinearity)
-                        std::vector<double> aVObs;
-                        aVObs.push_back(aVecConfUV.at(aConfigNum).at(aKPts*aNbIm+aKIm).first.x());  //ux
-                        aVObs.push_back(aVecConfUV.at(aConfigNum).at(aKPts*aNbIm+aKIm).first.y());  //uy
-                        aVObs.push_back(aVecConfUV.at(aConfigNum).at(aKPts*aNbIm+aKIm).first.z());  //uz
-                        aVObs.push_back(aVecConfUV.at(aConfigNum).at(aKPts*aNbIm+aKIm).second.x()); //vx
-                        aVObs.push_back(aVecConfUV.at(aConfigNum).at(aKPts*aNbIm+aKIm).second.y()); //vy
-                        aVObs.push_back(aVecConfUV.at(aConfigNum).at(aKPts*aNbIm+aKIm).second.z()); //vz
-                        aVObs.push_back(aCam->InternalCalib()->F()); // focal
-
-                        aCam->PushOwnObsColinearity(aVObs,aP3D);
-
-                        std::vector<int> aVIndGlob = {-1,-2,-3};  // index of unknown, temporary
-                        for (auto & anObj : aCam->GetAllUKPose())  // now add unknowns for sensor's extrinsics (no calib)
-                        {
-                            anObj->PushIndexes(aVIndGlob);
-                        }
-
-                        if (aWeight>0)
-                        {
-                            aWeigthedRes.Add(aWeight,aResNorm);//
-                            aSys->R_AddEq2Subst(aStrSubst,aEqCol,aVIndGlob,aVObs,aWeight);//
-                            aNbEqAdded++;
-                            aNumTPts++;
-
-
-                            if (aMaxRes<aResNorm)
-                                aMaxRes=aResNorm;
-                        }
-                    }//else StdOut() << "some cam\n" << "not vis " << aPIm << aCam->IsVisibleOnImFrame(aPIm) << " " << aCam->IsVisible(aP3D) << std::endl;
-                    aNumAllTiePts++;
-                }
-
-                if (aNbEqAdded>=2)
-                {
-                    aSys->R_AddObsWithTmpUK(aStrSubst);
-                    aNum3DPts++;
-                }
-
-            }
-            aConfigNum++;
-        }
-
-        double aPercInliersTP = (aNumAllTiePts>0) ? (aNumTPts*100)/aNumAllTiePts : 0.0;
-        double aPercIn3DP = (aNumAll3DPts>0) ? (aNum3DPts*100)/aNumAll3DPts : 0.0;
-        StdOut() << "#Iter=" << aIter
-                 << " Res=" << aWeigthedRes.Average()
-                 << ", #3D points=" << aNumAll3DPts << ", " << aPercIn3DP << "%"
-                 << ", #2D features=" << aNumTPts << ", " << aPercInliersTP << "%"
-                // << ", MaxRes=" << aMaxRes
-                 << std::endl;
-
-        //tREAL8 aLVM=0.1;
-        const auto & aVectSol = aSys->SolveUpdateReset({mPMAT->LVM()},{},{});//
-        aSetIntervUK.SetVUnKnowns(aVectSol);
-
-        //StdOut() << " StdDevLast=" << std::sqrt(aSys->VarLastSol())
-        //         << " StdDevCur=" << std::sqrt(aSys->VarCurSol()) << std::endl;
-    }
-    //ShowPose("===BA at tree depth: ===");
-    //StdOut() << "END BA" << std::endl;
-
-    // final pose update in the global tree structure
-    aCamCurCount=0;
-    for (auto aCamAdj : aVCams)
-    {
-        mLocSols.at(aCamCurCount).mPose.Tr() = aCamAdj->Center();
-        mLocSols.at(aCamCurCount).mPose.Rot() = aCamAdj->Pose().Rot();
-
-        aCamCurCount++;
-    }
-    //getchar();
-
-    aSetIntervUK.SIUK_Reset();
-
-    //delete aCal;
-    delete aSys;
-    for (auto aECol : aVEqCol)
-        delete aECol;
-    for (auto aCam : aVCams)
-        delete aCam;
 }
 
-/* Refinement on image points */
-void cNodeArborTriplets::RefineSolution()
-{
-
-    int aNbIter=mPMAT->NbIterBA();
-    // image points weighting function
-    tREAL8 aSigAtt = mPMAT->SigmaTPt();
-    tREAL8 aThr = mPMAT->SigmaTPt()*mPMAT->FacElim();
-
-    // structure storing declared unknowns of BA
-    cSetInterUK_MultipeObj<tREAL8> aSetIntervUK;
-
-
-    // camera parameters and colinearity equations
-    std::vector<cSensorCamPC *> aVCams ;
-    std::vector<cSensorImage *> aVSens ;
-    std::vector<cCalculator<double> *> aVEqCol ;
-
-    // intrinsic parameters considered the same for all images
-    //StdOut() << mLocSols.at(0).mNumPose  << " " << mPMAT->MapI2Str(mLocSols.at(0).mNumPose) << std::endl;
-    cPerspCamIntrCalib *   aCal = mPMAT->PhProj().InternalCalibFromStdName(mPMAT->MapI2Str(mLocSols.at(0).mNumPose),false);
-    aSetIntervUK.AddOneObj(aCal);
-
-    // vector of all image names belonging to this tree level
-    std::vector<std::string> aVNames;
-
-
-    // fill in the vector of image names
-    for (auto aLocPose : mLocSols)
-    {
-        std::string aImName = mPMAT->MapI2Str(aLocPose.mNumPose);
-        aVNames.push_back(aImName);
-
-    }
-
-    // sort images alphbetically (and mLocSols accordingly) for AllocStdFromMTPFromFolder
-    Sort2VectFirstOne(aVNames,mLocSols);
-
-    //SaveGlobSol("Init");
-
-    int aCamCurCount=0;
-    for (auto aSol : mLocSols)
-    {
-        std::string aImName = mPMAT->MapI2Str(aSol.mNumPose);
-        StdOut() << aSol.mNumPose << " " << aImName << std::endl;
-
-        cIsometry3D<tREAL8> aPoseChgConv(aSol.mPose.Tr() ,aSol.mPose.Rot() );
-
-        // store camera in a vector
-        aVCams.push_back( new cSensorCamPC(aImName,aPoseChgConv,aCal) );
-        aVSens.push_back( aVCams.at(aCamCurCount) );
-
-
-        // collinearity equation (calculator)
-        aVEqCol.push_back( aVCams.at(aCamCurCount)->CreateEqColinearity(true,100,false) );
-
-        // add/declare the camera as unknonwn
-        aSetIntervUK.AddOneObj(aVCams.at(aCamCurCount));
-
-        aCamCurCount++;
-    }
-    //getchar();
-
-
-
-    // BA solver
-    cResolSysNonLinear<tREAL8> * aSys = new cResolSysNonLinear<tREAL8>(eModeSSR::eSSR_LsqNormSparse,aSetIntervUK.GetVUnKnowns());
-    // freeze internal calibration
-    aSys->SetFrozenFromPat(*aCal,".*",true);
-
-
-    // read the tie points corresponding to your image set
-    cComputeMergeMulTieP aTPts(*mPMAT->TPtsStruct(),aVNames);
-
-
-    // image points weighting function
-    //tREAL8 aSigAtt=mPMAT->SigmaTPt();
-    //tREAL8 aFactElim=mPMAT->FacElim();
-    //std::vector<tREAL8> aThrRange({aSigAtt*aFactElim,aSigAtt*5});
-    //tREAL8 aDeltaThr=aThrRange[0]-aThrRange[1];
-
-    //StdOut() << "Start BA : #Configs=" << aTPts->Pts().size() << std::endl;
-    StdOut() << "---------------------- "
-             << "#Images " << aVCams.size() << ", pts=" << aTPts.Pts().size() << std::endl;
-    for (int aIter=0; aIter<aNbIter; aIter++)
-    {
-
-        // add viscosity on poses
-        for (auto & aCam : aVCams)
-        {
-            if ( mPMAT->ViscPose().at(0)>0)
-            {
-                aSys->AddEqFixCurVar(*aCam,aCam->Center(),Square(1.0/mPMAT->ViscPose().at(0)));
-            }
-            if (mPMAT->ViscPose().at(1)>0)
-            {
-                aSys->AddEqFixCurVar(*aCam,aCam->Omega(),Square(1.0/mPMAT->ViscPose().at(1)));
-            }
-        }
-
-        // intersect tie-points in 3D
-        for (auto & aPair : aTPts.Pts())
-            MakePGround(aPair,aVSens); //
-
-        /* W(R) =
-               0 if R>Thrs
-               1/Sigma0^2  * (1/(1+ (R/SigmaAtt)^Exp))
-        cStdWeighterResidual(tREAL8 aSGlob,tREAL8 aSigAtt,tREAL8 aThr,tREAL8 aExp); */
-
-        //tREAL8 aThr = aDeltaThr*(1 - double(aIter)/(aNbIter-1)) + aThrRange[1];
-        //StdOut() << "aThr=" << aThr << ", Start=" << aThrRange[0] << ", End=" << aThrRange[1] << std::endl;
-        cStdWeighterResidual aTPtsW (1.0,aSigAtt,aThr,2.0);// (1.0,50.0,1000.0,1.0);//(1,aSigAtt,aThr,2);
-        tREAL8 aMaxRes=0;
-        tREAL8 aTotalW=0;
-
-
-        int aNumAllTiePts=0;
-        int aNumTPts=0;
-        int aNumAll3DPts=0;
-        int aNum3DPts=0;
-        cWeightAv<tREAL8> aWeigthedRes;
-
-        for (auto aAllConfigs : aTPts.Pts())
-        {
-            const auto & aConfig = aAllConfigs.first;
-            auto & aVals = aAllConfigs.second;
-
-            size_t aNbIm = aConfig.size();
-            size_t aNbPts = aVals.mVIdPts.size();
-
-            aNumAll3DPts+=aNbPts;
-
-            // add to BA
-            for (size_t aKPts=0; aKPts<aNbPts; aKPts++)
-            {
-
-                const cPt3dr & aP3D = aVals.mVPGround.at(aKPts);
-                cSetIORSNL_SameTmp<tREAL8>  aStrSubst(aP3D.ToStdVector());
-                //if ( aIter==(aNbIter-1))
-                //    StdOut() << aP3D.x() << " " << aP3D.y() << " " << aP3D.z() << std::endl;
-
-                //tREAL8 aResTotal = 0;
-                size_t aNbEqAdded = 0;
-                for (size_t aKIm=0; aKIm<aNbIm; aKIm++)
-                {
-                    size_t aKImSorted = aConfig.at(aKIm);
-
-                    aNumAllTiePts++;
-
-                    const cPt2dr aPIm = aVals.mVPIm.at(aKPts*aNbIm+aKIm);
-                    cSensorCamPC* aCam = aVCams.at(aKImSorted);
-
-                    if (aCam->IsVisibleOnImFrame(aPIm) && aCam->IsVisible(aP3D))
-                    {
-
-                        cPt2dr aResidual = aPIm - aCam->Ground2Image(aP3D);
-                        tREAL8 aResNorm = Norm2(aResidual);
-                        //aResTotal+=aResNorm;
-
-                        tREAL8 aWeight = aTPtsW.SingleWOfResidual(aResidual);
-
-                        StdOut() << aCam->Center() << " " << aCam->Pose().Rot().ToWPK() << std::endl;
-                        StdOut() << "RRRR " << aResidual << " W=" << aWeight << ", " << aPIm
-                                 << ", 3D=" << aP3D << "\n";
-
-
-
-                        cCalculator<double> * aEqCol =  aVEqCol.at(aKIm);
-                        std::vector<double> aVObs = aPIm.ToStdVector();
-
-                        aCam->PushOwnObsColinearity(aVObs,aP3D);
-
-                        std::vector<int> aVIndGlob = {-1,-2,-3};  // index of unknown, temporary
-                        for (auto & anObj : aCam->GetAllUK())  // now put sensor unknown
-                        {
-                            anObj->PushIndexes(aVIndGlob);
-                        }
-
-                        if (aWeight>0)
-                        {
-                            aWeigthedRes.Add(aWeight,aResNorm);
-                            aSys->R_AddEq2Subst(aStrSubst,aEqCol,aVIndGlob,aVObs,aWeight);
-                            aNbEqAdded++;
-                            aNumTPts++;
-
-                            aTotalW+=aWeight;
-                            if (aMaxRes<aResNorm)
-                                aMaxRes=aResNorm;
-                        }
-                    }
-                }
-                //StdOut() << "aNbEqAdded=" << aNbEqAdded << std::endl;
-                if (aNbEqAdded>=2)
-                {
-                    aSys->R_AddObsWithTmpUK(aStrSubst);
-                    aNum3DPts++;
-                }
-
-            }
-        }
-
-        double aPercInliers = (aNumTPts*100)/aNumAllTiePts;
-        StdOut() << "#Iter=" << aIter
-                 << ", #3D points=" << aNumAll3DPts << ", #Inliers=" << aNum3DPts
-                 << ", #2D obs=" << aNumTPts << ", #Inliers=" << aPercInliers << " %"
-                 << ", MaxRes=" << aMaxRes << ", TotalW=" << aTotalW
-                 << " Weighted Res=" << aWeigthedRes.Average() << std::endl;
-
-        tREAL8 aLVM=0.1;
-        const auto & aVectSol = aSys->SolveUpdateReset({aLVM},{},{});//
-        aSetIntervUK.SetVUnKnowns(aVectSol);
-
-        //StdOut() << " StdDevLast=" << std::sqrt(aSys->VarLastSol())
-        //         << " StdDevCur=" << std::sqrt(aSys->VarCurSol()) << std::endl;
-
-
-    }
-    //ShowPose("===BA at tree depth: ===");
-    //StdOut() << "END BA" << std::endl;
-
-    // final pose update in the global tree structure
-    aCamCurCount=0;
-    for (auto aCamAdj : aVCams)
-    {
-        mLocSols.at(aCamCurCount).mPose.Tr() = aCamAdj->Center();
-        mLocSols.at(aCamCurCount).mPose.Rot() = aCamAdj->Pose().Rot();
-
-        aCamCurCount++;
-    }
-    //getchar();
-
-
-
-
-    aSetIntervUK.SIUK_Reset();
-
-    delete aCal;
-    delete aSys;
-    // delete aTPts;
-    for (auto aECol : aVEqCol)
-        delete aECol;
-    for (auto aCam : aVCams)
-        delete aCam;
-
-}
 
 cSolLocNode * cNodeArborTriplets::SolOfGlobalIndex(int  anIndAbs) 
 {
@@ -1446,7 +945,7 @@ tREAL8 c3G3_AttrV::CostVertexCommon(const c3G3_AttrV & anAttr2,tREAL8 aWTr) cons
 
 /* ********************************************************* */
 /*                                                           */
-/*                     cAppli_ArboTriplets                   */
+/*                     cMakeArboTriplet                   */
 /*                                                           */
 /* ********************************************************* */
 
@@ -1979,6 +1478,218 @@ void cMakeArboTriplet::ComputeArbor()
 
 
 }
+
+/* ********************************************************* */
+/*                                                           */
+/*                     cBA_ArboTriplets                      */
+/*                                                           */
+/* ********************************************************* */
+
+cBA_ArboTriplets::cBA_ArboTriplets(cMakeArboTriplet* aPMAT, std::vector<cSolLocNode>& aLocSols):
+    mPMAT     (aPMAT),
+    mNbIter   (aPMAT->NbIterBA()),
+    mSigAtt   (aPMAT->SigmaTPt()),
+    mThrRange ({aPMAT->SigmaTPt()*aPMAT->FacElim(), aPMAT->SigmaTPt()*5}),
+    mDeltaThr (aPMAT->SigmaTPt()*aPMAT->FacElim() - aPMAT->SigmaTPt()*5),
+    mSys      (nullptr),
+    mTPts     (nullptr)
+{
+    std::vector<std::string> aVNames;
+    for (auto & aSol : aLocSols)
+        aVNames.push_back(aPMAT->MapI2Str(aSol.mNumPose));
+    Sort2VectFirstOne(aVNames, aLocSols);
+
+    mTPts = new cComputeMergeMulTieP(*mPMAT->TPtsStruct(), aVNames);
+
+    //int aCnt = 0;
+    for (auto & aSol : aLocSols)
+    {
+        std::string aImName = aPMAT->MapI2Str(aSol.mNumPose);
+        cPerspCamIntrCalib* aCal = aPMAT->PhProj().InternalCalibFromStdName(aImName, false);
+        cIsometry3D<tREAL8> aPose(aSol.mPose.Tr(), aSol.mPose.Rot());
+        mVCams.push_back(new cSensorCamPC(aImName, aPose, aCal));
+        mVSens.push_back(mVCams.back());
+        mVEqCol.push_back(mVCams.back()->CreateEqColinearityOnBundle(true, 100, false));
+        mSetIntervUK.AddOneObj(mVCams.back());
+        //aCnt++;
+    }
+    mSys = new cResolSysNonLinear<tREAL8>(eModeSSR::eSSR_LsqNormSparse, mSetIntervUK.GetVUnKnowns());
+    mVecConfUV.resize(mTPts->Pts().size());
+}
+
+void cBA_ArboTriplets::OneIteration(int aIter)
+{
+    // viscosity
+    for (auto& aCam : mVCams)
+    {
+        if ( mPMAT->ViscPose().at(0)>0)
+        {
+            mSys->AddEqFixCurVar(*aCam,aCam->Center(),Square(1.0/mPMAT->ViscPose().at(0)));
+        }
+        if (mPMAT->ViscPose().at(1)>0)
+        {
+            mSys->AddEqFixCurVar(*aCam,aCam->Omega(),Square(1.0/mPMAT->ViscPose().at(1)));
+        }
+    }
+
+    // 3D intersection
+    for (auto& aPair : mTPts->Pts())
+        MakePGroundFromBundles(aPair, mVSens);
+
+    tREAL8 aThr = mDeltaThr*(1 - double(aIter)/(mNbIter-1)) + mThrRange[1];
+    cStdWeighterResidual aTPtsW(1.0, mSigAtt, aThr, 2.0);
+
+    // add equations
+    tREAL8 aMaxRes=0;
+    int aNumAllTiePts=0;
+    int aNumTPts=0;
+    int aNumAll3DPts=0;
+    int aNum3DPts=0;
+    cWeightAv<tREAL8> aWeigthedRes;
+
+    int aConfigNum=0; //track id of current config
+    for (auto aAllConfigs : mTPts->Pts())
+    {
+        const auto & aConfig = aAllConfigs.first;
+        auto & aVals = aAllConfigs.second;
+
+        size_t aNbIm = aConfig.size();
+        size_t aNbPts = aVals.mVIdPts.size();
+
+        aNumAll3DPts+=aNbPts;
+
+        // add to BA
+        for (size_t aKPts=0; aKPts<aNbPts; aKPts++)
+        {
+
+            const cPt3dr & aP3D = aVals.mVPGround.at(aKPts);
+            cSetIORSNL_SameTmp<tREAL8>  aStrSubst(aP3D.ToStdVector());
+
+
+            size_t aNbEqAdded = 0;
+            for (size_t aKIm=0; aKIm<aNbIm; aKIm++)
+            {
+                size_t aKImSorted = aConfig.at(aKIm);
+
+                const cPt3dr aPBun (aVals.mVPIm.at(aKPts*aNbIm+aKIm).x(),
+                                   aVals.mVPIm.at(aKPts*aNbIm+aKIm).y(),
+                                   aVals.mVPZ.at(aKPts*aNbIm+aKIm) ) ;
+                cSensorCamPC* aCam = this->mVCams.at(aKImSorted);
+
+                // compute u,v orthogonal to bundle
+                //    (do it once at first iteration)
+                if (aIter==0)
+                {
+                    cPt3dr u = VUnit(VOrthog(aPBun));
+                    cPt3dr v = aPBun ^ u;
+                    this->mVecConfUV.at(aConfigNum).push_back(std::make_pair(u,v));
+                }
+
+                // handle visibility
+                //
+                if (aCam->DegreeVisibility(aP3D) >0.0)
+                {
+                    cPt3dr aPBunPred = aCam->Pt_W2L(aP3D);
+                    aPBunPred.x() /= aPBunPred.z();
+                    aPBunPred.y() /= aPBunPred.z();
+                    aPBunPred.z() = 1.0;
+                    cPt2dr aResidual { aCam->InternalCalib()->F()  * (aPBun.x() - aPBunPred.x()),
+                                     aCam->InternalCalib()->F() * (aPBun.y() - aPBunPred.y())};
+                    tREAL8 aResNorm = Norm2(aResidual);
+
+                    tREAL8 aWeight = aTPtsW.SingleWOfResidual(aResidual);
+                    StdOut() << "RRRR " << aResidual << " W=" << aWeight << ", "
+                             << ", 3D=" << aP3D <<  ", F="
+                             << aCam->InternalCalib()->F() << " "
+                             << aPBun << " "
+                             << aPBunPred << "\n";
+
+
+                    cCalculator<double> * aEqCol =  this->mVEqCol.at(aKIm);
+
+
+                    // add observations:
+                    //    u,v vectors and focal
+                    //    (rot init added implicitly in PushOwnObsColinearity)
+                    std::vector<double> aVObs;
+                    aVObs.push_back(mVecConfUV.at(aConfigNum).at(aKPts*aNbIm+aKIm).first.x());  //ux
+                    aVObs.push_back(mVecConfUV.at(aConfigNum).at(aKPts*aNbIm+aKIm).first.y());  //uy
+                    aVObs.push_back(mVecConfUV.at(aConfigNum).at(aKPts*aNbIm+aKIm).first.z());  //uz
+                    aVObs.push_back(mVecConfUV.at(aConfigNum).at(aKPts*aNbIm+aKIm).second.x()); //vx
+                    aVObs.push_back(mVecConfUV.at(aConfigNum).at(aKPts*aNbIm+aKIm).second.y()); //vy
+                    aVObs.push_back(mVecConfUV.at(aConfigNum).at(aKPts*aNbIm+aKIm).second.z()); //vz
+                    aVObs.push_back(aCam->InternalCalib()->F()); // focal
+
+                    aCam->PushOwnObsColinearity(aVObs,aP3D);
+
+                    std::vector<int> aVIndGlob = {-1,-2,-3};  // index of unknown, temporary
+                    for (auto & anObj : aCam->GetAllUKPose())  // now add unknowns for sensor's extrinsics (no calib)
+                    {
+                        anObj->PushIndexes(aVIndGlob);
+                    }
+
+                    if (aWeight>0)
+                    {
+                        aWeigthedRes.Add(aWeight,aResNorm);//
+                        mSys->R_AddEq2Subst(aStrSubst,aEqCol,aVIndGlob,aVObs,aWeight);//
+                        aNbEqAdded++;
+                        aNumTPts++;
+
+
+                        if (aMaxRes<aResNorm)
+                            aMaxRes=aResNorm;
+                    }
+                }
+                aNumAllTiePts++;
+            }
+
+            if (aNbEqAdded>=2)
+            {
+                mSys->R_AddObsWithTmpUK(aStrSubst);
+                aNum3DPts++;
+            }
+
+        }
+        aConfigNum++;
+    }
+
+    double aPercInliersTP = (aNumAllTiePts>0) ? (aNumTPts*100)/aNumAllTiePts : 0.0;
+    double aPercIn3DP = (aNumAll3DPts>0) ? (aNum3DPts*100)/aNumAll3DPts : 0.0;
+    StdOut() << "#Iter=" << aIter
+             << " Res=" << aWeigthedRes.Average()
+             << ", #3D points=" << aNumAll3DPts << ", " << aPercIn3DP << "%"
+             << ", #2D features=" << aNumTPts << ", " << aPercInliersTP << "%"
+             // << ", MaxRes=" << aMaxRes
+             << std::endl;
+
+    const auto& aVectSol = mSys->SolveUpdateReset({mPMAT->LVM()}, {}, {});
+    mSetIntervUK.SetVUnKnowns(aVectSol);
+}
+
+void cBA_ArboTriplets::UpdateLocSols(std::vector<cSolLocNode>& aLocSols)
+{
+    for (size_t aK = 0; aK < mVCams.size(); aK++)
+    {
+        aLocSols.at(aK).mPose.Tr()  = mVCams.at(aK)->Center();
+        aLocSols.at(aK).mPose.Rot() = mVCams.at(aK)->Pose().Rot();
+    }
+}
+
+cBA_ArboTriplets::~cBA_ArboTriplets()
+{
+    mSetIntervUK.SIUK_Reset();
+    delete mSys;
+    delete mTPts;
+    for (auto p : mVEqCol) delete p;
+    for (auto p : mVCams)  delete p;
+}
+
+
+/* ********************************************************* */
+/*                                                           */
+/*                     cAppli_ArboTriplets                   */
+/*                                                           */
+/* ********************************************************* */
 
 cAppli_ArboTriplets::cAppli_ArboTriplets(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
     cMMVII_Appli (aVArgs,aSpec),

@@ -27,6 +27,8 @@ class cNodeArborTriplets;  // the hierarchical decomposition in tree of triplet
 class cMakeArboTriplet;    // class for computing everything
 class  cSolLocNode;        // class for storing the pose of one image inside a cNodeArborTriplets
 class cOneTripletMerge;    // class for storing the topological/links between 2 Nodes before merge
+class  cBA_ArboTriplets;   // class for bundle adjustment on triplet graph
+
 
 typedef std::pair<int,int>  tPairI;
 
@@ -120,8 +122,7 @@ private :
     /// make the merge for non terminal nodes
     void MergeChildrenSol();
     /// refine the merged solution with bundle adjustment
-    void RefineSolutionGen(); //on bundles generic camera
-    void RefineSolution();    //on points
+    void RefineSolutionGen();
     /// free temporary data, non longer used after having been mergerd
     void FreeIndexSol();
     /// extract the num of poses of the tree
@@ -248,6 +249,40 @@ private :
     int                     mNbIterBA;       ///< Number of iteration in bundle adjustment (Refine)
 };
 
+/** Local bundle adjustment for one node of the triplet arborescence.
+   *  Parameterized on bundles (angular/direction residuals), supports all camera projections. */
+class cBA_ArboTriplets
+{
+    public:
+        /// Sets up cameras, collinearity calculators, solver, local tie-points subset.
+        cBA_ArboTriplets(cMakeArboTriplet* aPMAT, std::vector<cSolLocNode>& aLocSols);
+        ~cBA_ArboTriplets();
+
+        /// One BA iteration. Pre-computes u,v vectors on first call (aIter==0).
+        void OneIteration(int aIter);
+
+        /// Copies refined poses back into aLocSols.
+        void UpdateLocSols(std::vector<cSolLocNode>& aLocSols);
+
+        size_t NbCams() const { return mVCams.size(); }
+
+    private:
+        cMakeArboTriplet*                                  mPMAT;
+        int                                                mNbIter;
+        tREAL8                                             mSigAtt;
+        std::vector<tREAL8>                                mThrRange;   ///< [start, end] dynamic threshold
+        tREAL8                                             mDeltaThr;
+
+        cSetInterUK_MultipeObj<tREAL8>                     mSetIntervUK;
+        std::vector<cSensorCamPC*>                         mVCams;
+        std::vector<cSensorImage*>                         mVSens;
+        std::vector<cCalculator<double>*>                  mVEqCol;
+        cResolSysNonLinear<tREAL8>*                        mSys;
+        cComputeMergeMulTieP*                              mTPts;   ///< local tie-points subset
+        std::vector<std::vector<std::pair<cPt3dr,cPt3dr>>> mVecConfUV; ///< precomputed u,v per config
+};
+
+
 class cAppli_ArboTriplets : public cMMVII_Appli
 {
 public :
@@ -267,6 +302,8 @@ private :
     bool                      mPerfectData;
     std::vector<tREAL8>       mViscPose;      ///< regularization on poses in BA
 };
+
+
 
 }; // namespace MMVII
 

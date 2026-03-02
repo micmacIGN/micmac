@@ -1035,17 +1035,20 @@ void cCamSimul::BenchHierchBA(cTimerSegm * aTS,
                               bool         isSubVert)
 {
     // syntethic triplets and tie points
-    int aNbCam = 50;
+    int aNbCam = 25;
     int aNbTri = round_ni((aNbCam-1)/2 * 5);
     int aNbHPts = 20; // per pair of images (approx)
 
+    // tie points noise setting
+    double aPtNoiseAmpl=0.5; //in pixel
+
     // tie points outlier settings
-    double aPtOutlierAmpl=20.0;
+    double aPtOutlierAmpl=20.0;// in pixel
     double aPtOutlierRate=0.1;
 
     // triplet outlier settings
     double aTriOutNb = aNbTri * 0.2;
-    std::vector<double> aTriOutAmpl({0.5,0.1});
+    std::vector<double> aTriOutAmpl({0.5,0.1});// [Tr,Rot]
 
 
 
@@ -1225,12 +1228,29 @@ void cCamSimul::BenchHierchBA(cTimerSegm * aTS,
                                 if (aCams[aK3Cam]->IsVisible(aPt3D))
                                 {
                                     // save to structure
-                                    cTiePMul aPtCam3(aCams[aK3Cam]->Ground2Image(aPt3D),aPtImIdx);
+                                    cPt2dr aPt = aCams[aK3Cam]->Ground2Image(aPt3D);
+                                    cPt2dr aPtDelta = cPt2dr::PRandC()*aPtNoiseAmpl; // add noise
+                                    // does it still project to camera?
+                                    if (aCams[aK3Cam]->IsVisibleOnImFrame(aPt+aPtDelta))
+                                        aPt = aPt + aPtDelta;
+
+                                    cTiePMul aPtCam3(aPt,aPtImIdx);
                                     aMulTiePMap[aCams[aK3Cam]->NameImage()].mVecTPM.push_back(aPtCam3);
                                     aNbKeyPtsInTri++;
                                 }
                             }
                         }
+
+                        // add noise
+                        cPt2dr aPt1Delta = cPt2dr::PRandC()*aPtNoiseAmpl;
+                        cPt2dr aPt2Delta = cPt2dr::PRandC()*aPtNoiseAmpl;
+
+                        // check if visible in image with added noise
+                        if (aCams[aK1Cam]->IsVisibleOnImFrame(aHPair.mP1+aPt1Delta))
+                            aHPair.mP1 = aHPair.mP1 + aPt1Delta;
+                        if (aCams[aK2Cam]->IsVisibleOnImFrame(aHPair.mP2+aPt2Delta))
+                            aHPair.mP2 = aHPair.mP2 + aPt2Delta;
+
                         // save to structure
                         cTiePMul aPtCam1(aHPair.mP1,aPtImIdx);
                         cTiePMul aPtCam2(aHPair.mP2,aPtImIdx);
