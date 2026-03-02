@@ -72,6 +72,8 @@ class cFlag8Neigh
  * to have a strict order, for value==, the comparison is done on Y then X */
 template <class Type>  cFlag8Neigh   FlagSup8Neigh(const cDataIm2D<Type> & aDIm,const cPt2di & aPt);
 
+template <class Type>  cFlag8Neigh   FlagEq8Neigh(const cDataIm2D<Type> & aDIm,const cPt2di & aPt);
+
 
 /**  Given a point, that is  a "topologicall saddle" (i.e multiple connected component of points >) ,
  * carecterize the "importance" of saddle */

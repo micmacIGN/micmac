@@ -61,6 +61,19 @@ template <class Type>  cFlag8Neigh   FlagSup8Neigh(const cDataIm2D<Type> & aDIm,
    return aResult;
 }
 
+template <class Type>  cFlag8Neigh   FlagEq8Neigh(const cDataIm2D<Type> & aDIm,const cPt2di & aPt)
+{
+    Type aV0 = aDIm.GetV(aPt);
+    cFlag8Neigh aResult ;
+    //  for freeman 1,4  Y is positive, for freeman 0, X is positive
+    for (int aK=0 ; aK<8 ; aK++)
+    {
+        if (aDIm.GetV(aPt+FreemanV8[aK]) ==  aV0)
+            aResult.AddNeigh(aK);
+    }
+    return aResult;
+}
+
 /*  For this "topo" criteria, we compute :
  *
  *      - aMaxOfMin = max for all connected component of the min of the connected component
@@ -103,7 +116,7 @@ template <class Type>  tREAL8   CriterionTopoSadle(const cDataIm2D<Type> & aDIm,
 
 template cFlag8Neigh FlagSup8Neigh(const cDataIm2D<tREAL4> & aDIm,const cPt2di & aPt);
 template cFlag8Neigh FlagSup8Neigh(const cDataIm2D<tU_INT1> & aDIm,const cPt2di & aPt);
-template tREAL8      CriterionTopoSadle(const cDataIm2D<tREAL4> & aDIm,const cPt2di & aPixC); 
-
+template tREAL8      CriterionTopoSadle(const cDataIm2D<tREAL4> & aDIm,const cPt2di & aPixC);
+template cFlag8Neigh FlagEq8Neigh(const cDataIm2D<tU_INT1>& aDIm, const cPt2di& aPt);
 
 };
