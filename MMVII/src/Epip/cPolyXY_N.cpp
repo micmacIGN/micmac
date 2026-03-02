@@ -98,21 +98,6 @@ int cPolyXY_N<T>::NbCoeffs() const
 
 
 template<typename T>
-void cPolyXY_N<T>::ResetFit()
-{
-    mLeastSq.reset();
-    mFixedK.clear();
-}
-
-template<typename T>
-void cPolyXY_N<T>::AddFixedK(int i, int j, const T &k)
-{
-    MMVII_INTERNAL_ASSERT_medium(i>=0 && j>=0 && i+j<=mDegree,"Bad usage of cPolyXY_N::AddFixedK()");
-    MMVII_INTERNAL_ASSERT_medium(! mLeastSq,"Can't add fixed K after obs in cPolyXY_N::AddFixedK()");
-    mFixedK.insert_or_assign(std::make_pair(i,j),k);
-}
-
-template<typename T>
 template <typename IT>
 void cPolyXY_N<T>::SetVK(IT it)
 {
@@ -161,7 +146,31 @@ T cPolyXY_N<T>::VarToCoeffs(const cPtxd<T, 2> &aPt, IT CoeffIt,const T& aFactor)
 }
 
 template<typename T>
-void cPolyXY_N<T>::AddObs(const T &x, const T &y, const T &v, const T& aWeight)
+int cPolyXY_N<T>::idx(int i, int j) const
+{
+    MMVII_INTERNAL_ASSERT_medium(i>=0 && j>=0 && i+j<=mDegree,"Bad usage of cPolyXY_N");
+    return j + ((mDegree + 1) * (mDegree + 2) - (mDegree - i + 1) * (mDegree - i + 2)) / 2;
+}
+
+
+
+template<typename T>
+void cPolyXY_N_fit<T>::ResetFit()
+{
+    mLeastSq.reset();
+    mFixedK.clear();
+}
+
+template<typename T>
+void cPolyXY_N_fit<T>::AddFixedK(int i, int j, const T &k)
+{
+    MMVII_INTERNAL_ASSERT_medium(i>=0 && j>=0 && i+j<=Degree(),"Bad usage of cPolyXY_N::AddFixedK()");
+    MMVII_INTERNAL_ASSERT_medium(! mLeastSq,"Can't add fixed K after obs in cPolyXY_N::AddFixedK()");
+    mFixedK.insert_or_assign(std::make_pair(i,j),k);
+}
+
+template<typename T>
+void cPolyXY_N_fit<T>::AddObs(const T &x, const T &y, const T &v, const T& aWeight)
 {
     if (! mLeastSq)
         mLeastSq = std::make_unique<cLeasSqtAA<T>>(NbCoeffs() - mFixedK.size());
@@ -171,7 +180,7 @@ void cPolyXY_N<T>::AddObs(const T &x, const T &y, const T &v, const T& aWeight)
 }
 
 template<typename T>
-void cPolyXY_N<T>::AddObs(const cPtxd<T, 2> aPt, const T &v, const T &aWeight)
+void cPolyXY_N_fit<T>::AddObs(const cPtxd<T, 2> aPt, const T &v, const T &aWeight)
 {
     AddObs(aPt.x(),aPt.y(),v,aWeight);
 }
@@ -187,13 +196,6 @@ template<typename T>
 T cPolyXY_N<T>::VarCurSol() const
 {
     return mLeastSq->VarCurSol();
-}
-
-template<typename T>
-int cPolyXY_N<T>::idx(int i, int j) const
-{
-    MMVII_INTERNAL_ASSERT_medium(i>=0 && j>=0 && i+j<=mDegree,"Bad usage of cPolyXY_N");
-    return j + ((mDegree + 1) * (mDegree + 2) - (mDegree - i + 1) * (mDegree - i + 2)) / 2;
 }
 
 template class cPolyXY_N<tREAL4>;

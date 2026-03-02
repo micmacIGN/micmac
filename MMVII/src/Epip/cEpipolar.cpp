@@ -154,6 +154,19 @@ struct GenDataCtxt
         c2 = c2 / double(n1+n2);
         d1 = VUnit(d1 / double(n1));
         d2 = VUnit(d2 / double(n2));
+        
+        // TODOCM: Check almost epip
+        // if ((dir2.x+dir1.x) <0)
+        // {
+        //     dir1 = -dir1;
+        //     dir2 = -dir2;
+        // }
+        // TODOCM: Check d1 and d2 /= 0 ?
+
+        for (auto& pair : homogSet.SetH()) {
+            pair.mP1 = (pair.mP1 - c1) / d1;
+            pair.mP2 = (pair.mP2 - c2) / d2;
+        }
     }
 
    
@@ -185,20 +198,6 @@ cEpipolarCouple<T> cEpipolarCouple<T>::FromSensors(
 
     auto anEpipolarCouple = std::make_unique<cEpipolarCouple<T>(aCentre1,aDir1,aCentre2,aDir2,aDegree));
             
-    // TODOCM: Check almost epip
-    // if ((dir2.x+dir1.x) <0)
-    // {
-    //     dir1 = -dir1;
-    //     dir2 = -dir2;
-    // }
-
-    // TODOCM: Check d1 and d2 /= 0
-
-//    auto prevV1 = cPt2dr(0,0);
-    for (auto& pair : aListH.SetH()) {
-        pair.mP1 = (pair.mP1 - aCentre1) / aDir1;
-        pair.mP2 = (pair.mP2 - aCentre2) / aDir2;
-    }
 
     cPolyXY_N<double> V1(aDegree);
     cPolyXY_N<double> V2(aDegree);
