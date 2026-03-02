@@ -55,6 +55,21 @@ public:
     template <typename IT>
     T VarToCoeffs(const cPtxd<T,2>& aPt, IT CoeffIt, const T& aFactor);
 
+
+private:
+    int idx(int i, int j) const;
+    int mDegree;
+    std::vector<T> mVK;
+    std::map<std::pair<int,int>, T> mFixedK;
+};
+
+
+template<typename T>
+class cPolyXY_N_fit : public cPolyXY_N<T>
+{
+public:
+    using cPolyXY_N<T>::cPolyXY_N;
+
     void ResetFit();
     void AddFixedK(int i, int j, const T& k);
     void AddObs(const T& x, const T& y, const T& v, const T& aWeight=1);
@@ -62,13 +77,8 @@ public:
     void Fit();
     T VarCurSol() const;
 
-
 private:
-    int idx(int i, int j) const;
-    int mDegree;
-    std::vector<T> mVK;
     std::unique_ptr<cLeasSqtAA<T>> mLeastSq;
-    std::map<std::pair<int,int>, T> mFixedK;
 };
 
 } // MMVII
