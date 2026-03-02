@@ -55,7 +55,7 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
             //--mandatory
             cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override;
             cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override;
-            void doComputeTransFunc(tDIm* aDIn, tDIm* aDOut);
+            void doComputeTransFunc(tDIm* aDTrue, tDIm* aDSynt);
             cPhotogrammetricProject mPhProj;
             /*
              *
@@ -192,6 +192,7 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
         {
             mCurrCam = aCam;
             auto aCodes = mTargets2WorldMappings.ListOfCodes();
+            StdOut() << aCam->NameImage() << std::endl;
 
             for (const auto& aTgt:aCodes)
             {
@@ -199,7 +200,6 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
                 bool isOk;
                 StdOut() << aTgt<<std::endl;
                 TargetRefine(isOk);
-                break;
                 /*if(isOk)
                 {
                     aIm.SetRGBBorderRectWithAlpha(ToI(aBox.Middle()),Norm2(aBox.Sz())/2,10,cRGBImage::Orange,0.1);//0.1 means final opacity = 1-0.1
@@ -208,8 +208,6 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
                 }*/
 
             }
-            StdOut() << aCam->NameImage() << std::endl;
-            break;
             //aIm.ToJpgFileDeZoom(NameVisu(mCurrCam->NameImage(), "Ref"), 1, {"QUALITY=90"});
 
 
@@ -402,7 +400,7 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
     {
         CurrTgtExtent(isOk);//computes current target extent
 
-        if (isOk)
+        if (isOk && mCurrCam->NameImage() == "K127_202409211622-00-cam-22348125-38-66255657607881-23.tiff")
         {
             TargetSample(isOk);
         }
@@ -492,16 +490,16 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
 
         if (mVisu)
         {
-            tIm aCropIm(ToI(mCurrTgtExtent.Sz()));
-            auto& aCDim = aCropIm.DIm();
-            auto aCurrIm = tIm::FromFile(mCurrCam->NameImage());
+            tIm aCropIm(ToI(mCurrTgtExtent.Sz()));//prepare true target extract
+            auto* aCDim = &aCropIm.DIm();
+            auto aCurrIm = tIm::FromFile(mCurrCam->NameImage());//loads curr. img.
             auto* aDCurrIm = &aCurrIm.DIm();
 
-            aCDim.CropIn(ToI(aImOffSet), *aDCurrIm);
+            aCDim->CropIn(ToI(aImOffSet), *aDCurrIm);//fills true tgt.
             aDim->ToFile(NameVisu(mCurrCam->NameImage(), "Tgt" + mCurrTgtCode));
-            aCDim.ToFile(NameVisu(mCurrCam->NameImage(),"True" + mCurrTgtCode));
+            aCDim->ToFile(NameVisu(mCurrCam->NameImage(),"True" + mCurrTgtCode));
 
-            doComputeTransFunc(aDCurrIm, aDim);
+            doComputeTransFunc(aCDim, aDim);
         }
     }
 
@@ -509,23 +507,78 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
      * From here ~ temp. methods to refact/delete (should begin by doSmthg.)
      */
 
-    void cAppli_CheckBoardTargetRefine::doComputeTransFunc(tDIm* aDIn, tDIm* aDOut)
+    void cAppli_CheckBoardTargetRefine::doComputeTransFunc(tDIm* aDTrue, tDIm* aDSynt)
     {
+        StdOut() << "BEGIN COMPUTE TRANS. FUNK" << std::endl;
+        bool isOk = false;
         //-1- labelized with number of connected components
-        cRect2 aRectInt = aDIn->Dilate(-5);
-        tIm aLabelIm(aRectInt.Sz());
+        cRect2 aRectInt = aDTrue->Dilate(-1);//keeps original coordinates
+        tIm aLabelIm(aDTrue->Sz());
         tDIm& aDLabelIm = aLabelIm.DIm();
+        tU_INT8 sz_ech = 0;
         for (const auto & aPix : aRectInt)
         {
-            if (FlagSup8Neigh(*aDIn,aPix).NbConComp() >=4)
+            //if (FlagEq8Neigh(*aDTrue,aPix).NbConComp() > 3)
             {
-                aDLabelIm.SetV(aPix,1);
+                aDLabelIm.SetV(aPix,1);//transformed coordinates
+                ++sz_ech;
             }
         }
         if (mVisu)
         {
             aDLabelIm.ToFile(NameVisu(mCurrCam->NameImage(),"Label"+mCurrTgtCode));
         }
+        StdOut() << "BEGIN RANSAC" << std::endl;
+
+        //-2-BEGIN RANSAC
+        //while smthg.
+        int it = 50;//nb. iterations
+        std::vector<cPt2di> aSet = {};
+        std::vector<cPt2di> theSet = {};
+        tREAL8 a1, a2;
+        tPt2dr theSol(0,0);
+        tREAL8 eps = 10;
+        //1: random selection of two pair of coordinates
+        const int& xdim_label = aDLabelIm.SzX(), ydim_label = aDLabelIm.SzY();
+        for (int ix=0;ix<it;++ix)
+        {
+            tPt2di p1(RandUnif_N(xdim_label), RandUnif_N(ydim_label));
+            tPt2di p2(RandUnif_N(xdim_label), RandUnif_N(ydim_label));
+
+            tU_INT1 G1 = aDTrue->GetV(p1), G2 = aDTrue->GetV(p2);
+            tU_INT1 G3 = aDSynt->GetV(p1), G4 = aDSynt->GetV(p2);
+
+            if (G1==G2) continue;
+
+            a1 = (G3-G4)/(G1-G2);
+            a2 = G3-a1*G1;
+
+            for (const auto& aPix : aRectInt)
+            {
+                if(aDLabelIm.GetV(aPix)==1)
+                {
+                    tREAL8 val = a1*aDTrue->GetV(aPix) + a2;
+                    tREAL8 delta = val - aDSynt->GetV(aPix);
+                    if (abs(delta) <= eps)
+                    {
+                        aSet.push_back(aPix);//add point to the set
+                    }
+                }
+            }
+            if (theSet.size() < aSet.size())
+            {
+                theSet = aSet;
+                theSol = cPt2dr(a1,a2);
+            }
+            aSet.clear();
+            if (theSet.size() > sz_ech/2)
+            {
+                isOk = true;
+                break;
+            }
+        }
+        StdOut() << isOk << " a1,a2 = " << theSol;
+        StdOut() << theSet.size() << std::endl;
     }
 
     void cAppli_CheckBoardTargetRefine::doReproj(const std::string & aCode)
@@ -599,6 +652,7 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
                           //cPt2dr(((mRes-1)/2), (mRes-1)/2),
                           cPt2dr(0,mRes-1),cPt2dr(mRes-1,mRes-1)};
     }
+
 
 
 /*
