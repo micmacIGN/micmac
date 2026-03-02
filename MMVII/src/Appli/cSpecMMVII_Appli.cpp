@@ -217,6 +217,7 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpec_TopoAdj);
         TheVecAll.push_back(&TheSpec_GCPAbsOri);
         TheVecAll.push_back(&TheSpec_OriRel2Im);
+        TheVecAll.push_back(&TheSpec_OriRelPairsOf1m);
         TheVecAll.push_back(&TheSpecMeshCheck);
         TheVecAll.push_back(&TheSpecProMeshImage);
         TheVecAll.push_back(&TheSpecMeshImageDevlp);

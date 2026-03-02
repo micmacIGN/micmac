@@ -341,7 +341,14 @@ void cPS_CompPose::SetPt( cDenseVect<tREAL8>& aVect,size_t aIndex,const cPt3dr& 
 
 
 cDenseMatrix<tREAL8>
-    cPS_CompPose::ComputeMatHom3D(const cSetHomogCpleDir &aSetCple,bool isL1,int aKMax,const  cPSC_PB * aCurParam)
+    cPS_CompPose::ComputeMatHom3D
+    (
+        const cSetHomogCpleDir &aSetCple,
+        bool isL1,
+        int aKMax,
+        const  cPSC_PB * aCurParam,
+        tREAL8           aLVM
+    )
 {
     const std::vector<cPt3dr>* aCurV1   = & aSetCple.VDir1() ;
     const std::vector<cPt3dr>* aCurV2   = & aSetCple.VDir2() ;
@@ -370,9 +377,15 @@ cDenseMatrix<tREAL8>
          SetPt(aVect,6,aP1,-aP2.y());
          aSys->PublicAddObservation(1.0,aVect,0.0);
      }
+     if (aLVM>0)
+     {
+         aSys->AddLVMCstr(aLVM);
+     }
      // Fix last value as matrix is up to a scale
      aSys->AddObsFixVar(tREAL8(aCurNbPts),aKMax,1.0);
      cDenseVect<tREAL8> aSol = aSys->PublicSolve();
+    // aSys->R_SolveUpdateReset(1.0);
+    //  aSys->LVMW(0);
      cDenseMatrix<tREAL8> aMatH = Vect2MatEss(aSol);
 
      if (aCurParam)
@@ -619,7 +632,14 @@ bool cPS_CompPose::TestOneHypoth
 }
 
 
-cPS_CompPose::cPS_CompPose(const cSetHomogCpleDir & aSetCple,bool isL1,int aKMax,const  cPSC_PB * aBenchParam) :
+cPS_CompPose::cPS_CompPose
+(
+        const cSetHomogCpleDir & aSetCple,
+        bool isL1,
+        int aKMax,
+        const  cPSC_PB * aBenchParam,
+        tREAL8 aLVM
+) :
     mCpleDir     (aSetCple),
     mCurParam    (aBenchParam),
     mMode        (mCurParam ? mCurParam->Mode() : eModeExec::eRunTime),
@@ -627,7 +647,7 @@ cPS_CompPose::cPS_CompPose(const cSetHomogCpleDir & aSetCple,bool isL1,int aKMax
     mCurV2       (&mCpleDir.VDir2()),
     mCurNbPts    ( mCurV1->size()),
     mKMax        (aKMax),
-    mMatH        (ComputeMatHom3D(mCpleDir,isL1,mKMax,aBenchParam)),
+    mMatH        (ComputeMatHom3D(mCpleDir,isL1,mKMax,aBenchParam,aLVM)),
     mNbSolTested (0),
     mCmpSol      (new tCmpSol(cCmpcPSC_Sol_OnScore(),2))
 {

@@ -312,6 +312,8 @@ class cLinesAntiParal1Im;
 
 // Tiling index
 template <class Type>  class  cTiling ;
+template <const int Dim>  class cPointSpInd;
+class cCpleHomIndex;
 
 
 //   MMVII_BlocRig.h

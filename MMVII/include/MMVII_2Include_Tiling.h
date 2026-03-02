@@ -3,6 +3,7 @@
 
 #include "MMVII_Geom2D.h"
 #include "MMVII_Geom3D.h"
+#include "MMVII_MeasuresIm.h"
 
 namespace MMVII
 {
@@ -224,10 +225,10 @@ FakeUseIt(aDistWMargin);
 	   template <class tPrimG2> std::list<Type*> GetObjAtDist(const tPrimG2 &aPrimG2,tREAL8 aDist)
 	   {
                  std::list<Type*> aRes;
-		 tRBox  aBox = aPrimG2.GetBoxEnglob().Dilate(aDist);  // Boxes  of point  at Dist of box of prim
+                 tRBox  aBox = aPrimG2.GetBoxEnglob().Dilate(aDist);  // Boxes  of point  at Dist of box of prim
 
                  // compute the Box of PT-Index
-	         tIPt  aPI0 = this->RPt2PIndex(aBox.P0());
+                 tIPt  aPI0 = this->RPt2PIndex(aBox.P0());
                  tIPt  aPI1 = this->RPt2PIndex(aBox.P1()) + tIPt::PCste(1);
                  cPixBox<Dim> aBoxI(aPI0,aPI1);
 
@@ -240,26 +241,35 @@ FakeUseIt(aDistWMargin);
                  // all point in the box are at distance DIAM/2 of M
                  // using triangular inequality we know that point are out if 
                  //   D(PRIM,M) < D(PRIM,M) + D(M,P)
-		 tREAL8 aDistWMargin = aDist + (this->Step()*0.5) * std::sqrt(Dim) * 1.001 ;
+                 tREAL8 aDistWMargin = aDist + (this->Step()*0.5) * std::sqrt(Dim) * 1.001 ;
                  for (const auto & aPInt : cRect2(aBoxI))
-		 {
+                 {
                      int aInd = this->PInd2II(aPInt);
 
                       if (   (this->mIndIsBorder.at(aInd))  // border box cannot be bounded  by DIAM
                           || aPrimG2.InfEqDist(this->PIndex2MidleBox(aPInt),aDistWMargin)  
                         )
-		      {
+                        {
 			 // int anInd = this->PInd2II(aPInt);
-                         for (auto & anObj : mVTiles.at(aInd))   // Parse all obj of each tile
-		         {
-
+                           for (auto & anObj : mVTiles.at(aInd))   // Parse all obj of each tile
+                           {
                              if (aPrimG2.InfEqDist(anObj.GetPrimGeom(mArgPG),aDist))
                                 aRes.push_back(&anObj);
-		         }
-		      }
-		 }
+                           }
+                        }
+                 }
                  return aRes;
 	   }
+
+
+       template <class tPrimG2> std::list<Type*> GetNNearestObj
+           (int aNb,const tPrimG2 &aPrimG2,tREAL8 aGuessDist=-1,tREAL8 aFactMul=-1)
+       {
+              std::list<Type*> aRes;
+
+              return aRes;
+       }
+
 
 
 
@@ -298,6 +308,9 @@ template <const int Dim> class cPointSpInd
     private :
          tPrimGeom  mPt;
 };
+
+
+
 
 
 /**  Class for geometrically indexing the lidars (on 2D point) for patches creation , used
@@ -345,6 +358,8 @@ template <const int TheDim> class cGeneratePointDiff
            tTiling  mTiling;
            tREAL8   mDistMin;
 };
+
+
 
 /** IF the object aVPt have been ordered in some decreasing order, this
 filter return a set of point that are local maxima in a neighbouhood of size aDist */

@@ -215,7 +215,14 @@ class  cCmpcPSC_Sol_OnScore;
 class cPS_CompPose
 {
    public :
-        cPS_CompPose(const cSetHomogCpleDir &,bool isL1=false,int aKMax=8, const  cPSC_PB * = nullptr);
+        cPS_CompPose
+        (
+                const cSetHomogCpleDir &,
+                bool isL1=false,
+                int aKMax=8,
+                const  cPSC_PB * = nullptr,
+                tREAL8  aLVM = 0.0 ///< Levenberg-Markard for Homog Estimate
+        );
        ~cPS_CompPose();
 
         typedef std::pair<cPSC_PB,cSetHomogCpleDir>  tResSimul;
@@ -241,7 +248,8 @@ class cPS_CompPose
    private :
 
         ///  Compute the 3D homog matrix
-        static cDenseMatrix<tREAL8> ComputeMatHom3D(const cSetHomogCpleDir &,bool isL1,int aKMax,const  cPSC_PB *);
+        static cDenseMatrix<tREAL8> ComputeMatHom3D
+          (const cSetHomogCpleDir &,bool isL1,int aKMax,const  cPSC_PB *,tREAL8 aLVM);
 
         bool TestOneHypoth
              (

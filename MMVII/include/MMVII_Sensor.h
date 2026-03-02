@@ -491,6 +491,8 @@ class cPhotogrammetricProject
 	  cDirsPhProj &   DPTopoMes();    ///<  Accessor  // TOPO
 	  cDirsPhProj &   DPMeasuresClino();    ///<  Accessor  // RIGIDBLOC
       cDirsPhProj &   DPStaticLidar();    ///<  Accessor  // STATIC LIDAR
+      cDirsPhProj &   DPOriRel() ;    ///<  Accessor
+
 				    
 	  const cDirsPhProj &   DPOrient() const; ///< Accessor
       const cDirsPhProj &   DPOriTriplets() const; ///< Accessor
@@ -508,8 +510,9 @@ class cPhotogrammetricProject
 	  const cDirsPhProj &   DPClinoMeters() const;    ///<  Accessor 
 	  const cDirsPhProj &   DPTopoMes() const;    ///<  Accessor  
 	  const cDirsPhProj &   DPMeasuresClino() const;    ///<  Accessor
-          const cDirsPhProj &   DPStaticLidar() const;    ///<  Accessor
+      const cDirsPhProj &   DPStaticLidar() const;    ///<  Accessor
 
+      const cDirsPhProj &   DPOriRel() const;    ///<  Accessor
 
 	  // Sometime we need several dir of the same type, like "ReportPoseCmp", or RefPose in bundle
 	  cDirsPhProj * NewDPIn(eTA2007 aType,const std::string & aDirIn);
@@ -571,8 +574,14 @@ class cPhotogrammetricProject
     void SaveTriplets(const cTripletSet&,bool useXmlraterThanDmp=true) const;
     cTripletSet * ReadTriplets() const;
 
+    //===================================================================
+    //==================   RELATIVE ORIENTATION    ======================
+    //===================================================================
+
+    std::string NamePairsOriRel(const std::string&,bool isIn, std::string aPost="" ) const;
+
 	 //===================================================================
-         //==================   RADIOMETRY       =============================
+     //==================   RADIOMETRY       =============================
 	 //===================================================================
 
 	       //  ------------  Create data --------------------
@@ -854,13 +863,14 @@ class cPhotogrammetricProject
 	  cDirsPhProj     mDPTieP;            ///<  For Homologous point
 	  cDirsPhProj     mDPMulTieP;         ///<  For multiple Homologous point
 	  cDirsPhProj     mDPMetaData;
-	  cDirsPhProj     mDPBlockInstr;       // RIGIDBLOC
-	  cDirsPhProj     mDPRigBloc;         // RIGIDBLOC
+          cDirsPhProj     mDPBlockInstr;       // RIGIDBLOC
+          cDirsPhProj     mDPRigBloc;         // RIGIDBLOC
           cDirsPhProj     mDPClinoMeters;      // +-  resulta of clino calib (boresight)
           cDirsPhProj     mDPMeasuresClino;     // measure (angles) of clino
           cDirsPhProj     mDPTopoMes;         // Topo
           cDirsPhProj     mDPStaticLidar;         // Static Lidar
- 					      //
+          cDirsPhProj     mDPOriRel;         // Relative orientation
+                          //
 
 	  std::vector<cDirsPhProj*> mDirAdded;
 	  mutable cGlobCalculMetaDataProject *  mGlobCalcMTD;

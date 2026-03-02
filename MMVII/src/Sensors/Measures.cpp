@@ -2,6 +2,7 @@
 #include "MMVII_2Include_Serial_Tpl.h"
 #include "MMVII_util_tpl.h"
 #include "../BundleAdjustment/BundleAdjustment.h"
+#include "MMVII_2Include_Tiling.h"
 
 /**
    \file Measures.cpp
@@ -165,6 +166,86 @@ cSetHomogCpleIm cSetHomogCpleIm::FromFile(const std::string & aName)
 
     return aRes;
 }
+
+std::pair<cBox2dr,cBox2dr>  cSetHomogCpleIm::Boxes() const
+{
+   cTplBoxOfPts<tREAL8,2> aB1,aB2;
+
+   for (const auto & aCple : mSetH)
+   {
+       aB1.Add(aCple.mP1);
+       aB2.Add(aCple.mP2);
+   }
+   return std::pair<cBox2dr,cBox2dr>(aB1.CurBox(),aB2.CurBox());
+}
+
+const cHomogCpleIm & cSetHomogCpleIm::KthHom(size_t aK) const {return mSetH.at(aK);}
+size_t cSetHomogCpleIm::NbH() const {return mSetH.size();}
+
+/* ********************************************* */
+/*                                               */
+/*             Indexation                        */
+/*                                               */
+/* ********************************************* */
+
+class cCpleHomIndex
+{
+    public :
+        static constexpr int TheDim = 2;
+        typedef cPt2dr  tPrimGeom;
+        typedef const cSetHomogCpleIm *     tArgPG;  /// unused here
+
+        const tPrimGeom & GetPrimGeom(const tArgPG & aSetH ) const {return aSetH->KthHom(mIndex).mP1;}
+
+        cCpleHomIndex(const size_t & anIndex) :
+           mIndex (anIndex)
+        {
+        }
+
+   // private :
+         size_t   mIndex;
+};
+
+/*
+class cIndexHomOnP1 : public cMemCheck
+{
+   public :
+       typedef  cTiling<cCpleHomIndex> tIndex;
+
+       cIndexHomOnP1(const cSetHomogCpleIm &,int aNbInCase=10);
+       void GetIndexInNeighbourhhod(std::vector<size_t> &aRes,const cPt2dr &,tREAL8 aRay);
+   private :
+       cIndexHomOnP1(const cIndexHomOnP1 &) = delete;
+       tIndex * mIndex;
+};
+*/
+
+cIndexHomOnP1::cIndexHomOnP1(const cSetHomogCpleIm & aSetH,int aNbInCase) :
+   mIndex (new tIndex (aSetH.Boxes().first.Dilate(1.0),false,aNbInCase,&aSetH))
+{
+   for (size_t aK=0 ; aK<aSetH.NbH() ; aK++)
+       mIndex->Add(cCpleHomIndex(aK));
+}
+
+cIndexHomOnP1::~cIndexHomOnP1()
+{
+    delete mIndex;
+}
+
+void cIndexHomOnP1::GetIndexInNeighbourhhod(std::vector<size_t> &aRes,const cPt2dr &aC,tREAL8 aRay)
+{
+    std::list<cCpleHomIndex *> aRawRes = mIndex->GetObjAtDist(aC,aRay);
+    aRes.clear();
+    aRes.reserve(aRawRes.size());
+    for (const auto & anInd : aRawRes)
+        aRes.push_back(anInd->mIndex);
+}
+
+
+//template <class tPrimG2> std::list<Type*> GetObjAtDist(const tPrimG2 &aPrimG2,tREAL8 aDist)
+
+
+//template <class Type>  class  cTiling : public cTilingIndex<Type::TheDim>
 
 
 /* ********************************************* */

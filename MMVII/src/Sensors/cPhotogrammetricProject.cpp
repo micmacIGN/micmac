@@ -319,6 +319,7 @@ cPhotogrammetricProject::cPhotogrammetricProject(cMMVII_Appli & anAppli) :
     mDPMeasuresClino  (eTA2007::MeasureClino,*this),
     mDPTopoMes        (eTA2007::Topo,*this),  // Topo
     mDPStaticLidar    (eTA2007::StaticLidar,*this),  // StaticLidar
+    mDPOriRel         (eTA2007::OriRel,*this),
     mGlobCalcMTD      (nullptr)
 {
 }
@@ -361,6 +362,8 @@ void cPhotogrammetricProject::FinishInit()
     mDPMeasuresClino.Finish() ; 
     mDPTopoMes.Finish() ; // TOPO
     mDPStaticLidar.Finish() ;
+    mDPOriRel.Finish() ;
+
 
     // Force the creation of directory for metadata spec, make 
     if (! mDPMetaData.DirOutIsInit())
@@ -429,6 +432,8 @@ cDirsPhProj &   cPhotogrammetricProject::DPClinoMeters() {return mDPClinoMeters;
 cDirsPhProj &   cPhotogrammetricProject::DPMeasuresClino() {return mDPMeasuresClino;}
 cDirsPhProj &   cPhotogrammetricProject::DPTopoMes() {return mDPTopoMes;} // TOPO
 cDirsPhProj &   cPhotogrammetricProject::DPStaticLidar() {return mDPStaticLidar;}
+cDirsPhProj &   cPhotogrammetricProject::DPOriRel() {return mDPOriRel;}
+
 
 const cDirsPhProj &   cPhotogrammetricProject::DPOrient() const {return mDPOrient;}
 const cDirsPhProj &   cPhotogrammetricProject::DPOriTriplets() const {return mDPOriTriplets;}
@@ -453,6 +458,7 @@ const std::string &   cPhotogrammetricProject::DirPhp() const   {return mDirPhp;
 const std::string &   cPhotogrammetricProject::DirVisu() const  {return mDirVisu;}
 const std::string &   cPhotogrammetricProject::DirVisuAppli() const  {return mDirVisuAppli;}
 
+const cDirsPhProj &   cPhotogrammetricProject::DPOriRel() const {return mDPOriRel;}
 
 
 
@@ -1368,6 +1374,18 @@ cTripletSet * cPhotogrammetricProject::ReadTriplets() const
 
     return cTripletSet::FromFile(mDPOriTriplets.FullDirIn()+aVNames[0]);
 
+}
+
+        // ==============  OriRel =========================
+
+static const std::string  PREFIX_PAIRS_ORIREL = "PairsOriRel_";
+
+std::string cPhotogrammetricProject::NamePairsOriRel(const std::string& aNameIm,bool isIn ,std::string aPost) const
+{
+    if (aPost=="")
+        aPost = GlobTaggedNameDefSerial();
+
+    return DPOriRel().FullDirInOut(isIn) + PREFIX_PAIRS_ORIREL+ aNameIm   + "." + aPost;
 }
 
         //  =============  Instrument bloc =================

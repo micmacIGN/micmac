@@ -331,10 +331,27 @@ class cSetHomogCpleIm
         void AddPairSet(const cSetMesPtOf1Im&,const cSetMesPtOf1Im&);
         void Clear();
 
+        const cHomogCpleIm & KthHom(size_t aK) const;
+        size_t NbH() const;
+        std::pair<cBox2dr,cBox2dr> Boxes() const;
+
 
 
       private :
         std::vector<cHomogCpleIm>  mSetH;
+};
+
+class cIndexHomOnP1 : public cMemCheck
+{
+   public :
+       typedef  cTiling<cCpleHomIndex> tIndex;
+
+       cIndexHomOnP1(const cSetHomogCpleIm &,int aNbInCase=10);
+       ~cIndexHomOnP1();
+       void GetIndexInNeighbourhhod(std::vector<size_t> &aRes,const cPt2dr &,tREAL8 aRay);
+   private :
+       cIndexHomOnP1(const cIndexHomOnP1 &) = delete;
+       tIndex * mIndex;
 };
 
 void AddData(const  cAuxAr2007 & anAux,cSetHomogCpleIm &);
