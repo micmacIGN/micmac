@@ -194,6 +194,8 @@ void cStaticLidarImporter::readPtxPoints(std::string aPtxFileName)
     try
     {
         std::ifstream  aPtxFile(aPtxFileName);
+        if(!aPtxFile.is_open())
+            throw std::runtime_error("Unable to open file "+aPtxFileName);
         mHasCartesian = true;
         mHasIntensity = true; // to check
         mHasSpherical = false;

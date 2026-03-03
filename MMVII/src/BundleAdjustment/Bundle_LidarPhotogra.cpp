@@ -587,11 +587,11 @@ cBA_LidarLidarRaster::cBA_LidarLidarRaster(cPhotogrammetricProject * aPhProj,
         aParamBis.resize(5);
     if (aParamBis.at(2).empty())
     {
-        aParamBis[2] = "-1"; // no threshold init
+        aParamBis[2] = "1."; // default threshold init
     }
     if (aParamBis.at(3).empty())
     {
-        aParamBis[3] = "-1"; // no threshold final
+        aParamBis[3] = "0.1"; // default threshold final
     }
     if (aParamBis.at(4).empty())
     {
@@ -625,9 +625,6 @@ cBA_LidarLidarRaster::cBA_LidarLidarRaster(cPhotogrammetricProject * aPhProj,
         //    StdOut() << "Test " << aScanData.mScanName << " " << aTestRasterPoint << ": "
         //             << aScanData.mLidarRaster->Image2Ground(aTestRasterPoint) <<"\n";
     }
-
-    // create the weighters map
-    UpdateWeightersMap();
 }
 
 void cBA_LidarLidarRaster::UpdateWeightersMap()
@@ -643,7 +640,7 @@ void cBA_LidarLidarRaster::UpdateWeightersMap()
             tREAL8 aSigmaAB = sqrt(aScanDataA.mLidarRaster->Sigma()*aScanDataA.mLidarRaster->Sigma()
                                    +aScanDataB.mLidarRaster->Sigma()*aScanDataB.mLidarRaster->Sigma());
             mWeightersMap[aScanDataA.mScanName+"-"+aScanDataB.mScanName]
-                = cStdWeighterResidual(sqrt(mWFactor)*aSigmaAB, 1., aTh, 1);
+                = cStdWeighterResidual(sqrt(mWFactor)*aSigmaAB, aTh / 20., aTh, 1);
         }
     }
 }
@@ -653,7 +650,7 @@ cBA_LidarLidarRaster::~cBA_LidarLidarRaster()
 }
 
 
-#define SCANSCANDEBUG
+#define SCANSCANDEBUG 10
 
 void cBA_LidarLidarRaster::AddObs()
 {
@@ -670,9 +667,12 @@ void cBA_LidarLidarRaster::AddObs()
         cIm2D<tREAL4> aResImage(aScan.mLidarRaster->InternalCalib()->SzPix(),0,eModeInitImage::eMIA_Null);
         auto & aResImageData = aResImage.DIm();
         int aPtSize = 1 + aScan.mLidarRaster->InternalCalib()->SzPix().x()/1000;
-        for (int y=0; y<aScan.mLidarRaster->InternalCalib()->SzPix().y();++y)
-            for (int x=0; x<aScan.mLidarRaster->InternalCalib()->SzPix().x();++x)
-                aResImageData.SetV({x,y}, 999);
+        if (mBA.Iter()%SCANSCANDEBUG==0)
+        {
+            for (int y=0; y<aScan.mLidarRaster->InternalCalib()->SzPix().y();++y)
+                for (int x=0; x<aScan.mLidarRaster->InternalCalib()->SzPix().x();++x)
+                    aResImageData.SetV({x,y}, 999);
+        }
 #endif
 
         for (const auto& aPatch : aScan.mLPatchesP)
@@ -682,16 +682,22 @@ void cBA_LidarLidarRaster::AddObs()
             [[maybe_unused]] auto aMinRes = Add1Patch(aScan.mLidarRaster->Image2Ground(*aPatch.begin()),
                                                       aScan.mScanName);
 #ifdef SCANSCANDEBUG
-            auto aC = *aPatch.begin();
-            for (int y=aC.y()-aPtSize; y<=aC.y()+aPtSize;++y)
-                for (int x=aC.x()-aPtSize; x<=aC.x()+aPtSize;++x)
-                    aResImageData.SetVTruncIfInside({x,y}, aMinRes);
+            if (mBA.Iter()%SCANSCANDEBUG==0)
+            {
+                auto aC = *aPatch.begin();
+                for (int y=aC.y()-aPtSize; y<=aC.y()+aPtSize;++y)
+                    for (int x=aC.x()-aPtSize; x<=aC.x()+aPtSize;++x)
+                        aResImageData.SetVTruncIfInside({x,y}, aMinRes);
+            }
 #endif
         }
 
 #ifdef SCANSCANDEBUG
-        std::string aPath = mPhProj->DirVisuAppli() + aScan.mScanName + "_iter_" + ToStr(mBA.Iter())+ ".tif";
-        aResImageData.ToFile(aPath);
+        if (mBA.Iter()%SCANSCANDEBUG==0)
+        {
+            std::string aPath = mPhProj->DirVisuAppli() + aScan.mScanName + "_iter_" + ToStr(mBA.Iter())+ ".tif";
+            aResImageData.ToFile(aPath, {"COMPRESS=DEFLATE"});
+        }
 #endif
 
     }
@@ -748,6 +754,7 @@ tREAL8 cBA_LidarLidarRaster::Add1Patch(const cPt3dr & aPGround, const std::strin
     //  Parse all the scans, we will select the ones where the patch is visible
     for (auto & aScanData: mVScans)
     {
+        auto & aWeighter = mWeightersMap.at(aScanName+"-"+aScanData.mScanName);
         if (aScanData.mScanName==aScanName)
             continue; // no obs on the same scan
         cStaticLidar * aScanTo = aScanData.mLidarRaster;
@@ -769,15 +776,8 @@ tREAL8 cBA_LidarLidarRaster::Add1Patch(const cPt3dr & aPGround, const std::strin
                 tREAL8 aResidual = aValIm-aDist;
                 if (fabs(aResidual)<fabs(aMinResidual))
                     aMinResidual = aResidual;
-                //std::cout<<aResidual<<" "<<mThreshold*(1+10./mBA.NbIter());
-                /*if (fabs(aResidual)>mThreshold*(1+10./mBA.NbIter()))
-                {
-                    //std::cout<<" would be removed\n";
-                    continue;  // TODO!!! Why is it mandatory??
-                } else {
-                    //std::cout<<"\n";
-                }*/
-                //std::cout<< "res "<<aResidual<<"\n";
+                if (aWeighter.SingleWOfResidual( std::vector<tREAL8>{aResidual})==0.0)
+                    continue;
                 aAvgRes.Add(1.0,fabs(aResidual));  // compute std deviation
                 aVData.push_back(aData); // memorize the data for this image
             }

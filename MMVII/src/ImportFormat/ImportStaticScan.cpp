@@ -658,6 +658,13 @@ int cAppli_ImportStaticScan::Exe()
     mPhProj.FinishInit();
     MMVII_INTERNAL_ASSERT_tiny((mDecimXY.x()>0) && (mDecimXY.y()>0),"Incorrect Decim argument "+ToStr(mDecimXY));
 
+    // read pose file to crash quickly if not present
+    if (IsInit(&mPoseXYZFilename))
+    {
+        StdOut() << "Read XYZ pose file: " << mPoseXYZFilename << std::endl;
+        poseFromXYZ();
+    }
+
     mSL_importer.read(mNameFile, false, mForceStructured, mStrInput2TSL);
 
     MMVII_INTERNAL_ASSERT_tiny(!mSL_importer.mVectPtsXYZ.empty(),"Error reading "+mNameFile);
@@ -819,8 +826,6 @@ int cAppli_ImportStaticScan::Exe()
 
     if (IsInit(&mPoseXYZFilename))
     {
-        StdOut() << "Read XYZ pose file: " << mPoseXYZFilename << std::endl;
-        poseFromXYZ();
         aSL_data.SetPose(mForcedPose);
     } else {
         aSL_data.SetPose(mSL_importer.ReadPose());
