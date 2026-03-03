@@ -1,6 +1,7 @@
 #ifndef TREETHREAD_H
 #define TREETHREAD_H
 
+#include "MMVII_Error.h"
 #include <vector>
 #include <deque>
 #include <thread>
@@ -35,10 +36,12 @@ class cBaseTreeThreads
  *
  * Usage:
  *
- * User has to implement a tree-like structure based upon his own "Node" type which must implement this two methods:
+ * User has to implement a tree-like structure based upon his own "Node" type which must implement this three methods:
  *  - void Node::finalize()  :
  *      code to be executed when all of its depandancies have been executed (i.e. children nodes finalize(), none if this node is a leaf)
- *  -  container<NodePtr> Node::depends()  (or container<NodePtr>& Node::depends() or const container<NodePtr>& Node::depends() :
+ *  - bool Node::isTerminalNode() const :
+ *      must return true is this node is terminal (i.e. no child, no dependancy) and false otherwise.
+ *  - container<NodePtr> Node::depends()  (or container<NodePtr>& Node::depends() or const container<NodePtr>& Node::depends() :
  *      must return any forward-iterable container containing pointer-like elements to nodes upon which this node depends.
  *
  * Minimal example 1:
@@ -48,6 +51,7 @@ class cBaseTreeThreads
  * >      typedef MyNode* MyNodePtr;
  * >      MyNode( ... ) { ... }
  * >      void finalize() { ... }
+ * >      bool isTerminalNode() { return mChildren.size() == 0; }
  * >      const std::vector<MyNodePtr>& depends() const {return mChildren;}
  * >  private:
  * >      std::vector<MyNodePtr> mChildren;		 // Must be filled somwhere ...
@@ -60,6 +64,7 @@ class cBaseTreeThreads
  * >      typedef std::shared_ptr<MyNode> MyNodePtr;
  * >      MyNode(..) {...}
  * >      void finalize() { ... }
+ * >      bool isTerminalNode() { return mChildren.size() == 0; }
  * >      const std::list<MyNodePtr>& depends() const {return mChildren;}
  * >  private:
  * >      std::list<MyNodePtr> mChildren;        // Must be filled somwhere ...
@@ -114,10 +119,13 @@ private:
         // If the node has no dependancy (leaf) it will be added to the ready to execute queue
         void descend(TreeThreads *tt, PNode me)
         {
-            for (const auto& userChild: mUserNodePtr->depends()) {
-                auto child = std::make_shared<Node>(userChild,me);
-                child->descend(tt, child);
-                mChildrenToWait ++;
+            if (! mUserNodePtr.isTerminalMode()) {
+                for (const auto& userChild: mUserNodePtr->depends()) {
+                    MMVII_INTERNAL_ASSERT_strong(userChild,"TreeThreads: child of non terminal node is null");
+                    auto child = std::make_shared<Node>(userChild,me);
+                    child->descend(tt, child);
+                    mChildrenToWait ++;
+                }
             }
             if (mChildrenToWait == 0)
                 tt->mReadyQueue.push_back(me);
@@ -230,6 +238,7 @@ public:
     // Needed methods for TreeThreads
     void finalize();
     const std::vector<PNode>& depends() const {return mChildren;}
+    bool isTerminalNode() const { return mChildren.size() == 0;}
     //  End
 
 
