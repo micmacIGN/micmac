@@ -50,17 +50,11 @@ public:
     int Degree() const;
     int NbCoeffs() const;
 
-    template <typename IT>
-    T VarToCoeffs(const T &x, const T &y, IT CoeffIt, const T& aFactor);
-    template <typename IT>
-    T VarToCoeffs(const cPtxd<T,2>& aPt, IT CoeffIt, const T& aFactor);
-
 
 private:
     int idx(int i, int j) const;
     int mDegree;
     std::vector<T> mVK;
-    std::map<std::pair<int,int>, T> mFixedK;
 };
 
 
@@ -70,6 +64,11 @@ class cPolyXY_N_fit : public cPolyXY_N<T>
 public:
     using cPolyXY_N<T>::cPolyXY_N;
 
+    template <typename IT>
+    T VarToCoeffs(const T &x, const T &y, IT CoeffIt, const T& aFactor);
+    template <typename IT>
+    T VarToCoeffs(const cPtxd<T,2>& aPt, IT CoeffIt, const T& aFactor);
+
     void ResetFit();
     void AddFixedK(int i, int j, const T& k);
     void AddObs(const T& x, const T& y, const T& v, const T& aWeight=1);
@@ -78,6 +77,7 @@ public:
     T VarCurSol() const;
 
 private:
+    std::map<std::pair<int,int>, T> mFixedK;
     std::unique_ptr<cLeasSqtAA<T>> mLeastSq;
 };
 
