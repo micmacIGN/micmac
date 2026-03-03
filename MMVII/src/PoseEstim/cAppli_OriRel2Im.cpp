@@ -82,15 +82,40 @@ class  cCmp_cCdtPoseRel2Im
  *  different algorithm . In this first raw, it's quite basic to go fast
  *  for Toronto's echeance ... and test :
  *
- *     # global essential matrix in L1 mode
- *     # global planary scene
+ *     # global essential matrix in L1 mod
+ *     # ransac essential matrix
+ *     # ransac  planary scene
+ *     # locliazed ransac for planar scene
+ *     # (deprecated)  heurisitk/combinatorial
  *
+ *  Initial evaluation of solution is made on rank weighted residual :
+ *  Let R1 R2  ... RN be the decreasing residual , we compute
+ *      Avg (k Rk)
+ *   Heuristik, but "universal" formula to un-weight outlayer.
+ *
+ *  Witt this formula, we select N best solution with this criteria, and
+ *  make bundle on it. For weighted bundle we need a "guess" of sigma, it comes
+ *  for the best ranked average.
+ *
+ *  Small detail, for now we select 3 vector of best sol :
+ *
+ *  - 1 for mat-ess
+ *  - 1 for first sol of planar
+ *  - 1 for second sol of planar (when we have 2, its the second accorind to rank weight)
+ *
+ *  It happens that when we have ground-truth , untill now the second solution on residual is also the
+ *  worst on GT. But not reliable in long term with 100% planar scene.
+ *
+ *   The N better result
  *   It will evolve later with some refinement coded in MM-V1 :
  *      # use some ransac on essential matrix
  *      # use patches on planary scenes
  *      # make a "small&quick" bundle adj on each tested solution
  *      # maybe some special treatment of quasi-co-centric (co-centric) image
  */
+
+
+/** Class for doinf all the test, not an application */
 
 class cEstimatePosRel2Im :  public cOptimizeRotAndVUnit // Herit for combinatorial opt
 {
@@ -867,10 +892,14 @@ cAppli_OriRelPairsOfIm::tRes1Pair
               mCpleH.Add(mPC1GT->RandomVisibleCple(*mPC2GT)) ;
      }
 
+     // We accept both initialization, maybe this can be usefull ??
+     MMVII_INTERNAL_ASSERT_User_UndefE(aNbInit!=0,"None Homologouos init");
+
      if ((int)mCpleH.NbH()<mNbMinHom)
      {
          return tRes1Pair(RESULT_NO_POSE,cCdtFinalPoseRel2Im());
      }
+
 
      // eventualy generates outlayers
      if (IsInit(&mParamOutLayer))
@@ -884,10 +913,6 @@ cAppli_OriRelPairsOfIm::tRes1Pair
             mCpleH.Add(aCple) ;
          }
      }
-
-
-     // We accept both initialization, maybe this can be usefull ??
-     MMVII_INTERNAL_ASSERT_User_UndefE(aNbInit!=0,"None Homologouos init");
 
 //     cEstimatePosRel2Im  *     mEstimatePose;
 
