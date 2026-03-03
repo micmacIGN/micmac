@@ -583,21 +583,28 @@ cBA_LidarLidarRaster::cBA_LidarLidarRaster(cPhotogrammetricProject * aPhProj,
     mEq = EqEqLidarLidar (true,1);
     std::vector<std::string> aParamBis = aParam;
     // if interpolator is empty, force linear
-    if (aParamBis.size() < 4)
-        aParamBis.resize(4);
+    if (aParamBis.size() < 5)
+        aParamBis.resize(5);
     if (aParamBis.at(2).empty())
     {
-        aParamBis[2] = "-1"; // no threshold
+        aParamBis[2] = "-1"; // no threshold init
     }
     if (aParamBis.at(3).empty())
     {
-        aParamBis[3] = "[Linear]";
+        aParamBis[3] = "-1"; // no threshold final
     }
-    init(aParamBis, 1, 3);
+    if (aParamBis.at(4).empty())
+    {
+        aParamBis[4] = "[Linear]";
+    }
+    init(aParamBis, 1, 4);
 
-    mThreshold = cStrIO<double>::FromStr(aParamBis[2]);
-    if (mThreshold<0)
-        mThreshold = INFINITY;
+    mThresholdInit = cStrIO<double>::FromStr(aParamBis[2]);
+    if (mThresholdInit<0)
+        mThresholdInit = INFINITY;
+    mThresholdFinal = cStrIO<double>::FromStr(aParamBis[3]);
+    if (mThresholdFinal<0)
+        mThresholdFinal = INFINITY;
 
     //read scans files from directory corresponding to pattern in aParam.at(1)
     auto aVScanNames = mPhProj->GetStaticLidarNames(aParam.at(0));
@@ -614,9 +621,9 @@ cBA_LidarLidarRaster::cBA_LidarLidarRaster(cPhotogrammetricProject * aPhProj,
         aScanData.mLidarRaster->MakePatches(aScanData.mLPatchesP,aBA.VSCPC(),1,5);
         StdOut() << "Nb patches for " << aScanData.mScanName << ": " << aScanData.mLPatchesP.size() << "\n";
 
-        for (auto &aTestRasterPoint: {cPt2di(10672,2238), cPt2di(2552,2121) })
-            StdOut() << "Test " << aScanData.mScanName << " " << aTestRasterPoint << ": "
-                     << aScanData.mLidarRaster->Image2Ground(aTestRasterPoint) <<"\n";
+        //for (auto &aTestRasterPoint: {cPt2di(10672,2238), cPt2di(2552,2121) })
+        //    StdOut() << "Test " << aScanData.mScanName << " " << aTestRasterPoint << ": "
+        //             << aScanData.mLidarRaster->Image2Ground(aTestRasterPoint) <<"\n";
     }
 
     // create the weighters map
@@ -625,7 +632,7 @@ cBA_LidarLidarRaster::cBA_LidarLidarRaster(cPhotogrammetricProject * aPhProj,
 
 void cBA_LidarLidarRaster::UpdateWeightersMap()
 {
-    tREAL4 aTh = mThreshold*(1+10./mBA.NbIter());
+    tREAL4 aTh = mThresholdFinal + ((mThresholdInit - mThresholdFinal)*(mBA.NbMaxIter()-mBA.Iter()))/mBA.NbMaxIter();
     std::cout << "up weighters, th="<<aTh<<"\n";
     if (aTh>10000)
         aTh = -1;
@@ -670,8 +677,8 @@ void cBA_LidarLidarRaster::AddObs()
 
         for (const auto& aPatch : aScan.mLPatchesP)
         {
-            if (*aPatch.begin()==cPt2di(4278, 2245)) //10677, 2481
-                std::cout<<"!\n";
+            //if (*aPatch.begin()==cPt2di(4278, 2245)) //10677, 2481
+            //    std::cout<<"!\n";
             [[maybe_unused]] auto aMinRes = Add1Patch(aScan.mLidarRaster->Image2Ground(*aPatch.begin()),
                                                       aScan.mScanName);
 #ifdef SCANSCANDEBUG
@@ -683,7 +690,7 @@ void cBA_LidarLidarRaster::AddObs()
         }
 
 #ifdef SCANSCANDEBUG
-        std::string aPath = mPhProj->DirVisuAppli() + aScan.mScanName + "_iter_" + ToStr(mBA.NbIter())+ ".tif";
+        std::string aPath = mPhProj->DirVisuAppli() + aScan.mScanName + "_iter_" + ToStr(mBA.Iter())+ ".tif";
         aResImageData.ToFile(aPath);
 #endif
 
