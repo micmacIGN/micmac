@@ -68,6 +68,8 @@ public:
     T VarToCoeffs(const T &x, const T &y, IT CoeffIt, const T& aFactor);
     template <typename IT>
     T VarToCoeffs(const cPtxd<T,2>& aPt, IT CoeffIt, const T& aFactor);
+    template <typename IT>
+    void SetVK(IT it);
 
     void ResetFit();
     void AddFixedK(int i, int j, const T& k);

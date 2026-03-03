@@ -96,7 +96,6 @@ int cPolyXY_N<T>::NbCoeffs() const
     return mVK.size();
 }
 
-
 template<typename T>
 template <typename IT>
 void cPolyXY_N<T>::SetVK(IT it)
@@ -104,11 +103,33 @@ void cPolyXY_N<T>::SetVK(IT it)
     int n=0;
     for (int i=0; i<= mDegree; i++) {
         for (int j=0; j<=mDegree-i; j++) {
+            mVK[n] = *it++;
+            n++;
+        }
+    }
+}
+
+template<typename T>
+int cPolyXY_N<T>::idx(int i, int j) const
+{
+    MMVII_INTERNAL_ASSERT_medium(i>=0 && j>=0 && i+j<=mDegree,"Bad usage of cPolyXY_N");
+    return j + ((mDegree + 1) * (mDegree + 2) - (mDegree - i + 1) * (mDegree - i + 2)) / 2;
+}
+
+
+
+template<typename T>
+template <typename IT>
+void cPolyXY_N_fit<T>::SetVK(IT it)
+{
+    int n=0;
+    for (int i=0; i<= this->mDegree; i++) {
+        for (int j=0; j<=this->mDegree-i; j++) {
             auto itFixedK = mFixedK.find({i,j});
             if ( itFixedK == mFixedK.end()) {
-                mVK[n] = *it++;
+                this->K(n) = *it++;
             } else {
-                mVK[n] = itFixedK->second;
+                this->K(n) = itFixedK->second;
             }
             n++;
         }
@@ -116,15 +137,16 @@ void cPolyXY_N<T>::SetVK(IT it)
 }
 
 
+
 template<typename T>
 template <typename IT>
-T cPolyXY_N<T>::VarToCoeffs(const T &x, const T &y, IT CoeffIt,const T& aFactor)
+T cPolyXY_N_fit<T>::VarToCoeffs(const T &x, const T &y, IT CoeffIt,const T& aFactor)
 {
     T aDiffObs = 0;
     T X_n = 1;
-    for (int i=0; i<=mDegree; i++) {
+    for (int i=0; i<=this->Degree(); i++) {
         T Y_n = 1;
-        for (int j=0; j<=mDegree-i; j++) {
+        for (int j=0; j<=this->Degree()-i; j++) {
             auto itFixedK = mFixedK.find({i,j});
             if ( itFixedK == mFixedK.end()) {
                 *CoeffIt++ = X_n * Y_n * aFactor;
@@ -140,18 +162,10 @@ T cPolyXY_N<T>::VarToCoeffs(const T &x, const T &y, IT CoeffIt,const T& aFactor)
 
 template<typename T>
 template <typename IT>
-T cPolyXY_N<T>::VarToCoeffs(const cPtxd<T, 2> &aPt, IT CoeffIt,const T& aFactor)
+T cPolyXY_N_fit<T>::VarToCoeffs(const cPtxd<T, 2> &aPt, IT CoeffIt,const T& aFactor)
 {
     return VarToCoeffs(aPt.x(),aPt.y(),CoeffIt,aFactor);
 }
-
-template<typename T>
-int cPolyXY_N<T>::idx(int i, int j) const
-{
-    MMVII_INTERNAL_ASSERT_medium(i>=0 && j>=0 && i+j<=mDegree,"Bad usage of cPolyXY_N");
-    return j + ((mDegree + 1) * (mDegree + 2) - (mDegree - i + 1) * (mDegree - i + 2)) / 2;
-}
-
 
 
 template<typename T>
@@ -164,7 +178,7 @@ void cPolyXY_N_fit<T>::ResetFit()
 template<typename T>
 void cPolyXY_N_fit<T>::AddFixedK(int i, int j, const T &k)
 {
-    MMVII_INTERNAL_ASSERT_medium(i>=0 && j>=0 && i+j<=Degree(),"Bad usage of cPolyXY_N::AddFixedK()");
+    MMVII_INTERNAL_ASSERT_medium(i>=0 && j>=0 && i+j<=this->Degree(),"Bad usage of cPolyXY_N::AddFixedK()");
     MMVII_INTERNAL_ASSERT_medium(! mLeastSq,"Can't add fixed K after obs in cPolyXY_N::AddFixedK()");
     mFixedK.insert_or_assign(std::make_pair(i,j),k);
 }
@@ -173,8 +187,8 @@ template<typename T>
 void cPolyXY_N_fit<T>::AddObs(const T &x, const T &y, const T &v, const T& aWeight)
 {
     if (! mLeastSq)
-        mLeastSq = std::make_unique<cLeasSqtAA<T>>(NbCoeffs() - mFixedK.size());
-    cDenseVect<T> coeffs(NbCoeffs() - mFixedK.size());
+        mLeastSq = std::make_unique<cLeasSqtAA<T>>(this->NbCoeffs() - mFixedK.size());
+    cDenseVect<T> coeffs(this->NbCoeffs() - mFixedK.size());
     auto aDiffObs = VarToCoeffs(x,y,coeffs.RawData(),1);
     mLeastSq->PublicAddObservation(aWeight,coeffs, v - aDiffObs);
 }
@@ -186,14 +200,14 @@ void cPolyXY_N_fit<T>::AddObs(const cPtxd<T, 2> aPt, const T &v, const T &aWeigh
 }
 
 template<typename T>
-void cPolyXY_N<T>::Fit()
+void cPolyXY_N_fit<T>::Fit()
 {
     auto aVK = mLeastSq->PublicSolve();
     SetVK(aVK.RawData());
 }
 
 template<typename T>
-T cPolyXY_N<T>::VarCurSol() const
+T cPolyXY_N_fit<T>::VarCurSol() const
 {
     return mLeastSq->VarCurSol();
 }
