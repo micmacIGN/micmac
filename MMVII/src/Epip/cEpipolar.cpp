@@ -45,7 +45,7 @@ void GenTraverseHomolSet(const cSensorImage *aSensor1,const cSensorImage *aSenso
     int deltaX = (aXMax - aXMin) / aNbXY;
     int deltaY = (aYMax - aYMin) / aNbXY;
 
-    
+
     for (int x = aXMin ; x < aXMax; x += deltaX) {
         for (int y = aYMin; y < aYMax; y += deltaY) {
             AddHomolSetIfVisible(cPt2dr(x,y));
@@ -102,7 +102,7 @@ void GenTraverseHomolSet(const cSensorImage *aSensor1,const cSensorImage *aSenso
 struct GenDataCtxt
 {
     enum class eBundleFrom{FIRST,SECOND};
-    
+
     void Generate(
         const cSensorImage *aSensor1,
         const cSensorImage *aSensor2,
@@ -110,14 +110,14 @@ struct GenDataCtxt
     )
     {
         double aZStep = 0.1;
-        
+
         for (const auto& aHPair : aSetHomogCpleIm.SetH()) {
             auto aPtInter = aSensor1->PInterBundle(aHPair,*aSensor2);
             auto aBundle1 = cSegmentCompiled(aSensor1->Image2Bundle(aHPair.mP1));
             auto aBundle2 = cSegmentCompiled(aSensor2->Image2Bundle(aHPair.mP2));
             double aDist1 = aBundle1.Abscissa(aPtInter);
             double aDist2 = aBundle2.Abscissa(aPtInter);
-            
+
             for (double aKz = 0.9; aKz <= 1.1; aKz += aZStep)
             {
                 AddCouple(aBundle1, aSensor2, aHPair, aDist1 * aKz, aDist1 * (aKz+aZStep), eBundleFrom::FIRST);
@@ -154,7 +154,7 @@ struct GenDataCtxt
         c2 = c2 / double(n1+n2);
         d1 = VUnit(d1 / double(n1));
         d2 = VUnit(d2 / double(n2));
-        
+
         // TODOCM: Check almost epip
         // if ((dir2.x+dir1.x) <0)
         // {
@@ -169,7 +169,7 @@ struct GenDataCtxt
         }
     }
 
-   
+
     cSetHomogCpleIm homogSet;
     cPt2dr c1{0,0};
     cPt2dr c2{0,0};
@@ -186,7 +186,7 @@ struct GenDataCtxt
 
 template<typename T>
 cEpipolarCouple<T> cEpipolarCouple<T>::FromSensors(
-    const cSensorImage *aSensor1, 
+    const cSensorImage *aSensor1,
     const cSensorImage *aSensor2,
     int aDegree
     )
@@ -194,10 +194,7 @@ cEpipolarCouple<T> cEpipolarCouple<T>::FromSensors(
     auto aSetHomol = GenRandomHomolSet(aSensor1, aSensor2, 10000);
     GenDataCtxt aCtxt;
     aCtxt.Generate(aSensor1, aSensor2, aSetHomol);
-   
 
-    auto anEpipolarCouple = std::make_unique<cEpipolarCouple<T>(aCentre1,aDir1,aCentre2,aDir2,aDegree));
-            
 
     cPolyXY_N<double> V1(aDegree);
     cPolyXY_N<double> V2(aDegree);
@@ -205,28 +202,63 @@ cEpipolarCouple<T> cEpipolarCouple<T>::FromSensors(
 
     auto aLeastSq = cLeasSqtAA<double>(mNbUkn);
     cDenseVect<double> coeffs(mNbUkn);
-    for (int j=0; j<=aDegree; j++)
-    {
-        V1.AddFixedK(0,j, j==1 ? 1.0 : 0.0);
-    }
-
     double aWeight = 1;
-    for (const auto& aPair : aListH.SetH())
+    for (const auto& aPair : aCtxt.homogSet.SetH())
     {
-        auto aDiffObs = V1.VarToCoeffs(aPair.mP1,coeffs.RawData(),1);
-        V2.VarToCoeffs(aPair.mP2,coeffs.RawData()+mNbCoeff1,-1);
-        aLeastSq.PublicAddObservation(aWeight, coeffs, - aDiffObs);
+        int n=0;
+        auto P1 = aPair.mP1;
+        auto P2 = aPair.mP2;
+        T X_n = P1.x();
+        for (int i=1; i<= V1.Degree(); i++)
+        {
+            T Y_n = 1;
+            for (int j=0; j<=V1.Degree()-i; j++)
+            {
+                coeffs(n++) = X_n * Y_n;
+                Y_n *= P1.y();
+            }
+            X_n *= P1.x();;
+        }
+        X_n = 1;
+        for (int i=0; i<= V2.Degree(); i++)
+        {
+            T Y_n = 1;
+            for (int j=0; j<=V2.Degree()-i; j++)
+            {
+                coeffs(n++) = - X_n * Y_n;
+                Y_n *= P2.y();
+            }
+            X_n *= P2.x();;
+        }
+        aLeastSq.PublicAddObservation(aWeight, coeffs, - P1.y());
     }
 
     auto params = aLeastSq.PublicSolve();
-    StdOut() << "LeastSq Var: " << aLeastSq.VarCurSol() << "\n";
+    int n = 0;
+    int m = 0;
+    for (int j=0; j<= V1.Degree(); j++)
+    {
+        V1.K(m++) = (j == 1 ? 1 : 0);
+    }
+    for (int i=0; i<= V1.Degree(); i++)
+    {
+        for (int j=0; j<=V1.Degree()-i; j++)
+        {
+            V1.K(m++) = params(n++);
+        }
+    }
+    m = 0;
+    for (int i=0; i<= V2.Degree(); i++)
+    {
+        for (int j=0; j<=V2.Degree()-i; j++)
+        {
+            V2.K(m) = params(n++);
+        }
+    }
 
-    V1.SetVK(params.RawData());
-    V2.SetVK(params.RawData()+mNbCoeff1);
 
-    auto joe = aListH.SetH()[0];
+    auto joe = aCtxt.homogSet.SetH()[0];
     StdOut() << "V1(p1):" << V1(joe.mP1) << " V2(p2):" << V2(joe.mP2) << " Diff:" << V1(joe.mP1) - V2(joe.mP2) << "\n";
-
  }
 
 } // MMVII
