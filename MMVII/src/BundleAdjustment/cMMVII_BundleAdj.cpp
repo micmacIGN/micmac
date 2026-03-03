@@ -102,7 +102,8 @@ cMMVII_BundleAdj::cMMVII_BundleAdj(cPhotogrammetricProject * aPhp) :
     mDirRefCam        (nullptr),
     mSigmaViscAngles  (-1.0),
     mSigmaViscCenter  (-1.0),
-    mNbIter           (0),
+    mNbMaxIter        (-1),
+    mIter             (0),
     mVerbose          (true),
     mShow_UC_UK       (false),
     mRUCSUR           (nullptr),
@@ -255,9 +256,21 @@ void cMMVII_BundleAdj::InitIteration()
     }
 }
 
-
-void cMMVII_BundleAdj::OneIteration(bool isFirstIter, tREAL8 aLVM, bool isLastIter, bool doShowCond)
+void cMMVII_BundleAdj::Iterate(int aNbMaxIter, tREAL8 mLVM, bool aShow_Cond)
 {
+    mNbMaxIter = aNbMaxIter;
+    for (int aKIter=0 ; aKIter<NbMaxIter() ; aKIter++)
+    {
+        OneIteration(aKIter==0,mLVM,aShow_Cond);
+    }
+}
+
+
+void cMMVII_BundleAdj::OneIteration(bool isFirstIter, tREAL8 aLVM, bool doShowCond)
+{
+    MMVII_INTERNAL_ASSERT_tiny (mNbMaxIter>0,"BA: mNbMaxIter is not initialized");
+
+    bool isLastIter =  (mIter==(mNbMaxIter-1)) ;
     // if it's first step, alloc ressources
     if (mPhaseAdd)
     {
@@ -429,11 +442,11 @@ void cMMVII_BundleAdj::OneIteration(bool isFirstIter, tREAL8 aLVM, bool isLastIt
     const auto & aVectSol = mR8_Sys->SolveUpdateReset(aLVM,{},{mRUCSUR},doShowCond);
     mSetIntervUK.SetVUnKnowns(aVectSol);
 
-    mNbIter++;
+    mIter++;
     if(mVerbose)
     {
         StdOut() << "---------------------- "
-                 << " End Iter" << mNbIter   
+                 << " End Iter" << mIter
                   << " StdDevLast=" << std::sqrt(mR8_Sys->VarLastSol())
                   << " StdDevCur=" << std::sqrt(mR8_Sys->VarCurSol())
                   //<< " VarLast=" << mR8_Sys->VarLastSol()

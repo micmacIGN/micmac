@@ -560,8 +560,7 @@ class cMMVII_BundleAdj
 	  ///  ============  Add multiple tie point ============
 	  void AddMTieP(const std::string & aName,cComputeMergeMulTieP  * aMTP,const cStdWeighterResidual & aWIm);
 
-          /// One iteration : add all measure + constraint + Least Square Solve/Udpate/Init
-          void OneIteration(bool isFirstIter=false, tREAL8 aLVM=0.0, bool isLastIter=false, bool doShowCond=false);
+          void Iterate(int aNbMaxIter, tREAL8 mLVM=0., bool aShow_Cond=false); // make all iterations
 
           const std::vector<cSensorImage *> &  VSIm() const ;  ///< Accessor
           const std::vector<cSensorCamPC *> &  VSCPC() const;   ///< Accessor
@@ -621,7 +620,8 @@ class cMMVII_BundleAdj
 
           cPhotogrammetricProject  &PhProj();
 
-          int NbIter() const { return mNbIter;}
+          int NbMaxIter() const { return mNbMaxIter;}
+          int Iter() const { return mIter;}
 
      private :
 
@@ -642,6 +642,8 @@ class cMMVII_BundleAdj
 
           void CompileSharedIntrinsicParams(bool ForAvg);
 
+          /// One iteration : add all measure + constraint + Least Square Solve/Udpate/Init
+          void OneIteration(bool isFirstIter=false, tREAL8 aLVM=0.0, bool doShowCond=false);
 
           //============== Data =============================
           cPhotogrammetricProject * mPhProj;
@@ -701,7 +703,8 @@ class cMMVII_BundleAdj
 	  tREAL8   mSigmaViscAngles;  ///< "viscosity"  for angles
 	  tREAL8   mSigmaViscCenter;  ///< "viscosity"  for centers
 				      //
-	  int      mNbIter;    /// counter of iteration, at least for debug
+          int      mNbMaxIter; /// max number of iteration
+          int      mIter;      /// counter of iteration, at least for debug
           bool     mVerbose; // print residuals
 
           std::vector<cBundleBlocNamedVar>  mVBBNamedV;

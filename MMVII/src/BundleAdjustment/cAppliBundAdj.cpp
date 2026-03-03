@@ -413,11 +413,7 @@ int cAppliBundlAdj::Exe()
       mBA.Set_UC_UK(mParamShow_UK_UC);
 
     //   ========== [2]   Make Iteration =============================
-    for (int aKIter=0 ; aKIter<mNbIter ; aKIter++)
-    {
-        bool isLastIter =  (aKIter==(mNbIter-1)) ;
-        mBA.OneIteration(aKIter==0,mLVM,isLastIter,mShow_Cond);
-    }
+    mBA.Iterate(mNbIter, mLVM, mShow_Cond);
 
     //   ========== [3]   Save resulst =============================
     for (auto & aSI : mBA.VSIm())
