@@ -72,6 +72,8 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
             cSensorCamPC* mCurrCam;
             std::string mCurrTgtCode;
             cPlane3D* mCurrTgtPlane;
+            tIm mTgtMasq;
+            tDIm* mDTgtMasq;
             cSetMesGnd3D mMeasuredTargets;
             std::vector<cPt2dr> mInitTargetPts;
             cSetMesPtOf1Im mExtendedSetOfMes2D;
@@ -126,9 +128,9 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
         mRes (600),
         mTargets2WorldMappings (""),
         mCurrVisuIm (nullptr),
+        mTgtMasq (cPt2di(1,1)),
         mFullSpec (nullptr),
         mCurrTgtExtent (cBox2dr::Empty())
-
 
     {
         //···> constructor does nothing
@@ -198,7 +200,7 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
             {
                 mCurrTgtCode = aTgt;
                 bool isOk;
-                StdOut() << aTgt<<std::endl;
+                StdOut() << "TGT NB : " << aTgt;
                 TargetRefine(isOk);
                 /*if(isOk)
                 {
@@ -408,7 +410,7 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
 
     void cAppli_CheckBoardTargetRefine::CurrTgtExtent(bool& isOk)
     {
-        StdOut() << "BEGIN TARGET EXTENT" << std::endl;
+        //StdOut() << "BEGIN TARGET EXTENT" << std::endl;
 
         auto aVBasePts = get2DBasePoints();
         auto aVWrldBasePts = target2World(mCurrTgtCode, aVBasePts);
@@ -441,7 +443,7 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
 
     void cAppli_CheckBoardTargetRefine::TargetSample(bool& isOk)
    {
-        StdOut() << "BEGIN TARGET SAMPLE" << std::endl;
+        //StdOut() << "BEGIN TARGET SAMPLE" << std::endl;
         cPt2dr& aImOffSet = mCurrTgtExtent.P0ByRef();//save the offset for camera back projection
         tIm aIm(ToI(mCurrTgtExtent.Sz()));
         auto* aDim = &aIm.DIm();
@@ -455,6 +457,9 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
         tDIm& aDImTgt = aImTgt.DIm();
 
         auto aRect2 = cRect2(cPt2di(0,0), ToI(mCurrTgtExtent.Sz()));//rect. to fill from tgt.
+
+        mTgtMasq = tIm(ToI(mCurrTgtExtent.Sz()));
+        mDTgtMasq = &mTgtMasq.DIm();
 
         for (const auto & aPix : aRect2)
         {
@@ -485,6 +490,7 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
             else
             {
                 aDim->SetV(aPix,0);
+                mDTgtMasq->SetV(aPix,125);
             }
         }
 
@@ -498,7 +504,7 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
             aCDim->CropIn(ToI(aImOffSet), *aDCurrIm);//fills true tgt.
             aDim->ToFile(NameVisu(mCurrCam->NameImage(), "Tgt" + mCurrTgtCode));
             aCDim->ToFile(NameVisu(mCurrCam->NameImage(),"True" + mCurrTgtCode));
-
+            mDTgtMasq->ToFile(NameVisu(mCurrCam->NameImage(), "Masq" + mCurrTgtCode));
             doComputeTransFunc(aCDim, aDim);
         }
     }
@@ -509,37 +515,48 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
 
     void cAppli_CheckBoardTargetRefine::doComputeTransFunc(tDIm* aDTrue, tDIm* aDSynt)
     {
-        StdOut() << "BEGIN COMPUTE TRANS. FUNK" << std::endl;
+        //StdOut() << "BEGIN COMPUTE TRANS. FUNK" << std::endl;
         bool isOk = false;
         //-1- labelized with number of connected components
         cRect2 aRectInt = aDTrue->Dilate(-1);//keeps original coordinates
-        tIm aLabelIm(aDTrue->Sz());
-        tDIm& aDLabelIm = aLabelIm.DIm();
+        tIm aLabelTrueIm(aDTrue->Sz());
+        tDIm& aDLabelTrueIm = aLabelTrueIm.DIm();
+        //tIm aLabelTgtIm(aDTrue->Sz());
+        //tDIm& aDLabelTgtIm = aLabelTgtIm.DIm();
         tU_INT8 sz_ech = 0;
         for (const auto & aPix : aRectInt)
         {
-            //if (FlagEq8Neigh(*aDTrue,aPix).NbConComp() > 3)
+            if (FlagEq8Neigh(*aDTrue,aPix).NbConComp() > 7 && mDTgtMasq->GetV(aPix) != 125)
             {
-                aDLabelIm.SetV(aPix,1);//transformed coordinates
+                aDLabelTrueIm.SetV(aPix,255);//transformed coordinates
                 ++sz_ech;
-            }
+            } else {aDLabelTrueIm.SetV(aPix,0);}
+            /*if (FlagEq8Neigh(*aDSynt,aPix).NbConComp() == 0)
+            {
+                aDLabelTgtIm.SetV(aPix,0);//transformed coordinates
+                ++sz_ech;
+            } else {aDLabelTgtIm.SetV(aPix,255);}*/
+            //aDLabelTgtIm.SetV(aPix, FlagEq8Neigh(*aDSynt,aPix).NbConComp()*10);
+            //aDLabelTrueIm.SetV(aPix, FlagEq8Neigh(*aDTrue,aPix).NbConComp()*10);
+
         }
         if (mVisu)
         {
-            aDLabelIm.ToFile(NameVisu(mCurrCam->NameImage(),"Label"+mCurrTgtCode));
+            aDLabelTrueIm.ToFile(NameVisu(mCurrCam->NameImage(),"LabelTrue"+mCurrTgtCode));
+            //aDLabelTgtIm.ToFile(NameVisu(mCurrCam->NameImage(),"LabelTgt"+mCurrTgtCode));
         }
         StdOut() << "BEGIN RANSAC" << std::endl;
 
         //-2-BEGIN RANSAC
         //while smthg.
-        int it = 50;//nb. iterations
+        int it = 10000;//nb. iterations
         std::vector<cPt2di> aSet = {};
         std::vector<cPt2di> theSet = {};
         tREAL8 a1, a2;
         tPt2dr theSol(0,0);
-        tREAL8 eps = 10;
+        tREAL8 eps = 5;//5%
         //1: random selection of two pair of coordinates
-        const int& xdim_label = aDLabelIm.SzX(), ydim_label = aDLabelIm.SzY();
+        const int& xdim_label = aDLabelTrueIm.SzX(), ydim_label = aDLabelTrueIm.SzY();
         for (int ix=0;ix<it;++ix)
         {
             tPt2di p1(RandUnif_N(xdim_label), RandUnif_N(ydim_label));
@@ -548,14 +565,20 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
             tU_INT1 G1 = aDTrue->GetV(p1), G2 = aDTrue->GetV(p2);
             tU_INT1 G3 = aDSynt->GetV(p1), G4 = aDSynt->GetV(p2);
 
-            if (G1==G2) continue;
+            if (G1==G2 || (abs(G1-G2)<100 && abs(G3-G4)<100))
+            {
+                continue;
+            }
+
+            //StdOut() << "G1/G2 : " << G1 << "/" << G2 << std::endl;
 
             a1 = (G3-G4)/(G1-G2);
             a2 = G3-a1*G1;
 
+            //StdOut() << "a1,a2 : " << a1 << "," << a2 << "->" ;
             for (const auto& aPix : aRectInt)
             {
-                if(aDLabelIm.GetV(aPix)==1)
+                if(aDLabelTrueIm.GetV(aPix)==255)
                 {
                     tREAL8 val = a1*aDTrue->GetV(aPix) + a2;
                     tREAL8 delta = val - aDSynt->GetV(aPix);
@@ -565,20 +588,25 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
                     }
                 }
             }
+            //StdOut() << "OK " << 100*aSet.size()/sz_ech << "%" << std::endl;
             if (theSet.size() < aSet.size())
             {
                 theSet = aSet;
                 theSol = cPt2dr(a1,a2);
             }
             aSet.clear();
-            if (theSet.size() > sz_ech/2)
+            if (theSet.size() > 0.75*sz_ech)
             {
                 isOk = true;
                 break;
             }
         }
         StdOut() << isOk << " a1,a2 = " << theSol;
-        StdOut() << theSet.size() << std::endl;
+        if (theSol[0]==0.0)
+        {
+            StdOut() << theSet;
+        }
+        StdOut() << 100*theSet.size()/sz_ech <<  "%" << std::endl;
     }
 
     void cAppli_CheckBoardTargetRefine::doReproj(const std::string & aCode)
