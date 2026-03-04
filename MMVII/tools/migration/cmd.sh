@@ -27,4 +27,7 @@ git commit -am "CMakeLists for outside mm3d repository"
 git apply ../mm3dbin.patch
 git commit -am "handle mm3d binary"
 
-git remote add origin https://github.com/meynardc/mm2.git
+echo "delete depandabot branch"
+echo "push -f --all"
+
+git remote add origin https://github.com/micmacv2/MMVII.git
