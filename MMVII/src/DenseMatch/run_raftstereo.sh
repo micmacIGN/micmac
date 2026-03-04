@@ -6,7 +6,7 @@ DenseMDir=${mm3dBin::(-9)}"src/DenseMatch/"
 CodeDir=${DenseMDir}"RAFT-Stereo/"
 
 # path to your trained model
-#MODELPATH=${CodeDir}"models/375002_epoch_raftstereo_experiment.pth.gz"
+MODELPATH=${CodeDir}"models/1000002_epoch_raftstereo_experiment-PATCH-640.pth.gz"
 #MODELPATH=${CodeDir}"models/raftstereo-sceneflow.pth"
 # disparity scale of the trained model
 #DISPSCALE=-256.0
