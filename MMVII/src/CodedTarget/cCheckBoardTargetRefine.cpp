@@ -55,8 +55,9 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
             //--mandatory
             cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override;
             cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override;
-            void doComputeTransFunc(tDIm* aDTrue, tDIm* aDSynt);
+            void doComputeTransFunc();
             std::vector<cPt2di> getRansacPts();
+            void doFindBW();
             cPhotogrammetricProject mPhProj;
             /*
              *
@@ -85,7 +86,13 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
             std::map<const cSensorCamPC *, cSetMesGnd3D> mMImSetOfBundles;
             std::unique_ptr<cFullSpecifTarget> mFullSpec;
             cBox2dr mCurrTgtExtent;
-            tDIm* mDCurrImTgt;
+            tIm mCurrRef;
+            tDIm* mDCurrRef;
+            tIm mCurrTgt;
+            tDIm* mDCurrTgt;
+            tDIm* mDCurrRefLabel;
+            tIm mCurrTrue;
+            tDIm* mDCurrTrue;
             std::map<cSensorCamPC*,std::map<std::string,std::vector<cPt2dr>>> mMCamTgtBasePts;
 
 
@@ -132,7 +139,10 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
         mCurrVisuIm (nullptr),
         mTgtMasq (cPt2di(1,1)),
         mFullSpec (nullptr),
-        mCurrTgtExtent (cBox2dr::Empty())
+        mCurrTgtExtent (cBox2dr::Empty()),
+        mCurrRef (cPt2di(1,1)),
+        mCurrTgt (cPt2di(1,1)),
+        mCurrTrue (cPt2di(1,1))
 
     {
         //···> constructor does nothing
@@ -407,6 +417,8 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
         if (isOk && mCurrCam->NameImage() == "K127_202409211622-00-cam-22348125-38-66255657607881-23.tiff")
         {
             TargetSample(isOk);
+            doComputeTransFunc();
+            //doFindBW();
         }
     }
 
@@ -447,16 +459,16 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
    {
         //StdOut() << "BEGIN TARGET SAMPLE" << std::endl;
         cPt2dr& aImOffSet = mCurrTgtExtent.P0ByRef();//save the offset for camera back projection
-        tIm aIm(ToI(mCurrTgtExtent.Sz()));
-        auto* aDim = &aIm.DIm();
+        mCurrTgt = tIm(ToI(mCurrTgtExtent.Sz()));
+        mDCurrTgt = &mCurrTgt.DIm();
 
         auto aVTgt3DPts = get3DTargetCorners(mCurrTgtCode);//tgt. base pts. w.r.t. ground frame
         cPlane3D aTgtPlane = cPlane3D::From3Point(aVTgt3DPts[0], aVTgt3DPts[1], aVTgt3DPts[2]);//gnd. tgt. plane
         mCurrTgtPlane = &aTgtPlane;
 
         auto aCode = mFullSpec->EncodingFromName(mCurrTgtCode);
-        tIm aImTgt = mFullSpec->OneImTarget(*aCode);//from current target encoding
-        mDCurrImTgt = &aImTgt.DIm();
+        mCurrRef = mFullSpec->OneImTarget(*aCode);//from current target encoding
+        mDCurrRef = &mCurrRef.DIm();
         auto aRect2 = cRect2(cPt2di(0,0), ToI(mCurrTgtExtent.Sz()));//rect. to fill from tgt.
 
         mTgtMasq = tIm(ToI(mCurrTgtExtent.Sz()));
@@ -467,7 +479,7 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
             cPt3dr aWrldPix = mCurrCam->Image2PlaneInter(aTgtPlane, ToR(aPix)+aImOffSet);//inter. of gnd. tgt. plane & camera pix. (knowing cam. pose)
             cPt2dr aTgtPix = world2Target(mCurrTgtCode, aWrldPix);// pix. coordinates in wrt canonic tgt. frame
 
-            if (mDCurrImTgt->Inside(ToI(aTgtPix)))
+            if (mDCurrRef->Inside(ToI(aTgtPix)))
             {
                 auto aLocalIm2Tgt = getLocalAff2D(ToR(aPix)+aImOffSet, 0.1);
 
@@ -479,34 +491,33 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
                     double aVal=0;
                     for (int aK=0; aK<int(aVPts.size()) ; aK++)
                     {
-                        if (mDCurrImTgt->Inside(aVPts[aK]))
+                        if (mDCurrRef->Inside(aVPts[aK]))
                         {
                             double aW = aRW.mVWeight[aK];
-                            aVal += aW * mDCurrImTgt->GetV(aVPts[aK]);
+                            aVal += aW * mDCurrRef->GetV(aVPts[aK]);
                         }
                     }
-                    aDim->SetV(aPix,aVal);
+                    mDCurrTgt->SetV(aPix,aVal);
                 }
             }
             else
             {
-                aDim->SetV(aPix,0);
+                mDCurrTgt->SetV(aPix,0);
                 mDTgtMasq->SetV(aPix,125);
             }
         }
 
         if (mVisu)
         {
-            tIm aCropIm(ToI(mCurrTgtExtent.Sz()));//prepare true target extract
-            auto* aCDim = &aCropIm.DIm();
+            mCurrTrue = tIm(ToI(mCurrTgtExtent.Sz()));//prepare true target extract
+            mDCurrTrue = &mCurrTrue.DIm();
             auto aCurrIm = tIm::FromFile(mCurrCam->NameImage());//loads curr. img.
             auto* aDCurrIm = &aCurrIm.DIm();
 
-            aCDim->CropIn(ToI(aImOffSet), *aDCurrIm);//fills true tgt.
-            aDim->ToFile(NameVisu(mCurrCam->NameImage(), "Tgt" + mCurrTgtCode));
-            aCDim->ToFile(NameVisu(mCurrCam->NameImage(),"True" + mCurrTgtCode));
+            mDCurrTrue->CropIn(ToI(aImOffSet), *aDCurrIm);//fills true tgt.
+            mDCurrTrue->ToFile(NameVisu(mCurrCam->NameImage(),"True" + mCurrTgtCode));
+            mDCurrTgt->ToFile(NameVisu(mCurrCam->NameImage(), "Tgt" + mCurrTgtCode));
             mDTgtMasq->ToFile(NameVisu(mCurrCam->NameImage(), "Masq" + mCurrTgtCode));
-            //doComputeTransFunc(aCDim, aDim);
         }
     }
 
@@ -514,16 +525,29 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
      * From here ~ temp. methods to refact/delete (should begin by doSmthg.)
      */
 
-    void cAppli_CheckBoardTargetRefine::doComputeTransFunc(tDIm* aDTrue, tDIm* aDSynt)
+    void cAppli_CheckBoardTargetRefine::doFindBW()
+    {
+        tIm aRefLabel(mDCurrRef->Sz());
+        tDIm* aDCurrRefLabel = &aRefLabel.DIm();
+        //aDCurrRefLabel->InitCste(0);
+        cRect2 aRectInt = mDCurrRef->Dilate(-1);
+        for (const auto& aPix:aRectInt)
+        {
+            {
+                aDCurrRefLabel->SetV(aPix, FlagSup8Neigh(*mDCurrRef,aPix).NbConComp());
+            }
+        }
+        aDCurrRefLabel->ToFile(NameVisu(mCurrCam->NameImage(),"LabelRef"+mCurrTgtCode));
+    }
+
+    void cAppli_CheckBoardTargetRefine::doComputeTransFunc()
     {
 
-        //StdOut() << "BEGIN COMPUTE TRANS. FUNK" << std::endl;
-        //bool isOk = false;
-        //-1- labelized with number of connected components
-        //cRect2 aRectInt = aDTrue->Dilate(-1);//keeps original coordinates
-        tIm aLabelTrueIm(aDTrue->Sz());
+        //-1- labelized true img. with number of connected components
+        cRect2 aRectInt = mDCurrTrue->Dilate(-1);//keeps original coordinates
+        tIm aLabelTrueIm(mDCurrTrue->Sz());
         tDIm& aDLabelTrueIm = aLabelTrueIm.DIm();
-        tIm aLabelTgtIm(aDTrue->Sz());
+        tIm aLabelTgtIm(mDCurrTrue->Sz());
         tDIm& aDLabelTgtIm = aLabelTgtIm.DIm();
         aDLabelTgtIm.InitCste(0);
         std::vector<cPt2di> aVRansacPts ={};
@@ -531,20 +555,26 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
         for (const auto& aWrldBit:aVWorldBitCenters)
         {
             aVRansacPts.push_back(ToI(mCurrCam->Ground2Image(aWrldBit)-mCurrTgtExtent.P0ByRef()));
-            //aDLabelTgtIm.SetV(ToI(mCurrCam->Ground2Image(aWrldBit)-mCurrTgtExtent.P0ByRef()),255);
+            aDLabelTgtIm.SetV(ToI(mCurrCam->Ground2Image(aWrldBit)-mCurrTgtExtent.P0ByRef()),255);
         }
+        StdOut() << "Ransac Points:";
+        for (const auto& aRPt:aVRansacPts)
+        {
+            StdOut() << mDCurrTrue->GetV(aRPt) << "->" << mDCurrTgt->GetV(aRPt) << "|";
+        }
+        StdOut()<<"\n";
 
-        //tU_INT8 sz_ech = 0;
-        /*
+        int sz_ech = 0;
+
         for (const auto & aPix : aRectInt)
         {
-            if (FlagEq8Neigh(*aDTrue,aPix).NbConComp() > 3 && mDTgtMasq->GetV(aPix) != 125)
+            if (FlagEq8Neigh(*mDCurrTrue,aPix).NbConComp() > 5 && mDTgtMasq->GetV(aPix) != 125)
             {
                 aDLabelTrueIm.SetV(aPix,255);//transformed coordinates
                 ++sz_ech;
             } else {aDLabelTrueIm.SetV(aPix,0);}
 
-            if (FlagEq8Neigh(*aDSynt,aPix).NbConComp() == 0)
+            if (FlagEq8Neigh(*mDCurrTgt,aPix).NbConComp() == 0)
             {
                 aDLabelTgtIm.SetV(aPix,0);//transformed coordinates
                 ++sz_ech;
@@ -553,31 +583,30 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
             //aDLabelTrueIm.SetV(aPix, FlagEq8Neigh(*aDTrue,aPix).NbConComp()*10);
 
         }
-        */
 
+        /*
         if (mVisu)
         {
-            aDLabelTrueIm.ToFile(NameVisu(mCurrCam->NameImage(),"LabelTrue"+mCurrTgtCode));
+            //aDLabelTrueIm.ToFile(NameVisu(mCurrCam->NameImage(),"LabelTrue"+mCurrTgtCode));
             //aDLabelTgtIm.ToFile(NameVisu(mCurrCam->NameImage(),"LabelTgt"+mCurrTgtCode));
         }
+        */
         StdOut() << "->BEGIN RANSAC" << std::endl;
 
         //-2-BEGIN RANSAC
-        //while smthg.
         int it = 200;//nb. iterations
         std::vector<cPt2di> aSet = {};
         std::vector<cPt2di> theSet = {};
         tREAL8 a1, a2;
         tPt2dr theSol(0.0,0.0);
         std::vector<tREAL8> theSolPts ={};
-        tREAL8 eps = 10;//5%
-        //1: random selection of two pair of pts in ransac pts
-        //const int& xdim_label = aDLabelTrueIm.SzX(), ydim_label = aDLabelTrueIm.SzY();
+        tREAL8 eps = 10;
+
         for (int ix=0;ix<it;++ix)
         {
             tU_INT1 bit1 = RandUnif_N(aVRansacPts.size()), bit2 = RandUnif_N(aVRansacPts.size());
 
-            if (mDCurrImTgt->GetV(ToI(mFullSpec->BitsCenters()[bit1])) == mDCurrImTgt->GetV(ToI(mFullSpec->BitsCenters()[bit2])))
+            if (mDCurrRef->GetV(ToI(mFullSpec->BitsCenters()[bit1])) == mDCurrRef->GetV(ToI(mFullSpec->BitsCenters()[bit2])))
             {
                 continue;
             }
@@ -585,29 +614,24 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
             tPt2di p1 = aVRansacPts[bit1];
             tPt2di p2 = aVRansacPts[bit2];
 
-            tREAL8 G1 = aDTrue->GetV(p1), G2 = aDTrue->GetV(p2);
-            tREAL8 G3 = aDSynt->GetV(p1), G4 = aDSynt->GetV(p2);
-
-            //StdOut() << "G1/G2 : " << G1 << "/" << G2 << std::endl;
+            tREAL8 G1 = mDCurrTrue->GetV(p1), G2 = mDCurrTrue->GetV(p2);
+            tREAL8 G3 = mDCurrTgt->GetV(p1), G4 = mDCurrTgt->GetV(p2);
 
             a1 = (G3-G4)/(G1-G2);
             a2 = G3-a1*G1;
 
-            //StdOut() << "a1,a2 : " << a1 << "," << a2 << "->" ;
-            for (const auto& aPix : *aDSynt)
+            for (const auto& aPix : *mDCurrTgt)
             {
-                //if(aDLabelTrueIm.GetV(aPix)==255)
-                if(mDTgtMasq->GetV(aPix) != 125)
+                if(aDLabelTrueIm.GetV(aPix) == 255)
                 {
-                    tREAL8 val = a1*aDTrue->GetV(aPix) + a2;
-                    tREAL8 delta = val - aDSynt->GetV(aPix);
+                    tREAL8 val = a1*mDCurrTrue->GetV(aPix) + a2;
+                    tREAL8 delta = val - mDCurrTgt->GetV(aPix);
                     if (abs(delta) <= eps)
                     {
                         aSet.push_back(aPix);//add point to the set
                     }
                 }
             }
-            //StdOut() << "OK " << 100*aSet.size()/sz_ech << "%" << std::endl;
             if (theSet.size() < aSet.size())
             {
                 theSet = aSet;
@@ -615,33 +639,21 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
                 theSolPts = {G1, G2, G3, G4};
             }
             aSet.clear();
-            //if (theSet.size() > 0.75*sz_ech)
-            //{
-            //    isOk = true;
-            //    break;
-            //}
         }
         StdOut() << " a1,a2 = " << theSol << " : " << theSolPts << "--";
-        //if (theSol[0]==0.0)
-        //{
-        //    StdOut() << theSet;
-        //}
-        StdOut() << 100*theSet.size()/(aDSynt->SzX()*aDSynt->SzY()) <<  "%" << std::endl;
 
-        for (auto aPix:*aDTrue)
+        StdOut() << 100*theSet.size()/sz_ech <<  "%" << std::endl;
+
+        for (auto aPix:*mDCurrTrue)
         {
             if(mDTgtMasq->GetV(aPix) != 125)
             {
-                int val = aDTrue->GetV(aPix)*theSol[0] + theSol[1];
-                //if (val<0) val=0;
-                //if (val>255) val=255;
-                aDLabelTgtIm.SetVTrunc(aPix,val);//  SetV(aPix,val);
+                int val = mDCurrTgt->GetV(aPix) - (mDCurrTrue->GetV(aPix)*theSol[0] + theSol[1]);
+                aDLabelTgtIm.SetVTrunc(aPix,val);
             }
         }
         aDLabelTgtIm.ToFile(NameVisu(mCurrCam->NameImage(),"Result"+mCurrTgtCode));
-
-
-
+        aDLabelTrueIm.ToFile(NameVisu(mCurrCam->NameImage(),"LabelTrue"+mCurrTgtCode));
     }
 
     void cAppli_CheckBoardTargetRefine::doReproj(const std::string & aCode)
