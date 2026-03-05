@@ -217,9 +217,10 @@ double  MajNormJacOfRho
 /*                                  */
 /* ******************************** */
 
-tREAL8 cDefProjPerspC::DistancePx(const tPt & aPtA, const tPt & aPtB) const
+cDefProjPerspC::tPt cDefProjPerspC::DiffPx(const tPt & aPtA, const tPt & aPtB, tREAL8 aF) const
 {
-    return Norm2(aPtA-aPtB);
+    (void) aF;
+    return aPtA-aPtB;
 }
 
 bool  cDefProjPerspC::HasRadialSym() const { return true; }

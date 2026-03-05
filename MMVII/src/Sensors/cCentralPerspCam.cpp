@@ -563,7 +563,6 @@ void cPerspCamIntrCalib::FixLoop(tPtOut &aPtInOut) const
     }
 }
 
-
 void cPerspCamIntrCalib::FixLoop(tVecOut &aVPtInOut) const
 {
     if (mTypeProj==eProjPC::eEquiRect)
@@ -827,10 +826,10 @@ void cPerspCamIntrCalib::TestInvInit(double aTolApprox,double aTolAccurate)
          for (size_t aKPt=0 ; aKPt<aVPt1.size() ; aKPt++)
          {
 		 //  add all that, use square dist for efficiency
-            aSD12 +=  Square(mDefProj->DistancePx(aVPt1.at(aKPt),aVPt2.at(aKPt)));
-            aSD23 +=  Square(mDefProj->DistancePx(aVPt2.at(aKPt),aVPt3.at(aKPt)));
-            aSD13 +=  Square(mDefProj->DistancePx(aVPt1.at(aKPt),aVPt3.at(aKPt)));
-            aSD15 +=  Square(mDefProj->DistancePx(aVPt1.at(aKPt),aVPt5.at(aKPt)));
+            aSD12 +=  SqN2(mDefProj->DiffPx(aVPt1.at(aKPt),aVPt2.at(aKPt),mMapPProj2Im.F()));
+            aSD23 +=  SqN2(mDefProj->DiffPx(aVPt2.at(aKPt),aVPt3.at(aKPt),mMapPProj2Im.F()));
+            aSD13 +=  SqN2(mDefProj->DiffPx(aVPt1.at(aKPt),aVPt3.at(aKPt),mMapPProj2Im.F()));
+            aSD15 +=  SqN2(mDefProj->DiffPx(aVPt1.at(aKPt),aVPt5.at(aKPt),mMapPProj2Im.F()));
          }
 	     // transform sum of square dist  an averager of distance
          aSD12 = std::sqrt(aSD12/aVPt1.size());
@@ -862,10 +861,11 @@ void cPerspCamIntrCalib::TestInvInit(double aTolApprox,double aTolAccurate)
          for (size_t aKPt=0 ; aKPt<aVPt1.size() ; aKPt++)
          {
               //double aD =  SqN2(aVPt1.at(aKPt)-aVPt3.at(aKPt));
-             double aD = mDefProj->DistancePx(aVPt1.at(aKPt),aVPt3.at(aKPt));
+             double aD = SqN2(mDefProj->DiffPx(aVPt1.at(aKPt),aVPt3.at(aKPt),mMapPProj2Im.F()));
              if (aD>0.001)
              {
-                  std::cout<<aVPt1.at(aKPt)<<" "<<aVPt3.at(aKPt)<< " => "<<aVPt1.at(aKPt)-aVPt3.at(aKPt)<<"\n";
+                 std::cout<<aVPt1.at(aKPt)<<" "<<aVPt3.at(aKPt)<< " => "<<aVPt1.at(aKPt)-aVPt3.at(aKPt)
+                           <<" "<<mDefProj->DiffPx(aVPt1.at(aKPt),aVPt3.at(aKPt),mMapPProj2Im.F()) <<"\n";
                  std::vector<cPt3dr> aTmp = {aVPt2.at(aKPt)};
                   std::vector<cPt2dr> aTmp2;
                   Values(aTmp2,aTmp);
