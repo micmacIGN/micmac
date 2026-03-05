@@ -217,6 +217,12 @@ double  MajNormJacOfRho
 /*                                  */
 /* ******************************** */
 
+cDefProjPerspC::tPt cDefProjPerspC::DiffPx(const tPt & aPtA, const tPt & aPtB, tREAL8 aF) const
+{
+    (void) aF;
+    return aPtA-aPtB;
+}
+
 bool  cDefProjPerspC::HasRadialSym() const { return true; }
 
 const cDefProjPerspC * cDefProjPerspC::ProjOfType(eProjPC aProj,tREAL8 aRhoMax)
