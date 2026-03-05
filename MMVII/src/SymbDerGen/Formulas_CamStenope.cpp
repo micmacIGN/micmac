@@ -217,6 +217,11 @@ double  MajNormJacOfRho
 /*                                  */
 /* ******************************** */
 
+tREAL8 cDefProjPerspC::DistancePx(const tPt & aPtA, const tPt & aPtB) const
+{
+    return Norm2(aPtA-aPtB);
+}
+
 bool  cDefProjPerspC::HasRadialSym() const { return true; }
 
 const cDefProjPerspC * cDefProjPerspC::ProjOfType(eProjPC aProj,tREAL8 aRhoMax)

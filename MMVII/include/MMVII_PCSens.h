@@ -80,6 +80,7 @@ class cDefProjPerspC : public cDataBoundedSet<tREAL8,2>
 
       virtual tREAL8 Insideness(const tPt &) const override;
 
+      virtual tREAL8 DistancePx(const tPt &aPtA, const tPt &aPtB) const;
 
           /// Radial symetry, true for physcicall based model, false for ex with equirect
           virtual bool  HasRadialSym() const ;

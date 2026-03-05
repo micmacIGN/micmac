@@ -555,8 +555,9 @@ void cPerspCamIntrCalib::FixLoop(tPtOut &aPtInOut) const
 {
     if (mTypeProj==eProjPC::eEquiRect)
     {
-        if (aPtInOut.x()/mMapPProj2Im.F()> 2*M_PI) aPtInOut.x() -= 2*M_PI*mMapPProj2Im.F();
-        if (aPtInOut.x()/mMapPProj2Im.F() <0) aPtInOut.x() += 2*M_PI*mMapPProj2Im.F();
+        tREAL8 aW2piInPixels = mMapPProj2Im.F()*2*M_PI;
+        if (aPtInOut.x() >= aW2piInPixels) aPtInOut.x() -= aW2piInPixels;
+        if (aPtInOut.x() < 0.) aPtInOut.x() += aW2piInPixels;
     } else {
         // noting to do
     }
@@ -826,11 +827,10 @@ void cPerspCamIntrCalib::TestInvInit(double aTolApprox,double aTolAccurate)
          for (size_t aKPt=0 ; aKPt<aVPt1.size() ; aKPt++)
          {
 		 //  add all that, use square dist for efficiency
-              aSD12 +=  SqN2(aVPt1.at(aKPt)-aVPt2.at(aKPt));
-              aSD23 +=  SqN2(aVPt2.at(aKPt)-aVPt3.at(aKPt));
-              aSD13 +=  SqN2(aVPt1.at(aKPt)-aVPt3.at(aKPt));
-              aSD15 +=  SqN2(aVPt1.at(aKPt)-aVPt5.at(aKPt));
-
+            aSD12 +=  Square(mDefProj->DistancePx(aVPt1.at(aKPt),aVPt2.at(aKPt)));
+            aSD23 +=  Square(mDefProj->DistancePx(aVPt2.at(aKPt),aVPt3.at(aKPt)));
+            aSD13 +=  Square(mDefProj->DistancePx(aVPt1.at(aKPt),aVPt3.at(aKPt)));
+            aSD15 +=  Square(mDefProj->DistancePx(aVPt1.at(aKPt),aVPt5.at(aKPt)));
          }
 	     // transform sum of square dist  an averager of distance
          aSD12 = std::sqrt(aSD12/aVPt1.size());
@@ -861,7 +861,15 @@ void cPerspCamIntrCalib::TestInvInit(double aTolApprox,double aTolAccurate)
          double aSD13=0;  
          for (size_t aKPt=0 ; aKPt<aVPt1.size() ; aKPt++)
          {
-              double aD =  SqN2(aVPt1.at(aKPt)-aVPt3.at(aKPt));
+              //double aD =  SqN2(aVPt1.at(aKPt)-aVPt3.at(aKPt));
+             double aD = mDefProj->DistancePx(aVPt1.at(aKPt),aVPt3.at(aKPt));
+             if (aD>0.001)
+             {
+                  std::cout<<aVPt1.at(aKPt)<<" "<<aVPt3.at(aKPt)<< " => "<<aVPt1.at(aKPt)-aVPt3.at(aKPt)<<"\n";
+                 std::vector<cPt3dr> aTmp = {aVPt2.at(aKPt)};
+                  std::vector<cPt2dr> aTmp2;
+                  Values(aTmp2,aTmp);
+             }
 	      MMVII_INTERNAL_ASSERT_tiny(ValidFloatValue(aD),"Bad value in TestInvInit");
               aSD13 += aD;
 	 }

@@ -405,6 +405,15 @@ class cProj_EquiRect  : public cDefProjPerspC
 
            return {CosV * sin(aU) ,  sin(aV) , CosV *cos(aU)};
         }
+
+        tREAL8 DistancePx(const tPt & aPtA, const tPt & aPtB) const override
+        {
+            return Norm2(
+                tPt::FromVect(Proj(ToDirBundle(aPtA.ToStdVector())))
+                -tPt::FromVect(Proj(ToDirBundle(aPtB.ToStdVector())))
+                );
+        }
+
 };
 
 
