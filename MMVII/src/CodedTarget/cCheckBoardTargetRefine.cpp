@@ -58,6 +58,7 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
             void doComputeTransFunc();
             std::vector<cPt2di> getRansacPts();
             void doFindBW();
+            void computeBasePtsRes();
             cPhotogrammetricProject mPhProj;
             /*
              *
@@ -93,6 +94,7 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
             tDIm* mDCurrRefLabel;
             tIm mCurrTrue;
             tDIm* mDCurrTrue;
+            std::map<std::string, std::vector<cPt3dr>> mMTargetsWorldBasePoints;
             std::map<cSensorCamPC*,std::map<std::string,std::vector<cPt2dr>>> mMCamTgtBasePts;
 
 
@@ -248,13 +250,18 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
     cSetTargetMap cAppli_CheckBoardTargetRefine::computeTargets2WorldMappings()
     {
         //for each target compute ground coordinates of arbitrary target base points (typically corners)
-        std::map<std::string, std::vector<cPt3dr>> aMTargetsWorldBasePoints = computeTargetsWorldBasePoints();
+        mMTargetsWorldBasePoints = computeTargetsWorldBasePoints();
 
 
+        //here comes the big check
+        if (mShow)
+        {
+            computeBasePtsRes();
+        }
 
         cSetTargetMap aTarget2WorldMappings(mPhProj.DPGndPt3D().DirOut());//set of target 2 ground mappings (useful for serialisation)
 
-        for (const auto& aTgtWrldBsePts:aMTargetsWorldBasePoints)
+        for (const auto& aTgtWrldBsePts:mMTargetsWorldBasePoints)
         {
             const std::string& aTgtCode = aTgtWrldBsePts.first;
 
@@ -339,6 +346,30 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
         return aMTargetsWorldBasePoints;
     }
 
+    void cAppli_CheckBoardTargetRefine::computeBasePtsRes()
+    {
+        for (const auto& aCam : mMCamTgtBasePts)
+        {
+            StdOut() << "Cam. residuals: " << aCam.first->NameImage() << "\n";
+            for (const auto& aTgtCode : aCam.second)
+            {
+                tREAL8 aSumRes = 0;
+                int ix = 0;
+                auto search = mMTargetsWorldBasePoints.find(aTgtCode.first);
+                if (search != mMTargetsWorldBasePoints.end())
+                {
+                    for (const auto& aWorldBsePt : mMTargetsWorldBasePoints.at(aTgtCode.first))
+                    {
+                        aSumRes += Norm2(aCam.first->Ground2Image(aWorldBsePt) - aTgtCode.second[ix]);
+                        ++ix;
+                    }
+                    (void) aTgtCode;
+                    StdOut() << "AvgRes. [px] on TGT n°" << aTgtCode.first << ": " << aSumRes/ix << std::endl;
+                }
+            }
+        }
+    }
+
     cPt3dr cAppli_CheckBoardTargetRefine::target2World(const std::string& aTargetCode, const cPt2dr& aTargetPt)
     {
         cPt3dr aTgt0Pt(aTargetPt.x(), aTargetPt.y(), 0);
@@ -413,12 +444,11 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
     void cAppli_CheckBoardTargetRefine::TargetRefine(bool& isOk)
     {
         CurrTgtExtent(isOk);//computes current target extent
-
         if (isOk && mCurrCam->NameImage() == "K127_202409211622-00-cam-22348125-38-66255657607881-23.tiff")
         {
             TargetSample(isOk);
             doComputeTransFunc();
-            //doFindBW();
+            doFindBW();
         }
     }
 
@@ -570,32 +600,8 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
                 aCDev.Add(mDCurrTrue->GetV(aPix+FreemanV8[aK]));
             }
             aDLabelTrueIm.SetVTrunc(aPix,aCDev.StdDev());
-
-
-
-            //if (FlagEq8Neigh(*mDCurrTrue,aPix).NbConComp() > 5 && mDTgtMasq->GetV(aPix) != 125)
-            //{
-            //    aDLabelTrueIm.SetV(aPix,255);//transformed coordinates
-            //    ++sz_ech;
-            //} else {aDLabelTrueIm.SetV(aPix,0);}
-
-            //if (FlagEq8Neigh(*mDCurrTgt,aPix).NbConComp() == 0)
-            //{
-            //    aDLabelTgtIm.SetV(aPix,0);//transformed coordinates
-            //    ++sz_ech;
-            //} else {aDLabelTgtIm.SetV(aPix,255);}
-            //aDLabelTgtIm.SetV(aPix, FlagEq8Neigh(*aDSynt,aPix).NbConComp()*10);
-            //aDLabelTrueIm.SetV(aPix, FlagEq8Neigh(*aDTrue,aPix).NbConComp()*10);
-
         }
 
-        /*
-        if (mVisu)
-        {
-            //aDLabelTrueIm.ToFile(NameVisu(mCurrCam->NameImage(),"LabelTrue"+mCurrTgtCode));
-            //aDLabelTgtIm.ToFile(NameVisu(mCurrCam->NameImage(),"LabelTgt"+mCurrTgtCode));
-        }
-        */
         StdOut() << "->BEGIN RANSAC" << std::endl;
 
         //-2-BEGIN RANSAC
