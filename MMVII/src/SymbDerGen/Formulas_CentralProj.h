@@ -405,6 +405,26 @@ class cProj_EquiRect  : public cDefProjPerspC
 
            return {CosV * sin(aU) ,  sin(aV) , CosV *cos(aU)};
         }
+
+        tPt DiffPx(const tPt & aPtA, const tPt & aPtB, tREAL8 aF) const override
+        {
+            auto aW2piPx = 2*M_PI*aF;
+            auto aDiff = aPtA - aPtB;
+            if (aDiff.x() <= -aW2piPx)
+                aDiff.x() += aW2piPx;
+            if (aDiff.x() >= aW2piPx)
+                aDiff.x() -= aW2piPx;
+            return aDiff;
+            /*std::cout<<aDirA<<" "<<aDirB<<"  = > " << cPt3dr::FromVect(ToDirBundle(aDirA.ToStdVector()))
+                      <<" "<< cPt3dr::FromVect(ToDirBundle(aDirB.ToStdVector())) <<" => "
+                      <<tPt::FromVect(Proj(ToDirBundle(aDirA.ToStdVector())))
+                      << " " << tPt::FromVect(Proj(ToDirBundle(aDirB.ToStdVector()))) << " " <<
+                Norm2(tPt::FromVect(Proj(ToDirBundle(aDirA.ToStdVector())))-tPt::FromVect(Proj(ToDirBundle(aDirB.ToStdVector()))))<< "\n";
+            return
+                tPt::FromVect(Proj(ToDirBundle(aDirA.ToStdVector())))
+                -tPt::FromVect(Proj(ToDirBundle(aDirB.ToStdVector())));*/
+        }
+
 };
 
 
