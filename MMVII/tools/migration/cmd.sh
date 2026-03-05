@@ -14,6 +14,8 @@ git branch -df cm-apyb11 images_gdal cm_polyser clino IncludeALGLIB
 git branch --list 'dependabot/*' | xargs -r git branch -df
 
 git-filter-repo  --replace-refs delete-no-add  --path DocInternet/ --path src/aux.cpp  --path src/CodedTarget/CodedTarget --path src/CodedTarget/Exemples --invert-paths
+git-filter-repo  --replace-refs delete-no-add  --path MMVII-TestDir/Input/EPIP/Tiny/Px_ImL.tif --path MMVII-TestDir/Input/EPIP/Tiny/RefPx.tif --path Doc/Paper/Epipolar_ipol/Epipolar_ipol.pdf  --invert-paths
+git-filter-repo  --replace-refs delete-no-add  --path src/LearningMatching/trained_model_assets/UNET32/OCC_AWARE_PANACHE_NORMED_UNET_FEATURES_AERIAL.pt --path src/LearningMatching/trained_model_assets/UNET_ATTENTION/OCC_AWARE_PANACHE_NORMED_UNET_ATTENTION_FEATURES_AERIAL.pt --path src/DenseMatch/RAFT-Stereo/models/raftstereo-realtime.pth --path src/DenseMatch/RAFT-Stereo/models/iraftstereo_rvc.pth --path  src/DenseMatch/RAFT-Stereo/models/raftstereo-eth3d.pth --path src/DenseMatch/RAFT-Stereo/models/raftstereo-middlebury.pth --path src/DenseMatch/RAFT-Stereo/models/raftstereo-sceneflow.pth --path src/DenseMatch/PSMNet/models/finetune_PSMnet.tar --invert-paths
 
 ../tabs.py
 
