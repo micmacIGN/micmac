@@ -588,7 +588,7 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
             aDLabelTgtIm.SetV(ToI(mCurrCam->Ground2Image(aWrldBit)-mCurrTgtExtent.P0ByRef()),255);
         }
 
-        //int sz_ech = 0;
+        cStdStatRes aImStat;
 
         for (const auto & aPix : aRectInt)
         {
@@ -597,8 +597,9 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
             std::vector<tREAL8> aLocNeigh;
             for (int aK=0 ; aK<8 ; aK++)
             {
-                aCDev.Add(mDCurrTrue->GetV(aPix+FreemanV8[aK]));
+                aCDev.Add(mDCurrTgt->GetV(aPix+FreemanV8[aK]));
             }
+            aImStat.Add(aCDev.StdDev());
             aDLabelTrueIm.SetVTrunc(aPix,aCDev.StdDev());
         }
 
@@ -634,37 +635,14 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
             a1 = (G3-G4)/(G1-G2);
             a2 = G3-a1*G1;
 
-            /*//check on full img
-            for (const auto& aPix : *mDCurrTgt)
-            {
-                if(aDLabelTrueIm.GetV(aPix) == 255)
-                {
-                    tREAL8 val = a1*mDCurrTrue->GetV(aPix) + a2;
-                    tREAL8 delta = val - mDCurrTgt->GetV(aPix);
-                    if (abs(delta) <= eps)
-                    {
-                        aSet.push_back(aPix);//add point to the set
-                    }
-                }
-            }
-            */
-
-            //check only on bit centers
             for (const auto& aPix : aDLabelTrueIm)
             {
                 if (mDTgtMasq->GetV(aPix)==125) continue;
                 tREAL8 val = a1*mDCurrTrue->GetV(aPix) + a2;
                 tREAL8 delta = val - mDCurrTgt->GetV(aPix);
-                ++aScoreNum;
-                aScoreDenom += abs(delta)/aDLabelTrueIm.GetV(aPix);
-
-                //if (abs(delta) <= eps)
-                //{
-                //    aSet.push_back(aPix);
-                //}
+                aScoreNum += abs(delta)*1/(aDLabelTrueIm.GetV(aPix)+aImStat.Avg());
+                aScoreDenom += 1/(aDLabelTrueIm.GetV(aPix)+aImStat.Avg());
             }
-
-            //StdOut() << "ScoreTmp: " << aScoreNum << "/" << aScoreDenom<<"--";
 
             if (theScore < aScoreNum/aScoreDenom)
             {
@@ -672,17 +650,9 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
                 theSol = cPt2dr(a1,a2);
             }
 
-            //if (theSet.size() < aSet.size())
-            //{
-            //    theSet = aSet;
-            //    theSol = cPt2dr(a1,a2);
-            //    theSolPts = {G1, G2, G3, G4};
-            //}
-            //aSet.clear();
         }
         StdOut() << " a1,a2 = " << theSol << " : " << theSolPts << "--";
         StdOut() << "Score: " << theScore<<std::endl;
-        //StdOut() << 100*theSet.size()/aVRansacPts.size() <<  "%" << std::endl;
 
         for (auto aPix:*mDCurrTrue)
         {
