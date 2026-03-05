@@ -544,9 +544,9 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
     {
 
         //-1- labelized true img. with number of connected components
-        cRect2 aRectInt = mDCurrTrue->Dilate(-1);//keeps original coordinates
-        tIm aLabelTrueIm(mDCurrTrue->Sz());
-        tDIm& aDLabelTrueIm = aLabelTrueIm.DIm();
+        cRect2 aRectInt = mDCurrTrue->Dilate(-5);//keeps original coordinates
+        cIm2D<tREAL8> aLabelTrueIm(mDCurrTrue->Sz());
+        cDataIm2D<tREAL8>& aDLabelTrueIm = aLabelTrueIm.DIm();
         tIm aLabelTgtIm(mDCurrTrue->Sz());
         tDIm& aDLabelTgtIm = aLabelTgtIm.DIm();
         aDLabelTgtIm.InitCste(0);
@@ -557,28 +557,33 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
             aVRansacPts.push_back(ToI(mCurrCam->Ground2Image(aWrldBit)-mCurrTgtExtent.P0ByRef()));
             aDLabelTgtIm.SetV(ToI(mCurrCam->Ground2Image(aWrldBit)-mCurrTgtExtent.P0ByRef()),255);
         }
-        StdOut() << "Ransac Points:";
-        for (const auto& aRPt:aVRansacPts)
-        {
-            StdOut() << mDCurrTrue->GetV(aRPt) << "->" << mDCurrTgt->GetV(aRPt) << "|";
-        }
-        StdOut()<<"\n";
 
-        int sz_ech = 0;
+        //int sz_ech = 0;
 
         for (const auto & aPix : aRectInt)
         {
-            if (FlagEq8Neigh(*mDCurrTrue,aPix).NbConComp() > 5 && mDTgtMasq->GetV(aPix) != 125)
+            if (mDTgtMasq->GetV(aPix)==125) continue;
+            cComputeStdDev<tREAL8>  aCDev;
+            std::vector<tREAL8> aLocNeigh;
+            for (int aK=0 ; aK<8 ; aK++)
             {
-                aDLabelTrueIm.SetV(aPix,255);//transformed coordinates
-                ++sz_ech;
-            } else {aDLabelTrueIm.SetV(aPix,0);}
+                aCDev.Add(mDCurrTrue->GetV(aPix+FreemanV8[aK]));
+            }
+            aDLabelTrueIm.SetVTrunc(aPix,aCDev.StdDev());
 
-            if (FlagEq8Neigh(*mDCurrTgt,aPix).NbConComp() == 0)
-            {
-                aDLabelTgtIm.SetV(aPix,0);//transformed coordinates
-                ++sz_ech;
-            } else {aDLabelTgtIm.SetV(aPix,255);}
+
+
+            //if (FlagEq8Neigh(*mDCurrTrue,aPix).NbConComp() > 5 && mDTgtMasq->GetV(aPix) != 125)
+            //{
+            //    aDLabelTrueIm.SetV(aPix,255);//transformed coordinates
+            //    ++sz_ech;
+            //} else {aDLabelTrueIm.SetV(aPix,0);}
+
+            //if (FlagEq8Neigh(*mDCurrTgt,aPix).NbConComp() == 0)
+            //{
+            //    aDLabelTgtIm.SetV(aPix,0);//transformed coordinates
+            //    ++sz_ech;
+            //} else {aDLabelTgtIm.SetV(aPix,255);}
             //aDLabelTgtIm.SetV(aPix, FlagEq8Neigh(*aDSynt,aPix).NbConComp()*10);
             //aDLabelTrueIm.SetV(aPix, FlagEq8Neigh(*aDTrue,aPix).NbConComp()*10);
 
@@ -599,11 +604,14 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
         std::vector<cPt2di> theSet = {};
         tREAL8 a1, a2;
         tPt2dr theSol(0.0,0.0);
+        tREAL8 theScore = 0;
         std::vector<tREAL8> theSolPts ={};
-        tREAL8 eps = 10;
+        //tREAL8 eps = 3;
 
         for (int ix=0;ix<it;++ix)
         {
+            tREAL8 aScoreDenom = 0;
+            tREAL8 aScoreNum = 0;
             tU_INT1 bit1 = RandUnif_N(aVRansacPts.size()), bit2 = RandUnif_N(aVRansacPts.size());
 
             if (mDCurrRef->GetV(ToI(mFullSpec->BitsCenters()[bit1])) == mDCurrRef->GetV(ToI(mFullSpec->BitsCenters()[bit2])))
@@ -620,6 +628,7 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
             a1 = (G3-G4)/(G1-G2);
             a2 = G3-a1*G1;
 
+            /*//check on full img
             for (const auto& aPix : *mDCurrTgt)
             {
                 if(aDLabelTrueIm.GetV(aPix) == 255)
@@ -632,17 +641,42 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
                     }
                 }
             }
-            if (theSet.size() < aSet.size())
+            */
+
+            //check only on bit centers
+            for (const auto& aPix : aDLabelTrueIm)
             {
-                theSet = aSet;
-                theSol = cPt2dr(a1,a2);
-                theSolPts = {G1, G2, G3, G4};
+                if (mDTgtMasq->GetV(aPix)==125) continue;
+                tREAL8 val = a1*mDCurrTrue->GetV(aPix) + a2;
+                tREAL8 delta = val - mDCurrTgt->GetV(aPix);
+                ++aScoreNum;
+                aScoreDenom += abs(delta)/aDLabelTrueIm.GetV(aPix);
+
+                //if (abs(delta) <= eps)
+                //{
+                //    aSet.push_back(aPix);
+                //}
             }
-            aSet.clear();
+
+            //StdOut() << "ScoreTmp: " << aScoreNum << "/" << aScoreDenom<<"--";
+
+            if (theScore < aScoreNum/aScoreDenom)
+            {
+                theScore = aScoreNum/aScoreDenom;
+                theSol = cPt2dr(a1,a2);
+            }
+
+            //if (theSet.size() < aSet.size())
+            //{
+            //    theSet = aSet;
+            //    theSol = cPt2dr(a1,a2);
+            //    theSolPts = {G1, G2, G3, G4};
+            //}
+            //aSet.clear();
         }
         StdOut() << " a1,a2 = " << theSol << " : " << theSolPts << "--";
-
-        StdOut() << 100*theSet.size()/sz_ech <<  "%" << std::endl;
+        StdOut() << "Score: " << theScore<<std::endl;
+        //StdOut() << 100*theSet.size()/aVRansacPts.size() <<  "%" << std::endl;
 
         for (auto aPix:*mDCurrTrue)
         {
