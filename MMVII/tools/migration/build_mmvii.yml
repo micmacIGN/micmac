@@ -92,7 +92,7 @@ jobs:
         cache: true
     
     - name: Configure CMake for MMVII
-      run: cmake -S . -B build -DCMAKE_PREFIX_PATH=C:/Miniconda/envs/test/Library
+      run: cmake -S . -B build -DCMAKE_PREFIX_PATH=C:/Miniconda/envs/test/Library -DvMMVII_BUILD=ON
 
     - name: Build MMVII
       run: cmake --build build --config Release -j 4 --target full
@@ -107,17 +107,23 @@ jobs:
         rm -fr bin/Makefile* bin/*.makefile bin/MMVII-* bin/*.lib  MMVII-TestDir/Tmp/
         mkdir -p MMVII
         cp -a MMVII-LocalParameters/ MMVII-RessourceDir/ MMVII-TestDir/ bin/ share/ MMVII/
-        mkdir -p MMVII/bin/platforms
         MMVII_BINDIR=$(pwd)/MMVII/bin
-        cp ${Qt5_Dir}/plugins/platforms/qwindows.dll ${MMVII_BINDIR}/platforms/
-        cd /C/Miniconda/envs/test/Library/bin/
         
         # dll for PROJ, GDAL
+        cd /C/Miniconda/envs/test/Library/bin/
         cp -a archive.dll blosc.dll charset.dll deflate.dll freexl.dll gdal.dll geos.dll geos_c.dll iconv.dll jpeg8.dll ${MMVII_BINDIR}/
         cp -a brotlicommon.dll brotlidec.dll brotlienc.dll hwy.dll jxl.dll jxl_cms.dll jxl_threads.dll muparser.dll ${MMVII_BINDIR}/
         cp -a Lerc.dll libbz2.dll libcrypto-3-x64.dll libcurl.dll libexpat.dll liblzma.dll libminizip.dll libpng16.dll libsharpyuv.dll ${MMVII_BINDIR}/
         cp -a libssh2.dll libssl-3-x64.dll libwebp.dll libxml2.dll lz4.dll pcre2-8.dll proj_9.dll snappy.dll spatialite.dll ${MMVII_BINDIR}/
         cp -a sqlite3.dll tiff.dll xerces-c*.dll zlib.dll zstd.dll ${MMVII_BINDIR}/
+        cd $GITHUB_WORKSPACE
+
+        # Qt5 for vMMMVII
+        mkdir -p MMVII/bin/platforms
+        cd $Qt5_Dir/bin
+        cp Qt5Core.dll Qt5Gui.dll Qt5Xml.dll Qt5OpenGL.dll Qt5Widgets.dll ${MMVII_BINDIR}/
+        cd $Qt5_Dir/plugins
+        cp platforms/qwindows.dll ${MMVII_BINDIR}/platforms/
         cd $GITHUB_WORKSPACE
 
     - name: Create Zip

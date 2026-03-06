@@ -6,22 +6,21 @@
 - [Installation from sources (Linux/Windows)](#installation-from-sources)
 	- [Linux Ubuntu distribution](#linux-ubuntu-distribution)
  	- [Windows](#windows)
- 		- [Install PROJ via vcpkg](#install-proj-via-vcpkg)
- 		- [Install MMVII](#install-mmvii)
 	- [Additionnal notes](#additionnal-notes)
 		- [Compilation details](#compilation-details)
-		- [MMVII Command Completion](#mmvii-command-completion)
+		- [Compilation with MicMac V1 API](#compilation-with-micmac-v1-api)
 		- [Graphical User Interface vMMVII](#graphical-user-interface-vmmvii)
-		- [Documentation](#documentation)
-			- [HTML Documentation](#html-documentation)
-			- [PDF Documentation](#pdf-documentation)
-- [Installation from binary (Windows onlmy)](#installation-from-binary)			
+- [Installation from binary (Windows only)](#installation-from-binary-windows-only)
 - [Run a test](#run-a-test)
+- [Documentation](#documentation)
+- [MMVII Command Completion](#mmvii-command-completion)
 - [License](#license)
 - [Useful links](#useful-links)
 
+
 # Description
-**MicMac** is a free open-source photogrammetry solution developed at (**[IGN](https://www.ign.fr/)**) - French Mapping Agency - since 2003. A second version named **MMVII** aimed at facilitating external contributions and being more maintainable in the long term has been in development since 2020.
+**[MicMac](https://github.com/micmacIGN/micmac)** is a free open-source photogrammetry solution developed at (**[IGN](https://www.ign.fr/)**) - French Mapping Agency - since 2003. 
+This repository contains the second version named **MMVII** aimed at facilitating external contributions and being more maintainable in the long term has been in development since 2020.
 
 # Prerequisites
 Compilation tools need to be present on your system to build **MMVII** properly:
@@ -40,24 +39,16 @@ Some external libraries need to be present on your system (installation is descr
 - **[GDAL](https://gdal.org/)** for image files handling
 
 # Installation from sources
-This section covers the compilation of **MMVII** source code to generate binaries. (Pre-compiled binaries for Windows are available **[HERE](https://github.com/micmacIGN/micmac/releases)**)
+This section covers the compilation of **MMVII** source code to generate binaries.\
+(Pre-compiled binaries for Windows are available **[HERE](https://github.com/micmacIGN/micmac/releases)**)
 
-Compilation procedure is discribed below for the 3 main operating systems:
+Some specific MMVII commands may require the MicMac V1 binary and will complain if it is not found.
+In this case, install [micmac v1](https://github.com/micmacIGN/micmac) and make sure that **micmac/bin** is in you PATH environment variable.
+
+Compilation procedure is described below for:
 - **[Linux Ubuntu distribution](#linux-ubuntu-distribution)**
 - **[Windows](#windows)**
-- **[macOS](#macos)** 
 
-
-MMVII does not use **MicMac v1** anymore, so installing **MicMac V1** is not required.
-However some features of MMVII still require calls to the MicMac v1 library and have not yet been rewritten in MMVII. They are disabled. 
-For those who really need it, you can reactivate use of the MicMac V1 lib  :
-
-- Install **MicMac v1** by following the instructions **[HERE](../README.md)**.
-
-- Activate the CMake option **MMVII_KEEP_LIBRARY_MMV1** in the following step '__Configure CMAKE and generate makefiles:__'
-        ```bash
-        cmake ../ -DMMVII_KEEP_LIBRARY_MMV1=on
-        ```
 
 
 ## Linux Ubuntu distribution
@@ -81,7 +72,7 @@ Under Linux (Ubuntu) distribution the installation procedure is as follows:
 	```
 - Configure CMAKE and generate makefiles:
 	```bash
-	cmake ../
+	cmake ..
 	```
 - Compile **MMVII**:
 	```bash
@@ -139,11 +130,8 @@ Under Windows the installation procedure is as follows:
 	"C:\src\MMVII\bin"
 	```
 
-# Installation from binaries
-This section covers the compilation of **MMVII** source code to generate binaries. (Pre-compiled binaries for Windows are available **[HERE](https://github.com/micmacIGN/micmac/releases)**)
-
 ## Additionnal notes
-### Linux compilation details
+### Compilation details
 - If using CLang version XX and want OpenMP: `sudo apt install libomp-XX-dev`
 - You can use `cmake -G Ninja ..` to use Ninja build system instead of the native one. (`sudo apt install ninja-build`)
 - Use `cmake --build . -j N` or `cmake --build . -j N -v` instead of make (works with all build systems)
@@ -160,7 +148,99 @@ This section covers the compilation of **MMVII** source code to generate binarie
 	- make distclean : delete build products and generated codes
 	- rm -fr MMVII/build/* : reinitialize the build configuration
 
-### MMVII Command Completion
+
+### Compilation with micmac V1 API
+MMVII does not use **MicMac v1** anymore, so installing **MicMac V1** is not required.
+However some features of MMVII still require calls to the MicMac v1 library and have not yet been rewritten in MMVII. They are disabled. 
+For those who really need it, you can reactivate use of the MicMac V1 lib  :
+
+- Install **MicMac v1** by following the instructions **[HERE](https://github.com/micmacIGN/micmac)**.
+
+- Activate the CMake option **MMVII_KEEP_LIBRARY_MMV1** in the step '__Configure CMAKE and generate makefiles:
+        ```bash
+        cmake .. -DMMVII_KEEP_LIBRARY_MMV1=on -DMMV1_PATH=your_directory_of_micmacv1
+        ```
+
+
+### Graphical User Interface vMMVII
+The **vMMVII** tool provides a convenient graphical user interface (GUI) for writing **MMVII** commands.
+To compile it, add "**-DvMMVII_BUILD=ON**" on then cmake configure command line.
+
+For Ubuntu 22.04, you can install the necessary QT5 package with the following command:
+```bash
+sudo apt install qtbase5-dev
+```
+For windows, it will be automatically downloaded and compiled (may take a very long time the first time)
+
+To use **vMMVII**, simply type `vMMVII` in a terminal in your working directory.
+
+Please note:
+- Currently, there is no documentation available.
+- The tool is in beta, so some MMVII parameters may be misinterpreted or may not have the appropriate File Dialog helper.
+
+
+# Installation from binary (Windows only)
+**WARNING**: MMVII is essentially a command line tool with a somewhat specific syntax.
+
+
+Download the MMVII archive file [here](https://github.com/micmacv2/MMVII/releases/download/Windows_MMVII_build/mmvii_windows.zip).\
+Extract the .zip file in the directory of you choice (avoid **c:\Program Files**), c:\pgms for example.\
+The main executable will be  **c:\pgms\MMV2\bin\MMVII.EXE**. There is a graphical front-end to help writing command line: **c:\pgms\MMV2\bin\vMMVII.EXE**.\
+
+
+You can add the MMVI\bin path (in this example, c:\pgms\MMVII\bin) to your environment PATH variable.
+
+
+# Run a test
+- In a terminal type:
+	```sh
+	MMVII Bench 1
+	```
+There may be a lot of cryptic messages and some **"##   - Nb Warning "** at the end, but the test passed if execution **does not** end with a message of the form:
+```
+	######################################
+	Level=[UserEr:xxxxxxx]
+	Mes=[xxxxxxx xxxxxxxxxx xxxxxx xxxxxx]
+	========= ARGS OF COMMAND ==========
+	C:\pgms\MMVII\bin\MMVII.exe Bench 1	
+```
+	
+
+# Documentation
+
+The latest version of the (work in progress) documentation can be downloaded directly **[HERE](https://github.com/micmacv2/MMVII/releases/download/MMVII_Documentation/Doc2007_a4.pdf)**.
+You can build documentation from sources if you have installed the MMVII sources:
+
+
+### Building Doxygen HTML documentation
+- Ensure you have doxygen installed (on Ubuntu, you can use the following command):
+	```sh
+	sudo apt install doxygen
+	```
+- Navigate to the MMVII directory:
+	```sh
+	cd MMVII
+	```
+- Run the following command:
+	```sh
+	doxygen Doxyfile
+	```
+
+### Building PDF documentation
+- Ensure you have LaTeX installed (on Ubuntu, you can use the following command):
+	```sh
+	sudo apt install texlive-latex-base texlive-latex-extra texlive-fonts-recommended texlive-fonts-extra texlive-science
+	```
+- Navigate to the `MMVII/Doc` directory:
+	```sh
+	cd MMVII/Doc
+	```
+- Run the following command:
+	```sh
+	make
+	```
+	
+# MMVII Command Completion
 You can enable command completion for **MMVII** in Linux Bash, which simplifies the use of **MMVII** commands.
 
 **Requirements:**
@@ -197,61 +277,6 @@ After making this modification, the command completion feature will be active in
     [ -f ${MMVII_INSTALL_PATH}/bash-completion/mmvii-completion ] && . ${MMVII_INSTALL_PATH}/bash-completion/mmvii-completion
 	```
 
-### Graphical User Interface vMMVII
-The **vMMVII** tool provides a convenient graphical user interface (GUI) for writing **MMVII** commands.
-To compile it, add "**-DvMMVII_BUILD=ON**" on then cmake configure command line.
-
-For Ubuntu 22.04, you can install the necessary QT5 package with the following command:
-```bash
-sudo apt install qtbase5-dev
-```
-For windows, it will be automatically downloaded and compiled (may take a very long time the first time)
-
-To use **vMMVII**, simply type `vMMVII` in a terminal in your working directory.
-
-Please note:
-- Currently, there is no documentation available.
-- The tool is in beta, so some MMVII parameters may be misinterpreted or may not have the appropriate File Dialog helper.
-
-### Documentation
-
-The latest version of the documentation can be downloaded directly **[HERE](https://github.com/micmacv2/MMVII/releases/download/MMVII_Documentation/Doc2007_a4.pdf)**.
-
-
-#### HTML Documentation
-- Ensure you have doxygen installed (on Ubuntu, you can use the following command):
-	```sh
-	sudo apt install doxygen
-	```
-- Navigate to the MMVII directory:
-	```sh
-	cd MMVII
-	```
-- Run the following command:
-	```sh
-	doxygen Doxyfile
-	```
-
-#### PDF Documentation
-- Ensure you have LaTeX installed (on Ubuntu, you can use the following command):
-	```sh
-	sudo apt install texlive-latex-base texlive-latex-extra texlive-fonts-recommended texlive-fonts-extra texlive-science
-	```
-- Navigate to the `MMVII/Doc` directory:
-	```sh
-	cd MMVII/Doc
-	```
-- Run the following command:
-	```sh
-	make
-	```
-
-# Run a test
-- In a terminal type:
-	```sh
-	MMVII Bench 1
-	```
-
 # License
 This project is licensed under the **CECILL-B** License - see the **[LICENSE.md](LICENSE.md)** file for details.
 
@@ -264,6 +289,7 @@ MMVII sources includes codes from:
 
 
 # Useful links
-* [MMVII Documentation](https://github.com/micmacIGN/micmac/releases/tag/MMVII_Documentation)
+* [MicMac v1](https://github.com/micmacIGN/micmac)
+* [MMVII Documentation](https://github.com/micmacv2/MMVII/releases/tag/MMVII_Documentation)
 * [MMVII Programming Session 22-24 Nov 2023](https://www.youtube.com/playlist?list=PLO_lg_3H3aFuMamUsImMzNGPwfkAZge5m)
 
