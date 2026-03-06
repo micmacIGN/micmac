@@ -57,12 +57,9 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
             cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override;
             void doComputeTransFunc();
             std::vector<cPt2di> getRansacPts();
-            void doFindBW();
+            void doComputeCoOccIm(tDIm* aDImIn);
             void computeBasePtsRes();
             cPhotogrammetricProject mPhProj;
-            /*
-             *
-             */
             std::string mNameSpecif;
             std::vector<cSensorCamPC*> mVCams;
             std::string mSpecImIn;
@@ -94,6 +91,8 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
             tDIm* mDCurrRefLabel;
             tIm mCurrTrue;
             tDIm* mDCurrTrue;
+            tIm mCoOccMat;
+            tDIm* mDCoOccMat;
             std::map<std::string, std::vector<cPt3dr>> mMTargetsWorldBasePoints;
             std::map<cSensorCamPC*,std::map<std::string,std::vector<cPt2dr>>> mMCamTgtBasePts;
 
@@ -144,7 +143,8 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
         mCurrTgtExtent (cBox2dr::Empty()),
         mCurrRef (cPt2di(1,1)),
         mCurrTgt (cPt2di(1,1)),
-        mCurrTrue (cPt2di(1,1))
+        mCurrTrue (cPt2di(1,1)),
+        mCoOccMat (cPt2di(1,1))
 
     {
         //···> constructor does nothing
@@ -448,7 +448,6 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
         {
             TargetSample(isOk);
             doComputeTransFunc();
-            doFindBW();
         }
     }
 
@@ -555,26 +554,11 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
      * From here ~ temp. methods to refact/delete (should begin by doSmthg.)
      */
 
-    void cAppli_CheckBoardTargetRefine::doFindBW()
-    {
-        tIm aRefLabel(mDCurrRef->Sz());
-        tDIm* aDCurrRefLabel = &aRefLabel.DIm();
-        //aDCurrRefLabel->InitCste(0);
-        cRect2 aRectInt = mDCurrRef->Dilate(-1);
-        for (const auto& aPix:aRectInt)
-        {
-            {
-                aDCurrRefLabel->SetV(aPix, FlagSup8Neigh(*mDCurrRef,aPix).NbConComp());
-            }
-        }
-        aDCurrRefLabel->ToFile(NameVisu(mCurrCam->NameImage(),"LabelRef"+mCurrTgtCode));
-    }
-
     void cAppli_CheckBoardTargetRefine::doComputeTransFunc()
     {
 
         //-1- labelized true img. with number of connected components
-        cRect2 aRectInt = mDCurrTrue->Dilate(-5);//keeps original coordinates
+        cRect2 aRectInt = mDCurrTrue->Dilate(-1);//keeps original coordinates
         cIm2D<tREAL8> aLabelTrueIm(mDCurrTrue->Sz());
         cDataIm2D<tREAL8>& aDLabelTrueIm = aLabelTrueIm.DIm();
         tIm aLabelTgtIm(mDCurrTrue->Sz());
@@ -611,14 +595,12 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
         std::vector<cPt2di> theSet = {};
         tREAL8 a1, a2;
         tPt2dr theSol(0.0,0.0);
-        tREAL8 theScore = 0;
+        tREAL8 theScore = 100000000;
         std::vector<tREAL8> theSolPts ={};
-        //tREAL8 eps = 3;
 
         for (int ix=0;ix<it;++ix)
         {
-            tREAL8 aScoreDenom = 0;
-            tREAL8 aScoreNum = 0;
+            int aL1Score = 0;
             tU_INT1 bit1 = RandUnif_N(aVRansacPts.size()), bit2 = RandUnif_N(aVRansacPts.size());
 
             if (mDCurrRef->GetV(ToI(mFullSpec->BitsCenters()[bit1])) == mDCurrRef->GetV(ToI(mFullSpec->BitsCenters()[bit2])))
@@ -632,6 +614,8 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
             tREAL8 G1 = mDCurrTrue->GetV(p1), G2 = mDCurrTrue->GetV(p2);
             tREAL8 G3 = mDCurrTgt->GetV(p1), G4 = mDCurrTgt->GetV(p2);
 
+            if(G1==G2) {continue;}
+
             a1 = (G3-G4)/(G1-G2);
             a2 = G3-a1*G1;
 
@@ -640,13 +624,12 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
                 if (mDTgtMasq->GetV(aPix)==125) continue;
                 tREAL8 val = a1*mDCurrTrue->GetV(aPix) + a2;
                 tREAL8 delta = val - mDCurrTgt->GetV(aPix);
-                aScoreNum += abs(delta)*1/(aDLabelTrueIm.GetV(aPix)+aImStat.Avg());
-                aScoreDenom += 1/(aDLabelTrueIm.GetV(aPix)+aImStat.Avg());
+                aL1Score += abs(delta);
             }
 
-            if (theScore < aScoreNum/aScoreDenom)
+            if (theScore > aL1Score)
             {
-                theScore = aScoreNum/aScoreDenom;
+                theScore = aL1Score;
                 theSol = cPt2dr(a1,a2);
             }
 
@@ -654,16 +637,42 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
         StdOut() << " a1,a2 = " << theSol << " : " << theSolPts << "--";
         StdOut() << "Score: " << theScore<<std::endl;
 
+        //build and save co occurence matrix
+        //compute correlation
+        cMatIner2Var<tREAL8> aCStat;
         for (auto aPix:*mDCurrTrue)
         {
             if(mDTgtMasq->GetV(aPix) != 125)
             {
+                aCStat.Add(mDCurrTgt->GetV(aPix), mDCurrTrue->GetV(aPix));
                 int val = mDCurrTgt->GetV(aPix) - (mDCurrTrue->GetV(aPix)*theSol[0] + theSol[1]);
-                aDLabelTgtIm.SetVTrunc(aPix,val);
+                aDLabelTgtIm.SetVTrunc(aPix,abs(val));
             }
         }
+        StdOut() << "Correlation score: " << aCStat.Correl() << " and not centered: " << aCStat.CorrelNotC()<<"\n";
         aDLabelTgtIm.ToFile(NameVisu(mCurrCam->NameImage(),"Result"+mCurrTgtCode));
         aDLabelTrueIm.ToFile(NameVisu(mCurrCam->NameImage(),"LabelTrue"+mCurrTgtCode));
+        doComputeCoOccIm(&aDLabelTgtIm);
+        mDCoOccMat->ToFile(NameVisu(mCurrCam->NameImage(),"CoOcc"+mCurrTgtCode));
+    }
+
+    void cAppli_CheckBoardTargetRefine::doComputeCoOccIm(tDIm* aDImIn)
+    {
+        auto aTMax = std::numeric_limits<tElem>::max()+1;
+        mCoOccMat = tIm(cPt2di(aTMax,aTMax));
+        mDCoOccMat = &mCoOccMat.DIm();
+        mDCoOccMat->InitCste(0);
+
+        for (auto const& aPix : *aDImIn)
+        {
+            if(mDTgtMasq->GetV(aPix)== 125) continue;
+            if (aDImIn->Inside(aPix+cPt2di(1,1)))
+            {
+                tElem left=aDImIn->GetV(aPix), right=aDImIn->GetV(aPix+cPt2di(1,1));
+                tElem value = (mDCoOccMat->GetV(cPt2di(left,right)) + 1);
+                mDCoOccMat->SetVTrunc(cPt2di(left,right), value);
+            }
+        }
     }
 
     void cAppli_CheckBoardTargetRefine::doReproj(const std::string & aCode)
