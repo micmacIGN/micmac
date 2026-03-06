@@ -1,6 +1,7 @@
 #ifndef TREETHREAD_H
 #define TREETHREAD_H
 
+#include "MMVII_Error.h"
 #include <vector>
 #include <deque>
 #include <thread>
@@ -115,11 +116,13 @@ private:
         // If the node has no dependancy (leaf) it will be added to the ready to execute queue
         void descend(TreeThreads *tt, PNode me)
         {
-            for (const auto& userChild: mUserNodePtr->depends()) {
-                if (userChild!=nullptr){
-                auto child = std::make_shared<Node>(userChild,me);
-                child->descend(tt, child);
-                mChildrenToWait ++;}
+            if (! mUserNodePtr->IsTerminalNode()) {
+                for (const auto& userChild: mUserNodePtr->depends()) {
+                    MMVII_INTERNAL_ASSERT_strong(userChild != nullptr,"Child of non terminal node is null");
+                    auto child = std::make_shared<Node>(userChild,me);
+                    child->descend(tt, child);
+                    mChildrenToWait ++;
+                }
             }
             if (mChildrenToWait == 0)
                 tt->mReadyQueue.push_back(me);

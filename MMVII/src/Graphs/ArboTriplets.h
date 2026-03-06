@@ -77,8 +77,8 @@ public :
     void SaveGlobSol(const std::string&) const;
 
     /// For parallelization
-    //const std::array<tNodePtr,2>& depends() const {return mChildren;}
-    const std::vector<tNodePtr>& depends() const {return mChildren;}
+    const std::vector<tNodePtr>& depends() const { return mChildren; }
+    bool IsTerminalNode() const { return mChildren.at(0) == nullptr && mChildren.at(1) == nullptr ;}
 
 
 private :
@@ -122,7 +122,7 @@ private :
     /// make the merge for non terminal nodes
     void MergeChildrenSol();
     /// refine the merged solution with bundle adjustment
-    void RefineSolutionGen();
+    void RefineCurSolution();
     /// free temporary data, non longer used after having been mergerd
     void FreeIndexSol();
     /// extract the num of poses of the tree
@@ -247,39 +247,6 @@ private :
     tREAL8                  mSigmaTPt;       ///< Sigma on tie-points
     tREAL8                  mFacElim;        ///< Control outlier threshold, thres=mSigmaTPt*mFacElim
     int                     mNbIterBA;       ///< Number of iteration in bundle adjustment (Refine)
-};
-
-/** Local bundle adjustment for one node of the triplet arborescence.
-   *  Parameterized on bundles (angular/direction residuals), supports all camera projections. */
-class cBA_ArboTriplets
-{
-    public:
-        /// Sets up cameras, collinearity calculators, solver, local tie-points subset.
-        cBA_ArboTriplets(cMakeArboTriplet* aPMAT, std::vector<cSolLocNode>& aLocSols);
-        ~cBA_ArboTriplets();
-
-        /// One BA iteration. Pre-computes u,v vectors on first call (aIter==0).
-        void OneIteration(int aIter);
-
-        /// Copies refined poses back into aLocSols.
-        void UpdateLocSols(std::vector<cSolLocNode>& aLocSols);
-
-        size_t NbCams() const { return mVCams.size(); }
-
-    private:
-        cMakeArboTriplet*                                  mPMAT;
-        int                                                mNbIter;
-        tREAL8                                             mSigAtt;
-        std::vector<tREAL8>                                mThrRange;   ///< [start, end] dynamic threshold
-        tREAL8                                             mDeltaThr;
-
-        cSetInterUK_MultipeObj<tREAL8>                     mSetIntervUK;
-        std::vector<cSensorCamPC*>                         mVCams;
-        std::vector<cSensorImage*>                         mVSens;
-        std::vector<cCalculator<double>*>                  mVEqCol;
-        cResolSysNonLinear<tREAL8>*                        mSys;
-        cComputeMergeMulTieP*                              mTPts;   ///< local tie-points subset
-        std::vector<std::vector<std::pair<cPt3dr,cPt3dr>>> mVecConfUV; ///< precomputed u,v per config
 };
 
 

@@ -15,6 +15,7 @@ namespace MMVII
 
 class cBA_Topo;
 class cMMVII_BundleAdj;
+class cBA_ArboTriplets;
 class cBA_LidarPhotogra;
 class cBA_TieP;
 class cBA_GCP;
@@ -23,6 +24,9 @@ class cBA_BlocRig;
 
 class cUK_Line3D_4BA;
 class cBA_BlockInstr;
+
+class cMakeArboTriplet;
+class cSolLocNode;
 
 /**  "Standard" weighting classes, used the following formula
  *
@@ -440,6 +444,38 @@ struct  cBundleBlocNamedVar
        std::vector<bool>        mActivVar;
 };
 
+/** Local bundle adjustment for one node of the triplet arborescence.
+   *  Parameterized on bundles (angular/direction residuals), supports all camera projections. */
+class cBA_ArboTriplets
+{
+    public:
+        /// Sets up cameras, collinearity calculators, solver, local tie-points subset.
+        cBA_ArboTriplets(cMakeArboTriplet* aPMAT, std::vector<cSolLocNode>& aLocSols);
+        ~cBA_ArboTriplets();
+
+        /// One BA iteration. Pre-computes u,v vectors on first call (aIter==0).
+        void OneIteration(int aIter);
+
+        /// Copies refined poses back into aLocSols.
+        void UpdateLocSols(std::vector<cSolLocNode>& aLocSols);
+
+        size_t NbCams() const { return mVCams.size(); }
+
+    private:
+        cMakeArboTriplet*                                  mPMAT;
+        int                                                mNbIter;
+        tREAL8                                             mSigAtt;
+        std::vector<tREAL8>                                mThrRange;   ///< [start, end] dynamic threshold
+        tREAL8                                             mDeltaThr;
+
+        cSetInterUK_MultipeObj<tREAL8>                     mSetIntervUK;
+        std::vector<cSensorCamPC*>                         mVCams;
+        std::vector<cSensorImage*>                         mVSens;
+        std::vector<cCalculator<double>*>                  mVEqCol;
+        cResolSysNonLinear<tREAL8>*                        mSys;
+        cComputeMergeMulTieP*                              mTPts;   ///< local tie-points subset
+        std::vector<std::vector<std::pair<cPt3dr,cPt3dr>>> mVecConfUV; ///< precomputed u,v per config
+};
 
 class cMMVII_BundleAdj
 {
