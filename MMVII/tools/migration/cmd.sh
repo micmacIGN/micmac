@@ -25,16 +25,14 @@ git branch -m master main
 
 mkdir -p .github/workflows/
 cp ../build_mmvii.yml .github/workflows/
+cp ../README.md .
+cp ../vMMVII_CMakeLists.txt vMMVII/CMakeLists.txt
 git add .github/workflows/build_mmvii.yml
-git commit -m "Build MMVII on GitHub"
-
 patch <../CMakeLists.patch
-git commit -am "CMakeLists for outside mm3d repository"
-
 git apply ../mm3dbin.patch
-git commit -am "handle mm3d binary"
+git commit -am "Patches for MMVII new repository"
 
-echo "delete depandabot branch"
-echo "push -f --all"
 
 git remote add origin https://github.com/micmacv2/MMVII.git
+
+echo "Remaining task: push -f --all"
