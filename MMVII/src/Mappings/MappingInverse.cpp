@@ -507,26 +507,41 @@ template <class Type,const int Dim>
 
 
 template <class Type,const int Dim>
-    const typename cDataIterInvertMapping<Type,Dim>::tVecPt & 
+    const typename cDataIterInvertMapping<Type,Dim>::tVecPt &
                    cDataIterInvertMapping<Type,Dim>::Inverses(tVecPt& aVRes,const tVecPt & aVTarget) const
 {
-    
     // Default method, use iterative approach
     MMVII_INTERNAL_ASSERT_strong(RoughInv() != nullptr,"No rough inverse");
 
-    tHelperInvertIter * aSInvIter = StrInvertIter();
-    aSInvIter->Init(aVTarget);
+    // Serialize: mBufIn/mBufOut (cDataMapping instance buffers) and mStrInvertIter
+    // are shared mutable state; concurrent threads accessing the same calibration
+    // (shared between sibling arbo-tree nodes) would race on all of them.
+    std::lock_guard<std::mutex> aLock(mInverseMutex);
 
-    for (int aKIter=0 ; (aKIter<mNbIterMaxInv) && (aSInvIter->Remaining()!=0); aKIter++)
+    tHelperInvertIter aSInvIter(*this);  // local — avoids race on shared mStrInvertIter/mVSubSet
+    aSInvIter.Init(aVTarget);
+
+    for (int aKIter=0 ; (aKIter<mNbIterMaxInv) && (aSInvIter.Remaining()!=0); aKIter++)
     {
-       aSInvIter->OneIterInversion();
+       aSInvIter.OneIterInversion();
     }
 
-    // tVecPt & aVRes = this->BufOutCleared();
     aVRes.clear();
-    aSInvIter->PushResult(aVRes);
+    aSInvIter.PushResult(aVRes);
 
     return aVRes;
+}
+
+// Override Inverse() to avoid using the parent's shared BufIn1Val/BufInvOut buffers.
+// Those are instance members (MAP_STATIC_BUF=false), written before the mutex is acquired.
+template <class Type,const int Dim>
+typename cDataIterInvertMapping<Type,Dim>::tPt
+cDataIterInvertMapping<Type,Dim>::Inverse(const tPt& aPImage) const
+{
+    tVecPt aIn{aPImage};
+    tVecPt aOut;
+    Inverses(aOut, aIn);   // acquires mInverseMutex; aIn/aOut are local
+    return aOut[0];
 }
 
 /* ============================================= */

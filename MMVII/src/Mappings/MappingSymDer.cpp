@@ -56,6 +56,7 @@ template <class Type,const int DimIn,const int DimOut>
    aRes.clear();
    std::vector<Type> aVUk(DimIn);
 
+   std::lock_guard<std::mutex> aLock(mMutexCalc);
    MMVII_INTERNAL_ASSERT_strong(mCalcVal->NbInBuf()==0,"Buff not empty");
    tU_INT4 aSzBuf = mCalcVal->SzBuf();
    // split to respect size of buffer of the calculator
@@ -94,6 +95,7 @@ template <class Type,const int DimIn,const int DimOut>
 
    std::vector<Type> aVUk(DimIn);
 
+   std::lock_guard<std::mutex> aLock(mMutexCalc);
    MMVII_INTERNAL_ASSERT_strong(mCalcDer->NbInBuf()==0,"Buff not empty");
    tU_INT4 aSzBuf = mCalcDer->SzBuf();
    // split to respect size of buffer of the calculator

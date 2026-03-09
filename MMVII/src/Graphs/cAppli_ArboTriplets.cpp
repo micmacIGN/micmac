@@ -1021,6 +1021,7 @@ void cMakeArboTriplet::InitialiseCalibs()
     {
         //StdOut() << *mMapStrI.I2Obj(aKIm) << std::endl;
         cPerspCamIntrCalib *   aCal = mPhProj.InternalCalibFromStdName(*mMapStrI.I2Obj(aKIm));
+        //aCal->UpdateLSQDistIfRequired();
         FakeUseIt(aCal);
     }
 }

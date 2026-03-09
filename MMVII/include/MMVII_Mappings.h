@@ -3,6 +3,7 @@
 
 
 #include "MMVII_ImageInfoExtract.h"
+#include <mutex>
 
 /* For in & out computation of vector of points, do we use static buffer or 
    do each object has its own buffer. First option is more economic, but can lead to
@@ -491,7 +492,8 @@ template <class Type,const int Dim> class cDataIterInvertMapping :  public cData
 
 
       const  tVecPt &  Inverses(tVecPt &,const tVecPt &) const override;
-      // Accessors 
+      tPt Inverse(const tPt &) const override;
+      // Accessors
       const tDataMap *     RoughInv() const ;
       const Type & DTolInv() const;
       void SetDTolInv(const Type &);
@@ -520,7 +522,8 @@ template <class Type,const int Dim> class cDataIterInvertMapping :  public cData
       cDataIterInvertMapping(const cDataIterInvertMapping<Type,Dim> & ) = delete;
 
       // mutable std::shared_ptr<tHelperInvertIter> mStrInvertIter;
-      mutable tHelperInvertIter* mStrInvertIter;
+      mutable tHelperInvertIter*  mStrInvertIter;
+      mutable std::mutex          mInverseMutex;
       tDataMap *          mRoughInv;
       Type                mDTolInv;
       int                 mNbIterMaxInv;
@@ -606,6 +609,7 @@ template <class Type,const int DimIn,const int DimOut>
        tCalc  *           mCalcDer;
        std::vector<Type>  mVObs;
        bool               mDeleteCalc;
+       mutable std::mutex mMutexCalc; ///< protects mCalcVal/mCalcDer from concurrent access
 };
 
 /** Sometime we need to have type where DimIn=DimOut */
