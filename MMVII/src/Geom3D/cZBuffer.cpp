@@ -177,6 +177,11 @@ void cZBuffer::AssertIsOk() const
    MMVII_INTERNAL_ASSERT_tiny(mIsOk,"Non ok Buffer");
 }
 
+const cPt2di & cZBuffer::SzPix() const
+{
+    return mSzPix;
+}
+
 bool cZBuffer::IsOk() const {return mIsOk;}
 
 void cZBuffer::MakeZBuf(eZBufModeIter aMode)
@@ -251,6 +256,12 @@ eZBufRes cZBuffer::MakeOneTri(const tTri3dr & aTriIn,const tTri3dr &aTri3,eZBufM
 
     //  cTriangle2DCompiled<tREAL8>  aTri2(ToPix(aTri3.Pt(0)) , ToPix(aTri3.Pt(1)) ,ToPix(aTri3.Pt(2)));
     cTriangle2DCompiled<tREAL8>  aTri2 = ImageOfTri(Proj(aTri3),mROut2Pix);
+
+    // do no use wrapped triangles
+    int aIndexLongest = aTri2.IndexLongestSeg();
+    float aMaxLen = Norm2(aTri2.KVect(aIndexLongest));
+    if (aMaxLen > SzPix().x()/1.5)
+        return aRes;
 
     cPt3dr aPtZ(aTri3.Pt(0).z(),aTri3.Pt(1).z(),aTri3.Pt(2).z());
 

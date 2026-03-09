@@ -126,7 +126,7 @@ class  cZBuffer
           void MakeZBuf(eZBufModeIter aMode);
 
 
-          const cPt2di  SzPix() ; ///< Accessor
+          const cPt2di & SzPix() const; ///< Accessor
           tIm   ZBufIm() const; ///< Accessor
           cResModeSurfD&  ResSurfD(size_t) ;   ///< accessor to VecResSurfD
           std::vector<cResModeSurfD> & VecResSurfD() ;   ///< accessor

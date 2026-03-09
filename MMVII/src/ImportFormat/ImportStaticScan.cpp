@@ -842,7 +842,7 @@ int cAppli_ImportStaticScan::Exe()
 
     aSL_data.ToFile(mPhProj.DPOrient().FullDirOut() + aSL_data.NameOriStd());
 
-    aSL_data.ToPly("Out_filtered.ply", true);
+    //aSL_data.ToPly("Out_filtered.ply", true);
     delete aCalib;
     return EXIT_SUCCESS;
 

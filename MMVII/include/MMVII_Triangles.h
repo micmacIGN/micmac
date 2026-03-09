@@ -108,7 +108,7 @@ template <class Type,const int Dim>  cTriangle<Type,Dim>  TriFromFace(const std:
 /// return K such Face[K] = NumS, if  not found : -1 if SVP, error if not
 int  IndOfSomInFace(const cPt3di & aFace,int aNumS,bool SVP=false);
 
-template <class Type,const int Dim> class cTriangulation
+template <class Type,const int Dim> class cTriangulation : public cMemCheck
 {
      public :
           typedef Type                  tCoord;
