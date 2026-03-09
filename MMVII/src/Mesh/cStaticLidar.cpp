@@ -679,6 +679,72 @@ cPt3dr cStaticLidar::Image2Ground(const cPt2dr & aRasterPx) const
     return Pose().Value(aCam3DPt);
 }
 
+
+
+
+cTriangulation3D<tREAL8> * cStaticLidar::ToTriangulation3D(const std::string & aVisuPath, int aFactor) const
+{
+    //TODO make triangulation in instrument frame, add pose later?
+    std::vector<cPt3dr> aVPt3D;
+    std::vector<cPt2di> aVPt2D;
+    std::vector<bool>   aVPtOk;
+    std::vector<cPt3di> aVFace;
+    MMVII_INTERNAL_ASSERT_tiny(aFactor>0, "Error factor triangulation")
+
+    int aNewW = int((PixelDomain().Sz().x()-1)/aFactor) + 1;
+    int aNewH = int((PixelDomain().Sz().y()-1)/aFactor) + 1;
+    aVPt3D.reserve(aNewH*aNewW);
+    aVPt2D.reserve(aNewH*aNewW);
+    aVPtOk.reserve(aNewH*aNewW);
+    aVFace.reserve(aVPt3D.capacity()*2);
+
+    for (int l = 0 ; l < PixelDomain().Sz().y(); l+=aFactor)
+        for (int c = 0 ; c < PixelDomain().Sz().x(); c+=aFactor)
+        {
+            aVPt3D.push_back(Image2Ground(cPt2di(c, l))); // or Image2Camera3D
+            aVPt2D.push_back(cPt2di(c, l));
+            // aVPtOk.push_back(IsValidPoint(cPt2dr(c, l))); // mask of just dist=0 ?
+            aVPtOk.push_back( getRasterDistance().GetV(cPt2di(c, l))>1e-4 );
+        }
+
+    // TODO do not make triangle if any point inside triangle is masked
+    for (int l = 0 ; l < aNewH-1; ++l)
+        for (int c = 0 ; c < aNewW-1; ++c)
+        {
+            int aK0 = l*aNewW+c;
+            const std::array<std::array<int,3>,2> aVKs = {{{aK0, aK0+aNewW, aK0+1}, {aK0+1, aK0+aNewW, aK0+1+aNewW}}};
+            for (auto & [aKa, aKb, aKc]: aVKs)
+            {
+                if (aVPtOk[aKa] && aVPtOk[aKb] && aVPtOk[aKc])
+                {
+                    // do not use elongated triangles
+                    auto aAB = aVPt3D[aKb]-aVPt3D[aKa];
+                    auto aBC = aVPt3D[aKc]-aVPt3D[aKb];
+                    auto aCA = aVPt3D[aKa]-aVPt3D[aKc];
+                    tREAL4 aDistAB = Norm2(aAB);
+                    tREAL4 aDistBC = Norm2(aBC);
+                    tREAL4 aDistCA = Norm2(aCA);
+                    tREAL4 aABdotBC = Scal(aAB,aBC);
+                    tREAL4 aBCdotCA = Scal(aBC,aCA);
+                    tREAL4 aCAdotAB = Scal(aCA,aAB);
+                    if (fabs(aABdotBC) / (aDistAB*aDistBC) > 0.999)
+                        continue;
+                    if (fabs(aBCdotCA) / (aDistBC*aDistCA) > 0.999)
+                        continue;
+                    if (fabs(aCAdotAB) / (aDistCA*aDistAB) > 0.999)
+                        continue;
+                    aVFace.push_back(cPt3di(aKa, aKb, aKc));
+                }
+            }
+        }
+
+    auto * aTri = new cTriangulation3D<tREAL8>(aVPt3D, aVFace);
+    StdOut() <<"Scan triangulation "<< mStationName+"_"+mScanName <<": "<<aVPt3D.size()<<" pts, "<<aVFace.size()<<" faces\n";
+    aTri->WriteFile(aVisuPath + mStationName+"_"+mScanName+".ply",true);
+    return aTri;
+}
+
+
 std::string  cStaticLidar::V_PrefixName() const { return PrefixName() ; }
 std::string  cStaticLidar::PrefixName()  { return "Scan";}
 
@@ -692,11 +758,12 @@ cDataIm2D<tREAL4> & cStaticLidar::getRasterDistance() const
     return mRasterDistance.get()->DIm();
 }
 
-bool cStaticLidar::IsValidPoint(const cPt2dr & aRasterPx) const
+bool cStaticLidar::IsValidPoint(const cPt2dr &aRasterPx) const
 {
     MMVII_INTERNAL_ASSERT_tiny(mRasterMask, "Error: mRasterMask must be computed first");
     auto & aMaskImData = mRasterMask->DIm();
-    return aMaskImData.InsideBL(aRasterPx) && (aMaskImData.GetVBL(aRasterPx)==255.);
+    return aMaskImData.InsideBL(aRasterPx)
+           && (aMaskImData.GetV(cPt2di(aRasterPx.x()+0.5,aRasterPx.y()+0.5))==255.);
 }
 
 cPt2dr cStaticLidar::Ground2ImagePrecise(const cPt3dr & aGroundPt) const

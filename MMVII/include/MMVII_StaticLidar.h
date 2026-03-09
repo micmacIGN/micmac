@@ -139,6 +139,8 @@ public :
 
     cPt2dr Ground2ImagePrecise(const cPt3dr & aGroundPt) const;
 
+    cTriangulation3D<tREAL8> * ToTriangulation3D(const std::string &aVisuPath, int aFactor=16) const;
+
     static std::string  PrefixName() ;
     std::string  V_PrefixName() const override;
     static std::string Pat2Sup(const std::string & aPatSelect);

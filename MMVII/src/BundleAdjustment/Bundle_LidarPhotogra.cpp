@@ -1,6 +1,7 @@
 #include "BundleAdjustment.h"
 #include "MMVII_Interpolators.h"
 #include "MMVII_Tpl_Images.h"
+#include "MMVII_ZBuffer.h"
 
 namespace MMVII
 {
@@ -140,7 +141,7 @@ cBA_LidarPhotograRaster::cBA_LidarPhotograRaster(cPhotogrammetricProject * aPhPr
     {
         cStaticLidar * aScan = mBA.AddStaticLidar(aNameSens);
         StdOut() << "Add Scan " << aNameSens << "\n";
-        mVScans.push_back({aNameSens, aScan, {}});
+        mVScans.push_back({aNameSens, aScan, aScan->ToTriangulation3D(mPhProj->DirVisuAppli()) , {}});
     }
 
     // Creation of the patches, choose a neigborhood around patch centers. TODO: adapt to images ground pixels size?
@@ -165,6 +166,9 @@ cBA_LidarPhotograTri::~cBA_LidarPhotograTri()
 cBA_LidarPhotograRaster::~cBA_LidarPhotograRaster()
 {
     //if (mLidarData) delete mLidarData; // automatically deleted at the end
+    for (auto & aScanDataA: mVScans)
+        if (aScanDataA.mLidarTriangulation)
+            delete aScanDataA.mLidarTriangulation;
 }
 
 void cBA_LidarPhotograTri::AddObs()
@@ -612,7 +616,7 @@ cBA_LidarLidarRaster::cBA_LidarLidarRaster(cPhotogrammetricProject * aPhProj,
     {
         cStaticLidar * aScan = mBA.AddStaticLidar(aNameSens);
         StdOut() << "Add Scan " << aNameSens << "\n";
-        mVScans.push_back({aNameSens, aScan, {}});
+        mVScans.push_back({aNameSens, aScan, aScan->ToTriangulation3D(mPhProj->DirVisuAppli()), {}});
     }
 
     // Creation of the patches, here juste center point
@@ -647,13 +651,53 @@ void cBA_LidarLidarRaster::UpdateWeightersMap()
 
 cBA_LidarLidarRaster::~cBA_LidarLidarRaster()
 {
+    for (auto & aScanDataA: mVScans)
+        if (aScanDataA.mLidarTriangulation)
+            delete aScanDataA.mLidarTriangulation;
 }
 
+void cBA_LidarLidarRaster::CreateZbuffers()
+{
+    int aMarginInsideImage = 1;
+    for (auto & aScanDataA: mVScans)
+    {
+        cMeshTri3DIterator aTriIt(aScanDataA.mLidarTriangulation);
+        for (auto & aScanDataB: mVScans)
+        {
+            if (aScanDataB.mScanName == aScanDataA.mScanName)
+                continue;
+            StdOut() << "Create zbuffer: " << aScanDataA.mScanName+"on_image"
+                     << aScanDataB.mScanName<<"\n";
+
+            cSIMap_Ground2ImageAndProf aMapCamDepth(aScanDataB.mLidarRaster);
+
+            cSetVisibility aSetVis(aScanDataB.mLidarRaster,aMarginInsideImage);
+
+            double Infty =1e20;
+            cPt2di aSzPix = aScanDataB.mLidarRaster->SzPix();
+            cBox3dr  aBox(cPt3dr(aMarginInsideImage,aMarginInsideImage,-Infty),
+                         cPt3dr(aSzPix.x()-aMarginInsideImage,aSzPix.y()-aMarginInsideImage,Infty));
+            cDataBoundedSet<tREAL8,3>  aSetCam(aBox);
+
+            cZBuffer aZBuf(aTriIt,aSetVis,aMapCamDepth,aSetCam,1);
+            aZBuf.MakeZBuf(eZBufModeIter::ProjInit);
+
+            MMVII_INTERNAL_ASSERT_tiny(aZBuf.IsOk(), "Error zbuffer")
+
+            aZBuf.ZBufIm().DIm().ToFile(mPhProj->DirVisuAppli()
+                                        +"ZBuf-"+aScanDataA.mScanName+"_on_image_"
+                                        +aScanDataB.mScanName+".tif");
+        }
+    }
+}
 
 #define SCANSCANDEBUG 10
 
 void cBA_LidarLidarRaster::AddObs()
 {
+    if (mBA.Iter()==0)
+        CreateZbuffers();
+
     mLastResidual.Reset();
     mNbUsedPoints = 0;
     mNbUsedObs = 0;
