@@ -68,6 +68,11 @@ extern cSpecMMVII_Appli  TheSpec_OriUncalibSpaceResection;
 extern cSpecMMVII_Appli  TheSpec_OriCalibratedSpaceResection; 
 extern cSpecMMVII_Appli  TheSpec_OriCheckGCPDist; 
 extern cSpecMMVII_Appli  TheSpec_OriRel2Im; 
+extern cSpecMMVII_Appli  TheSpec_OriRelPairsOf1m;
+extern cSpecMMVII_Appli  TheSpec_OriRelAllPairs;
+extern cSpecMMVII_Appli  TheSpec_SelectPairOriRel;
+
+
 extern cSpecMMVII_Appli  TheSpecMeshCheck; 
 extern cSpecMMVII_Appli  TheSpecProMeshImage; 
 extern cSpecMMVII_Appli  TheSpecMeshImageDevlp; 

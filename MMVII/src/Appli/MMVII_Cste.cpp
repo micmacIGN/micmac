@@ -8,6 +8,8 @@ namespace MMVII
 
 template <> const std::string  & XMLTagSet<std::string> () {return TagSetOfName;}
 template <> const std::string  & XMLTagSet<tNamePair>   () {return TagSetOfCpleName;}
+const std::string TheNameSetOfTriplets = "SetOfTriplets";
+template <> const std::string  & XMLTagSet<cTripletName>   () {return TheNameSetOfTriplets;}
 
 
 template <> const std::string  & MMv1_XMLTagSet<std::string> () {return MMv1XmlTag_SetName;}

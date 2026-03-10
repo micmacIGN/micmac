@@ -415,6 +415,18 @@ template<class Type> Type cLinearOverCstrSys<Type>::VarLastSol() const
     return mLastSumWRHS2 / mLastSumW;
 }
 
+template<class Type> void cLinearOverCstrSys<Type>::AddLVMCstr(tREAL8 aW)
+{
+   if (aW<=0) return;
+   for (int aK=0 ; aK<mNbVar ; aK++)
+   {
+       cSparseVect<Type> aSV;
+       aSV.AddIV(aK,1.0);
+       // Dont forget that the linear system compute the difference with current solution ...
+       PublicAddObservation(aW*LVMW(aK),aSV,0.0);
+   }
+}
+
 
 template<class Type> Type cLinearOverCstrSys<Type>::VarCurSol()  const
 {

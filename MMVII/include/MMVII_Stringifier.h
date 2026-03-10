@@ -474,6 +474,7 @@ void AddData(const  cAuxAr2007 & anAux, size_t  &  aVal); ///< for unsigned shor
 void AddData(const  cAuxAr2007 & anAux, double  &  aVal) ; ///< for double
 void AddData(const  cAuxAr2007 & anAux, std::string  &  aVal) ; ///< for string
 void AddData(const  cAuxAr2007 & anAux, tNamePair  &  aVal) ;  ///< for Pair of string
+void AddData(const  cAuxAr2007 & anAux, cTripletName  &  aVal) ;  ///< for Pair of string
 void AddData(const  cAuxAr2007 & anAux, tNameOCple  &  aVal) ;  ///< for Ordered Cple of string
 void AddData(const  cAuxAr2007 & anAux, std::map<std::string,int>&  aVal) ;  ///< 
 

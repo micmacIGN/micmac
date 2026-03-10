@@ -40,6 +40,7 @@ enum class eTA2007
                 FFI,           ///< File Filter Interval
                 Orient,        ///< Orientation
                 OriTriplet,    ///< Relative oreintations between triplets of images
+                OriRel,        ///< Data for relative orientation pair (triplet here or in OriTriplet, to see?)
                 RadiomData,    ///< Data for Radiometry
                 RadiomModel,   ///< Model for Radiometry
                 MeshDev,       ///< Mesh Devlopment
