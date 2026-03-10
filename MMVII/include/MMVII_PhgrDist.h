@@ -149,6 +149,11 @@ enum class eTypeEqCol
 
 NS_SymbolicDerivative::cCalculator<double> * EqColinearityCamPPC(eProjPC  aType,const cPt3di & aDeg,bool WithDerive,int aSzBuf,bool ReUse,bool isFraserMode,eTypeEqCol);
 
+           // .............  TO BE REMOVED ULTIMATELY Equation colinearity , imply external parameter, Projectiion .............
+NS_SymbolicDerivative::cCalculator<double> * EqColinearityCamProj(bool WithDerive,int aSzBuf,bool ReUse);
+    // .............   Equation colinearity , imply external parameter, Projectiion .............
+NS_SymbolicDerivative::cCalculator<double> * EqColinearityOnBundle(bool WithDerive,int aSzBuf,bool ReUse);
+
 
           
            // .............   Equation radiometry .............

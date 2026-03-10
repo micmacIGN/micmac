@@ -284,6 +284,9 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpec_ImportTriplet);
         TheVecAll.push_back(&TheSpec_ArboTriplet);
         
+        TheVecAll.push_back(&TheSpec_HierarchSfm);
+        TheVecAll.push_back(&TheSpec_VisuPoseStr3D);
+        TheVecAll.push_back(&TheSpec_TransformPoses);
 
         TheVecAll.push_back(&TheSpecAppliBenchAPBI);
         TheVecAll.push_back(&TheSpecAppliTestElemBundle);

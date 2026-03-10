@@ -1117,6 +1117,12 @@ void  cPhotogrammetricProject::ReadMultipleTiePFromFolder(const std::string &  a
      ReadMultipleTieP(aVPm,aNameIm,SVP);
 }
 
+std::string  cPhotogrammetricProject::MulTiePDirIn() const
+{
+    return DPMulTieP().DirIn();
+}
+
+
 
 
 
@@ -1372,7 +1378,7 @@ static const std::string PrefixTripletSet = "TripletSet_";
 
 void cPhotogrammetricProject::SaveTriplets(const cTripletSet &aSet,bool  useXmlraterThanDmp) const
 {
-    std::string anExt = useXmlraterThanDmp ? PostF_DumpFiles  : PostF_DumpFiles;
+    std::string anExt = useXmlraterThanDmp ? PostF_XmlFiles  : PostF_DumpFiles;
     std::string aName =  mDPOriTriplets.FullDirOut() + PrefixTripletSet + aSet.Name() + "." + anExt;
     StdOut() << "aName: " << aName << std::endl;
     aSet.ToFile(aName);
@@ -1382,7 +1388,8 @@ cTripletSet * cPhotogrammetricProject::ReadTriplets() const
 {
     std::vector<std::string> aVNames = GetFilesFromDir(mDPOriTriplets.FullDirIn(),AllocRegex(PrefixTripletSet+".*"));
 
-    return cTripletSet::FromFile(mDPOriTriplets.FullDirIn()+aVNames[0]);
+    int aK = (aVNames.size()>1) ? 1 : 0;
+    return cTripletSet::FromFile(mDPOriTriplets.FullDirIn()+aVNames[aK]);
 
 }
 

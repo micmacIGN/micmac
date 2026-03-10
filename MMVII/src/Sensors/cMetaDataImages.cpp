@@ -490,14 +490,14 @@ cMetaDataImage::cMetaDataImage() :
 std::string  cMetaDataImage::InternalCalibGeomIdent() const
 {
     std::string  aRes = cPerspCamIntrCalib::SharedCalibPrefixName();
-// StdOut()  << "cMetaDataImage::InternalCalibGeombbb " << aRes << " " << CameraName() << "\n";
+ //StdOut()  << "cMetaDataImage::InternalCalibGeombbb " << aRes << " " << CameraName() << "\n";
     aRes = aRes + "_Cam"+ ToStandardStringIdent(CameraName());  // replace " " by "_" , refuse special characters
     if (mAdditionalName!="")
     {
         aRes = aRes + "_Add"+ mAdditionalName;  // replace " " by "_" , refuse special characters
     }
     aRes = aRes + "_Foc"+ToStr(round_ni(FocalMM()*1000));
-
+    StdOut()  <<  aRes << std::endl;
     return aRes;
 }
 
@@ -511,7 +511,7 @@ std::string  cMetaDataImage::InternalCalibGeomIdent() const
 cGlobCalculMetaDataProject * cPhotogrammetricProject::InitGlobCalcMTD() const
 {
     if (mGlobCalcMTD==nullptr)
-    {
+    {StdOut() <<mDPMetaData.FullDirIn() << " " << mAppli.DirProfileUsage() << std::endl;
            mGlobCalcMTD = new cGlobCalculMetaDataProject;
 	   mGlobCalcMTD->AddDir(mDPMetaData.FullDirIn());
 	   mGlobCalcMTD->AddDir(mAppli.DirProfileUsage());
@@ -530,6 +530,8 @@ cMetaDataImage cPhotogrammetricProject::GetMetaData(const std::string & aFullNam
    std::string aDir,aNameIm;
    SplitDirAndFile(aDir,aNameIm,aFullNameIm,false);
    thread_local static std::map<std::string,cMetaDataImage> aMap;
+   for (auto aM : aMap)
+       StdOut() << aM.first << std::endl;
    auto  anIt = aMap.find(aNameIm);
    if (anIt== aMap.end())
    {

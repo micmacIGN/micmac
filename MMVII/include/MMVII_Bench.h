@@ -160,6 +160,8 @@ void BenchL1Solver(cParamExeBench & aParam); /// test that L1 solver is ok
 void Bench_MatEss(cParamExeBench & aParam); /// test that L1 solver is ok
 void Bench_ToHomMult(cParamExeBench & aParam); // Test conversion set pair Hom => Hom Multiple
 
+void Bench_HBA(cParamExeBench & aParam); // test hierarchical initial solution and BA
+
 
 
 void Bench_SpatialIndex(cParamExeBench & aParam); /// test spatial index
