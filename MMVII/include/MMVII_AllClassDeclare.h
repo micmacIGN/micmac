@@ -95,6 +95,7 @@ template <class Type> class cExtSet ;
 template <class Type> class cSelector ;
 template <class Type> class cDataSelector ;
 template <class Type> class cUnOrderedPair ;
+class cTripletName;
 
 typedef cSelector<std::string>      tNameSelector;
 typedef cExtSet<std::string>        tNameSet;
@@ -102,6 +103,7 @@ typedef cUnOrderedPair<std::string>   tNamePair; ///< Order does not matter
 typedef cUnOrderedPair<int>            tIntPair; ///< Order does not matter
 typedef std::pair<std::string,std::string>  tNameOCple;  ///< Order matters
 typedef cExtSet<tNamePair>          tNameRel;
+typedef cExtSet<cTripletName>          tSet3N;
 
 
 

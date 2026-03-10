@@ -578,7 +578,18 @@ class cPhotogrammetricProject
     //==================   RELATIVE ORIENTATION    ======================
     //===================================================================
 
-    std::string NamePairsOriRel(const std::string&,bool isIn, std::string aPost="" ) const;
+    /// Name of folder for relative orientation of 1 image (indiv file + pairs + triplets)
+    std::string OriRel_DirOfImage(const std::string& aNameIm,bool isIn) const;
+
+    /// Name of file for all pairs of 1 image (only pairs, not orientation)
+    std::string OriRel_NamePairsOfAllImages(bool isIn, std::string aPost="" ) const;
+    /// Name of file for all Relative Orientation of pairs of 1 image
+    std::string OriRel_NameOriAllPairsOf1Image(const std::string&aNameIm1,bool isIn, std::string aPost="" ) const;
+    /// Name of file where is stored the relative orientation of a pair of image
+    std::string OriRel_NameOriPair2Images(const std::string&aNameIm1,const std::string&aNameIm2,bool isIn, std::string aPost="" ) const;
+
+    /// Name of file for all pairs of 1 image (only pairs, not orientation)
+    std::string OriRel_NameOriAllTripletsOf1Image(const std::string&aNameIm1,bool isIn, std::string aPost="") const;
 
 	 //===================================================================
      //==================   RADIOMETRY       =============================
@@ -630,7 +641,10 @@ class cPhotogrammetricProject
           bool HasMeasureImFolder(const std::string & aFolder,const std::string & aNameIma) const;
 
           /// return from Std Dir, can be out in case of reload
-	  cSetMesPtOf1Im LoadMeasureIm(const std::string &,bool InDir=true) const;
+      cSetMesPtOf1Im LoadMeasureIm(const std::string &,bool InDir=true,bool SVP=false) const;
+
+      /// Created only once in case of multiple read
+      cSetMesPtOf1Im* RemanentLoadMeasureIm(const std::string & aNameIm) const;
 
 	  /// Load the measure image from a specified folder, usefull when multiple folder
 	  cSetMesPtOf1Im LoadMeasureImFromFolder(const std::string & aFolder,const std::string &) const;
@@ -711,9 +725,12 @@ class cPhotogrammetricProject
 
 	 void  ReadHomol(cSetHomogCpleIm &,
 			 const std::string & aNameIm1 ,
-			 const std::string & aNameIm2,const std::string & aDir="") const;
+             const std::string & aNameIm2,const std::string & aDir="",bool SVP=false) const;
 
 	 std::string NameTiePIn(const std::string & aNameIm1,const std::string & aNameIm2,const std::string & aDir="") const;
+
+     ///  Read Homol from multiple source : DPTieP, DPGndPt2D, DPMulTieP
+     void ReadHomolMultiSrce(int & aNbInit,cSetHomogCpleIm &,const std::string & aNI1,const std::string & aNI2);
 
 	 //===================================================================
          //==================   Multiple Tie-Points  =========================

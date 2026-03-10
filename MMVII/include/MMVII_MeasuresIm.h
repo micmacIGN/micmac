@@ -96,7 +96,7 @@ class cMesIm1Pt
 void AddData(const  cAuxAr2007 & anAux,cMesIm1Pt & aGCPMI);
 
 /** class for representing a set of measure in an image*/
-class cSetMesPtOf1Im : public cMemCheck
+class cSetMesPtOf1Im :  public cObj2DelAtEnd
 {
      public :
           cSetMesPtOf1Im(const std::string & aNameIm);
@@ -329,13 +329,17 @@ class cSetHomogCpleIm
         /** When we want to use Set Measure Images like Hom (WARN: dont merge when points with
          *  same coodinates already exist, this woul be longer : and another function to write if needed) */
         void AddPairSet(const cSetMesPtOf1Im&,const cSetMesPtOf1Im&);
+
+        void AddTiePMul(const cVecTiePMul&,const cVecTiePMul&);
+
         void Clear();
 
         const cHomogCpleIm & KthHom(size_t aK) const;
         size_t NbH() const;
         std::pair<cBox2dr,cBox2dr> Boxes() const;
 
-
+        cSetHomogCpleIm  SelectRandom(int aNb) const;
+        cSetHomogCpleIm  SelectOnSpatialCriteria(int aNb) const;
 
       private :
         std::vector<cHomogCpleIm>  mSetH;

@@ -3,6 +3,7 @@
 #include "MMVII_PoseRel.h"
 #include "MMVII_Tpl_Images.h"
 #include "MMVII_HeuristikOpt.h"
+#include "MMVII_DeclareAllCmd.h"
 
 namespace MMVII
 {
@@ -127,7 +128,9 @@ class cEstimatePosRel2Im :  public cOptimizeRotAndVUnit // Herit for combinatori
      (
          cPerspCamIntrCalib & aCalib1,
          cPerspCamIntrCalib & aCalib12,
-         cSetHomogCpleIm      aSetHom,
+         const cSetHomogCpleIm  &    aSetHomFull,
+         const    cSetHomogCpleIm &     aSetHomAvg,
+         const    cSetHomogCpleIm &     aSetHomSmall,
          int                  aNbKBestSol,
          cTimerSegm *          =nullptr
      );
@@ -170,10 +173,10 @@ class cEstimatePosRel2Im :  public cOptimizeRotAndVUnit // Herit for combinatori
     void EstimateHeuristik();
 
     ///  Put in VRes the residual corresponding to Pose, using mVDir1/mVDir2
-    void EstimateResidual(std::vector<tREAL8>& aVRes,const tPoseR& aPose) const;
+    void EstimateResidual(std::vector<tREAL8>& aVRes,const tPoseR& aPose,const cSetHomogCpleDir& aSetDir) const;
 
     ///  Score of residual, using ranking weighting
-    tREAL8 RnkW_ScorePose (const tPoseR&) const;
+    tREAL8 RnkW_ScorePose (const tPoseR&,const cSetHomogCpleDir&) const;
 
 
     /// RnkW_ScorePose interfaced for cOptimizeRotAndVUnit
@@ -186,7 +189,7 @@ class cEstimatePosRel2Im :  public cOptimizeRotAndVUnit // Herit for combinatori
     tREAL8  WeightOfScore(tREAL8 aScore) const;
 
     /// Refine pose by bundle adjustement
-    tPoseR BA_RefineOnePose(const tPoseR & );
+    tPoseR BA_RefineOnePose(const tPoseR &,const cSetHomogCpleDir &);
 
     /// Test with planary model on a set of dir
     void OneTestPlane(const cSetHomogCpleDir&,const std::string & aMsg);
@@ -208,9 +211,13 @@ class cEstimatePosRel2Im :  public cOptimizeRotAndVUnit // Herit for combinatori
     cSetHomogCpleIm              mSetCpleHom;   ///< set of homologous point
     const std::vector<cHomogCpleIm> & mSetH;    ///< vecto of cpler extract from above
     cIndexHomOnP1                mIndexP1;      ///< spatial index on set of cple
-    cSetHomogCpleDir             mSetCpleDir;   ///<  set of 3D dir budnles pairs
+    cSetHomogCpleDir             mSetSmallCpleDir;   ///<  set of 3D dir budnles pairs
+    cSetHomogCpleDir             mSetAvgCpleDir;   ///<  set of 3D dir budnles pair
+    cSetHomogCpleDir             mSetFullCpleDir;   ///<  set of 3D dir budnles pair
+
     const std::vector<cPt3dr>&   mVDir1;        ///< Dir bundle first image
     const std::vector<cPt3dr>&   mVDir2;        ///< Dir bundel second image
+    int                          mNbPtsTot;
 
 
         // ----------- Data for optimization -----------------
@@ -242,7 +249,9 @@ cEstimatePosRel2Im::cEstimatePosRel2Im
 (
     cPerspCamIntrCalib & aCalib1,
     cPerspCamIntrCalib & aCalib2,
-    cSetHomogCpleIm      aSetHom,
+    const cSetHomogCpleIm &     aSetHomFull,
+    const cSetHomogCpleIm &     aSetHomAvg,
+    const cSetHomogCpleIm &     aSetHomSmall,
     int                  aNbKBestSol,
     cTimerSegm *         aTimeSegm
 ) :
@@ -252,15 +261,18 @@ cEstimatePosRel2Im::cEstimatePosRel2Im
    mCalib2     (aCalib2),
    mFoc2       (mCalib2.F()),
    mFocMoy     ((mFoc1+mFoc2)/2.0),
-   mSetCpleHom (aSetHom),
-   mSetH       (aSetHom.SetH()),
+   mSetCpleHom (aSetHomSmall),
+   mSetH       (mSetCpleHom.SetH()),
    mIndexP1    (mSetCpleHom,3),
-   mSetCpleDir (mSetCpleHom,mCalib1,mCalib2),
-   mVDir1      (mSetCpleDir.VDir1()),
-   mVDir2      (mSetCpleDir.VDir2()),
+   mSetSmallCpleDir (mSetCpleHom,mCalib1,mCalib2),
+   mSetAvgCpleDir (aSetHomAvg,mCalib1,mCalib2),
+   mSetFullCpleDir (aSetHomFull,mCalib1,mCalib2),
+   mVDir1      (mSetSmallCpleDir.VDir1()),
+   mVDir2      (mSetSmallCpleDir.VDir2()),
+   mNbPtsTot   (mVDir1.size()),
    mSysL1      (AllocL1_Barrodale<tREAL8>(9)),
    mSysL2      (new cLeasSqtAA<tREAL8>(9)),
-   mKMaxME     (MatEss_GetKMax(mSetCpleDir, 1e-6)),
+   mKMaxME     (MatEss_GetKMax(mSetSmallCpleDir, 1e-6)),
    mNbKBestS   (aNbKBestSol),
    mVKBS       (),
    mTimeSegm   (aTimeSegm),
@@ -300,15 +312,19 @@ tREAL8 cEstimatePosRel2Im::Score2Bundle(const cPt3dr & aP1,const cPt3dr & aP2,co
     tSeg3dr aSeg2( aPose.Tr(),aPose.Value(aP2));
     cPt3dr aCoeffI;
     BundleInters(aCoeffI,aSeg1,aSeg2);
-    return  std::abs(aCoeffI.z()) / (1.0+Norm2(aCoeffI)); //+- angle
+    int aNbBadSign = (aCoeffI.x()<0) + (aCoeffI.y()<0);
+    return (std::abs(aCoeffI.z()) +aNbBadSign) / (1.0+Norm2(aCoeffI)); //+- angle
 }
 
-void cEstimatePosRel2Im::EstimateResidual(std::vector<tREAL8>& aVRes,const tPoseR& aPose) const
+void cEstimatePosRel2Im::EstimateResidual(std::vector<tREAL8>& aVRes,const tPoseR& aPose,const cSetHomogCpleDir& aSetDir) const
 {
     aVRes.clear();
-    for (size_t aKpt=0 ; aKpt<mVDir1.size() ; aKpt++)
+    const auto & aVD1 = aSetDir.VDir1();
+    const auto & aVD2 = aSetDir.VDir2();
+
+    for (size_t aKpt=0 ; aKpt<aVD1.size() ; aKpt++)
     {
-        tREAL8 aRes = Score2Bundle(mVDir1.at(aKpt),mVDir2.at(aKpt),aPose);
+        tREAL8 aRes = Score2Bundle(aVD1.at(aKpt),aVD2.at(aKpt),aPose);
         aVRes.push_back(aRes);
     }
 }
@@ -320,10 +336,10 @@ tREAL8  cEstimatePosRel2Im::WeightOfScore(tREAL8 aScore) const
    return 1.0 / (1.0 + Square(aScore/(4.0*mBestScoreWR)));
 }
 
-tREAL8 cEstimatePosRel2Im::RnkW_ScorePose (const tPoseR& aPose) const
+tREAL8 cEstimatePosRel2Im::RnkW_ScorePose (const tPoseR& aPose,const cSetHomogCpleDir& aSetDir) const
 {
     std::vector<tREAL8> aVRes;
-    EstimateResidual(aVRes,aPose);
+    EstimateResidual(aVRes,aPose,aSetDir);
 
    //  return Average(aVRes); not significative gain in time & worst in result
     return RankWeigthedAverage(aVRes,1.0,false); // 1.0 Exp , false no cos transfo
@@ -331,7 +347,7 @@ tREAL8 cEstimatePosRel2Im::RnkW_ScorePose (const tPoseR& aPose) const
 
 tREAL8  cEstimatePosRel2Im::ScoreRotAndVect (const tRotR& aRot,const cPt3dr & aTr) const
 {
-    return RnkW_ScorePose(tPoseR(aTr,aRot));
+    return RnkW_ScorePose(tPoseR(aTr,aRot),mSetSmallCpleDir);
 }
 
    /* -------------------------------------------------- */
@@ -360,7 +376,7 @@ void cEstimatePosRel2Im::OneTestPlane(const cSetHomogCpleDir& aSetH,const std::s
    for (const auto & aP :  aPS.Sols().Elements())
    {
        tPoseR aPose = aP.PoseRel();
-       tREAL8 aScore = RnkW_ScorePose(aPose);
+       tREAL8 aScore = RnkW_ScorePose(aPose,mSetSmallCpleDir);
        aVCdt.push_back(cCdtPoseRel2Im(aPose,eModePE2I::eNbVals,aScore,aMsg+ToStr(aSetH.VDir1().size())));
    }
    std::sort(aVCdt.begin(),aVCdt.end(),[](const auto & aC1,const auto & aC2){return aC1.mScore<aC2.mScore;});
@@ -393,7 +409,7 @@ void cEstimatePosRel2Im::TestPlanar()
     cAutoTimerSegm aTSMakeIm(mTimeSegm,"Planar");
 
     // Test full candidates
-    OneTestPlane(mSetCpleDir,"GlobPlane");
+    OneTestPlane(mSetSmallCpleDir,"GlobPlane");
 
     // Test subset that are localized on neihgbours
     {
@@ -431,7 +447,7 @@ void cEstimatePosRel2Im::TestPlanar()
 
     // Test small subset completely random
 
-    for (int aNbPts = 4 ; aNbPts<20 ; aNbPts++)
+    for (int aNbPts = 4 ; aNbPts<std::min(mNbPtsTot,20) ; aNbPts++)
     {
         std::vector<cSetIExtension> aVecSetInd;
         int aNbTest = 40.0 / std::sqrt(aNbPts-3);
@@ -451,9 +467,9 @@ void  cEstimatePosRel2Im::EstimPose_By_MatEssL1Glob()
 {
     // Estimate the essential matrix on all points
     mSysL1->PublicReset();
-    cMatEssential aMatEL1(mSetCpleDir,*mSysL1,mKMaxME);
+    cMatEssential aMatEL1(mSetSmallCpleDir,*mSysL1,mKMaxME);
 
-    tPoseR aRes  = aMatEL1.ComputePose(mSetCpleDir);
+    tPoseR aRes  = aMatEL1.ComputePose(mSetSmallCpleDir);
     TestNewSol(aRes,"L1GME",eModePE2I::eRansac);
 }
 
@@ -495,8 +511,8 @@ void cEstimatePosRel2Im::GenerateMatEssSolutions()
     // stable estimation ?  As we canot decide, we try several cardinal,
     // and for each make several test
 
-    int aNbPtsMax = std::max(30, (int)mVDir1.size()/2);
-    aNbPtsMax = std::min(50,std::min(aNbPtsMax,(int)mVDir1.size()));
+    int aNbPtsMax = std::max(30, mNbPtsTot/2);
+    aNbPtsMax = std::min(50,std::min(aNbPtsMax,mNbPtsTot));
 
     for (int aNbPt=8 ; aNbPt<aNbPtsMax ; aNbPt++)
     {
@@ -508,20 +524,23 @@ void cEstimatePosRel2Im::GenerateMatEssSolutions()
 /*        Bundle Adjustement                          */
 /* -------------------------------------------------- */
 
-tPoseR cEstimatePosRel2Im::BA_RefineOnePose(const tPoseR & aPose)
+tPoseR cEstimatePosRel2Im::BA_RefineOnePose(const tPoseR & aPose,const cSetHomogCpleDir & aSetDir)
 {
     std::vector<tPoseR> aVPose{tPoseR::Identity(),aPose};
 
     cElemBA aBA(eModResBund::eLinDet12,aVPose);
 
+    const auto & aVD1 = aSetDir.VDir1();
+    const auto & aVD2 = aSetDir.VDir2();
+
     tREAL8 aRes1=0,aRes2=0;
     for (int aKIter= 0 ; aKIter<1 ; aKIter++)
     {
-        for (size_t aKP=0 ; aKP<mVDir1.size() ; aKP++)
+        for (size_t aKP=0 ; aKP<aVD1.size() ; aKP++)
         {
-           tREAL8 aScore = Score2Bundle(mVDir1.at(aKP),mVDir2.at(aKP),aBA.CurPose().at(1));
+           tREAL8 aScore = Score2Bundle(aVD1.at(aKP),aVD2.at(aKP),aBA.CurPose().at(1));
            tREAL8 aW = WeightOfScore(aScore);
-           aBA.AddHomBundle_Cam1Cam2(mVDir1.at(aKP),mVDir2.at(aKP),aW,mEpsBundle,0);
+           aBA.AddHomBundle_Cam1Cam2(aVD1.at(aKP),aVD2.at(aKP),aW,mEpsBundle,0);
         }
         aRes1 = aBA.AvgRes1() ;
         aRes2 = aBA.AvgRes2() ;
@@ -546,8 +565,8 @@ void cEstimatePosRel2Im::MakeBundleAdjustment(int aNbIter)
            {
                  for (auto & aCdt : aKB->Elements())
                  {
-                     tPoseR aPose = BA_RefineOnePose(aCdt.mPose);
-                     tREAL8 aScore = RnkW_ScorePose(aPose);
+                     tPoseR aPose = BA_RefineOnePose(aCdt.mPose,mSetAvgCpleDir);
+                     tREAL8 aScore = RnkW_ScorePose(aPose,mSetAvgCpleDir);
                      if (aScore < aCdt.mScore)
                      {
                         UpdateMin(aBestRnkIter,aScore);
@@ -596,7 +615,7 @@ cCdtFinalPoseRel2Im cEstimatePosRel2Im::MakeDecision(bool Show)
 
     aRes.mScorePix = aBest.mScore * mFocMoy;
     aRes.mMsg      = aBest.mMsg;
-    aRes.mPose     = aBest.mPose;
+    aRes.mPose     = BA_RefineOnePose(aBest.mPose,mSetFullCpleDir);
     if (mWithGT)
     {
         tREAL8 aDTr = Norm2(aRes.mPose.Tr()-mGTPose.Tr());
@@ -613,15 +632,16 @@ void cEstimatePosRel2Im::TestNewSol(cCdtPoseRel2Im aCdt)
     UpdateMin(mBestScoreWR,aCdt.mScore);
     KBS(aCdt.mMode).Push(aCdt);
 }
+
 void cEstimatePosRel2Im::TestNewSol(const tPoseR& aPose,const std::string & aMsg,eModePE2I aMode)
 {
-    TestNewSol(cCdtPoseRel2Im(aPose,aMode,RnkW_ScorePose(aPose),aMsg));
+    TestNewSol(cCdtPoseRel2Im(aPose,aMode,RnkW_ScorePose(aPose,mSetSmallCpleDir),aMsg));
 }
 
 void cEstimatePosRel2Im::ShowSol(const tPoseR& aPose,const std::string & aMsg)
 {
     std::vector<tREAL8> aVRes;
-    EstimateResidual(aVRes,aPose);
+    EstimateResidual(aVRes,aPose,mSetFullCpleDir);
 
 
     StdOut()  << " MSG:" << aMsg << " ";
@@ -652,7 +672,7 @@ void cEstimatePosRel2Im::GenerateAllSolution()
    /*                                                            */
    /* ********************************************************** */
 
-class cAppli_OriRelPairsOfIm : public cMMVII_Appli
+class cAppli_OriRelTripletsOfIm : public cMMVII_Appli
 {
      public :
 
@@ -661,7 +681,7 @@ class cAppli_OriRelPairsOfIm : public cMMVII_Appli
 
         typedef cIsometry3D<tREAL8>  tPose;
 
-        cAppli_OriRelPairsOfIm(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec,int aMode);
+        cAppli_OriRelTripletsOfIm(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec,int aMode);
         int Exe() override;
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
@@ -671,6 +691,7 @@ class cAppli_OriRelPairsOfIm : public cMMVII_Appli
 
          tRes1Pair  EstimatePose2IM(const std::string& aIm1,const std::string& aIm2);
          int DoPairsOf1Im();
+         int DoAllPairs();
 
         /// Randomize the poistion of a point, while maintaining it inside camera
         cPt2dr  RandomizePt(const cPt2dr&,const cSensorCamPC&) const;
@@ -679,8 +700,16 @@ class cAppli_OriRelPairsOfIm : public cMMVII_Appli
         cPhotogrammetricProject   mPhProj;
         std::string               mIm1;
         std::string               mIm2;
-        std::string               mFilePairs;
-        cSetHomogCpleIm           mCpleH;
+        std::string               mFileAllPairs;
+        cSetHomogCpleIm           mCpleHFull;
+        int                       mNbBig;
+        cSetHomogCpleIm           mCpleHAvg;
+        int                       mNbAvg;
+        cSetHomogCpleIm           mCpleHSmall;
+        int                       mNbSmall;
+
+
+
 
 
          cPerspCamIntrCalib        * mCalib1;
@@ -704,10 +733,13 @@ class cAppli_OriRelPairsOfIm : public cMMVII_Appli
 
 };
 
-cAppli_OriRelPairsOfIm::cAppli_OriRelPairsOfIm(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec,int aMode) :
+cAppli_OriRelTripletsOfIm::cAppli_OriRelTripletsOfIm(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec,int aMode) :
     cMMVII_Appli  (aVArgs,aSpec),
     mModeCompute  (aMode),
     mPhProj       (*this),
+    mNbBig        (2000),
+    mNbAvg        (500),
+    mNbSmall      (150),
     mCalib1       (nullptr),
     mCalib2       (nullptr),
     mEstimatePose (nullptr),
@@ -725,7 +757,7 @@ cAppli_OriRelPairsOfIm::cAppli_OriRelPairsOfIm(const std::vector<std::string> & 
 
 // mEstimatePose
 
-cCollecSpecArg2007 & cAppli_OriRelPairsOfIm::ArgObl(cCollecSpecArg2007 & anArgObl)
+cCollecSpecArg2007 & cAppli_OriRelTripletsOfIm::ArgObl(cCollecSpecArg2007 & anArgObl)
 {
      if (mModeCompute==0)
      {
@@ -737,28 +769,34 @@ cCollecSpecArg2007 & cAppli_OriRelPairsOfIm::ArgObl(cCollecSpecArg2007 & anArgOb
      if (mModeCompute==1)
      {
          anArgObl << Arg2007(mIm1,"name first image",{eTA2007::FileImage})
-                  << Arg2007(mFilePairs,"file of pairs of images",{eTA2007::FileTagged});
+                  << mPhProj.DPOriRel().ArgDirInMand()
+          ;
+     }
+     if (mModeCompute==2)
+     {
+         anArgObl    << mPhProj.DPOriRel().ArgDirInMand() ;
      }
 
      anArgObl <<  mPhProj.DPOrient().ArgDirInMand("Input orientation for calibration")  ;
 
-     if (mModeCompute!=0)
+  /*   if (mModeCompute!=0)
      {
          anArgObl << mPhProj.DPOriRel().ArgDirOutMand();
-     }
+     }*/
 
      return anArgObl;
 }
 
-cCollecSpecArg2007 & cAppli_OriRelPairsOfIm::ArgOpt(cCollecSpecArg2007 & anArgOpt)
+cCollecSpecArg2007 & cAppli_OriRelTripletsOfIm::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
    return       anArgOpt
             <<  mPhProj.DPTieP().ArgDirInOpt()
             <<  mPhProj.DPGndPt2D().ArgDirInOpt()
+            <<  mPhProj.DPMulTieP().ArgDirInOpt()
 
-             <<  AOpt2007(mNbMinHom,"NbMinHom","Number minimal of homologous point required",{eTA2007::HDV})
-             <<  AOpt2007(mNbSolInit,"NbSol0","Number of solution initial (before BA)",{eTA2007::HDV})
-             <<  AOpt2007(mNbIterBA,"NbIterBA","Number of iteration in Bundle/Adj",{eTA2007::HDV})
+            <<  AOpt2007(mNbMinHom,"NbMinHom","Number minimal of homologous point required",{eTA2007::HDV})
+            <<  AOpt2007(mNbSolInit,"NbSol0","Number of solution initial (before BA)",{eTA2007::HDV})
+            <<  AOpt2007(mNbIterBA,"NbIterBA","Number of iteration in Bundle/Adj",{eTA2007::HDV})
 
             <<  AOpt2007(mUseOri4GT,"UseOriGT","Set if orientation contains also exterior as a ground truth",{eTA2007::HDV})
             <<  AOpt2007(mFolderOriGT,"OriGT","If ground truth ori != calib")
@@ -769,7 +807,7 @@ cCollecSpecArg2007 & cAppli_OriRelPairsOfIm::ArgOpt(cCollecSpecArg2007 & anArgOp
 }
 
 
-cPt2dr  cAppli_OriRelPairsOfIm::RandomizePt(const cPt2dr& aP0,const cSensorCamPC& aCam) const
+cPt2dr  cAppli_OriRelTripletsOfIm::RandomizePt(const cPt2dr& aP0,const cSensorCamPC& aCam) const
 {
     cPt2dr aMargin(50,50);
     cPt2dr aRes = aP0 + cPt2dr::PRandC() * mParamOutLayer.at(1);
@@ -778,7 +816,7 @@ cPt2dr  cAppli_OriRelPairsOfIm::RandomizePt(const cPt2dr& aP0,const cSensorCamPC
     return aBox.Proj(aRes);
 }
 
-std::vector<std::string>  cAppli_OriRelPairsOfIm::Samples() const
+std::vector<std::string>  cAppli_OriRelTripletsOfIm::Samples() const
 {
     if (mModeCompute==0)
     {
@@ -793,10 +831,13 @@ std::vector<std::string>  cAppli_OriRelPairsOfIm::Samples() const
 
 
 
-int cAppli_OriRelPairsOfIm::Exe()
+int cAppli_OriRelTripletsOfIm::Exe()
 {
     mTimeSegm = mShow ? new cTimerSegm(this) : nullptr ;
     mPhProj.FinishInit();
+
+
+
 
     if (mModeCompute==0)
     {
@@ -804,14 +845,17 @@ int cAppli_OriRelPairsOfIm::Exe()
     }
     else if ((mModeCompute==1) || (mModeCompute==2))
     {
-        bool existRel;
-        tNameRel  aSetOfPair = RelNameFromXmlFileIfExist (mFilePairs,existRel);
-        MMVII_INTERNAL_ASSERT_User(existRel,eTyUEr::eBadFileRelName,"No Pair for "+ mFilePairs);
+        mPhProj.DPOriRel().SetDirOutInIfNotInit();
+        tNameRel  aSetOfPair = RelNameFromFile (mPhProj.OriRel_NamePairsOfAllImages(true));
 
         aSetOfPair.PutInVect(mVecPairs,true);
         if (mModeCompute==1)
         {
             return DoPairsOf1Im();
+        }
+        else
+        {
+            return DoAllPairs();
         }
     }
 
@@ -819,7 +863,39 @@ int cAppli_OriRelPairsOfIm::Exe()
     return EXIT_SUCCESS;
 }
 
-int cAppli_OriRelPairsOfIm::DoPairsOf1Im()
+int cAppli_OriRelTripletsOfIm::DoAllPairs()
+{
+    // ======= Extract, as a set, all the first images ====================
+    tNameSet aSetN1;
+    for (const auto & aPair : mVecPairs )
+    {
+        aSetN1.Add(aPair->V1());
+    }
+    std::vector<const std::string *> aVecStr;
+    aSetN1.PutInVect(aVecStr,true);
+
+    // =========== Parse these images to generate a list of command ============
+    std::list<cParamCallSys> aListCom;
+    for (const auto aPtrStr : aVecStr)
+    {
+        cParamCallSys aParam(cMMVII_Appli::FullBin(),TheSpec_OriRelPairsOf1m.Name(),*aPtrStr);
+
+        for (size_t aKP=2 ; aKP<mArgv.size() ; aKP++)
+        {
+             aParam.AddArgs(mArgv[aKP]);
+        }
+        aListCom.push_back(aParam);
+       // StdOut() << aParam.Com() << "\n";
+    }
+    ExeComParal(aListCom);
+    //StdOut() <<  mArgv << "\n";
+
+    return EXIT_SUCCESS;
+}
+
+
+
+int cAppli_OriRelTripletsOfIm::DoPairsOf1Im()
 {
     std::vector<cCdtFinalPoseRel2Im> aVecRes;
     for (const auto & aPair : mVecPairs )
@@ -832,6 +908,8 @@ int cAppli_OriRelPairsOfIm::DoPairsOf1Im()
                 aRes.second.mIm1 = mIm1;
                 aRes.second.mIm2 = aPair->V2();
                 aVecRes.push_back(aRes.second);
+
+                SaveInFile(aRes.second, mPhProj.OriRel_NameOriPair2Images(mIm1,mIm2,false));
             }
             else if (aRes.first== RESULT_NO_POSE)
             {
@@ -844,19 +922,20 @@ int cAppli_OriRelPairsOfIm::DoPairsOf1Im()
         }
     }
 
-    SaveInFile(aVecRes, mPhProj.NamePairsOriRel(mIm1,false));
+    SaveInFile(aVecRes, mPhProj.OriRel_NameOriAllPairsOf1Image(mIm1,false));
 
     // StdOut() << "SAVE IN=" << mPhProj.NamePairsOriRel(mIm1,false) << "\n";
     return EXIT_SUCCESS;
 }
 
-cAppli_OriRelPairsOfIm::tRes1Pair
-        cAppli_OriRelPairsOfIm::EstimatePose2IM(const std::string& aIm1,const std::string& aIm2)
+cAppli_OriRelTripletsOfIm::tRes1Pair
+        cAppli_OriRelTripletsOfIm::EstimatePose2IM(const std::string& aIm1,const std::string& aIm2)
 {
     mIm1 = aIm1;
     mIm2 = aIm2;
     OrderMinMax(mIm1,mIm2);
-    mCpleH = cSetHomogCpleIm();
+    mCpleHFull = cSetHomogCpleIm();
+
 
      // If we have a ground truth we initialize it
      // Also in SimulaFolderOri
@@ -872,30 +951,19 @@ cAppli_OriRelPairsOfIm::tRes1Pair
 
      // as initialisation are both optional, used to check that one at least is used
      int aNbInit=0;
+     mPhProj.ReadHomolMultiSrce(aNbInit,mCpleHFull,mIm1,mIm2);
 
-     if (mPhProj.DPTieP().DirInIsInit())   // Case  standar tie point
-     {
-         aNbInit++;
-         mPhProj.ReadHomol(mCpleH,mIm1,mIm2);
-     }
-     if (mPhProj.DPGndPt2D().DirInIsInit()) //case code target/ GCP , converted as tie points
-     {
-         aNbInit++;
-         cSetMesPtOf1Im  aSetM1 = mPhProj.LoadMeasureIm(mIm1);
-         cSetMesPtOf1Im  aSetM2 = mPhProj.LoadMeasureIm(mIm2);
-         mCpleH.AddPairSet(aSetM1,aSetM2);
-     }
      if (mNbSimulPt)  // case we add simulation
      {
          aNbInit++;
          for (int aK=0 ; aK<mNbSimulPt ; aK++)
-              mCpleH.Add(mPC1GT->RandomVisibleCple(*mPC2GT)) ;
+              mCpleHFull.Add(mPC1GT->RandomVisibleCple(*mPC2GT)) ;
      }
 
      // We accept both initialization, maybe this can be usefull ??
      MMVII_INTERNAL_ASSERT_User_UndefE(aNbInit!=0,"None Homologouos init");
 
-     if ((int)mCpleH.NbH()<mNbMinHom)
+     if ((int)mCpleHFull.NbH()<mNbMinHom)
      {
          return tRes1Pair(RESULT_NO_POSE,cCdtFinalPoseRel2Im());
      }
@@ -910,7 +978,22 @@ cAppli_OriRelPairsOfIm::tRes1Pair
              aCple.mP1 = RandomizePt(aCple.mP1,*mPC1GT);
              aCple.mP2 = RandomizePt(aCple.mP2,*mPC2GT);
 
-            mCpleH.Add(aCple) ;
+            mCpleHFull.Add(aCple) ;
+         }
+     }
+
+     {
+         cAutoTimerSegm aATS(mTimeSegm,"Select");
+         cSetHomogCpleIm aSetBig = mCpleHFull.SelectRandom(mNbBig);
+
+         mCpleHAvg = aSetBig.SelectOnSpatialCriteria(mNbAvg);
+         mCpleHSmall = mCpleHAvg.SelectOnSpatialCriteria(mNbSmall);
+
+         if (mShow)
+         {
+            StdOut() << "NBPts, Full: " << mCpleHFull.NbH()
+                     << " Avg:" << mCpleHAvg.NbH()
+                     << " Small:" << mCpleHSmall.NbH() << "\n";
          }
      }
 
@@ -919,7 +1002,7 @@ cAppli_OriRelPairsOfIm::tRes1Pair
      mCalib1 =  mPhProj.InternalCalibFromImage(mIm1);
      mCalib2 =  mPhProj.InternalCalibFromImage(mIm2);
 
-     mEstimatePose = new cEstimatePosRel2Im(*mCalib1,*mCalib2,mCpleH,mNbSolInit,mTimeSegm);
+     mEstimatePose = new cEstimatePosRel2Im(*mCalib1,*mCalib2,mCpleHFull,mCpleHAvg,mCpleHSmall,mNbSolInit,mTimeSegm);
      if (mUseOri4GT)
          mEstimatePose->SetGT(mGTPose);
 
@@ -931,6 +1014,8 @@ cAppli_OriRelPairsOfIm::tRes1Pair
      if (mUseOri4GT && mShow)
          mEstimatePose->ShowSol(mGTPose,"GroundTruh");
 
+     if (mShow)
+         StdOut() << "NbPts=" << mCpleHFull.NbH() << "\n";
      delete mEstimatePose;
 
      return tRes1Pair(EXIT_SUCCESS,aCdt);
@@ -944,7 +1029,7 @@ cAppli_OriRelPairsOfIm::tRes1Pair
 
 tMMVII_UnikPApli Alloc_OriRel2Im(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec)
 {
-   return tMMVII_UnikPApli(new cAppli_OriRelPairsOfIm(aVArgs,aSpec,0));
+   return tMMVII_UnikPApli(new cAppli_OriRelTripletsOfIm(aVArgs,aSpec,0));
 }
 
 cSpecMMVII_Appli  TheSpec_OriRel2Im
@@ -964,7 +1049,7 @@ cSpecMMVII_Appli  TheSpec_OriRel2Im
 
 tMMVII_UnikPApli Alloc_OriRelPairsOf1m(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec)
 {
-   return tMMVII_UnikPApli(new cAppli_OriRelPairsOfIm(aVArgs,aSpec,1));
+   return tMMVII_UnikPApli(new cAppli_OriRelTripletsOfIm(aVArgs,aSpec,1));
 }
 
 cSpecMMVII_Appli  TheSpec_OriRelPairsOf1m
@@ -978,7 +1063,25 @@ cSpecMMVII_Appli  TheSpec_OriRelPairsOf1m
       __FILE__
 );
 
+/* ====================================================== */
+/*               OriPoseEstimRelPairsOf1Im                */
+/* ====================================================== */
 
+tMMVII_UnikPApli Alloc_OriRelAllPairs(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec)
+{
+   return tMMVII_UnikPApli(new cAppli_OriRelTripletsOfIm(aVArgs,aSpec,2));
+}
+
+cSpecMMVII_Appli  TheSpec_OriRelAllPairs
+(
+     "OriPoseEstimRelAllPairs",
+      Alloc_OriRelAllPairs,
+      "Estimate relative orientation for all pairs of a file",
+      {eApF::Ori},
+      {eApDT::TieP},
+      {eApDT::Orient},
+      __FILE__
+);
 
 }; // MMVII
 

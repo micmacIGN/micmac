@@ -749,20 +749,24 @@ cPerspCamIntrCalib *  cPhotogrammetricProject::InternalCalibFromImage(const std:
     // Modif MPD because, for still unexplained reason, the above version bugs if we create first the
     // internal calib, then the CamPC (as if object was both destroyed & remanent, obviously
     // not a good idea...)
-    return InternalCalibFromStdName(aNameIm);
+   // return InternalCalibFromStdName(aNameIm);
 
-/*
-    cSensorCamPC *  aPC = ReadCamPC(aNameIm,false,SVP::Yes);
+
+    // Re modif MPD, because previous version do not work when calib is include in Orient
+    // and there is no meta-data for computing from name. So to avoir first problem,
+    // we make sensor PC a auto delete cam (seconde true param), and do not delete it.
+    // Hope, it's OK now ..
+    cSensorCamPC *  aPC = ReadCamPC(aNameIm,true,SVP::Yes);
     if (aPC==nullptr)
     {
         return InternalCalibFromStdName(aNameIm);
     }
 
     cPerspCamIntrCalib * aCalib = aPC->InternalCalib();
-    delete aPC;
+    // delete aPC;
 
     return aCalib;
-    */
+
 }
         //  =============  Calibration =================
 
@@ -858,12 +862,21 @@ bool cPhotogrammetricProject::HasMeasureImFolder(const std::string & aFolder,con
 }
 
 
-cSetMesPtOf1Im cPhotogrammetricProject::LoadMeasureIm(const std::string & aNameIm,bool isIn) const
+cSetMesPtOf1Im cPhotogrammetricProject::LoadMeasureIm(const std::string & aNameIm,bool isIn,bool SVP) const
 {
    //  std::string aDir = mDPPointsMeasures.FullDirInOut(isIn);
    //  return cSetMesPtOf1Im::FromFile(aDir+cSetMesPtOf1Im::StdNameFileOfIm(aNameIm));
 
-   return cSetMesPtOf1Im::FromFile(NameMeasureGCPIm(aNameIm,isIn));
+   std::string aName = NameMeasureGCPIm(aNameIm,isIn);
+   if (SVP && (!ExistFile(aName)))
+       return cSetMesPtOf1Im();
+
+   return cSetMesPtOf1Im::FromFile(aName);
+}
+
+cSetMesPtOf1Im* cPhotogrammetricProject::RemanentLoadMeasureIm(const std::string & aNameIm) const
+{
+    return SimpleRemanentNewObjectFromFile<cSetMesPtOf1Im>(NameMeasureGCPIm(aNameIm,true));
 }
 
 void cPhotogrammetricProject::SaveGCP3D(const cSetMesGnd3D & aMGCP3D, const std::string &aDefaultOutName, bool aDoAddCurSysCo) const
@@ -1191,12 +1204,60 @@ void  cPhotogrammetricProject::ReadHomol
            cSetHomogCpleIm & aSetHCI,
            const std::string & aNameIm1 ,
            const std::string & aNameIm2,
-	   const std::string & aDirIn
+           const std::string & aDirIn,
+           bool SVP
       ) const
 {
     std::string aName = NameTiePIn(aNameIm1,aNameIm2,aDirIn); 
+    if (SVP && (!ExistFile(aName)))
+    {
+         aSetHCI = cSetHomogCpleIm();
+         return;
+    }
     ReadFromFile(aSetHCI.SetH(),aName);
 }
+
+void cPhotogrammetricProject::ReadHomolMultiSrce
+     (
+        int & aNbInit,
+        cSetHomogCpleIm &aCpleH,
+        const std::string & aNI1,
+        const std::string & aNI2
+      )
+{
+   aNbInit=0;
+   aCpleH.Clear();
+
+    if (DPTieP().DirInIsInit())   // Case  standar tie point
+    {
+        aNbInit++;
+       ReadHomol(aCpleH,aNI1,aNI2,"",true);
+    }
+    if (DPGndPt2D().DirInIsInit()) //case code target/ GCP , converted as tie points
+    {
+        aNbInit++;
+        /*
+        cSetMesPtOf1Im  aSetM1 = LoadMeasureIm(aNI1,true,true);
+        cSetMesPtOf1Im  aSetM2 = LoadMeasureIm(aNI2,true,true);
+        aCpleH.AddPairSet(aSetM1,aSetM2);
+        */
+        // In OriPoseSelecAllPAir , can be called many time, and xml read suspected to be long
+        cSetMesPtOf1Im * aSetM1 = RemanentLoadMeasureIm(aNI1);
+        cSetMesPtOf1Im * aSetM2 = RemanentLoadMeasureIm(aNI2);
+        if (aSetM1 && aSetM2)
+            aCpleH.AddPairSet(*aSetM1,*aSetM2);
+
+    }
+    if (DPMulTieP().DirInIsInit()) // Case Mutliple Tie Point converted as tie points
+    {
+        aNbInit++;
+        cVecTiePMul aV1,aV2;
+        ReadMultipleTieP(aV1,aNI1,true);
+        ReadMultipleTieP(aV2,aNI2,true);
+        aCpleH.AddTiePMul(aV1,aV2);
+    }
+}
+
         //  =============  Clino meters  =================
 
 std::string cPhotogrammetricProject::NameFileClino(const std::string &aNameCam,bool Input, const std::string aClinoName) const
@@ -1378,16 +1439,69 @@ cTripletSet * cPhotogrammetricProject::ReadTriplets() const
 
         // ==============  OriRel =========================
 
-static const std::string  PREFIX_PAIRS_ORIREL = "PairsOriRel_";
 
-std::string cPhotogrammetricProject::NamePairsOriRel(const std::string& aNameIm,bool isIn ,std::string aPost) const
+std::string cPhotogrammetricProject::OriRel_DirOfImage(const std::string& aNameIm,bool isIn) const
 {
-    if (aPost=="")
-        aPost = GlobTaggedNameDefSerial();
+    std::string aNameDir =  DPOriRel().FullDirInOut(isIn) + LastPrefix(aNameIm) + StringDirSeparator();
 
-    return DPOriRel().FullDirInOut(isIn) + PREFIX_PAIRS_ORIREL+ aNameIm   + "." + aPost;
+    if (! isIn)
+       CreateDirectories(aNameDir,false);
+
+    return aNameDir;
 }
 
+void SetDefPost(std::string & aPost)
+{
+  if (aPost=="")
+     aPost = GlobTaggedNameDefSerial();
+}
+
+std::string cPhotogrammetricProject::OriRel_NameOriAllPairsOf1Image
+            (
+                  const std::string& aNameIm,
+                  bool isIn ,
+                  std::string aPost
+             ) const
+{
+    SetDefPost(aPost);
+
+    return OriRel_DirOfImage(aNameIm,isIn) + std::string("OriRel_AllPairsOfIm")  + "." + aPost;
+}
+
+std::string cPhotogrammetricProject::OriRel_NameOriAllTripletsOf1Image
+            (
+                const std::string&aNameIm,
+                bool isIn,
+                std::string aPost
+             ) const
+{
+    SetDefPost(aPost);
+
+    return OriRel_DirOfImage(aNameIm,isIn) + std::string("Names_AllTripletsOfIm")  + "." + aPost;
+}
+
+
+
+std::string cPhotogrammetricProject::OriRel_NamePairsOfAllImages(bool isIn, std::string aPost) const
+{
+    SetDefPost(aPost);
+
+    return DPOriRel().FullDirInOut(isIn)  + std::string("Names_AllPairs") + "." + aPost;
+}
+
+
+std::string cPhotogrammetricProject::OriRel_NameOriPair2Images
+            (
+                const std::string&aNameIm1,
+                const std::string&aNameIm2,
+                bool isIn,
+                std::string aPost
+             ) const
+{
+    SetDefPost(aPost);
+
+   return  OriRel_DirOfImage(aNameIm1,isIn) + "OriRel_Pair" + aNameIm2 + "." + aPost;
+}
         //  =============  Instrument bloc =================
 
 static const std::string  PREFIX_RIG_BL = "FileRB_";

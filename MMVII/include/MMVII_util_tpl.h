@@ -36,6 +36,23 @@ template <class Type> bool EqualCont(const Type &aV1,const Type & aV2)
     return  std::equal(aV1.begin(),aV1.end(),aV2.begin(),aV2.end());
 }
 
+class cTripletName
+{
+     public :
+        typedef cTripletName value;
+
+       std::array<std::string,3> mNames;
+
+        bool operator < (const cTripletName&) const;
+        bool operator == (const cTripletName&) const;
+
+        std::string FullName() const;
+
+        cTripletName();
+
+        cTripletName(const std::string & aN1,const std::string & aN2,const std::string & aN3);
+};
+
 
 
 /* ============================================= */
@@ -132,6 +149,8 @@ class  cPatternTransfo : public cTransformator<std::string>
 void BenchSet(const std::string & aDir);
 
 ///  Interface to sets services (set in extension)
+
+
 
 /** Derived class will implement the services on :
  
@@ -525,6 +544,7 @@ template <class Type>  class cBijectiveMapI2O
 };
 
 typedef  cBijectiveMapI2O<std::string> t2MapStrInt;
+typedef  cBijectiveMapI2O<int>         t2MapIntInt;
 
 ///  make a research in a map using the key and not the val
 template <class Key,class Val> const Key * FindByVal(const std::map<Key,Val> & aMap,const Val & aVal,bool SVP=false)

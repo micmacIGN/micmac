@@ -130,7 +130,7 @@ void cSetHomogCpleIm::AddPairSet(const cSetMesPtOf1Im& aSet1,const cSetMesPtOf1I
    //  [2] Use this dico to create the homologous
    for (const auto & aMes2 : aSet2.Measures())
    {
-       int anInd =  aMap1.Obj2I(aMes2.mNamePt,SVP::Yes) ;
+        int anInd =  aMap1.Obj2I(aMes2.mNamePt,SVP::Yes) ;
         if ((anInd >=0) && (!starts_with(aMes2.mNamePt,MMVII_NONE)))
         {
             // StdOut() << "AddPairSetAddPairSet " << aMes2.mNamePt << "\n";
@@ -139,6 +139,71 @@ void cSetHomogCpleIm::AddPairSet(const cSetMesPtOf1Im& aSet1,const cSetMesPtOf1I
    }
 
 }
+
+void cSetHomogCpleIm::AddTiePMul(const cVecTiePMul& aVM1,const cVecTiePMul& aVM2)
+{
+    t2MapIntInt  aMap1;
+    for (const auto & aMes1 : aVM1.mVecTPM)
+        aMap1.Add(aMes1.mId);
+
+    //  [2] Use this dico to create the homologous
+    for (const auto & aMes2 :  aVM2.mVecTPM)
+    {
+         int anInd =  aMap1.Obj2I(aMes2.mId,SVP::Yes) ;
+         if (anInd >=0)
+         {
+             Add(cHomogCpleIm(aVM1.mVecTPM.at(anInd).mPt,aMes2.mPt));
+         }
+    }
+}
+
+cSetHomogCpleIm  cSetHomogCpleIm::SelectRandom(int aNbSel) const
+{
+    cSetHomogCpleIm aRes;
+
+    if ((int)NbH()<=aNbSel)
+    {
+         aRes  = *this;
+    }
+    else
+    {
+        std::vector<int> aVInd = RandSet(aNbSel,NbH());
+        for (const auto & anInd : aVInd)
+            aRes.Add(KthHom(anInd));
+    }
+    return aRes;
+}
+
+cSetHomogCpleIm  cSetHomogCpleIm::SelectOnSpatialCriteria(int aNbSel) const
+{
+    cSetHomogCpleIm aRes;
+
+    if ((int)NbH()<=aNbSel)
+    {
+       aRes  = *this;
+    }
+    else
+    {
+        std::vector<tREAL8> aVDistMin(NbH(),1e8);
+
+        while (aNbSel)
+        {
+            aNbSel--;
+            cWhichMax<size_t,tREAL8> aMaxD;
+            for (size_t aKH=0 ; aKH<NbH() ; aKH++)
+                aMaxD.Add(aKH,tREAL8(aVDistMin.at(aKH)));
+
+            size_t aKMax = aMaxD.IndexExtre();
+            aRes.Add(KthHom(aKMax));
+            cPt2dr aPt = KthHom(aKMax).mP1;
+
+            for (size_t aKH=0 ; aKH<NbH() ; aKH++)
+                UpdateMin(aVDistMin.at(aKH),SqN2(aPt-KthHom(aKH).mP1));
+        }
+    }
+    return aRes;
+}
+
 
 
 void cSetHomogCpleIm::Clear()
@@ -206,19 +271,6 @@ class cCpleHomIndex
          size_t   mIndex;
 };
 
-/*
-class cIndexHomOnP1 : public cMemCheck
-{
-   public :
-       typedef  cTiling<cCpleHomIndex> tIndex;
-
-       cIndexHomOnP1(const cSetHomogCpleIm &,int aNbInCase=10);
-       void GetIndexInNeighbourhhod(std::vector<size_t> &aRes,const cPt2dr &,tREAL8 aRay);
-   private :
-       cIndexHomOnP1(const cIndexHomOnP1 &) = delete;
-       tIndex * mIndex;
-};
-*/
 
 cIndexHomOnP1::cIndexHomOnP1(const cSetHomogCpleIm & aSetH,int aNbInCase) :
    mIndex (new tIndex (aSetH.Boxes().first.Dilate(1.0),false,aNbInCase,&aSetH))
@@ -240,6 +292,17 @@ void cIndexHomOnP1::GetIndexInNeighbourhhod(std::vector<size_t> &aRes,const cPt2
     for (const auto & anInd : aRawRes)
         aRes.push_back(anInd->mIndex);
 }
+
+
+class cCpleHExtrSubset
+{
+    public :
+       cCpleHExtrSubset(const cSetHomogCpleIm & aSetCple,int aNb);
+    private :
+       cIndexHomOnP1           mIndex;
+       const cSetHomogCpleIm * mCple;
+};
+
 
 
 //template <class tPrimG2> std::list<Type*> GetObjAtDist(const tPrimG2 &aPrimG2,tREAL8 aDist)
