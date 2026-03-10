@@ -119,7 +119,7 @@ private:
         // If the node has no dependancy (leaf) it will be added to the ready to execute queue
         void descend(TreeThreads *tt, PNode me)
         {
-            if (! mUserNodePtr.isTerminalMode()) {
+            if (! mUserNodePtr->isTerminalNode()) {
                 for (const auto& userChild: mUserNodePtr->depends()) {
                     MMVII_INTERNAL_ASSERT_strong(userChild,"TreeThreads: child of non terminal node is null");
                     auto child = std::make_shared<Node>(userChild,me);

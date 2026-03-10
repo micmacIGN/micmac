@@ -78,7 +78,7 @@ public :
 
     /// For parallelization
     const std::vector<tNodePtr>& depends() const { return mChildren; }
-    bool IsTerminalNode() const { return mChildren.at(0) == nullptr && mChildren.at(1) == nullptr ;}
+    bool isTerminalNode() const { return mChildren.at(0) == nullptr && mChildren.at(1) == nullptr ;}
 
 
 private :
