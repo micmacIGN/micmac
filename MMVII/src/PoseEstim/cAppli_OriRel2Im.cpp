@@ -672,7 +672,7 @@ void cEstimatePosRel2Im::GenerateAllSolution()
    /*                                                            */
    /* ********************************************************** */
 
-class cAppli_OriRelTripletsOfIm : public cMMVII_Appli
+class cAppli_OriRelPairOfIm : public cMMVII_Appli
 {
      public :
 
@@ -681,7 +681,7 @@ class cAppli_OriRelTripletsOfIm : public cMMVII_Appli
 
         typedef cIsometry3D<tREAL8>  tPose;
 
-        cAppli_OriRelTripletsOfIm(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec,int aMode);
+        cAppli_OriRelPairOfIm(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec,int aMode);
         int Exe() override;
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
@@ -733,7 +733,7 @@ class cAppli_OriRelTripletsOfIm : public cMMVII_Appli
 
 };
 
-cAppli_OriRelTripletsOfIm::cAppli_OriRelTripletsOfIm(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec,int aMode) :
+cAppli_OriRelPairOfIm::cAppli_OriRelPairOfIm(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec,int aMode) :
     cMMVII_Appli  (aVArgs,aSpec),
     mModeCompute  (aMode),
     mPhProj       (*this),
@@ -757,7 +757,7 @@ cAppli_OriRelTripletsOfIm::cAppli_OriRelTripletsOfIm(const std::vector<std::stri
 
 // mEstimatePose
 
-cCollecSpecArg2007 & cAppli_OriRelTripletsOfIm::ArgObl(cCollecSpecArg2007 & anArgObl)
+cCollecSpecArg2007 & cAppli_OriRelPairOfIm::ArgObl(cCollecSpecArg2007 & anArgObl)
 {
      if (mModeCompute==0)
      {
@@ -787,7 +787,7 @@ cCollecSpecArg2007 & cAppli_OriRelTripletsOfIm::ArgObl(cCollecSpecArg2007 & anAr
      return anArgObl;
 }
 
-cCollecSpecArg2007 & cAppli_OriRelTripletsOfIm::ArgOpt(cCollecSpecArg2007 & anArgOpt)
+cCollecSpecArg2007 & cAppli_OriRelPairOfIm::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
    return       anArgOpt
             <<  mPhProj.DPTieP().ArgDirInOpt()
@@ -807,7 +807,7 @@ cCollecSpecArg2007 & cAppli_OriRelTripletsOfIm::ArgOpt(cCollecSpecArg2007 & anAr
 }
 
 
-cPt2dr  cAppli_OriRelTripletsOfIm::RandomizePt(const cPt2dr& aP0,const cSensorCamPC& aCam) const
+cPt2dr  cAppli_OriRelPairOfIm::RandomizePt(const cPt2dr& aP0,const cSensorCamPC& aCam) const
 {
     cPt2dr aMargin(50,50);
     cPt2dr aRes = aP0 + cPt2dr::PRandC() * mParamOutLayer.at(1);
@@ -816,7 +816,7 @@ cPt2dr  cAppli_OriRelTripletsOfIm::RandomizePt(const cPt2dr& aP0,const cSensorCa
     return aBox.Proj(aRes);
 }
 
-std::vector<std::string>  cAppli_OriRelTripletsOfIm::Samples() const
+std::vector<std::string>  cAppli_OriRelPairOfIm::Samples() const
 {
     if (mModeCompute==0)
     {
@@ -831,7 +831,7 @@ std::vector<std::string>  cAppli_OriRelTripletsOfIm::Samples() const
 
 
 
-int cAppli_OriRelTripletsOfIm::Exe()
+int cAppli_OriRelPairOfIm::Exe()
 {
     mTimeSegm = mShow ? new cTimerSegm(this) : nullptr ;
     mPhProj.FinishInit();
@@ -863,7 +863,7 @@ int cAppli_OriRelTripletsOfIm::Exe()
     return EXIT_SUCCESS;
 }
 
-int cAppli_OriRelTripletsOfIm::DoAllPairs()
+int cAppli_OriRelPairOfIm::DoAllPairs()
 {
     // ======= Extract, as a set, all the first images ====================
     tNameSet aSetN1;
@@ -895,7 +895,7 @@ int cAppli_OriRelTripletsOfIm::DoAllPairs()
 
 
 
-int cAppli_OriRelTripletsOfIm::DoPairsOf1Im()
+int cAppli_OriRelPairOfIm::DoPairsOf1Im()
 {
     std::vector<cCdtFinalPoseRel2Im> aVecRes;
     for (const auto & aPair : mVecPairs )
@@ -928,8 +928,8 @@ int cAppli_OriRelTripletsOfIm::DoPairsOf1Im()
     return EXIT_SUCCESS;
 }
 
-cAppli_OriRelTripletsOfIm::tRes1Pair
-        cAppli_OriRelTripletsOfIm::EstimatePose2IM(const std::string& aIm1,const std::string& aIm2)
+cAppli_OriRelPairOfIm::tRes1Pair
+        cAppli_OriRelPairOfIm::EstimatePose2IM(const std::string& aIm1,const std::string& aIm2)
 {
     mIm1 = aIm1;
     mIm2 = aIm2;
@@ -1029,7 +1029,7 @@ cAppli_OriRelTripletsOfIm::tRes1Pair
 
 tMMVII_UnikPApli Alloc_OriRel2Im(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec)
 {
-   return tMMVII_UnikPApli(new cAppli_OriRelTripletsOfIm(aVArgs,aSpec,0));
+   return tMMVII_UnikPApli(new cAppli_OriRelPairOfIm(aVArgs,aSpec,0));
 }
 
 cSpecMMVII_Appli  TheSpec_OriRel2Im
@@ -1049,7 +1049,7 @@ cSpecMMVII_Appli  TheSpec_OriRel2Im
 
 tMMVII_UnikPApli Alloc_OriRelPairsOf1m(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec)
 {
-   return tMMVII_UnikPApli(new cAppli_OriRelTripletsOfIm(aVArgs,aSpec,1));
+   return tMMVII_UnikPApli(new cAppli_OriRelPairOfIm(aVArgs,aSpec,1));
 }
 
 cSpecMMVII_Appli  TheSpec_OriRelPairsOf1m
@@ -1069,7 +1069,7 @@ cSpecMMVII_Appli  TheSpec_OriRelPairsOf1m
 
 tMMVII_UnikPApli Alloc_OriRelAllPairs(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec)
 {
-   return tMMVII_UnikPApli(new cAppli_OriRelTripletsOfIm(aVArgs,aSpec,2));
+   return tMMVII_UnikPApli(new cAppli_OriRelPairOfIm(aVArgs,aSpec,2));
 }
 
 cSpecMMVII_Appli  TheSpec_OriRelAllPairs

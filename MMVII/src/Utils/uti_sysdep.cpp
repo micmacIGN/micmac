@@ -185,12 +185,15 @@ bool FileLock::lock(const std::string& name)
 {
     if (hasLock())
         return false;
+  //  StdOut() << getpid() << " Ask lock for " << name << "\n";
     doLock(name);
+ //   StdOut() << getpid() << " Got lock for " << name << "  Fd:" << mFd << "\n";
     return true;
 }
 
 void FileLock::unlock()
 {
+   // StdOut() << getpid() << " Release lock for Fd:" << mFd << "\n";
     if (hasLock())
         doUnlock();
 }
@@ -251,8 +254,9 @@ bool FileLock::hasLock()
 
     void FileLock::doUnlock()
     {
-        if (lockf(mFd, F_ULOCK, 0))
-            mFd = -1;
+        lockf(mFd, F_ULOCK, 0);
+        close(mFd);
+        mFd = -1;
     }
 
     bool FileLock::doHasLock()

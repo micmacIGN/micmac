@@ -112,7 +112,7 @@ template <class Type,const int Dim>
 {
     cWhichMax<int,typename tPt::tBigNum> aWMax(0,SqN2(KVect(0)));
     for (int aK=1 ; aK<3 ; aK++)
-        aWMax.Add(aK,SqN2(KVect(1)));
+        aWMax.Add(aK,SqN2(KVect(aK)));  // MPD => KVect(1) , why ???
 
     return aWMax.IndexExtre();
 }

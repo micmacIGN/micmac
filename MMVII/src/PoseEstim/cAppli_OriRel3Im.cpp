@@ -133,7 +133,7 @@ tMMVII_UnikPApli Alloc_OriRel3Im(const std::vector<std::string> & aVArgs,const c
    return tMMVII_UnikPApli(new cAppli_OriRelTripletsOfIm(aVArgs,aSpec,0));
 }
 
-cSpecMMVII_Appli  TheSpec_OriRel2Im
+cSpecMMVII_Appli  TheSpec_OriRel3Im
 (
      "OriPoseEstimRel3Im",
       Alloc_OriRel3Im,

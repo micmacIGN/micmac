@@ -165,7 +165,6 @@ public:
             mGdalDataset = cGdalApi::OpenDataset(aDF.Name(), aMode==IoMode::Read ? GA_ReadOnly : GA_Update, cGdalApi::eOnError::RaiseError);
         }
 
-        FileLock gdalLock;
         if (aMode == IoMode::Read) {
             if (mGdalNbChan == mNbImg && mNbImg != 0) {
                 GdalReadNtoN(aVecImV2,aRectIm,aRectFile,aDyn);     // file N -> N img channels
@@ -176,9 +175,11 @@ public:
             } else {
                 MMVII_INTERNAL_ERROR("Gdal read: Images vector size: " + std::to_string(mNbImg) + ", file channels: " + std::to_string(mGdalNbChan) + " (" + aName + ")");
             }
+            cGdalApi::CloseDataset(mGdalDataset);
         } else {
-            if (! notUpdatable)
-                gdalLock.lock(aName);
+            FileLock gdalLock(aName);
+//            if (! notUpdatable)
+//                gdalLock.lock(aName);
             if (mGdalNbChan == mNbImg && mNbImg != 0) {
                 GdalWriteNtoN(aVecImV2,aRectIm,aRectFile,aDyn);     // img N -> N file channels
             } else if (mGdalNbChan != 0 && mNbImg == 1) {
@@ -186,19 +187,18 @@ public:
             } else {
                 MMVII_INTERNAL_ERROR("Gdal write: Images vector size: " + std::to_string(mNbImg) + ", file channels: " + std::to_string(mGdalNbChan) + " (" + aName + ")");
             }
-        }
 
-        if (notUpdatable) {
-            // Copy image from memory to file if image file driver needs it
-            remove(aName.c_str());
-            auto aGdalDriver = cGdalApi::GetDriver(aName);
-            auto aGdalOptions = cGdalApi::GetCreateOptions(aGdalDriver, mDataFile->CreateOptions());
-            remove(aName.c_str());
-            auto mFinalDataset = aGdalDriver->CreateCopy(aName.c_str(), mGdalDataset, FALSE, aGdalOptions.List(), NULL, NULL);
-            cGdalApi::CloseDataset(mFinalDataset);
+            if (notUpdatable) {
+                // Copy image from memory to file if image file driver needs it
+                remove(aName.c_str());
+                auto  aGdalDriver = cGdalApi::GetDriver(aName);
+                auto aGdalOptions = cGdalApi::GetCreateOptions(aGdalDriver, mDataFile->CreateOptions());
+                remove(aName.c_str());
+                auto mFinalDataset = aGdalDriver->CreateCopy(aName.c_str(), mGdalDataset, FALSE, aGdalOptions.List(), NULL, NULL);
+                cGdalApi::CloseDataset(mFinalDataset);
+            }
+            cGdalApi::CloseDataset(mGdalDataset);
         }
-        cGdalApi::CloseDataset(mGdalDataset);
-        gdalLock.unlock();
     }
 
 private:

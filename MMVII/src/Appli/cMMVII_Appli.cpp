@@ -1912,8 +1912,13 @@ int  cMMVII_Appli::ExeCallMMVII
          const cColStrAOpt& anAOpt
       )
 {
+
     cParamCallSys aComGlob = StrCallMMVII(0,aCom2007,anAObl,anAOpt);
-    return  GlobSysCall(aComGlob,false);
+
+    int aRes =   GlobSysCall(aComGlob,false);
+
+
+    return aRes;
 }
 
 int cMMVII_Appli::ExeComSerial(const std::list<cParamCallSys> & aL, bool forceExternal)
