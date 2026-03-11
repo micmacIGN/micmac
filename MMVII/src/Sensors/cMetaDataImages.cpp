@@ -497,7 +497,7 @@ std::string  cMetaDataImage::InternalCalibGeomIdent() const
         aRes = aRes + "_Add"+ mAdditionalName;  // replace " " by "_" , refuse special characters
     }
     aRes = aRes + "_Foc"+ToStr(round_ni(FocalMM()*1000));
-    StdOut()  <<  aRes << std::endl;
+    //StdOut()  <<  aRes << std::endl;
     return aRes;
 }
 
@@ -511,7 +511,7 @@ std::string  cMetaDataImage::InternalCalibGeomIdent() const
 cGlobCalculMetaDataProject * cPhotogrammetricProject::InitGlobCalcMTD() const
 {
     if (mGlobCalcMTD==nullptr)
-    {StdOut() <<mDPMetaData.FullDirIn() << " " << mAppli.DirProfileUsage() << std::endl;
+    {
            mGlobCalcMTD = new cGlobCalculMetaDataProject;
 	   mGlobCalcMTD->AddDir(mDPMetaData.FullDirIn());
 	   mGlobCalcMTD->AddDir(mAppli.DirProfileUsage());
@@ -530,8 +530,7 @@ cMetaDataImage cPhotogrammetricProject::GetMetaData(const std::string & aFullNam
    std::string aDir,aNameIm;
    SplitDirAndFile(aDir,aNameIm,aFullNameIm,false);
    thread_local static std::map<std::string,cMetaDataImage> aMap;
-   for (auto aM : aMap)
-       StdOut() << aM.first << std::endl;
+
    auto  anIt = aMap.find(aNameIm);
    if (anIt== aMap.end())
    {

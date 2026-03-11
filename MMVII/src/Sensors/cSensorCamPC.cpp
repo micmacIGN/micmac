@@ -592,7 +592,7 @@ const cPt3dr * cSensorCamPC::CenterOfPC() const { return  & Center(); }
 cCalculator<double> * cSensorCamPC::CreateEqColinearity(bool WithDerives,int aSzBuf,bool ReUse)
 {
    if (mInternalCalib==nullptr)
-      return nullptr; //EqColinearityCamProj(WithDerives,aSzBuf,ReUse);
+      return nullptr;
    return mInternalCalib->EqColinearity(WithDerives,aSzBuf,ReUse);
 }
 

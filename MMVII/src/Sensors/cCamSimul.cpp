@@ -323,7 +323,7 @@ void cCamSimul::BenchHierchBA(cTimerSegm * aTS,
     StdOut() << "Nb of cams=" << aNbCam << ", nb of triplets=" << aNbTri << std::endl;
 
     std::vector<int> aProjTest{0,1,2,3,4,5};
-    for (int aK1=0 ; aK1<aProjTest.size(); aK1++) //(int)eProjPC::eNbVals
+    for (size_t aK1=0 ; aK1<aProjTest.size(); aK1++) //(int)eProjPC::eNbVals
     {
         StdOut() << "Projection " << aK1 << " " << E2Str(eProjPC(aProjTest[aK1]));
         getchar();
@@ -395,7 +395,7 @@ void cCamSimul::BenchHierchBA(cTimerSegm * aTS,
         // keep generating triplets
         //   (not all nodes are forced to be visited but it's fine
         //    as long as the graph is connected ie triplet connected by an edge)
-        while (aTriplets.size() < aNbTri)
+        while ((int)aTriplets.size() < aNbTri)
         {
             // current triplet's id
             std::vector<int> aCurTri;
@@ -444,7 +444,7 @@ void cCamSimul::BenchHierchBA(cTimerSegm * aTS,
         }
 
         // update aSetIm necessary for retrieving tie points structure in photogrammetric project
-        for (int aKCV=0; aKCV<aCamVisited.size(); aKCV++)
+        for (size_t aKCV=0; aKCV<aCamVisited.size(); aKCV++)
         {
             if (aCamVisited[aKCV]==true)
                 aSetIm.push_back(aCamSim->mListCam[aKCV]->NameImage());
@@ -475,9 +475,9 @@ void cCamSimul::BenchHierchBA(cTimerSegm * aTS,
 
             // all possible pairs
             int aNbKeyPtsInTri=0;
-            for (int aK1Cam=0; aK1Cam<aCams.size(); aK1Cam++)
+            for (size_t aK1Cam=0; aK1Cam<aCams.size(); aK1Cam++)
             {
-                for (int aK2Cam=aK1Cam+1; aK2Cam<aCams.size(); aK2Cam++)
+                for (size_t aK2Cam=aK1Cam+1; aK2Cam<aCams.size(); aK2Cam++)
                 {
                     // generate aNbHPts points
                     for (int aKPt=0; aKPt<aNbHPts; aKPt++)
@@ -488,7 +488,7 @@ void cCamSimul::BenchHierchBA(cTimerSegm * aTS,
                         cPt3dr aPt3D = aCams[aK1Cam]->PInterBundle(aHPair,*aCams[aK2Cam]);
 
                         // check if visible in 3rd image (if so, multiple pt)
-                        for (int aK3Cam=0; aK3Cam<aCams.size(); aK3Cam++)
+                        for (size_t aK3Cam=0; aK3Cam<aCams.size(); aK3Cam++)
                         {
                             if ((aK3Cam!=aK1Cam) && (aK3Cam!=aK2Cam))
                             {
