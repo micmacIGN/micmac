@@ -48,6 +48,7 @@ private :
     std::string              mStrInput2TSL;
     bool                     mForceStructured;
     bool                     mDoVerticalize;
+    bool                     mForceGreenAsIntensity;
     cPt2dr                   mIntensityMinMax;
     cPt2dr                   mDistanceMinMax;
     tREAL8                   mIncidenceMin;
@@ -70,6 +71,7 @@ cAppli_ImportStaticScan::cAppli_ImportStaticScan(const std::vector<std::string> 
     mStrInput2TSL     ("ijk"),
     mForceStructured(false), // skip all checks, suppose all the points are present and ordered by col
     mDoVerticalize  (false),
+    mForceGreenAsIntensity (false),
     mIntensityMinMax({0.01,0.99}),
     mDistanceMinMax ({0.,100.}),
     mIncidenceMin   (0.05),
@@ -98,6 +100,7 @@ cCollecSpecArg2007 & cAppli_ImportStaticScan::ArgOpt(cCollecSpecArg2007 & anArgO
            << AOpt2007(mStrInput2TSL,"Transfo","Transfo to have primariy rotation axis as Z and X as theta origin",{{eTA2007::HDV}})
            << AOpt2007(mForceStructured,"Structured","Suppose the scan is structured, skip all checks",{{eTA2007::HDV}})
            << AOpt2007(mDoVerticalize,"Vert","Try to verticalize scan columns",{{eTA2007::HDV}})
+           << AOpt2007(mForceGreenAsIntensity,"GreenAsI","Use green value as intensity",{{eTA2007::HDV}})
            << AOpt2007(mIntensityMinMax,"FilterIntensity","Filter on min and max intensity",{{eTA2007::HDV}})
            << AOpt2007(mDistanceMinMax,"FilterDistance","Filter on min and max distance",{{eTA2007::HDV}})
            << AOpt2007(mIncidenceMin,"FilterIncidence","Filter on min incidence (rad)",{{eTA2007::HDV}})
@@ -665,7 +668,7 @@ int cAppli_ImportStaticScan::Exe()
         poseFromXYZ();
     }
 
-    mSL_importer.read(mNameFile, false, mForceStructured, mStrInput2TSL);
+    mSL_importer.read(mNameFile, false, mForceStructured, mStrInput2TSL, mForceGreenAsIntensity);
 
     MMVII_INTERNAL_ASSERT_tiny(!mSL_importer.mVectPtsXYZ.empty(),"Error reading "+mNameFile);
     if (mSL_importer.HasIntensity())

@@ -22,10 +22,13 @@ class cStaticLidarImporter
     friend class cAppli_ImportStaticScan;
 public:
     cStaticLidarImporter();
-    void readPlyPoints(std::string aPlyFileName);
-    void readE57Points(std::string aE57FileName);
-    void readPtxPoints(std::string aPtxFileName);
-    bool read(const std::string & aName, bool OkNone=false, bool aForceStructured=false, std::string aStrInput2TSL="ijk"); //< Adapt to adequate function from postfix, return if some read suceeded
+    void readPlyPoints(std::string aPlyFileName, bool aForceGreenAsIntensity);
+    void readE57Points(std::string aE57FileName, bool aForceGreenAsIntensity);
+    void readPtxPoints(std::string aPtxFileName, bool aForceGreenAsIntensity);
+
+    /// Adapts to adequate function from postfix, return if some read suceeded
+    bool read(const std::string & aName, bool OkNone=false, bool aForceStructured=false,
+              std::string aStrInput2TSL="ijk", bool aForceGreenAsIntensity=false);
 
     void convertToThetaPhiDist();
     void convertToXYZ();
