@@ -28,6 +28,8 @@ public:
 
 
 private:
+    struct GenDataCtxt;
+    explicit cEpipolarCouple(const GenDataCtxt& aCtxt, concPolyXY_N<T>);
     explicit cEpipolarCouple();
     cEpipolarSingle<T> mEpipol1;
     cEpipolarSingle<T> mEpipol2;

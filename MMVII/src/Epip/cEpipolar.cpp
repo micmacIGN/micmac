@@ -259,9 +259,9 @@ cEpipolarCouple<T> cEpipolarCouple<T>::FromSensors(
 
     auto joe = aCtxt.homogSet.SetH()[0];
     StdOut() << "V1(p1):" << V1(joe.mP1) << " V2(p2):" << V2(joe.mP2) << " Diff:" << V1(joe.mP1) - V2(joe.mP2) << "\n";
-    return cEpipolarCouple<T>();
+    return cEpipolarCouple<T>(aCtxt, V1, V2);
  }
- 
+
 template class cEpipolarCouple<tREAL4>;
 template class cEpipolarCouple<tREAL8>;
 template class cEpipolarCouple<tREAL16>;
