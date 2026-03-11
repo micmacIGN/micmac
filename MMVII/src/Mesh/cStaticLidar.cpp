@@ -59,7 +59,7 @@ cStaticLidarImporter::cStaticLidarImporter() :
 
 using  namespace happly;
 
-void cStaticLidarImporter::readPlyPoints(std::string aPlyFileName)
+void cStaticLidarImporter::readPlyPoints(std::string aPlyFileName, bool aForceGreenAsIntensity)
 {
     StdOut() << "Read ply file " << aPlyFileName << "..." << std::endl;
     mVectPtsXYZ.clear();
@@ -77,7 +77,7 @@ void cStaticLidarImporter::readPlyPoints(std::string aPlyFileName)
             mVectPtsXYZ.resize(aVecPts.size());
             for (size_t i=0; i<aVecPts.size(); ++i)
             {
-                mVectPtsXYZ.at(i) = cPt3dr(aVecPts[i][0],aVecPts[i][1],aVecPts[i][2]);
+                mVectPtsXYZ[i] = cPt3dr(aVecPts[i][0],aVecPts[i][1],aVecPts[i][2]);
             }
         }
 
@@ -91,10 +91,26 @@ void cStaticLidarImporter::readPlyPoints(std::string aPlyFileName)
         auto aPropIntensityName = std::find_if(aVertProps.begin(), aVertProps.end(), [](const std::string &s){
             return (ToLower(s)=="i") || (ToLower(s).find("intens") != std::string::npos);
         });
-        if (aPropIntensityName!= aVertProps.end())
+        auto aPropGreenName = std::find_if(aVertProps.begin(), aVertProps.end(), [](const std::string &s){
+            return (ToLower(s)=="g") || (ToLower(s).find("green") != std::string::npos);
+        });
+        if (aForceGreenAsIntensity)
         {
-            mHasIntensity = true;
-            mVectPtsIntens = aPlyF.getElement("vertex").getProperty<tREAL8>(*aPropIntensityName);
+            if (aPropGreenName!= aVertProps.end())
+            {
+                mHasIntensity = true;
+                mVectPtsIntens = aPlyF.getElement("vertex").getProperty<tREAL8>(*aPropGreenName);
+                for (size_t i=0; i<mVectPtsIntens.size(); ++i)
+                {
+                    mVectPtsIntens[i] = mVectPtsIntens[i]/255.;
+                }
+            }
+        } else {
+            if (aPropIntensityName!= aVertProps.end())
+            {
+                mHasIntensity = true;
+                mVectPtsIntens = aPlyF.getElement("vertex").getProperty<tREAL8>(*aPropIntensityName);
+            }
         }
 
     }
@@ -104,7 +120,7 @@ void cStaticLidarImporter::readPlyPoints(std::string aPlyFileName)
     }
 }
 
-void cStaticLidarImporter::readE57Points(std::string aE57FileName)
+void cStaticLidarImporter::readE57Points(std::string aE57FileName, bool aForceGreenAsIntensity)
 {
     StdOut() << "Read e57 file " << aE57FileName << "..." << std::endl;
     mVectPtsXYZ.clear();
@@ -135,7 +151,7 @@ void cStaticLidarImporter::readE57Points(std::string aE57FileName)
         MMVII_INTERNAL_ASSERT_tiny(cNumPoints==cNumRead, "Error: cNumPoints!=cNumRead")
 
         mHasCartesian = pointsData.cartesianX && pointsData.cartesianY && pointsData.cartesianZ;
-        mHasIntensity = pointsData.intensity;
+        mHasIntensity = aForceGreenAsIntensity ? (pointsData.colorGreen!=nullptr) : (pointsData.intensity!=nullptr);
         mHasSpherical = pointsData.sphericalAzimuth && pointsData.sphericalElevation && pointsData.sphericalRange;
         mHasRowCol = pointsData.columnIndex && pointsData.rowIndex;
 
@@ -151,8 +167,14 @@ void cStaticLidarImporter::readE57Points(std::string aE57FileName)
         }
         if (mHasIntensity){
             mVectPtsIntens.resize(cNumRead);
-            for (uint64_t i=0;i<cNumRead;++i)
-                mVectPtsIntens[i] = pointsData.intensity[i];
+            if (aForceGreenAsIntensity)
+            {
+                for (uint64_t i=0;i<cNumRead;++i)
+                    mVectPtsIntens[i] = pointsData.colorGreen[i]/255.;
+            } else {
+                for (uint64_t i=0;i<cNumRead;++i)
+                    mVectPtsIntens[i] = pointsData.intensity[i];
+            }
         }
         if (mHasRowCol){
             mVectPtsLine.resize(cNumRead);
@@ -183,7 +205,7 @@ void cStaticLidarImporter::readE57Points(std::string aE57FileName)
 }
 
 
-void cStaticLidarImporter::readPtxPoints(std::string aPtxFileName)
+void cStaticLidarImporter::readPtxPoints(std::string aPtxFileName, bool aForceGreenAsIntensity)
 {
     StdOut() << "Read PTX file " << aPtxFileName << "..." << std::endl;
     mVectPtsXYZ.clear();
@@ -268,15 +290,16 @@ void cStaticLidarImporter::readPtxPoints(std::string aPtxFileName)
     }
 }
 
-bool cStaticLidarImporter::read(const std::string & aName, bool OkNone, bool aForceStructured, std::string aStrInput2TSL)
+bool cStaticLidarImporter::read(const std::string & aName, bool OkNone,
+                                bool aForceStructured, std::string aStrInput2TSL, bool aForceGreenAsIntensity)
 {
     std::string aPost = LastPostfix(aName);
     if (UCaseEqual(aPost,"ply"))
-       readPlyPoints(aName);
+       readPlyPoints(aName, aForceGreenAsIntensity);
     else if (UCaseEqual(aPost,"e57"))
-       readE57Points(aName);
+       readE57Points(aName, aForceGreenAsIntensity);
     else if (UCaseEqual(aPost,"ptx"))
-        readPtxPoints(aName);
+        readPtxPoints(aName, aForceGreenAsIntensity);
     else
     {
         if (! OkNone)

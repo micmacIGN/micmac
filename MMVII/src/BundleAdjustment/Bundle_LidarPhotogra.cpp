@@ -633,7 +633,8 @@ cBA_LidarLidarRaster::cBA_LidarLidarRaster(cPhotogrammetricProject * aPhProj,
 
 void cBA_LidarLidarRaster::UpdateWeightersMap()
 {
-    tREAL4 aTh = mThresholdFinal + ((mThresholdInit - mThresholdFinal)*(mBA.NbMaxIter()-mBA.Iter()))/mBA.NbMaxIter();
+    tREAL4 aTh = mBA.NbMaxIter() < 2 ? mThresholdFinal :
+        mThresholdInit + (mThresholdFinal - mThresholdInit)*float(mBA.Iter())/(mBA.NbMaxIter()-1);
     std::cout << "up weighters, th="<<aTh<<"\n";
     if (aTh>10000)
         aTh = -1;
@@ -666,7 +667,7 @@ void cBA_LidarLidarRaster::CreateZbuffers()
         {
             if (aScanDataB.mScanName == aScanDataA.mScanName)
                 continue;
-            StdOut() << "Create zbuffer: " << aScanDataA.mScanName+"on_image"
+            StdOut() << "Create zbuffer: " << aScanDataA.mScanName+"_on_image_"
                      << aScanDataB.mScanName<<"\n";
 
             cSIMap_Ground2ImageAndProf aMapCamDepth(aScanDataB.mLidarRaster);
