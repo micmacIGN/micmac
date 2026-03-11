@@ -1040,7 +1040,6 @@ class cImage
        cGeneratePointDiff<2>  mGenPts;  ///< Generate point all different
 };
 
-typedef std::pair<std::string,std::string>  tSS;  // pair of name for storing Name x Name => Cple homol
 
 /** class for generating Multiple random points + correspond random
  * homologous for generating them

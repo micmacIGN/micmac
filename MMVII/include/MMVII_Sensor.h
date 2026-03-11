@@ -777,7 +777,7 @@ class cPhotogrammetricProject : public cIPhProj
 	 std::string NameTiePIn(const std::string & aNameIm1,const std::string & aNameIm2,const std::string & aDir="") const;
 
      ///  Read Homol from multiple source : DPTieP, DPGndPt2D, DPMulTieP
-     void ReadHomolMultiSrce(int & aNbInit,cSetHomogCpleIm &,const std::string & aNI1,const std::string & aNI2);
+     void ReadHomolMultiSrce(int & aNbInit,cSetHomogCpleIm &,const std::string & aNI1,const std::string & aNI2) const;
 
 	 //===================================================================
          //==================   Multiple Tie-Points  =========================

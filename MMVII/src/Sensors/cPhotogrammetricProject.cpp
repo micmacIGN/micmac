@@ -1241,7 +1241,7 @@ void cPhotogrammetricProject::ReadHomolMultiSrce
         cSetHomogCpleIm &aCpleH,
         const std::string & aNI1,
         const std::string & aNI2
-      )
+      ) const
 {
    aNbInit=0;
    aCpleH.Clear();

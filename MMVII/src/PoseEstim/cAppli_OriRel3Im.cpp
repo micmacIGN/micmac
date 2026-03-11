@@ -8,9 +8,93 @@
 namespace MMVII
 {
 
+class cMemoryInterfImportHom : public cInterfImportHom
+{
+      public :
+           void GetHom(cSetHomogCpleIm &,const std::string & aNameIm1,const std::string & aNameIm2) const override;
+           bool HasHom(const std::string & aNameIm1,const std::string & aNameIm2) const  override;
+
+           void Add(const cSetHomogCpleIm &,const std::string & aNameIm1,const std::string & aNameIm2)     ;
+      private :
+             std::map<tSS,cSetHomogCpleIm> mMapN2Cple;
+};
+
+
+bool cMemoryInterfImportHom::HasHom(const std::string & aN1,const std::string & aN2) const
+{
+    //return BoolFind(mMapN2Cple,tSS(aN1,aN2));
+
+    return mMapN2Cple.find(tSS(aN1,aN2)) != mMapN2Cple.end();
+}
+
+
+void cMemoryInterfImportHom::GetHom(cSetHomogCpleIm & aCple,const std::string & aN1,const std::string & aN2) const
+{
+    const auto & anIter = mMapN2Cple.find(tSS(aN1,aN2));
+    aCple = anIter->second;
+}
+
+void cMemoryInterfImportHom::Add(const cSetHomogCpleIm & aCple,const std::string & aN1,const std::string & aN2)
+{
+     mMapN2Cple[tSS(aN1,aN2)] = aCple;
+}
+
+
+class cOriTriplets
+{
+   public :
+            cOriTriplets(std::vector<std::string>, const cPhotogrammetricProject &);
+
+            ~cOriTriplets();
+   private :
+
+            std::vector<std::string>           mVNames;
+            const cPhotogrammetricProject&     mPhProj;
+            std::vector<cPerspCamIntrCalib*>   mVCalibs;
+            cComputeMergeMulTieP *             mTiepMul;
+
+
+};
+
+cOriTriplets::cOriTriplets(std::vector<std::string> aVNames, const cPhotogrammetricProject & aPhProj) :
+    mVNames (aVNames),
+    mPhProj (aPhProj)
+{
+    for (const auto & aName :  mVNames)
+    {
+        mVCalibs.push_back(mPhProj.InternalCalibFromImage(aName));
+    }
+
+    cMemoryInterfImportHom aMIIH;
+
+    for (size_t aK1=0 ; aK1< mVNames.size() ; aK1++)
+    {
+        const std::string & aN1 = mVNames.at(aK1);
+        for (size_t aK2=aK1+1 ; aK2<mVNames.size() ; aK2++)
+        {
+            const std::string & aN2 = mVNames.at(aK2);
+            cSetHomogCpleIm aSet;
+            int aNbInit;
+            mPhProj.ReadHomolMultiSrce(aNbInit,aSet,aN1,aN2);
+            aMIIH.Add(aSet,aN1,aN2);
+        }
+    }
+
+    mTiepMul = new cComputeMergeMulTieP(aVNames,&aMIIH);
 
 
 
+  //  mPhProj
+  //  for ()
+  //  void ReadHomolMultiSrce(int & aNbInit,cSetHomogCpleIm &,const std::string & aNI1,const std::string & aNI2);
+
+}
+
+
+cOriTriplets::~cOriTriplets()
+{
+    delete mTiepMul;
+}
 
    /* ********************************************************** */
    /*                                                            */
