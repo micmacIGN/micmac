@@ -615,10 +615,15 @@ template <class Type> class cLinearOverCstrSys  : public cMemCheck
       virtual void   AddCov(const cDenseMatrix<Type> &,const cDenseVect<Type>& ,const std::vector<int> &aVInd);
 
       Type LVMW(int aK) const;
-      
+      /// Add LVM like in non linear sys, but do it on null solution (as there is no current sol)
+      void AddLVMCstr(tREAL8 aW);
+
       Type  VarLastSol() const;
       Type  VarCurSol()  const;
       Type  VarOfSol(const cDenseVect<Type> & aSol)  const;
+
+
+
 
     protected :
        int mNbVar;

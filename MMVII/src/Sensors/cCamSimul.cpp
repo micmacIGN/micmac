@@ -322,7 +322,7 @@ void cCamSimul::BenchHierchBA(cTimerSegm * aTS,
 
     StdOut() << "Nb of cams=" << aNbCam << ", nb of triplets=" << aNbTri << std::endl;
 
-    std::vector<int> aProjTest{0,1,2,3,4,5};
+    std::vector<int> aProjTest{0,1,2,3,4,5}; //  MPDER ???
     for (size_t aK1=0 ; aK1<aProjTest.size(); aK1++) //(int)eProjPC::eNbVals
     {
         StdOut() << "Projection " << aK1 << " " << E2Str(eProjPC(aProjTest[aK1]));

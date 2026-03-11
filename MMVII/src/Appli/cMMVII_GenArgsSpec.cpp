@@ -27,7 +27,8 @@ static const std::vector<eTA2007> prjSubDirList =                           // c
     eTA2007::StaticLidar,
     eTA2007::Clino,
     eTA2007::MeasureClino,
-    eTA2007::OriTriplet
+    eTA2007::OriTriplet,
+    eTA2007::OriRel
 };
 
 static const std::map<eTA2007,std::vector<std::string>> fileList =          // clazy:exclude=non-pod-global-static

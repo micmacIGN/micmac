@@ -278,6 +278,8 @@ int cAppli_EditSet::Exe()
 
    tNameSet aInput = SetNameFromString(mNameXmlIn,false);
    tNameSet aNew =  MainSet0();
+   bool isFileNone =   (FileOfPath(mNameXmlOut,false) == MMVII_NONE);
+   SetIfNotInit(mShow,isFileNone ? 2 : 1);
 
    if (IsInit(&mChgName))
    {
@@ -318,7 +320,7 @@ int cAppli_EditSet::Exe()
    }
 
 
-   if (mShow)
+   if (mShow )
    {
        tNameSet   aTot(aInput+aNew);
 
@@ -347,7 +349,7 @@ int cAppli_EditSet::Exe()
    }
 
    // Back to cSetName
-   if (FileOfPath(mNameXmlOut,false) != MMVII_NONE)
+   if (! isFileNone)
       SaveInFile(aRes,mNameXmlOut);
 
    return EXIT_SUCCESS;

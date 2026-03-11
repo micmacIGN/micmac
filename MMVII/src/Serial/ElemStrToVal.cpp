@@ -246,6 +246,7 @@ template<> cE2Str<eTA2007>::tMapE2Str cE2Str<eTA2007>::mE2S
                 {eTA2007::TypeInstr,"Instrum"},
                 {eTA2007::MeasureClino,"MeasureClino"},
                 {eTA2007::StaticLidar,"StaticLidar"},
+                {eTA2007::OriRel,"OriRel"},
                 {eTA2007::Topo,"Topo"},
                 {eTA2007::SysCo,"SysCo"},
                 {eTA2007::Input,"In"},
