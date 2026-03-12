@@ -38,14 +38,14 @@ cCollecSpecArg2007 & cAppli_VisuPoseStr3D::ArgOpt(cCollecSpecArg2007 & anArgOpt)
            << AOpt2007(mCamScale,"CamScale","Scale camera frustum",{eTA2007::HDV})
            << AOpt2007(mOutfile,"Outfile","Output filename",{eTA2007::HDV})
            << AOpt2007(mBinary,"Bin","Output in binary format",{eTA2007::HDV})
-           << mPhProj.DPMulTieP().ArgDirInOpt("Input features")
+           << mPhProj.DPMulTieP().ArgDirInOpt("TPDir")
         ;
 }
 
 int cAppli_VisuPoseStr3D::Exe()
 {
     mPhProj.FinishInit();
-    mOutfile = ("VisSFM_"+mPhProj.DPOrient().DirIn()+ (mPhProj.DPMulTieP().DirInIsInit() ? "_+mPhProj.DPMulTieP().DirIn()" : "")  +".ply");
+    mOutfile = ("VisSFM_"+mPhProj.DPOrient().DirIn()+ (mPhProj.DPMulTieP().DirInIsInit() ? "_"+mPhProj.DPMulTieP().DirIn() : "")  +".ply");
 
 
     // vector of all image names
