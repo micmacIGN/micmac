@@ -677,7 +677,7 @@ class cAppli_OriRelPairOfIm : public cMMVII_Appli
      public :
 
         typedef std::pair<int,cCdtFinalPoseRel2Im> tRes1Pair;
-        static const int RESULT_NO_POSE = 2007;
+        static constexpr int RESULT_NO_POSE = 2007;
 
         typedef cIsometry3D<tREAL8>  tPose;
 
