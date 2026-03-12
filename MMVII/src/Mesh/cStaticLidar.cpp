@@ -705,8 +705,9 @@ cPt3dr cStaticLidar::Image2Ground(const cPt2dr & aRasterPx) const
 
 
 
-cTriangulation3D<tREAL8> * cStaticLidar::ToTriangulation3D(const std::string & aVisuPath, int aFactor) const
+cTriangulation3D<tREAL8> * cStaticLidar::ToTriangulation3DRegular(const std::string & aVisuPath, int aFactor) const
 {
+    tREAL8 aLimitCosTriangles = 0.999;
     //TODO make triangulation in instrument frame, add pose later?
     std::vector<cPt3dr> aVPt3D;
     std::vector<cPt2di> aVPt2D;
@@ -750,11 +751,11 @@ cTriangulation3D<tREAL8> * cStaticLidar::ToTriangulation3D(const std::string & a
                     tREAL4 aABdotBC = Scal(aAB,aBC);
                     tREAL4 aBCdotCA = Scal(aBC,aCA);
                     tREAL4 aCAdotAB = Scal(aCA,aAB);
-                    if (fabs(aABdotBC) / (aDistAB*aDistBC) > 0.999)
+                    if (fabs(aABdotBC) / (aDistAB*aDistBC) > aLimitCosTriangles)
                         continue;
-                    if (fabs(aBCdotCA) / (aDistBC*aDistCA) > 0.999)
+                    if (fabs(aBCdotCA) / (aDistBC*aDistCA) > aLimitCosTriangles)
                         continue;
-                    if (fabs(aCAdotAB) / (aDistCA*aDistAB) > 0.999)
+                    if (fabs(aCAdotAB) / (aDistCA*aDistAB) > aLimitCosTriangles)
                         continue;
                     aVFace.push_back(cPt3di(aKa, aKb, aKc));
                 }
@@ -762,7 +763,81 @@ cTriangulation3D<tREAL8> * cStaticLidar::ToTriangulation3D(const std::string & a
         }
 
     auto * aTri = new cTriangulation3D<tREAL8>(aVPt3D, aVFace);
-    StdOut() <<"Scan triangulation "<< mStationName+"_"+mScanName <<": "<<aVPt3D.size()<<" pts, "<<aVFace.size()<<" faces\n";
+    StdOut() <<"Scan triangulation regular "<< mStationName+"_"+mScanName <<": "<<aVPt3D.size()<<" pts, "<<aVFace.size()<<" faces\n";
+    aTri->WriteFile(aVisuPath + mStationName+"_"+mScanName+"_regular.ply",true);
+    return aTri;
+}
+
+
+cTriangulation3D<tREAL8> * cStaticLidar::ToTriangulation3D(const std::string & aVisuPath, int aFactor) const
+{
+    tREAL8 aLimitCosTriangles = 0.9999;
+    tREAL8 aLimitLenOnMinDist = 0.2;
+    //TODO make triangulation in instrument frame, add pose later?
+    std::vector<cPt2dr> aVPt2D; // get regular points in 2D
+    std::vector<cPt3dr> aVPt3D; // swap points 2D for 3D
+    std::vector<cPt3di> aVFaceFiltered; // keep good 3D triangles
+    MMVII_INTERNAL_ASSERT_tiny(aFactor>0, "Error factor triangulation")
+
+    int aNewW = int((PixelDomain().Sz().x()-1)/aFactor) + 1;
+    int aNewH = int((PixelDomain().Sz().y()-1)/aFactor) + 1;
+    // maximum sizes
+    aVPt3D.reserve(aNewH*aNewW);
+    aVPt2D.reserve(aNewH*aNewW);
+    aVFaceFiltered.reserve(aVPt3D.capacity()*2);
+
+    // get 2d points
+    for (int l = 0 ; l < PixelDomain().Sz().y(); l+=aFactor)
+        for (int c = 0 ; c < PixelDomain().Sz().x(); c+=aFactor)
+        {
+            if (getRasterDistance().GetV(cPt2di(c, l))>1e-4)
+                aVPt2D.push_back(cPt2dr(c, l));
+        }
+
+    // triangulation
+    cTriangulation2D<tREAL8> aTriRaster(aVPt2D);
+    aTriRaster.MakeDelaunay();
+
+    // get 3D corresponding points
+    for (auto & aPt2d: aVPt2D)
+        aVPt3D.push_back(Image2Ground(aPt2d));
+
+    for (const auto & aFace: aTriRaster.VFaces())
+    {
+        const int & aKa = aFace.x();
+        const int & aKb = aFace.y();
+        const int & aKc = aFace.z();
+        auto aAB = aVPt3D[aKb]-aVPt3D[aKa];
+        auto aBC = aVPt3D[aKc]-aVPt3D[aKb];
+        auto aCA = aVPt3D[aKa]-aVPt3D[aKc];
+
+        // check angles
+        tREAL4 aLenAB = Norm2(aAB);
+        tREAL4 aLenBC = Norm2(aBC);
+        tREAL4 aLenCA = Norm2(aCA);
+        tREAL4 aABdotBC = Scal(aAB,aBC);
+        tREAL4 aBCdotCA = Scal(aBC,aCA);
+        tREAL4 aCAdotAB = Scal(aCA,aAB);
+        if (fabs(aABdotBC) / (aLenAB*aLenBC) > aLimitCosTriangles)
+            continue;
+        if (fabs(aBCdotCA) / (aLenBC*aLenCA) > aLimitCosTriangles)
+            continue;
+        if (fabs(aCAdotAB) / (aLenCA*aLenAB) > aLimitCosTriangles)
+            continue;
+
+        // check size vs distance
+        tREAL4 aDistA = getRasterDistance().GetV(cPt2di(aVPt2D[aKa].x(), aVPt2D[aKa].y()));
+        tREAL4 aDistB = getRasterDistance().GetV(cPt2di(aVPt2D[aKb].x(), aVPt2D[aKb].y()));
+        tREAL4 aDistC = getRasterDistance().GetV(cPt2di(aVPt2D[aKc].x(), aVPt2D[aKc].y()));
+        tREAL4 aMaxLen = std::max({aLenAB, aLenBC, aLenCA});
+        tREAL4 aMinDist = std::min({aDistA, aDistB, aDistC});
+        if (aMaxLen/aMinDist > aLimitLenOnMinDist)
+            continue;
+        aVFaceFiltered.push_back(aFace);
+    }
+
+    auto * aTri = new cTriangulation3D<tREAL8>(aVPt3D, aVFaceFiltered);
+    StdOut() <<"Scan triangulation "<< mStationName+"_"+mScanName <<": "<<aVPt3D.size()<<" pts, "<<aVFaceFiltered.size()<<" faces\n";
     aTri->WriteFile(aVisuPath + mStationName+"_"+mScanName+".ply",true);
     return aTri;
 }

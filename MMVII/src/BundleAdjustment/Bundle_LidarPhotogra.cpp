@@ -616,6 +616,7 @@ cBA_LidarLidarRaster::cBA_LidarLidarRaster(cPhotogrammetricProject * aPhProj,
     {
         cStaticLidar * aScan = mBA.AddStaticLidar(aNameSens);
         StdOut() << "Add Scan " << aNameSens << "\n";
+        //delete aScan->ToTriangulation3DRegular(mPhProj->DirVisuAppli()); // test: make a .ply of regular triangulation
         mVScans.push_back({aNameSens, aScan, aScan->ToTriangulation3D(mPhProj->DirVisuAppli()), {}});
     }
 
