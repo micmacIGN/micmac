@@ -45,6 +45,7 @@ cAppliTestAPBI::cAppliTestAPBI
 {
 }
 
+
 cCollecSpecArg2007 & cAppliTestAPBI::ArgObl(cCollecSpecArg2007 & anArgObl)
 {
     return anArgObl;
@@ -65,14 +66,8 @@ int cAppliTestAPBI::ExeOnParsedBox()
     for (const auto & aPix : aImTest.DIm())
     {
        aImTest.DIm().SetVTrunc(aPix,(aVal + (int)imSrc.GetV(aPix)) % 255);
-
-       // aImTest.DIm().SetVTrunc(aPix,(aVal + (int)(aPix.x()+aPix.y())) % 255);
-
     }
-    //StdOut() << "LLLokcIn \n";
     APBI_WriteIm(ImNameOut(),aImTest);
-    //StdOut() << "LLLokcOut \n\n";
-
     return EXIT_SUCCESS;
 }
 
@@ -114,20 +109,15 @@ void BenchAPBI(cParamExeBench & aParam)
     if (! aParam.NewBench("APBI")) return;
 
 
- /*   cDataFileIm2D::Create(cAppliTestAPBI::ImNameIn(),eTyNums::eTN_U_INT1,
-                          cPt2di(2000+RandUnif_M_N(-100,100),2000+RandUnif_M_N(-100,100)),
-                          1
-                          );*/
-   cPt2di aSz (2000+RandUnif_M_N(-100,100),2000+RandUnif_M_N(-100,100));
-   auto aIm2d = cIm2D<tU_INT1>(aSz);
-   cIm2D<tINT4> aImCpt(aSz,nullptr,eModeInitImage::eMIA_Null);
+    cPt2di aSz (2000+RandUnif_M_N(-100,100),2000+RandUnif_M_N(-100,100));
+    auto aBoxSize = cPt2di(200+RandUnif_M_N(-10,10),200+RandUnif_M_N(-10,10));
+    auto aIm2d = cIm2D<tU_INT1>(aSz);
 
     for (const auto& aPix : aIm2d.DIm()) {
         aIm2d.DIm().SetV(aPix,(aPix.x()+aPix.y()) % 255);
     }
     cDataFileIm2D  aDF = cDataFileIm2D::Create(cAppliTestAPBI::ImNameIn(),eTyNums::eTN_U_INT1,aIm2d.DIm().Sz(),1);
     aIm2d.Write(aDF,cPt2di(0,0));
-    auto aBoxSize = cPt2di(200+RandUnif_M_N(-10,10),200+RandUnif_M_N(-10,10));
 
     cMMVII_Appli & anAp = cMMVII_Appli::CurrentAppli();
 
@@ -138,35 +128,15 @@ void BenchAPBI(cParamExeBench & aParam)
             anAp.StrOpt() << std::make_pair("SzTiles",cStrIO<cPt2di>::ToStr(aBoxSize))
             );
 
-    int aNbDif = 0;
-    int aNbInd = 0;
-
     auto mIm2d = cIm2D<tU_INT1>::FromFile(cAppliTestAPBI::ImNameOut());
     cParseBoxInOut<2> aPBIO =  cParseBoxInOut<2>::CreateFromSize(mIm2d.DIm(),aBoxSize);
     for (const auto & aPixI : aPBIO.BoxIndex()) {
-        aNbInd++;
         auto aBox = aPBIO.BoxOut(aPixI);
         tU_INT1 aVal = cAppliTestAPBI::valFromBox(aBox);
         for (const auto &aPix : aBox) {
-/*
-            StdOut() << "APBI=" << (int) mIm2d.DIm().GetV(aPix) << " " << (int) (aVal + (aPix.x() + aPix.y()) % 255)%255  << aPix << " " << aBoxSize << "\n";
             MMVII_INTERNAL_ASSERT_bench(mIm2d.DIm().GetV(aPix) == (aVal + (aPix.x() + aPix.y()) % 255)%255,"BenchAPBI failed");
-            */
-            if (mIm2d.DIm().GetV(aPix) != (aVal + (aPix.x() + aPix.y()) % 255)%255)
-            {
-                /*  StdOut() << "APBI=" << (int) mIm2d.DIm().GetV(aPix) << " "
-                           << (int) (aVal + (aPix.x() + aPix.y()) % 255)%255
-                           << aPix << " " << aBox.Sz() << "\n";*/
-                  aNbDif++;
-            }
-            aImCpt.DIm().AddVal(aPix,1);
         }
     }
-    for (const auto aPix : mIm2d.DIm() )
-    {
-         MMVII_INTERNAL_ASSERT_bench(aImCpt.DIm().GetV(aPix)==1,"Non partion in ParseBox");
-    }
-    StdOut() <<  "GGettttChar " << cAppliTestAPBI::ImNameIn() << " NBDif=" << aNbDif  << " NBI=" << aNbInd << "\n" ; //getchar();
     aParam.EndBench();
 }
 
