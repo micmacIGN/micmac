@@ -25,7 +25,10 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
 
         private:
             int Exe() override;
-
+            /*
+             * naming conv. : void return methode : JeanMichel
+             *                methode actually returning smthg : jeanMichel
+             *                */
             //--spec. methods
             int doVisu(const cSensorCamPC * aCam);
             int doPredict(const std::string & aImName);
@@ -33,10 +36,10 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
             void doReproj(const std::string & aCode);
             void TargetRefine(bool& isOk);
             void CurrTgtExtent(bool& isOk);
-            std::vector<std::string> MissingTargetsNames(const cSetMesPtOf1Im & aFoundTargets);
+            std::vector<std::string> getMissingTgtNames(cSensorCamPC& aCam);
             cSetMesPtOf1Im MissingTargetsPredict(const std::string & aImName, const std::vector<std::string> & aVMissingTargetsNames);
-            void drawTarget(cSetMesPtOf1Im & aSetOfMes2D, bool isInit);
-            void resetInitTargetPts();
+            void DrawTarget(cSetMesPtOf1Im & aSetOfMes2D, bool isInit);
+            void ResetInitTargetPts();
             void doBundle(const cSensorCamPC * aCam);
             std::vector<cPt3dr> getVMotifMes3D(std::list<std::string> lNamesPts);
             cSimilitud3D<cPt3dr> doSimil3D(std::vector<cPt3dr> &aVPtsIn, std::vector<cPt3dr> &aVPtsOut);
@@ -58,11 +61,15 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
             void doComputeTransFunc();
             std::vector<cPt2di> getRansacPts();
             void doComputeCoOccIm(tDIm* aDImIn);
-            void computeBasePtsRes();
+            void ComputeBasePtsRes();
+            void SampleCorresp(bool& isTarget);
+            void RansacTransFunc(cPt2dr& theSol, std::vector<cPt2di> aVBitCenters);
+            cStdStatRes wL1Score(cPt2dr& aSol, cDataIm2D<tREAL8>* aDWStdIm);
             cPhotogrammetricProject mPhProj;
             std::string mNameSpecif;
             std::vector<cSensorCamPC*> mVCams;
             std::string mSpecImIn;
+            tREAL8 mWL1Limit;
             int mRes;
             bool mShow; //show details
             bool mVisu; //visualisation
@@ -84,10 +91,11 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
             std::map<const cSensorCamPC *, cSetMesGnd3D> mMImSetOfBundles;
             std::unique_ptr<cFullSpecifTarget> mFullSpec;
             cBox2dr mCurrTgtExtent;
+            tElem mMasqVal;
             tIm mCurrRef;
             tDIm* mDCurrRef;
-            tIm mCurrTgt;
-            tDIm* mDCurrTgt;
+            tIm mCurrPred;
+            tDIm* mDCurrPred;
             tDIm* mDCurrRefLabel;
             tIm mCurrTrue;
             tDIm* mDCurrTrue;
@@ -135,14 +143,16 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
                                                                 const cSpecMMVII_Appli & aSpec):
         cMMVII_Appli(aVArgs, aSpec),
         mPhProj (*this),
+        mWL1Limit (30.0),
         mRes (600),
         mTargets2WorldMappings (""),
         mCurrVisuIm (nullptr),
         mTgtMasq (cPt2di(1,1)),
         mFullSpec (nullptr),
         mCurrTgtExtent (cBox2dr::Empty()),
+        mMasqVal (255),
         mCurrRef (cPt2di(1,1)),
-        mCurrTgt (cPt2di(1,1)),
+        mCurrPred (cPt2di(1,1)),
         mCurrTrue (cPt2di(1,1)),
         mCoOccMat (cPt2di(1,1))
 
@@ -208,28 +218,31 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
         {
             mCurrCam = aCam;
             auto aCodes = mTargets2WorldMappings.ListOfCodes();
+
             StdOut() << aCam->NameImage() << std::endl;
+            auto aVMissingNames = getMissingTgtNames(*aCam);
+            StdOut() << "missing targets : " << aVMissingNames<<"\n";
+
+            std::vector<std::string> aVRecovNames = {};
 
             for (const auto& aTgt:aCodes)
             {
                 mCurrTgtCode = aTgt;
                 bool isOk;
-                StdOut() << "TGT NB : " << aTgt;
                 TargetRefine(isOk);
-                /*if(isOk)
+                if (isOk && ){aVRecovNames.push_back(aTgt);}
+            }
+            StdOut() << "recoverable targets:" << aVRecovNames<<std::endl;
+            /*if(isOk)
                 {
                     aIm.SetRGBBorderRectWithAlpha(ToI(aBox.Middle()),Norm2(aBox.Sz())/2,10,cRGBImage::Orange,0.1);//0.1 means final opacity = 1-0.1
                     aIm.DrawCircle(cRGBImage::Green, aBox.P0(), 4);
                     aIm.DrawCircle(cRGBImage::Red, aBox.P1(), 4);
                 }*/
-
-            }
             //aIm.ToJpgFileDeZoom(NameVisu(mCurrCam->NameImage(), "Ref"), 1, {"QUALITY=90"});
 
 
         }
-
-        //doPseudoBench();
 
         return EXIT_SUCCESS;
     }
@@ -252,11 +265,10 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
         //for each target compute ground coordinates of arbitrary target base points (typically corners)
         mMTargetsWorldBasePoints = computeTargetsWorldBasePoints();
 
-
         //here comes the big check
         if (mShow)
         {
-            computeBasePtsRes();
+            ComputeBasePtsRes();
         }
 
         cSetTargetMap aTarget2WorldMappings(mPhProj.DPGndPt3D().DirOut());//set of target 2 ground mappings (useful for serialisation)
@@ -346,7 +358,7 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
         return aMTargetsWorldBasePoints;
     }
 
-    void cAppli_CheckBoardTargetRefine::computeBasePtsRes()
+    void cAppli_CheckBoardTargetRefine::ComputeBasePtsRes()
     {
         for (const auto& aCam : mMCamTgtBasePts)
         {
@@ -368,6 +380,181 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
                 }
             }
         }
+    }
+
+    void cAppli_CheckBoardTargetRefine::TargetRefine(bool& isOk)
+    {
+        CurrTgtExtent(isOk);//computes current target extent
+        if (isOk)// && mCurrCam->NameImage() == "K127_202409211622-00-cam-22348125-38-66255657607881-23.tiff")
+        {
+            TargetSample(isOk);
+            if(isOk){SampleCorresp(isOk);}
+        }
+    }
+
+    void cAppli_CheckBoardTargetRefine::CurrTgtExtent(bool& isOk)
+    {
+        //StdOut() << "BEGIN TARGET EXTENT" << std::endl;
+
+        auto aVBasePts = get2DBasePoints();
+        auto aVWrldBasePts = target2World(mCurrTgtCode, aVBasePts);
+        std::vector<tREAL8> aVXImBasePts;
+        std::vector<tREAL8> aVYImBasePts;
+
+        for (const auto& aWrldPt:aVWrldBasePts) {
+            auto aImPt = mCurrCam->Ground2Image(aWrldPt);
+            aVXImBasePts.push_back(aImPt[0]);
+            aVYImBasePts.push_back(aImPt[1]);
+        }
+
+        auto minMaxVX = minmax_element(aVXImBasePts.begin(), aVXImBasePts.end());
+        auto minMaxVY = minmax_element(aVYImBasePts.begin(), aVYImBasePts.end());
+
+        cPt2dr aImUL = cPt2dr(*minMaxVX.first, *minMaxVY.first);
+        cPt2dr aImLR = cPt2dr(*minMaxVX.second, *minMaxVY.second);
+
+        if (mCurrCam->IsVisibleOnImFrame(aImUL) && mCurrCam->IsVisibleOnImFrame(aImLR))
+        {
+            isOk = true;
+            mCurrTgtExtent = cBox2dr(aImUL,aImLR);
+        }
+        else
+        {
+            isOk = false;
+            mCurrTgtExtent = cBox2dr::Empty();
+        }
+   }
+
+    void cAppli_CheckBoardTargetRefine::TargetSample(bool& isOk)
+   {
+        //StdOut() << "BEGIN TARGET SAMPLE" << std::endl;
+        cPt2dr& aImOffSet = mCurrTgtExtent.P0ByRef();//save the offset for camera back projection
+        mCurrPred = tIm(ToI(mCurrTgtExtent.Sz()));
+        mDCurrPred = &mCurrPred.DIm();
+
+        auto aVTgt3DPts = get3DTargetCorners(mCurrTgtCode);//tgt. base pts. w.r.t. ground frame
+        cPlane3D aTgtPlane = cPlane3D::From3Point(aVTgt3DPts[0], aVTgt3DPts[1], aVTgt3DPts[2]);//gnd. tgt. plane
+        mCurrTgtPlane = &aTgtPlane;
+
+        auto aCode = mFullSpec->EncodingFromName(mCurrTgtCode);
+        mCurrRef = mFullSpec->OneImTarget(*aCode);//from current target encoding
+        mDCurrRef = &mCurrRef.DIm();
+        auto aRect2 = cRect2(cPt2di(0,0), ToI(mCurrTgtExtent.Sz()));//rect. to fill from tgt.
+
+        mTgtMasq = tIm(ToI(mCurrTgtExtent.Sz()));
+        mDTgtMasq = &mTgtMasq.DIm();
+
+        for (const auto & aPix : aRect2)
+        {
+            cPt3dr aWrldPix = mCurrCam->Image2PlaneInter(aTgtPlane, ToR(aPix)+aImOffSet);//inter. of gnd. tgt. plane & camera pix. (knowing cam. pose)
+            cPt2dr aTgtPix = world2Target(mCurrTgtCode, aWrldPix);// pix. coordinates in wrt canonic tgt. frame
+
+            if (mDCurrRef->Inside(ToI(aTgtPix)))
+            {
+                auto aLocalIm2Tgt = getLocalAff2D(ToR(aPix)+aImOffSet, 0.1);
+
+                //stolen from cSimulTarget.cpp: anti-aliasing algorithm
+                cRessampleWeigth aRW = cRessampleWeigth::GaussBiCub(ToR(aPix)+aImOffSet,aLocalIm2Tgt,2);
+                const std::vector<cPt2di>  & aVPts = aRW.mVPts;
+                if (!aVPts.empty())
+                {
+                    double aVal=0;
+                    for (int aK=0; aK<int(aVPts.size()) ; aK++)
+                    {
+                        if (mDCurrRef->Inside(aVPts[aK]))
+                        {
+                            double aW = aRW.mVWeight[aK];
+                            aVal += aW * mDCurrRef->GetV(aVPts[aK]);
+                        }
+                    }
+                    mDCurrPred->SetV(aPix,aVal);
+                }
+            }
+            else
+            {
+                mDCurrPred->SetV(aPix,0);
+                mDTgtMasq->SetV(aPix,mMasqVal);
+            }
+        }
+
+
+            mCurrTrue = tIm(ToI(mCurrTgtExtent.Sz()));//prepare true target extract
+            mDCurrTrue = &mCurrTrue.DIm();
+            auto aCurrIm = tIm::FromFile(mCurrCam->NameImage());//loads curr. img.
+            auto* aDCurrIm = &aCurrIm.DIm();
+            mDCurrTrue->CropIn(ToI(aImOffSet), *aDCurrIm);//fills true tgt.
+
+            if (mVisu)
+        {
+            mDCurrTrue->ToFile(NameVisu(mCurrCam->NameImage(),"True" + mCurrTgtCode));
+            mDCurrPred->ToFile(NameVisu(mCurrCam->NameImage(), "Tgt" + mCurrTgtCode));
+            mDTgtMasq->ToFile(NameVisu(mCurrCam->NameImage(), "Masq" + mCurrTgtCode));
+        }
+    }
+
+    void cAppli_CheckBoardTargetRefine::SampleCorresp(bool& isTarget)
+    {
+        //1-look if it exists a "good" transfunc on bits centers if not leave.
+        std::vector<cPt3dr> aVWorldBitCenters = target2World(mCurrTgtCode, mFullSpec->BitsCenters());
+        std::vector<cPt2di> aVTrueBitCenters ={};
+        for (const auto& aWrldBit:aVWorldBitCenters)
+        {
+            aVTrueBitCenters.push_back(ToI(mCurrCam->Ground2Image(aWrldBit)-mCurrTgtExtent.P0ByRef()));
+        }//get currbits centers
+        cPt2dr theSol{0,0};//assuming affine mapping I'(x',y')=aI(x,y)+b
+        RansacTransFunc(theSol, aVTrueBitCenters);
+        if (theSol == cPt2dr{0,0}){isTarget=false; return;}
+
+        cIm2D<tREAL8> aWStdIm(mDCurrPred->Sz());
+        cDataIm2D<tREAL8>* aDWStdIm = &aWStdIm.DIm();
+        cRect2 aRectInt = mDCurrPred->Dilate(-1);
+        aDWStdIm->InitCste(0);
+
+        for (const auto & aPix : aRectInt)
+        {
+            if (mDTgtMasq->GetV(aPix)==mMasqVal) continue;
+            cComputeStdDev<tREAL8>  aCDev;
+            for (int aK=0 ; aK<8 ; aK++)
+            {
+                aCDev.Add(mDCurrPred->GetV(aPix+FreemanV8[aK]));
+            }
+            aDWStdIm->SetVTrunc(aPix,aCDev.StdDev());
+        }
+
+        cStdStatRes aScore = wL1Score(theSol, aDWStdIm);
+        if (aScore.Avg() > mWL1Limit){isTarget=false; return;}
+
+        isTarget=true;
+    }
+
+    /* From here ~ utils methods which called above */
+
+    cStdStatRes cAppli_CheckBoardTargetRefine::wL1Score(cPt2dr& aSol, cDataIm2D<tREAL8>* aDWStdIm)
+    {
+        tIm aWStdDeltaIm(aDWStdIm->Sz());
+        tDIm& aDWStdDeltaIm = aWStdDeltaIm.DIm();
+        aDWStdDeltaIm.InitCste(0);
+
+        tREAL8 aSig0 = 1;
+        cStdStatRes aStat;
+
+        for (auto aPix:*mDCurrTrue)
+        {
+            if(mDTgtMasq->GetV(aPix) != mMasqVal)
+            {
+                tREAL8 aDelta = abs(mDCurrPred->GetV(aPix) - (mDCurrTrue->GetV(aPix)*aSol[0] + aSol[1]));
+                int aWVal = aDelta * (aSig0/(aDWStdIm->GetV(aPix)+aSig0));
+                aDWStdDeltaIm.SetVTrunc(aPix,aDelta);
+                aStat.Add(aWVal);
+            }
+        }
+
+        if (mVisu)
+        {
+            aDWStdDeltaIm.ToFile(NameVisu(mCurrCam->NameImage(),"WStdDeltaIm"+mCurrTgtCode));
+        }
+
+        return aStat;
     }
 
     cPt3dr cAppli_CheckBoardTargetRefine::target2World(const std::string& aTargetCode, const cPt2dr& aTargetPt)
@@ -441,189 +628,41 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
         return cAff2D_r(aTr, aVx, aVy);
     }
 
-    void cAppli_CheckBoardTargetRefine::TargetRefine(bool& isOk)
+    void cAppli_CheckBoardTargetRefine::RansacTransFunc(cPt2dr& theSol, std::vector<cPt2di> aVBitCenters)
     {
-        CurrTgtExtent(isOk);//computes current target extent
-        if (isOk && mCurrCam->NameImage() == "K127_202409211622-00-cam-22348125-38-66255657607881-23.tiff")
-        {
-            TargetSample(isOk);
-            doComputeTransFunc();
-        }
-    }
-
-    void cAppli_CheckBoardTargetRefine::CurrTgtExtent(bool& isOk)
-    {
-        //StdOut() << "BEGIN TARGET EXTENT" << std::endl;
-
-        auto aVBasePts = get2DBasePoints();
-        auto aVWrldBasePts = target2World(mCurrTgtCode, aVBasePts);
-        std::vector<tREAL8> aVXImBasePts;
-        std::vector<tREAL8> aVYImBasePts;
-
-        for (const auto& aWrldPt:aVWrldBasePts) {
-            auto aImPt = mCurrCam->Ground2Image(aWrldPt);
-            aVXImBasePts.push_back(aImPt[0]);
-            aVYImBasePts.push_back(aImPt[1]);
-        }
-
-        auto minMaxVX = minmax_element(aVXImBasePts.begin(), aVXImBasePts.end());
-        auto minMaxVY = minmax_element(aVYImBasePts.begin(), aVYImBasePts.end());
-
-        cPt2dr aImUL = cPt2dr(*minMaxVX.first, *minMaxVY.first);
-        cPt2dr aImLR = cPt2dr(*minMaxVX.second, *minMaxVY.second);
-
-        if (mCurrCam->IsVisibleOnImFrame(aImUL) && mCurrCam->IsVisibleOnImFrame(aImLR))
-        {
-            isOk = true;
-            mCurrTgtExtent = cBox2dr(aImUL,aImLR);
-        }
-        else
-        {
-            isOk = false;
-            mCurrTgtExtent = cBox2dr::Empty();
-        }
-   }
-
-    void cAppli_CheckBoardTargetRefine::TargetSample(bool& isOk)
-   {
-        //StdOut() << "BEGIN TARGET SAMPLE" << std::endl;
-        cPt2dr& aImOffSet = mCurrTgtExtent.P0ByRef();//save the offset for camera back projection
-        mCurrTgt = tIm(ToI(mCurrTgtExtent.Sz()));
-        mDCurrTgt = &mCurrTgt.DIm();
-
-        auto aVTgt3DPts = get3DTargetCorners(mCurrTgtCode);//tgt. base pts. w.r.t. ground frame
-        cPlane3D aTgtPlane = cPlane3D::From3Point(aVTgt3DPts[0], aVTgt3DPts[1], aVTgt3DPts[2]);//gnd. tgt. plane
-        mCurrTgtPlane = &aTgtPlane;
-
-        auto aCode = mFullSpec->EncodingFromName(mCurrTgtCode);
-        mCurrRef = mFullSpec->OneImTarget(*aCode);//from current target encoding
-        mDCurrRef = &mCurrRef.DIm();
-        auto aRect2 = cRect2(cPt2di(0,0), ToI(mCurrTgtExtent.Sz()));//rect. to fill from tgt.
-
-        mTgtMasq = tIm(ToI(mCurrTgtExtent.Sz()));
-        mDTgtMasq = &mTgtMasq.DIm();
-
-        for (const auto & aPix : aRect2)
-        {
-            cPt3dr aWrldPix = mCurrCam->Image2PlaneInter(aTgtPlane, ToR(aPix)+aImOffSet);//inter. of gnd. tgt. plane & camera pix. (knowing cam. pose)
-            cPt2dr aTgtPix = world2Target(mCurrTgtCode, aWrldPix);// pix. coordinates in wrt canonic tgt. frame
-
-            if (mDCurrRef->Inside(ToI(aTgtPix)))
-            {
-                auto aLocalIm2Tgt = getLocalAff2D(ToR(aPix)+aImOffSet, 0.1);
-
-                //stolen from cSimulTarget.cpp: anti-aliasing algorithm
-                cRessampleWeigth aRW = cRessampleWeigth::GaussBiCub(ToR(aPix)+aImOffSet,aLocalIm2Tgt,2);
-                const std::vector<cPt2di>  & aVPts = aRW.mVPts;
-                if (!aVPts.empty())
-                {
-                    double aVal=0;
-                    for (int aK=0; aK<int(aVPts.size()) ; aK++)
-                    {
-                        if (mDCurrRef->Inside(aVPts[aK]))
-                        {
-                            double aW = aRW.mVWeight[aK];
-                            aVal += aW * mDCurrRef->GetV(aVPts[aK]);
-                        }
-                    }
-                    mDCurrTgt->SetV(aPix,aVal);
-                }
-            }
-            else
-            {
-                mDCurrTgt->SetV(aPix,0);
-                mDTgtMasq->SetV(aPix,125);
-            }
-        }
-
-        if (mVisu)
-        {
-            mCurrTrue = tIm(ToI(mCurrTgtExtent.Sz()));//prepare true target extract
-            mDCurrTrue = &mCurrTrue.DIm();
-            auto aCurrIm = tIm::FromFile(mCurrCam->NameImage());//loads curr. img.
-            auto* aDCurrIm = &aCurrIm.DIm();
-
-            mDCurrTrue->CropIn(ToI(aImOffSet), *aDCurrIm);//fills true tgt.
-            mDCurrTrue->ToFile(NameVisu(mCurrCam->NameImage(),"True" + mCurrTgtCode));
-            mDCurrTgt->ToFile(NameVisu(mCurrCam->NameImage(), "Tgt" + mCurrTgtCode));
-            mDTgtMasq->ToFile(NameVisu(mCurrCam->NameImage(), "Masq" + mCurrTgtCode));
-        }
-    }
-
-   /*
-     * From here ~ temp. methods to refact/delete (should begin by doSmthg.)
-     */
-
-    void cAppli_CheckBoardTargetRefine::doComputeTransFunc()
-    {
-
-        //-1- labelized true img. with number of connected components
-        cRect2 aRectInt = mDCurrTrue->Dilate(-1);//keeps original coordinates
-        cIm2D<tREAL8> aLabelTrueIm(mDCurrTrue->Sz());
-        cDataIm2D<tREAL8>& aDLabelTrueIm = aLabelTrueIm.DIm();
-        tIm aLabelTgtIm(mDCurrTrue->Sz());
-        tDIm& aDLabelTgtIm = aLabelTgtIm.DIm();
-        aDLabelTgtIm.InitCste(0);
-        std::vector<cPt2di> aVRansacPts ={};
-        std::vector<cPt3dr> aVWorldBitCenters = target2World(mCurrTgtCode, mFullSpec->BitsCenters());
-        for (const auto& aWrldBit:aVWorldBitCenters)
-        {
-            aVRansacPts.push_back(ToI(mCurrCam->Ground2Image(aWrldBit)-mCurrTgtExtent.P0ByRef()));
-            aDLabelTgtIm.SetV(ToI(mCurrCam->Ground2Image(aWrldBit)-mCurrTgtExtent.P0ByRef()),255);
-        }
-
-        cStdStatRes aImStat;
-
-        for (const auto & aPix : aRectInt)
-        {
-            if (mDTgtMasq->GetV(aPix)==125) continue;
-            cComputeStdDev<tREAL8>  aCDev;
-            std::vector<tREAL8> aLocNeigh;
-            for (int aK=0 ; aK<8 ; aK++)
-            {
-                aCDev.Add(mDCurrTgt->GetV(aPix+FreemanV8[aK]));
-            }
-            aImStat.Add(aCDev.StdDev());
-            aDLabelTrueIm.SetVTrunc(aPix,aCDev.StdDev());
-        }
-
-        StdOut() << "->BEGIN RANSAC" << std::endl;
-
-        //-2-BEGIN RANSAC
         int it = 200;//nb. iterations
         std::vector<cPt2di> aSet = {};
         std::vector<cPt2di> theSet = {};
         tREAL8 a1, a2;
-        tPt2dr theSol(0.0,0.0);
         tREAL8 theScore = 100000000;
         std::vector<tREAL8> theSolPts ={};
 
         for (int ix=0;ix<it;++ix)
         {
             int aL1Score = 0;
-            tU_INT1 bit1 = RandUnif_N(aVRansacPts.size()), bit2 = RandUnif_N(aVRansacPts.size());
+            tU_INT1 bit1 = RandUnif_N(aVBitCenters.size()), bit2 = RandUnif_N(aVBitCenters.size());
 
             if (mDCurrRef->GetV(ToI(mFullSpec->BitsCenters()[bit1])) == mDCurrRef->GetV(ToI(mFullSpec->BitsCenters()[bit2])))
             {
                 continue;
             }
 
-            tPt2di p1 = aVRansacPts[bit1];
-            tPt2di p2 = aVRansacPts[bit2];
+            tPt2di p1 = aVBitCenters[bit1];
+            tPt2di p2 = aVBitCenters[bit2];
 
             tREAL8 G1 = mDCurrTrue->GetV(p1), G2 = mDCurrTrue->GetV(p2);
-            tREAL8 G3 = mDCurrTgt->GetV(p1), G4 = mDCurrTgt->GetV(p2);
+            tREAL8 G3 = mDCurrPred->GetV(p1), G4 = mDCurrPred->GetV(p2);
 
             if(G1==G2) {continue;}
 
             a1 = (G3-G4)/(G1-G2);
             a2 = G3-a1*G1;
 
-            for (const auto& aPix : aDLabelTrueIm)
+            for (const auto& aPix : * mDCurrPred)
             {
-                if (mDTgtMasq->GetV(aPix)==125) continue;
+                if (mDTgtMasq->GetV(aPix)==mMasqVal) continue;
                 tREAL8 val = a1*mDCurrTrue->GetV(aPix) + a2;
-                tREAL8 delta = val - mDCurrTgt->GetV(aPix);
+                tREAL8 delta = val - mDCurrPred->GetV(aPix);
                 aL1Score += abs(delta);
             }
 
@@ -632,30 +671,28 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
                 theScore = aL1Score;
                 theSol = cPt2dr(a1,a2);
             }
-
         }
-        StdOut() << " a1,a2 = " << theSol << " : " << theSolPts << "--";
-        StdOut() << "Score: " << theScore<<std::endl;
-
-        //build and save co occurence matrix
-        //compute correlation
-        cMatIner2Var<tREAL8> aCStat;
-        for (auto aPix:*mDCurrTrue)
-        {
-            if(mDTgtMasq->GetV(aPix) != 125)
-            {
-                aCStat.Add(mDCurrTgt->GetV(aPix), mDCurrTrue->GetV(aPix));
-                int val = mDCurrTgt->GetV(aPix) - (mDCurrTrue->GetV(aPix)*theSol[0] + theSol[1]);
-                aDLabelTgtIm.SetVTrunc(aPix,abs(val));
-            }
-        }
-        StdOut() << "Correlation score: " << aCStat.Correl() << " and not centered: " << aCStat.CorrelNotC()<<"\n";
-        aDLabelTgtIm.ToFile(NameVisu(mCurrCam->NameImage(),"Result"+mCurrTgtCode));
-        aDLabelTrueIm.ToFile(NameVisu(mCurrCam->NameImage(),"LabelTrue"+mCurrTgtCode));
-        doComputeCoOccIm(&aDLabelTgtIm);
-        mDCoOccMat->ToFile(NameVisu(mCurrCam->NameImage(),"CoOcc"+mCurrTgtCode));
     }
 
+    std::vector<std::string> cAppli_CheckBoardTargetRefine::getMissingTgtNames(cSensorCamPC& aCam)
+    {
+        std::vector<std::string> aVRes;
+        auto aVCTargets = mPhProj.LoadGCP3D();
+
+        for (const auto & aTgt : aVCTargets.ListOfNames())//iterates on mes3d checks if pt. p exists in known mes2d
+        {
+            if (!mPhProj.LoadMeasureIm(aCam.NameImage()).NameHasMeasure(aTgt) && aCam.IsVisible(aVCTargets.GetMeasureOfNamePt(aTgt).mPt))
+            {
+                aVRes.push_back(aTgt);
+            }
+        }
+        return aVRes;
+    }
+
+    /*---
+     * from here kind of garbage collector*/
+
+/*
     void cAppli_CheckBoardTargetRefine::doComputeCoOccIm(tDIm* aDImIn)
     {
         auto aTMax = std::numeric_limits<tElem>::max()+1;
@@ -663,18 +700,23 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
         mDCoOccMat = &mCoOccMat.DIm();
         mDCoOccMat->InitCste(0);
 
+        std::vector<cPt2di> dir_offset = {cPt2di(0,1), cPt2di(1,0),cPt2di(-1,-1), cPt2di(1,1)};
+
         for (auto const& aPix : *aDImIn)
         {
-            if(mDTgtMasq->GetV(aPix)== 125) continue;
-            if (aDImIn->Inside(aPix+cPt2di(1,1)))
+            if(mDTgtMasq->GetV(aPix)== mMasqVal) continue;
+            for (auto const& aOffSet : dir_offset)
             {
-                tElem left=aDImIn->GetV(aPix), right=aDImIn->GetV(aPix+cPt2di(1,1));
-                tElem value = (mDCoOccMat->GetV(cPt2di(left,right)) + 1);
-                mDCoOccMat->SetVTrunc(cPt2di(left,right), value);
+                if (aDImIn->Inside(aPix+aOffSet))
+                {
+                    tElem left=aDImIn->GetV(aPix), right=aDImIn->GetV(aPix+aOffSet);
+                    tElem value = mDCoOccMat->GetV(cPt2di(left,right)) + 1;
+                    mDCoOccMat->SetVTrunc(cPt2di(left,right), value);
+                }
             }
         }
     }
-
+*/
     void cAppli_CheckBoardTargetRefine::doReproj(const std::string & aCode)
     {
         for (auto aCam:mMImExtendedSetOfMes2D)
@@ -729,7 +771,7 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
 
         for (const cSaveExtrEllipe & aSavedEllipse:aVSavedEllipses)
         {
-            resetInitTargetPts();
+            ResetInitTargetPts();
             for (const auto & aPt:mInitTargetPts)
             {
                 aExtendedSetOfMes2D.AddMeasure(cMesIm1Pt(aSavedEllipse.mAffIm2Ref.Inverse(aPt),
@@ -740,7 +782,7 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
         mMImExtendedSetOfMes2D[aCam] = aExtendedSetOfMes2D;
     };
 
-    void cAppli_CheckBoardTargetRefine::resetInitTargetPts()
+    void cAppli_CheckBoardTargetRefine::ResetInitTargetPts()
     {
         mInitTargetPts={cPt2dr(0,0), cPt2dr(mRes-1,0),
                           //cPt2dr(((mRes-1)/2), (mRes-1)/2),
@@ -770,22 +812,7 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
 
         return 0;
     }
-*/
-    /*
-    std::vector<std::string> cAppli_CheckBoardTargetRefine::MissingTargetsNames(const cSetMesPtOf1Im & aFoundTargets)
-    {//diff. btw. detected points and GCPs set
-        std::vector<std::string> aVMissingTargetsNames;//creates wanted set
-        auto aExpectedTargetsNames = mInSet3D.ListOfNames();
 
-        for (const auto & aTargetName:aExpectedTargetsNames)//iterates on mes3d checks if pt. p exists in known mes2d
-        {
-            if (!aFoundTargets.NameHasMeasure(aTargetName))
-            {
-                aVMissingTargetsNames.push_back(aTargetName);
-            }
-        }
-        return aVMissingTargetsNames;
-    }
     */
     /*
     cSetMesPtOf1Im cAppli_CheckBoardTargetRefine::MissingTargetsPredict(const std::string & aImName, const std::vector<std::string> & aVMissingTargetsNames)
@@ -822,12 +849,12 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
         if (mPhProj.HasMeasureImFolder(mPhProj.DPGndPt2D().DirOut(), aCam->NameImage()))
         {
             cSetMesPtOf1Im aSetOfNewMes2D = mPhProj.LoadMeasureImFromFolder(mPhProj.DPGndPt2D().DirOut(), aCam->NameImage());
-            drawTarget(aSetOfNewMes2D, false);//draw initial targets
+            DrawTarget(aSetOfNewMes2D, false);//draw initial targets
         }
         if (mPhProj.HasMeasureImFolder(mPhProj.DPGndPt2D().DirIn(), aCam->NameImage()))
         {
             cSetMesPtOf1Im aSetOfInitMes2D = mPhProj.LoadMeasureImFromFolder(mPhProj.DPGndPt2D().DirIn(), aCam->NameImage());
-            drawTarget(aSetOfInitMes2D, true);//draw new targets
+            DrawTarget(aSetOfInitMes2D, true);//draw new targets
         }
         for (const auto & aMes:mMImExtendedSetOfMes2D[aCam].Measures())
         {
@@ -839,7 +866,7 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
         return 0;
     }
 
-    void cAppli_CheckBoardTargetRefine::drawTarget(cSetMesPtOf1Im & aSetOfMes2D, bool isInit)
+    void cAppli_CheckBoardTargetRefine::DrawTarget(cSetMesPtOf1Im & aSetOfMes2D, bool isInit)
     {//draws targets from a set of mes2d & adapts drawing color whether targets are from
      //initial measurements (nothing else than the b/w circle)
      //or not (Orange border represents a window size)
