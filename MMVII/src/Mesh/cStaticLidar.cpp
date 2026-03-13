@@ -803,7 +803,7 @@ cTriangulation3D<tREAL8> * cStaticLidar::ToTriangulation3D(const std::string & a
 
     // get 3D corresponding points
     for (auto & aPt2d: aVPt2D)
-        aVPt3D.push_back(Image2Ground(aPt2d));
+        aVPt3D.push_back(Image2Ground(cPt2di(aPt2d.x(),aPt2d.y())));
 
     for (const auto & aFace: aTriRaster.VFaces())
     {

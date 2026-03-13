@@ -497,7 +497,7 @@ public :
 
     void UpdateWeightersMap(); // create or update map, on each iteration
 
-    void CreateZbuffers();
+    void CreateZbuffers(bool aDebug=false);
 
 protected :
     /**  Add observation for 1 Patch of point */

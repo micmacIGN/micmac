@@ -659,7 +659,7 @@ cBA_LidarLidarRaster::~cBA_LidarLidarRaster()
             delete aScanDataA.mLidarTriangulation;
 }
 
-void cBA_LidarLidarRaster::CreateZbuffers()
+void cBA_LidarLidarRaster::CreateZbuffers(bool aDebug)
 {
     int aMarginInsideImage = 1;
     for (auto & aScanDataA: mVScans)
@@ -683,12 +683,16 @@ void cBA_LidarLidarRaster::CreateZbuffers()
                          cPt3dr(aSzPix.x()-aMarginInsideImage,aSzPix.y()-aMarginInsideImage,Infty));
             cDataBoundedSet<tREAL8,3>  aSetCam(aBox);
 
-            cZBuffer aZBuf(aTriIt,aSetVis,aMapCamDepth,aSetCam,1);
+            cZBuffer aZBuf(aTriIt,aSetVis,aMapCamDepth,aSetCam,
+                           aDebug?1:4,
+                           aDebug?aScanDataB.mLidarRaster->PixelDomain().Sz():cPt2di::Dummy()
+                        ); // for debugging: same size as original image
             aZBuf.MakeZBuf(eZBufModeIter::ProjInit);
 
             MMVII_INTERNAL_ASSERT_tiny(aZBuf.IsOk(), "Error zbuffer")
 
-            aZBuf.ZBufIm().DIm().ToFile(mPhProj->DirVisuAppli()
+            if (aDebug)
+                aZBuf.ZBufIm().DIm().ToFile(mPhProj->DirVisuAppli()
                                         +"ZBuf-"+aScanDataA.mScanName+"_on_image_"
                                         +aScanDataB.mScanName+".tif");
         }
@@ -700,7 +704,7 @@ void cBA_LidarLidarRaster::CreateZbuffers()
 void cBA_LidarLidarRaster::AddObs()
 {
     if (mBA.Iter()==0)
-        CreateZbuffers();
+        CreateZbuffers(true);
 
     mLastResidual.Reset();
     mNbUsedPoints = 0;
