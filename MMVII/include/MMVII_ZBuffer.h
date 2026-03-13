@@ -2,7 +2,7 @@
 #define  _MMVII_ZBUFFER_H_
 
 #include "MMVII_AllClassDeclare.h"
-
+#include "MMVII_Ptxd.h"
 
 
 namespace MMVII
@@ -119,7 +119,7 @@ class  cZBuffer
           static constexpr tElem mInfty =  -1e10;
 
 	  ///  constructor
-          cZBuffer(cTri3DIterator & aMesh,const tSet & aSetIn,const tMap & aMap,const tSet & aSetOut,double aResolOut);
+          cZBuffer(cTri3DIterator & aMesh,const tSet & aSetIn,const tMap & aMap,const tSet & aSetOut,double aResolOut, const cPt2di & aForcedOutSize=cPt2di::Dummy());
 
 
 	  /// 

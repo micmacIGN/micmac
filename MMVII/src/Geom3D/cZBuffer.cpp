@@ -103,7 +103,7 @@ void  AddData(const cAuxAr2007  &anAux,cResModeSurfD& aRMS )
 /* =============================================== */
 
 
-cZBuffer::cZBuffer(cTri3DIterator & aMesh,const tSet &  aSetIn,const tMap & aMapI2O,const tSet &  aSetOut,double aResolOut) :
+cZBuffer::cZBuffer(cTri3DIterator & aMesh,const tSet &  aSetIn,const tMap & aMapI2O,const tSet &  aSetOut,double aResolOut, const cPt2di & aForcedOutSize) :
     mIsOk       (true),
     mZF_SameOri (false),
     mMultZ      (mZF_SameOri ? 1 : -1),
@@ -151,6 +151,12 @@ cZBuffer::cZBuffer(cTri3DIterator & aMesh,const tSet &  aSetIn,const tMap & aMap
 
     mBoxIn = aBoxOfPtsIn.CurBox();
     mBoxOut = aBoxOfPtsOut.CurBox();
+
+    if (aForcedOutSize.IsValid())
+    {
+        mBoxOut.P0ByRef() = cPt3dr(0,0, mBoxOut.P0().z());
+        mBoxOut.P1ByRef() = cPt3dr(aForcedOutSize.x(),aForcedOutSize.y(), mBoxOut.P1().z());
+    }
 
     cPt2di aBrd(2,2);
     //   aP0/aResout + aTr -> 1,1
