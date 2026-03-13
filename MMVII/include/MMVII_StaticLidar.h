@@ -97,6 +97,15 @@ protected:
     cRotation3D<tREAL8> mRotInput2Raster; //< to go from z vertical to z view direction of PP, and make PPx in center
 };
 
+// record all data for each patch
+struct cLidarPatch
+{
+    size_t                      mId;        //< Number in cStaticVector.mPatchCenters
+    std::set<cPt2di>            mLPatchesP; //< px in raster, consituted by points in a lidar scan, begin() is center
+    std::map<std::string, bool> mImVisible; //< for each Im/scanB names, if visible via zbuffers
+};
+
+
 class cStaticLidar: public cSensorCamPC
 {
     friend class cAppli_ImportStaticScan;
@@ -126,7 +135,7 @@ public :
     void SelectPatchCenters1(int aNbPatches);
     void SelectPatchCenters2(const cStaticLidarImporter &aSL_importer, int aNbPatches);
     void MakeVisu(const cPhotogrammetricProject & aPhProj) const;     ///< show 8bit dist image with patch centers
-    void MakePatches(std::list<std::set<cPt2di> > &aLPatches,
+    void MakePatches(std::list<cLidarPatch> &aLPatches,
                      const std::vector<cSensorCamPC *> &aVCam, int aNbPointByPatch, int aSzMin) const;
 
     cPt3dr Image2InputXYZ(const cPt2di & aRasterPx) const; // in input frame
@@ -153,7 +162,8 @@ public :
 
     cDataIm2D<tREAL4> &getRasterDistance() const;
     bool IsValidPoint(const cPt2dr &aRasterPx) const;
-    tREAL8 Sigma() const { return mSigma; }
+    tREAL8 Sigma() const;
+    const std::vector<cPt2di> & PatchCenters() const;
 
 
 private :

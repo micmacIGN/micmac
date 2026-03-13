@@ -333,14 +333,48 @@ class cBA_TieP
 
 //---------------------------------------------------------
 
+
 /** "Helper" class for cBA_LidarPhotogra : for a given patch in one image, will store all the data on the points*/
 class cData1ImLidPhgr
 {
     public :
         std::string mScanAName;    //< origin scan id to get uk
         std::string mScanBName;    //< secondary scan id to get uk (only for llidar/lidar adj)
-        size_t mKIm;  ///< num of images where the patch is seen (only for lidar/im adj)
+        size_t mKIm;  ///< number of the image where the patch is seen (only for lidar/im adj)
         std::vector<std::pair<tREAL8,cPt2dr>> mVGr; ///< pair of radiometry/gradient, in image,  for each point of the patch
+};
+
+// record all data for each scan raster
+struct cStaticLidarBAData
+{
+    std::string                    mScanName;      //< scan id
+    cStaticLidar *                 mLidarRaster;   //< raster representations of lidar
+    std::list<cLidarPatch>         mLPatches;      //< all the patches data after size estimation and visibility
+};
+
+
+/**
+ * For one image (or scan B), all the visibility data
+ * TODO: be able to avoid some zbuffer calculations if not needed!
+ */
+class cImageScanVisibiltyData
+{
+public :
+    /// computes z buffer and visibles patches
+    cImageScanVisibiltyData(const std::string & aImName,
+                            cSensorCamPC * aCam,
+                            std::vector<cStaticLidarBAData> &aVLidars,
+                            cPhotogrammetricProject * aPhProj,
+                            bool aDebug);
+    const std::vector<int> & getVisiblePatchsId(const std::string &aLidarAName) const;
+protected:
+    std::string                             mImName; ///< or scanB name for lidar-lidar
+    cPhotogrammetricProject *               mPhProj;
+
+    // all the maps are indexed by ScanAName
+    std::map<std::string,cIm2D<tREAL4>>     mMapZbufferImage; ///< z buffer image of triangulation of scanA on image K or scan B
+    // TODO: is it useful??
+    std::map<std::string,std::vector<int>>  mMapVisiblePatchsId; ///< ref to mLPatchesP elements, computed from zbuffer and distance
 };
 
 
@@ -443,14 +477,6 @@ protected:
 };
 
 
-// record all data for each scan raster
-struct cStaticLidarBAData
-{
-    std::string                    mScanName;      //< scan id
-    cStaticLidar *                 mLidarRaster;   //< raster representations of lidar
-    std::list<std::set<cPt2di>>    mLPatchesP;     //< set of patches as px in raster, consituted by 3D points in a lidar scan
-};
-
 /**
  * use lidar raster geometry, with unknown pose
 */
@@ -500,7 +526,7 @@ public :
 
 protected :
     /**  Add observation for 1 Patch of point */
-    tREAL8 Add1Patch(const cPt3dr &aPGround, const std::string & aScanName); // returns min residual for this point
+    tREAL8 Add1Patch(const cLidarPatch &aPatch, const cStaticLidarBAData & aScanData); // returns min residual for this point
 
     void AddPatchDist(const cPt3dr &aPGround, const std::vector<cData1ImLidPhgr> &aVData) ;
 
@@ -515,6 +541,7 @@ protected :
     std::vector<cStaticLidarBAData>   mVScans;      ///< vector of raster representations of lidar
     std::map<std::string,cStdWeighterResidual> mWeightersMap;   ///< map from "nameScanA-nameScanB" to the appropriate weighter
     tREAL8                            mThresholdInit, mThresholdFinal;   ///< distance where scan points are supposed to be hidden
+    std::map<std::string,cImageScanVisibiltyData> mMapVisibility; ///< visibility indexed by scan B name
 };
 
 

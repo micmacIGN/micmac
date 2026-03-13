@@ -720,6 +720,9 @@ void cStaticLidar::TriangulateRegular(const std::string & aVisuPath, int aFactor
 
     ScopedTimer aTimer("ToTriangulation3DRegular");
     tREAL8 aLimitCosTriangles = 0.999;
+    tREAL8 aLimitLenOnMinDist = 50/InternalCalib()->F();
+    //TODO remove triangles too much in view direction?
+
     //TODO make triangulation in instrument frame, add pose later?
     std::vector<cPt3dr> aVPt3D;
     std::vector<cPt2di> aVPt2D;
@@ -757,17 +760,25 @@ void cStaticLidar::TriangulateRegular(const std::string & aVisuPath, int aFactor
                     auto aAB = aVPt3D[aKb]-aVPt3D[aKa];
                     auto aBC = aVPt3D[aKc]-aVPt3D[aKb];
                     auto aCA = aVPt3D[aKa]-aVPt3D[aKc];
-                    tREAL4 aDistAB = Norm2(aAB);
-                    tREAL4 aDistBC = Norm2(aBC);
-                    tREAL4 aDistCA = Norm2(aCA);
+                    tREAL4 aLenAB = Norm2(aAB);
+                    tREAL4 aLenBC = Norm2(aBC);
+                    tREAL4 aLenCA = Norm2(aCA);
                     tREAL4 aABdotBC = Scal(aAB,aBC);
                     tREAL4 aBCdotCA = Scal(aBC,aCA);
                     tREAL4 aCAdotAB = Scal(aCA,aAB);
-                    if (fabs(aABdotBC) / (aDistAB*aDistBC) > aLimitCosTriangles)
+                    if (fabs(aABdotBC) / (aLenAB*aLenBC) > aLimitCosTriangles)
                         continue;
-                    if (fabs(aBCdotCA) / (aDistBC*aDistCA) > aLimitCosTriangles)
+                    if (fabs(aBCdotCA) / (aLenBC*aLenCA) > aLimitCosTriangles)
                         continue;
-                    if (fabs(aCAdotAB) / (aDistCA*aDistAB) > aLimitCosTriangles)
+                    if (fabs(aCAdotAB) / (aLenCA*aLenAB) > aLimitCosTriangles)
+                        continue;
+                    // check size vs distance
+                    tREAL4 aDistA = getRasterDistance().GetV(cPt2di(aVPt2D[aKa].x(), aVPt2D[aKa].y()));
+                    tREAL4 aDistB = getRasterDistance().GetV(cPt2di(aVPt2D[aKb].x(), aVPt2D[aKb].y()));
+                    tREAL4 aDistC = getRasterDistance().GetV(cPt2di(aVPt2D[aKc].x(), aVPt2D[aKc].y()));
+                    tREAL4 aMaxLen = std::max({aLenAB, aLenBC, aLenCA});
+                    tREAL4 aMinDist = std::min({aDistA, aDistB, aDistC});
+                    if (aMaxLen/aMinDist > aLimitLenOnMinDist)
                         continue;
                     aVFace.push_back(cPt3di(aKa, aKb, aKc));
                 }
@@ -881,6 +892,16 @@ bool cStaticLidar::IsValidPoint(const cPt2dr &aRasterPx) const
     auto & aMaskImData = mRasterMask->DIm();
     return aMaskImData.InsideBL(aRasterPx)
            && (aMaskImData.GetV(cPt2di(aRasterPx.x()+0.5,aRasterPx.y()+0.5))==255.);
+}
+
+tREAL8 cStaticLidar::Sigma() const
+{
+    return mSigma;
+}
+
+const std::vector<cPt2di> & cStaticLidar::PatchCenters() const
+{
+    return mPatchCenters;
 }
 
 cPt2dr cStaticLidar::Ground2ImagePrecise(const cPt3dr & aGroundPt) const
@@ -1321,7 +1342,7 @@ void cStaticLidar::MakeVisu(const cPhotogrammetricProject & aPhProj) const
 }
 
 void cStaticLidar::MakePatches
-    (std::list<std::set<cPt2di> > &aLPatches,
+    (std::list<cLidarPatch> &aLPatches,
      const std::vector<cSensorCamPC *> & aVCam,
      int    aNbPointByPatch,
      int    aSzMin
@@ -1335,9 +1356,10 @@ void cStaticLidar::MakePatches
     // shortcut if only 1 point needed: just get the centers
     if (aNbPointByPatch==1)
     {
-        for (auto & aCenter: mPatchCenters)
+        for (size_t i=0; i<mPatchCenters.size(); ++i)
         {
-            aLPatches.push_back( {aCenter} );
+            auto & aCenter = mPatchCenters[i];
+            aLPatches.push_back({i, {aCenter}, {}});
         }
         return;
     }
@@ -1345,8 +1367,9 @@ void cStaticLidar::MakePatches
     std::vector<tREAL8> aVectGndPixelSize;
     aVectGndPixelSize.resize(aVCam.size());
     // parse center points
-    for (auto & aCenter: mPatchCenters)
+    for (size_t i=0; i<mPatchCenters.size(); ++i)
     {
+        auto & aCenter = mPatchCenters[i];
         //search for average GndPixelSize
         aVectGndPixelSize.clear();
         cPt3dr aGndCenter = Image2Ground(aCenter);
@@ -1393,7 +1416,7 @@ void cStaticLidar::MakePatches
         if (aRasterStepPixelsY < 1.)
             aRasterStepPixelsY = 1.;
 
-        std::set<cPt2di> aPatch = {aCenter}; // convention: center is at first
+        std::set<cPt2di> aPatchPts = {aCenter}; // convention: center is at first
 
         for (int aJ = -aNbStepRadius; aJ<=aNbStepRadius; ++aJ)
             for (int aI = -aNbStepRadius; aI<=aNbStepRadius; ++aI)
@@ -1402,13 +1425,13 @@ void cStaticLidar::MakePatches
                     continue; // do not add center twice
                 cPt2di aPt = aCenter + cPt2di(aI*aRasterStepPixelsX,aJ*aRasterStepPixelsY);
                 if (aRasterMaskData.Inside(aPt) && aRasterMaskData.GetV(aPt))
-                    aPatch.insert(aPt);
+                    aPatchPts.insert(aPt);
             }
 
         // some requirement on minimal size
-        if ((int)aPatch.size() > aSzMin)
+        if ((int)aPatchPts.size() > aSzMin)
         {
-            aLPatches.push_back(aPatch);
+            aLPatches.push_back({i, aPatchPts, {}});
         }
     }
 }
