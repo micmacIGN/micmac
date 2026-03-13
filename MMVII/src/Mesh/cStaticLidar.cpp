@@ -10,6 +10,7 @@
 #include "MMVII_ImageInfoExtract.h"
 #include "MMVII_2Include_CSV_Serial_Tpl.h"
 #include "../SymbDerGen/Formulas_CentralProj.h"
+#include "../Utils/scoped_timer.h"
 
 
 namespace MMVII
@@ -707,6 +708,7 @@ cPt3dr cStaticLidar::Image2Ground(const cPt2dr & aRasterPx) const
 
 cTriangulation3D<tREAL8> * cStaticLidar::ToTriangulation3DRegular(const std::string & aVisuPath, int aFactor) const
 {
+    ScopedTimer aTimer("ToTriangulation3DRegular");
     tREAL8 aLimitCosTriangles = 0.999;
     //TODO make triangulation in instrument frame, add pose later?
     std::vector<cPt3dr> aVPt3D;
@@ -771,6 +773,7 @@ cTriangulation3D<tREAL8> * cStaticLidar::ToTriangulation3DRegular(const std::str
 
 cTriangulation3D<tREAL8> * cStaticLidar::ToTriangulation3D(const std::string & aVisuPath, int aFactor) const
 {
+    ScopedTimer aTimer("ToTriangulation3D");
     tREAL8 aLimitCosTriangles = 0.9999;
     tREAL8 aLimitLenOnMinDist = 0.2;
     //TODO make triangulation in instrument frame, add pose later?
