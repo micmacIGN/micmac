@@ -36,7 +36,7 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
             void doReproj(const std::string & aCode);
             void TargetRefine(bool& isOk);
             void CurrTgtExtent(bool& isOk);
-            std::vector<std::string> getMissingTgtNames(cSensorCamPC& aCam);
+            std::set<std::string> getMissingTgtNames(cSensorCamPC& aCam);
             cSetMesPtOf1Im MissingTargetsPredict(const std::string & aImName, const std::vector<std::string> & aVMissingTargetsNames);
             void DrawTarget(cSetMesPtOf1Im & aSetOfMes2D, bool isInit);
             void ResetInitTargetPts();
@@ -220,8 +220,8 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
             auto aCodes = mTargets2WorldMappings.ListOfCodes();
 
             StdOut() << aCam->NameImage() << std::endl;
-            auto aVMissingNames = getMissingTgtNames(*aCam);
-            StdOut() << "missing targets : " << aVMissingNames<<"\n";
+            auto aSMissingNames = getMissingTgtNames(*aCam);
+            //StdOut() << "missing targets : " << aSMissingNames<<"\n";
 
             std::vector<std::string> aVRecovNames = {};
 
@@ -230,7 +230,10 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
                 mCurrTgtCode = aTgt;
                 bool isOk;
                 TargetRefine(isOk);
-                if (isOk && ){aVRecovNames.push_back(aTgt);}
+                if (isOk && (aSMissingNames.find(aTgt)!=aSMissingNames.end()))
+                {
+                    aVRecovNames.push_back(aTgt);
+                }
             }
             StdOut() << "recoverable targets:" << aVRecovNames<<std::endl;
             /*if(isOk)
@@ -630,6 +633,7 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
 
     void cAppli_CheckBoardTargetRefine::RansacTransFunc(cPt2dr& theSol, std::vector<cPt2di> aVBitCenters)
     {
+        //StdOut() << "BEGIN RANSAC->"<<std::endl;
         int it = 200;//nb. iterations
         std::vector<cPt2di> aSet = {};
         std::vector<cPt2di> theSet = {};
@@ -672,21 +676,22 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
                 theSol = cPt2dr(a1,a2);
             }
         }
+        //StdOut() << "OK RANSAC"<<std::endl;
     }
 
-    std::vector<std::string> cAppli_CheckBoardTargetRefine::getMissingTgtNames(cSensorCamPC& aCam)
+    std::set<std::string> cAppli_CheckBoardTargetRefine::getMissingTgtNames(cSensorCamPC& aCam)
     {
-        std::vector<std::string> aVRes;
+        std::set<std::string> aSRes;
         auto aVCTargets = mPhProj.LoadGCP3D();
 
         for (const auto & aTgt : aVCTargets.ListOfNames())//iterates on mes3d checks if pt. p exists in known mes2d
         {
             if (!mPhProj.LoadMeasureIm(aCam.NameImage()).NameHasMeasure(aTgt) && aCam.IsVisible(aVCTargets.GetMeasureOfNamePt(aTgt).mPt))
             {
-                aVRes.push_back(aTgt);
+                aSRes.insert(aTgt);
             }
         }
-        return aVRes;
+        return aSRes;
     }
 
     /*---
