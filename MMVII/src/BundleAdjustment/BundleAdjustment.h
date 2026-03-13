@@ -448,7 +448,6 @@ struct cStaticLidarBAData
 {
     std::string                    mScanName;      //< scan id
     cStaticLidar *                 mLidarRaster;   //< raster representations of lidar
-    cTriangulation3D<tREAL8> *     mLidarTriangulation; ///< triangulation of the raster for zbuffer
     std::list<std::set<cPt2di>>    mLPatchesP;     //< set of patches as px in raster, consituted by 3D points in a lidar scan
 };
 

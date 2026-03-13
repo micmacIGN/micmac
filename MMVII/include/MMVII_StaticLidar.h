@@ -106,6 +106,7 @@ public :
     cStaticLidar(const std::string &aNameFile, const std::string & aStationName,
                  const std::string & aScanName, const tPose &aPose, cPerspCamIntrCalib *aCalib,
                  cRotation3D<tREAL8> aRotInput2Raster, tREAL8 aSigma);
+    ~cStaticLidar();
 
     static cStaticLidar *FromFile(const std::string & aNameScanFile, const std::string & aNameRastersDir="");
 
@@ -142,8 +143,9 @@ public :
 
     cPt2dr Ground2ImagePrecise(const cPt3dr & aGroundPt) const;
 
-    cTriangulation3D<tREAL8> * ToTriangulation3DRegular(const std::string &aVisuPath, int aFactor=16) const;
-    cTriangulation3D<tREAL8> * ToTriangulation3D(const std::string &aVisuPath, int aFactor=16) const;
+    void TriangulateRegular(const std::string &aVisuPath, int aFactor=16);
+    void Triangulate(const std::string &aVisuPath, int aFactor=16);
+    cTriangulation3D<tREAL8> * getTriangulation() const;
 
     static std::string  PrefixName() ;
     std::string  V_PrefixName() const override;
@@ -190,6 +192,8 @@ private :
     std::unique_ptr<cIm2D<tREAL4>> mRasterScore; // updated on each filter, used to find patch centers. High=bad
 
     cRotation3D<tREAL8> mRotInput2Raster; //< to go from z vertical to z view direction of PP, and make PPx in center
+    // triangulation for patches selection
+    cTriangulation3D<tREAL8> * mTriangulation; ///< triangulation of the raster, for zbuffer
 };
 
 template <typename TYPE>
