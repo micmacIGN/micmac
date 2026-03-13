@@ -656,6 +656,7 @@ cBA_LidarLidarRaster::~cBA_LidarLidarRaster()
 
 void cBA_LidarLidarRaster::CreateZbuffers(bool aDebug)
 {
+    fill mMapVisibility
     int aMarginInsideImage = 1;
     for (auto & aScanDataA: mVScans)
     {
