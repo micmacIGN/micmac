@@ -639,8 +639,15 @@ cStaticLidar::cStaticLidar(const std::string & aNameFile, const std::string & aS
     mScanName(aScanName),
     mAreRastersReady(false),
     mSigma(aSigma),
-    mRotInput2Raster(aRotInput2Raster)
+    mRotInput2Raster(aRotInput2Raster),
+    mTriangulation(nullptr)
 {
+}
+
+cStaticLidar::~cStaticLidar()
+{
+    if (mTriangulation)
+        delete mTriangulation;
 }
 
 cStaticLidar * cStaticLidar::FromFile(const std::string & aNameScanFile, const std::string & aNameRastersDir)
@@ -706,8 +713,11 @@ cPt3dr cStaticLidar::Image2Ground(const cPt2dr & aRasterPx) const
 
 
 
-cTriangulation3D<tREAL8> * cStaticLidar::ToTriangulation3DRegular(const std::string & aVisuPath, int aFactor) const
+void cStaticLidar::TriangulateRegular(const std::string & aVisuPath, int aFactor)
 {
+    if (mTriangulation)
+        delete mTriangulation;
+
     ScopedTimer aTimer("ToTriangulation3DRegular");
     tREAL8 aLimitCosTriangles = 0.999;
     //TODO make triangulation in instrument frame, add pose later?
@@ -764,15 +774,17 @@ cTriangulation3D<tREAL8> * cStaticLidar::ToTriangulation3DRegular(const std::str
             }
         }
 
-    auto * aTri = new cTriangulation3D<tREAL8>(aVPt3D, aVFace);
+    mTriangulation = new cTriangulation3D<tREAL8>(aVPt3D, aVFace);
     StdOut() <<"Scan triangulation regular "<< mStationName+"_"+mScanName <<": "<<aVPt3D.size()<<" pts, "<<aVFace.size()<<" faces\n";
-    aTri->WriteFile(aVisuPath + mStationName+"_"+mScanName+"_regular.ply",true);
-    return aTri;
+    mTriangulation->WriteFile(aVisuPath + mStationName+"_"+mScanName+"_regular.ply",true);
 }
 
 
-cTriangulation3D<tREAL8> * cStaticLidar::ToTriangulation3D(const std::string & aVisuPath, int aFactor) const
+void cStaticLidar::Triangulate(const std::string & aVisuPath, int aFactor)
 {
+    if (mTriangulation)
+        delete mTriangulation;
+
     ScopedTimer aTimer("ToTriangulation3D");
     tREAL8 aLimitCosTriangles = 0.9999;
     tREAL8 aLimitLenOnMinDist = 0.2;
@@ -803,7 +815,7 @@ cTriangulation3D<tREAL8> * cStaticLidar::ToTriangulation3D(const std::string & a
 
     // get 3D corresponding points
     for (auto & aPt2d: aVPt2D)
-        aVPt3D.push_back(Image2Ground(aPt2d));
+        aVPt3D.push_back(Image2Ground(cPt2di(aPt2d.x(),aPt2d.y())));
 
     for (const auto & aFace: aTriRaster.VFaces())
     {
@@ -839,12 +851,16 @@ cTriangulation3D<tREAL8> * cStaticLidar::ToTriangulation3D(const std::string & a
         aVFaceFiltered.push_back(aFace);
     }
 
-    auto * aTri = new cTriangulation3D<tREAL8>(aVPt3D, aVFaceFiltered);
+    mTriangulation = new cTriangulation3D<tREAL8>(aVPt3D, aVFaceFiltered);
     StdOut() <<"Scan triangulation "<< mStationName+"_"+mScanName <<": "<<aVPt3D.size()<<" pts, "<<aVFaceFiltered.size()<<" faces\n";
-    aTri->WriteFile(aVisuPath + mStationName+"_"+mScanName+".ply",true);
-    return aTri;
+    mTriangulation->WriteFile(aVisuPath + mStationName+"_"+mScanName+".ply",true);
+
 }
 
+cTriangulation3D<tREAL8> * cStaticLidar::getTriangulation() const
+{
+    return mTriangulation;
+}
 
 std::string  cStaticLidar::V_PrefixName() const { return PrefixName() ; }
 std::string  cStaticLidar::PrefixName()  { return "Scan";}

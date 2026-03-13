@@ -142,7 +142,7 @@ cBA_LidarPhotograRaster::cBA_LidarPhotograRaster(cPhotogrammetricProject * aPhPr
     {
         cStaticLidar * aScan = mBA.AddStaticLidar(aNameSens);
         StdOut() << "Add Scan " << aNameSens << "\n";
-        mVScans.push_back({aNameSens, aScan, aScan->ToTriangulation3D(mPhProj->DirVisuAppli()) , {}});
+        mVScans.push_back({aNameSens, aScan , {}});
     }
 
     // Creation of the patches, choose a neigborhood around patch centers. TODO: adapt to images ground pixels size?
@@ -150,6 +150,7 @@ cBA_LidarPhotograRaster::cBA_LidarPhotograRaster(cPhotogrammetricProject * aPhPr
         mNbPointByPatch = 1;
     for (auto & aScanData: mVScans)
     {
+        aScanData.mLidarRaster->Triangulate(mPhProj->DirVisuAppli());
         aScanData.mLidarRaster->MakePatches(aScanData.mLPatchesP,aBA.VSCPC(),mNbPointByPatch,5);
         StdOut() << "Nb patches for " << aScanData.mScanName << ": " << aScanData.mLPatchesP.size() << "\n";
     }
@@ -167,9 +168,6 @@ cBA_LidarPhotograTri::~cBA_LidarPhotograTri()
 cBA_LidarPhotograRaster::~cBA_LidarPhotograRaster()
 {
     //if (mLidarData) delete mLidarData; // automatically deleted at the end
-    for (auto & aScanDataA: mVScans)
-        if (aScanDataA.mLidarTriangulation)
-            delete aScanDataA.mLidarTriangulation;
 }
 
 void cBA_LidarPhotograTri::AddObs()
@@ -617,13 +615,13 @@ cBA_LidarLidarRaster::cBA_LidarLidarRaster(cPhotogrammetricProject * aPhProj,
     {
         cStaticLidar * aScan = mBA.AddStaticLidar(aNameSens);
         StdOut() << "Add Scan " << aNameSens << "\n";
-        //delete aScan->ToTriangulation3DRegular(mPhProj->DirVisuAppli()); // test: make a .ply of regular triangulation
-        mVScans.push_back({aNameSens, aScan, aScan->ToTriangulation3D(mPhProj->DirVisuAppli()), {}});
+        mVScans.push_back({aNameSens, aScan, {}});
     }
 
-    // Creation of the patches, here juste center point
+    // Creation of the patches, here just center point
     for (auto & aScanData: mVScans)
     {
+        aScanData.mLidarRaster->TriangulateRegular(mPhProj->DirVisuAppli());
         aScanData.mLidarRaster->MakePatches(aScanData.mLPatchesP,aBA.VSCPC(),1,5);
         StdOut() << "Nb patches for " << aScanData.mScanName << ": " << aScanData.mLPatchesP.size() << "\n";
 
@@ -654,17 +652,14 @@ void cBA_LidarLidarRaster::UpdateWeightersMap()
 
 cBA_LidarLidarRaster::~cBA_LidarLidarRaster()
 {
-    for (auto & aScanDataA: mVScans)
-        if (aScanDataA.mLidarTriangulation)
-            delete aScanDataA.mLidarTriangulation;
 }
 
-void cBA_LidarLidarRaster::CreateZbuffers()
+void cBA_LidarLidarRaster::CreateZbuffers(bool aDebug)
 {
     int aMarginInsideImage = 1;
     for (auto & aScanDataA: mVScans)
     {
-        cMeshTri3DIterator aTriIt(aScanDataA.mLidarTriangulation);
+        cMeshTri3DIterator aTriIt(aScanDataA.mLidarRaster->getTriangulation());
         for (auto & aScanDataB: mVScans)
         {
             if (aScanDataB.mScanName == aScanDataA.mScanName)
@@ -683,12 +678,16 @@ void cBA_LidarLidarRaster::CreateZbuffers()
                          cPt3dr(aSzPix.x()-aMarginInsideImage,aSzPix.y()-aMarginInsideImage,Infty));
             cDataBoundedSet<tREAL8,3>  aSetCam(aBox);
 
-            cZBuffer aZBuf(aTriIt,aSetVis,aMapCamDepth,aSetCam,1);
+            cZBuffer aZBuf(aTriIt,aSetVis,aMapCamDepth,aSetCam,
+                           aDebug?1:4,
+                           aDebug?aScanDataB.mLidarRaster->PixelDomain().Sz():cPt2di::Dummy()
+                        ); // for debugging: same size as original image
             aZBuf.MakeZBuf(eZBufModeIter::ProjInit);
 
             MMVII_INTERNAL_ASSERT_tiny(aZBuf.IsOk(), "Error zbuffer")
 
-            aZBuf.ZBufIm().DIm().ToFile(mPhProj->DirVisuAppli()
+            if (aDebug)
+                aZBuf.ZBufIm().DIm().ToFile(mPhProj->DirVisuAppli()
                                         +"ZBuf-"+aScanDataA.mScanName+"_on_image_"
                                         +aScanDataB.mScanName+".tif");
         }
@@ -700,7 +699,7 @@ void cBA_LidarLidarRaster::CreateZbuffers()
 void cBA_LidarLidarRaster::AddObs()
 {
     if (mBA.Iter()==0)
-        CreateZbuffers();
+        CreateZbuffers(true);
 
     mLastResidual.Reset();
     mNbUsedPoints = 0;
