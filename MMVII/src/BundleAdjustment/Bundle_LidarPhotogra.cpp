@@ -2,6 +2,7 @@
 #include "MMVII_Interpolators.h"
 #include "MMVII_Tpl_Images.h"
 #include "MMVII_ZBuffer.h"
+#include "../Utils/scoped_timer.h"
 
 namespace MMVII
 {
@@ -668,6 +669,7 @@ void cBA_LidarLidarRaster::CreateZbuffers()
         {
             if (aScanDataB.mScanName == aScanDataA.mScanName)
                 continue;
+            ScopedTimer aTimer("Zbuffer");
             StdOut() << "Create zbuffer: " << aScanDataA.mScanName+"_on_image_"
                      << aScanDataB.mScanName<<"\n";
 
