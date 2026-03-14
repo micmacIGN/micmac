@@ -220,6 +220,7 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpec_OriRelPairsOf1m);
         TheVecAll.push_back(&TheSpec_OriRelAllPairs);
         TheVecAll.push_back(&TheSpec_SelectPairOriRel);
+        TheVecAll.push_back(&TheSpec_OriRel3Im);
 
         TheVecAll.push_back(&TheSpecMeshCheck);
         TheVecAll.push_back(&TheSpecProMeshImage);

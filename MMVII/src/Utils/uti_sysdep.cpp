@@ -254,7 +254,7 @@ bool FileLock::hasLock()
 
     void FileLock::doUnlock()
     {
-        lockf(mFd, F_ULOCK, 0);
+        auto Unused =  lockf(mFd, F_ULOCK, 0);  FakeUseIt(Unused);
         close(mFd);
         mFd = -1;
     }

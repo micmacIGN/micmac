@@ -105,6 +105,7 @@ class cAppli_SelectPairOriRel : public cMMVII_Appli,
         int                       mNbMinSpanTree;
         int                       mNbLines;
         bool                      mLinesIsCirc;
+        bool                      mAllPair;
         int                       mNbKBestSom;
 
         size_t                    mBitTmp0 ;
@@ -131,6 +132,7 @@ cAppli_SelectPairOriRel::cAppli_SelectPairOriRel(const std::vector<std::string> 
     mNbMinSpanTree (4),
     mNbLines       (3),
     mLinesIsCirc   (true),
+    mAllPair       (false),
     mNbKBestSom    (5),
     mNbEdgeSel     (0),
     mNbTestAddE    (0),
@@ -162,6 +164,9 @@ cCollecSpecArg2007 & cAppli_SelectPairOriRel::ArgOpt(cCollecSpecArg2007 & anArgO
         <<  mPhProj.DPGndPt2D().ArgDirInOpt()
         << AOpt2007(mNbMinSpanTree,"NbMSTree","Number of minimal spanning trees",{eTA2007::HDV})
         << AOpt2007(mNbKBestSom,"NbKBest","Number of k best point",{eTA2007::HDV})
+        << AOpt2007(mNbLines,"NbLines","Number of image succ in lines",{eTA2007::HDV})
+        << AOpt2007(mAllPair,"AllPair","Add all pairs",{eTA2007::HDV})
+
    ;
 }
 
@@ -341,6 +346,11 @@ int cAppli_SelectPairOriRel::Exe()
     }
 
     // --------------  Add Lines ---------------------------------------------
+    if (mAllPair)
+    {
+        mNbLines = mGr.NbVertex();
+        mLinesIsCirc = true;
+    }
     for ( int aKV1 = 0 ; aKV1<(int)mGr.NbVertex() ; aKV1++)
     {
         for (int aKV2Glob=aKV1+1; aKV2Glob<=aKV1+mNbLines; aKV2Glob++)

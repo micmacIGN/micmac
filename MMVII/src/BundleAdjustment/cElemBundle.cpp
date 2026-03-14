@@ -15,18 +15,21 @@ namespace MMVII
 
 
 cElemBA::cElemBA(eModResBund aMode,const std::vector<tPoseR>& aVPose) :
-    mMode       (aMode),
-    isModeCoplan    (! ModResBund_IsModeGen(mMode)),
-    mCurPose    (aVPose),
-    mSzBuf      (1),
-    mEqElemCam1 (EqBundleElem_Cam1(mMode,true,mSzBuf,true)),
-    mEqElemCam2 (EqBundleElem_Cam2(mMode,true,mSzBuf,true)),
+    mMode        (aMode),
+    isModeCoplan (! ModResBund_IsModeGen(mMode)),
+    mCurPose     (aVPose),
+    mSzBuf       (1),
+    mEqElemCam1  (EqBundleElem_Cam1(mMode,true,mSzBuf,true)),
+    mEqElemCam2  (EqBundleElem_Cam2(mMode,true,mSzBuf,true)),
+    mEqElemCamN  (EqBundleElem_CamN(mMode,true,mSzBuf,true)),
     mEqElemCam12 (EqBundleElem_Cam12(mMode,true,mSzBuf,true)),
   //  mEqElemCamN (nullptr),
-    mSetInterv  (),
-    mSys        (nullptr),
-    mTr2        (cPt3dr(0,0,1),"BAElem","Base1"),
-    mRot2       (tRotR::Identity())
+    mSetInterv   (),
+    mSys         (nullptr),
+    mTr2         (cPt3dr(0,0,1),"BAElem","Base1"),
+    mRot2        (tRotR::Identity()),
+    mSCCam12     (true),
+    mIndCamGen   (mSCCam12 ? 2 : 0)
 
 {
 
@@ -35,13 +38,15 @@ cElemBA::cElemBA(eModResBund aMode,const std::vector<tPoseR>& aVPose) :
     MMVII_INTERNAL_ASSERT_always((Norm2(mCurPose.at(1).Tr())-1.0)<1e-8,"Norma base in cElemBA");
 
     //  --------  Initialize the unknowns ----------------------
-    mTr2.SetPNorm(mCurPose.at(1).Tr());
-    mRot2.SetRot(mCurPose.at(1).Rot());
+    if (mSCCam12)
+    {
+       mTr2.SetPNorm(mCurPose.at(1).Tr());
+       mRot2.SetRot(mCurPose.at(1).Rot());
 
-    mSetInterv.AddOneObj(&mTr2);
-    mSetInterv.AddOneObj(&mRot2);
-
-    for (size_t aKP=2 ; aKP<mCurPose.size() ; aKP++)
+       mSetInterv.AddOneObj(&mTr2);
+       mSetInterv.AddOneObj(&mRot2);
+    }
+    for (size_t aKP=mIndCamGen ; aKP<mCurPose.size() ; aKP++)
     {
         mPoseN.push_back(new cPoseWithUK(mCurPose.at(aKP)));
         mSetInterv.AddOneObj(mPoseN.back());
@@ -65,9 +70,10 @@ cResolSysNonLinear<double> *  cElemBA::Sys() {return mSys;}
 const std::vector<tPoseR>  &  cElemBA::CurPose() const {return mCurPose;}
 tREAL8 cElemBA::AvgRes1() const {return mRes1.Average();}
 tREAL8 cElemBA::AvgRes2() const {return mRes2.Average();}
+tREAL8 cElemBA::AvgResN() const {return mResN.Average();}
 
 
-void cElemBA::AddEquationColinearity_Cam1
+tREAL8 cElemBA::AddEquationColinearity_Cam1
      (
            cSetIORSNL_SameTmp<tREAL8> & aStrSubst,
            const cPt3dr & aDirB1,
@@ -81,11 +87,19 @@ void cElemBA::AddEquationColinearity_Cam1
     mSys->R_AddEq2Subst(aStrSubst,mEqElemCam1,aVIndGlob,aVObs,aWeight);
 
     // accumulate residual for cam1
-    for (int aK=0 ; aK<3 ; aK++)
-        mRes1.Add(1.0,std::abs(mEqElemCam1->ValComp(0,aK)));
+    tREAL8 aSumR=0.0;
+    for (size_t aK=0 ; aK<mEqElemCam1->NbElem() ; aK++)
+    {
+        tREAL8 aRes = std::abs(mEqElemCam1->ValComp(0,aK));
+        mRes1.Add(1.0,aRes);
+        aSumR += Square(aRes);
+    }
+    return std::sqrt(aSumR) ;
 }
 
-void cElemBA::AddEquationColinearity_Cam2
+// mEqElemCam12->NbElem()
+
+tREAL8  cElemBA::AddEquationColinearity_Cam2
      (
            cSetIORSNL_SameTmp<tREAL8> & aStrSubst,
            const cPt3dr & aDirB2,
@@ -102,11 +116,44 @@ void cElemBA::AddEquationColinearity_Cam2
     mSys->R_AddEq2Subst(aStrSubst,mEqElemCam2,aVIndGlob,aVObs,aWeight);
 
     // accumulate residual for cam2
-    for (int aK=0 ; aK<3 ; aK++)
-        mRes2.Add(1.0,std::abs(mEqElemCam2->ValComp(0,aK)));
+    tREAL8 aSumR = 0;
+    for (size_t aK=0 ; aK<mEqElemCam2->NbElem() ; aK++)
+    {
+        tREAL8 aRes = std::abs(mEqElemCam2->ValComp(0,aK));
+        mRes2.Add(1.0,aRes);
+        aSumR += Square(aRes);
+    }
+    return std::sqrt(aSumR);
 }
 
-void cElemBA::AddEquationCoplanarity(const cPt3dr & aDirB1,const cPt3dr & aDirB2,tREAL8  aWeight)
+tREAL8 cElemBA::AddEquationColinearity_CamN
+     (
+        size_t aIndC,
+        cSetIORSNL_SameTmp<tREAL8> & aStrSubst,
+        const cPt3dr & aDirB,
+        tREAL8  aWeight
+     )
+{
+    std::vector<int> aVIndGlob = {-1,-2,-3}; //< Index UK, begin with 3D point
+    std::vector<double> aVObs = aDirB.ToStdVector(); // Obs : begin bundle
+
+    // false dont transpose, we use Cam->Word
+    mPoseN.at(aIndC-mIndCamGen)->AddIdexesAndObs(aVIndGlob,aVObs,false);
+    // Add in  equation forcing point to belong to bundle, taking into account the unknown pose
+    mSys->R_AddEq2Subst(aStrSubst,mEqElemCamN,aVIndGlob,aVObs,aWeight);
+
+    tREAL8 aSumRes = 0.0;
+    for (size_t aK=0 ; aK<mEqElemCamN->NbElem() ; aK++)
+    {
+        tREAL8 aRes = std::abs(mEqElemCamN->ValComp(0,aK));
+        aSumRes += Square(aRes);
+        mResN.Add(1.0,aRes);
+    }
+    return std::sqrt(aSumRes);
+}
+
+
+tREAL8 cElemBA::AddEquationCoplanarity(const cPt3dr & aDirB1,const cPt3dr & aDirB2,tREAL8  aWeight)
 {
       // case where use an "handrafted" linearization (for fun ? and efficiency ?)
       if (mMode==eModResBund::eLinDet12)
@@ -149,7 +196,7 @@ void cElemBA::AddEquationCoplanarity(const cPt3dr & aDirB1,const cPt3dr & aDirB2
           }
           mRes1.Add(1.0,std::abs(aRes));
           mRes2.Add(1.0,std::abs(aRes));
-         return;
+          return std::abs(aRes);
       }
 
       // geneal case , work with several formulas for residual
@@ -163,13 +210,16 @@ void cElemBA::AddEquationCoplanarity(const cPt3dr & aDirB1,const cPt3dr & aDirB2
       mSys->R_CalcAndAddObs(mEqElemCam12,aVIndGlob,aVObs,aWeight);
 
       // compute residual
+      tREAL8 aSumRes = 0.0;
       for (size_t aK=0 ; aK<mEqElemCam12->NbElem() ; aK++)
       {
           tREAL8 aRes = std::abs(mEqElemCam12->ValComp(0,aK));
 
           mRes1.Add(1.0,aRes);
           mRes2.Add(1.0,aRes);
+          aSumRes += Square(aRes);
       }
+      return std::sqrt(aSumRes);
 
 }
 
@@ -223,6 +273,91 @@ void cElemBA::AddHomBundle_Cam1Cam2(const cPt3dr & aDirB1,const cPt3dr & aDirB2,
     }
 }
 
+/*
+
+*/
+tREAL8 cElemBA::AddHom_NCam(const std::vector<int> &aVNumCams,const cPt3dr * aVDirB,const cPt3dr &aPGr,tREAL8 aW)
+{
+    cSetIORSNL_SameTmp<tREAL8>  aStrSubst(aPGr.ToStdVector(),{});
+
+    tREAL8 aSumR=0.0;
+    for (size_t aKInd=0 ; aKInd<aVNumCams.size() ; aKInd++)
+    {
+        size_t aNumCam = aVNumCams.at(aKInd);
+        const cPt3dr & aDirB = aVDirB[aKInd];
+        tREAL8 aRes=0;
+        if (aNumCam==0)
+        {
+            aRes =AddEquationColinearity_Cam1(aStrSubst, aDirB,aW);  // add colinearity for cam1 in str subsr
+        }
+        else if (aNumCam==1)
+        {
+            aRes = AddEquationColinearity_Cam2(aStrSubst, aDirB,aW);  // add colinarity for cam2  in str subst
+        }
+        else
+        {
+             aRes= AddEquationColinearity_CamN(aNumCam,aStrSubst,aDirB,aW);
+        }
+        aSumR += Square(aRes);
+    }
+
+    mSys->R_AddObsWithTmpUK(aStrSubst);  // will add the set of equation after schurr eliminate
+
+
+   // int aNbObs = 2 * aVNumCams.size();
+   // tREAL8 aRatio = tREAL8(aNbObs) / (aNbObs-3.0);
+
+    return std::sqrt(aSumR) ;
+}
+
+
+std::pair<tREAL8,cPt3dr> cElemBA::InterBundles
+                         (
+                               const std::vector<int> &aVNumCams,
+                               const cPt3dr * aDirBdund,
+                               tREAL8 aEpsilon
+                          ) const
+{
+   std::vector<tSeg3dr> aVSeg;
+
+
+   cVarPts<3> aVar;
+   int aNbC = aVNumCams.size();
+
+   for (int aKInd=0 ; aKInd<aNbC ; aKInd++)
+   {
+       const tPoseR & aPose = mCurPose.at(aVNumCams.at(aKInd));
+       const cPt3dr & aC = aPose.Tr();
+       cPt3dr aDir = aPose.Rot().Value(aDirBdund[aKInd]);
+       aVar.Add(aDir);
+
+       aVSeg.push_back(tSeg3dr(aC,aC+aDir));
+      // aVC.push_back(aC);
+      // aDir.push_back(aDir);
+   }
+   if (aVar.StdDev() < aEpsilon)
+   {
+       return std::pair<tREAL8,cPt3dr>(-1,cPt3dr(0,0,0));
+   }
+
+   cPt3dr aPGround = BundleInters(aVSeg);
+   cWeightAv<tREAL8> aAvAng;
+   for (const auto & aSeg : aVSeg)
+   {
+       cPt3dr  aVec = aPGround-aSeg.P1();
+       cPt3dr aDiff = aVec ^ aSeg.V12();
+       tREAL8 aD1 = Norm2(aDiff);
+       tREAL8 aD2 = Norm2(aVec);
+       aAvAng.Add(1.0,aD1/(aD1+aD2+1e-8));
+   }
+
+   int aNbObs = aNbC*2;
+   tREAL8 aRatio = tREAL8(aNbObs) / (aNbObs-3.0);
+
+   return std::pair<tREAL8,cPt3dr>(aRatio*aAvAng.Average(),aPGround);
+}
+
+
 void cElemBA::OneIter(tREAL8 aLVM)
 {
     // --------- Do the computation
@@ -231,13 +366,17 @@ void cElemBA::OneIter(tREAL8 aLVM)
     mSetInterv.SetVUnKnowns(aVectSol);
 
     // -------- Transferate the result to poses (as they have differnt struct in uknowns)
-    mCurPose.at(1) = tPoseR(mTr2.GetPNorm(),mRot2.Rot());
-    for (size_t aKP=2 ; aKP<mCurPose.size() ; aKP++)
-        mCurPose.at(aKP) = mPoseN.at(aKP-2)->Pose();
+    if (mSCCam12)
+    {
+       mCurPose.at(1) = tPoseR(mTr2.GetPNorm(),mRot2.Rot());
+    }
+    for (size_t aKP=mIndCamGen ; aKP<mCurPose.size() ; aKP++)
+        mCurPose.at(aKP) = mPoseN.at(aKP-mIndCamGen)->Pose();
 
     // Reset averages
     mRes1.Reset();
     mRes2.Reset();
+    mResN.Reset();
 }
 
 /* *************************************************** */
