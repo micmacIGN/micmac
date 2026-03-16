@@ -652,6 +652,80 @@ class cSampleSphere3D
 };
 
 
+class cEllipse3D
+{
+    public:
+        static void Bench();
+
+        cEllipse3D();
+
+        void AddData(const cPt3dr&, double);
+        void Normalise();
+        void Reset();
+
+
+        cPt3dr & CDG();
+        const cPt3dr & CDG()const ;
+
+        double & Sxx();
+        const double & Sxx()const ;
+
+        double & Syy();
+        const double & Syy()const ;
+
+        double & Szz();
+        const double & Szz()const ;
+
+        double & Sxy();
+        const double & Sxy()const ;
+
+        double & Sxz();
+        const double & Sxz()const ;
+
+        double & Syz();
+        const double & Syz()const ;
+
+        double & Pds();
+        const double & Pds()const ;
+
+        bool & Norm();
+        const bool & Norm()const ;
+
+    private:
+        cPt3dr mCDG;
+        double mSxx;
+        double mSyy;
+        double mSzz;
+        double mSxy;
+        double mSxz;
+        double mSyz;
+        double mPds;
+        bool mNorm;
+
+};
+
+class cGenGauss3D
+{
+    public :
+        cGenGauss3D(const cEllipse3D & anEl );
+        const double & ValP(int aK) const {return mVP(aK);};
+        const cDenseVect<tREAL8>   VecP(int aK) const {return mVecP.ReadCol(aK); };
+        const cPt3dr  & CDG() const {return mCDG;}
+
+        //distribution de points selon e1,e2,e3
+        //indiqué par (2*aN1+1),(2*aN2+1),(2*aN3+1) et Gauss
+        void GetDistribGaus(std::vector<cPt3dr> &,int,int,int);
+
+        //5-pts distribution
+        void GetDistrib5Pts(std::vector<cPt3dr> &,double);
+
+    private :
+
+        cPt3dr mCDG;
+        cDenseVect<tREAL8> mVP;
+        cDenseMatrix<tREAL8> mVecP;
+
+};
 
 
 

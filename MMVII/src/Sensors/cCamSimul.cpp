@@ -322,10 +322,10 @@ void cCamSimul::BenchHierchBA(cTimerSegm * aTS,
 
     StdOut() << "Nb of cams=" << aNbCam << ", nb of triplets=" << aNbTri << std::endl;
 
-    std::vector<int> aProjTest{0,1,2,3,4,5}; //  MPDER ???
-    for (size_t aK1=0 ; aK1<aProjTest.size(); aK1++) //(int)eProjPC::eNbVals
+
+    for (size_t aK1=0 ; aK1<(int)eProjPC::eNbVals; aK1++) //
     {
-        StdOut() << "Projection " << aK1 << " " << E2Str(eProjPC(aProjTest[aK1]));
+        StdOut() << "Projection " << aK1 << " " << E2Str(eProjPC(aK1));
         getchar();
 
         std::vector<std::string> aSetIm; // set of images that are part of triplet graph
@@ -333,7 +333,7 @@ void cCamSimul::BenchHierchBA(cTimerSegm * aTS,
         std::vector<bool> aCamVisited(aNbCam,false);
         std::unordered_set<std::array<int,3>, TripletHash> aTriplets;
 
-        std::unique_ptr<cCamSimul> aCamSim(cCamSimul::AllocNVIewTerrestrial(aNbCam,eProjPC(aProjTest[aK1]),isSubVert));
+        std::unique_ptr<cCamSimul> aCamSim(cCamSimul::AllocNVIewTerrestrial(aNbCam,eProjPC(aK1),isSubVert));
 
         if (0)
         {
@@ -616,7 +616,7 @@ void cCamSimul::BenchHierchBA(cTimerSegm * aTS,
         cMakeArboTriplet  aMk3(*a3Set,false,1.0,aMemPhProj,anAp);
 
         //aMk3.ViscPose() = mViscPose;
-        aMk3.LVM() = 0.001;
+        aMk3.LVM() = 0.1;
         aMk3.SigmaTPt() = 50;
         aMk3.FacElim()= 1000;
         aMk3.NbIterBA() = 3;
@@ -673,18 +673,6 @@ void cCamSimul::BenchHierchBA(cTimerSegm * aTS,
 
         }
         StdOut() << "ErrTrAvg=" << ErrTrTotal/aNbPoses << ", ErrRAvg=" << ErrRTotal/aNbPoses << std::endl;
-        getchar();
-
-
-
-
-        // print residuals
-
-        /*
-            - alow introduction of outliers on triplets
-        */
-
-
 
     }
 }
