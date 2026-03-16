@@ -338,6 +338,9 @@ class cCdtFinalPoseRel2Im
 };
 void AddData(const  cAuxAr2007 & anAux,cCdtFinalPoseRel2Im & aCdt);
 
+/// Given a set of pose, normalize it to relative : first pose identity, first base unitary
+void NormalizePosesRef(std::vector<tPoseR> & aVPose);
+
 
 };
 #endif // _MMVII_POSE_REL_H_

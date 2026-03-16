@@ -882,18 +882,14 @@ int cAppli_OriRelPairOfIm::DoAllPairs()
 {
     // ======= Extract, as a set, all the first images ====================
     tNameSet aSetN1;
-    for (const auto & aPair : mVecPairs )
-    {
-        aSetN1.Add(aPair->V1());
-    }
-    std::vector<const std::string *> aVecStr;
-    aSetN1.PutInVect(aVecStr,true);
+    ReadFromFile(aSetN1,mPhProj.OriRel_NameAllImages(true));
+    std::vector<std::string > aVecStr = ToVect(aSetN1);
 
     // =========== Parse these images to generate a list of command ============
     std::list<cParamCallSys> aListCom;
-    for (const auto aPtrStr : aVecStr)
+    for (const auto& aName : aVecStr)
     {
-        cParamCallSys aParam(cMMVII_Appli::FullBin(),TheSpec_OriRelPairsOf1m.Name(),*aPtrStr);
+        cParamCallSys aParam(cMMVII_Appli::FullBin(),TheSpec_OriRelPairsOf1m.Name(),aName);
 
         for (size_t aKP=2 ; aKP<mArgv.size() ; aKP++)
         {
@@ -961,6 +957,8 @@ cAppli_OriRelPairOfIm::tRes1Pair
          mPC1GT = mPhProj.ReadCamPCFromFolder(aOriGT,mIm1,true);
          mPC2GT = mPhProj.ReadCamPCFromFolder(aOriGT,mIm2,true);
          mGTPose = mPC1GT->Norm1RelativePose(*mPC2GT);
+
+         // StdOut() << "GGTTTTTTRel2I=" << mGTPose.Tr() << "\n";
      }
 
      // as initialisation are both optional, used to check that one at least is used

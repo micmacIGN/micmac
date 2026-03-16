@@ -310,30 +310,26 @@ tREAL8 cElemBA::AddHom_NCam(const std::vector<int> &aVNumCams,const cPt3dr * aVD
     return std::sqrt(aSumR) ;
 }
 
-
-std::pair<tREAL8,cPt3dr> cElemBA::InterBundles
+std::pair<tREAL8,cPt3dr> AnglesInterBundles
                          (
-                               const std::vector<int> &aVNumCams,
+                               const std::vector<tPoseR> & aVPose,
                                const cPt3dr * aDirBdund,
                                tREAL8 aEpsilon
-                          ) const
+                          )
 {
    std::vector<tSeg3dr> aVSeg;
 
-
    cVarPts<3> aVar;
-   int aNbC = aVNumCams.size();
+   size_t aNbC = aVPose.size();
 
-   for (int aKInd=0 ; aKInd<aNbC ; aKInd++)
+   for (size_t aKInd=0 ; aKInd<aNbC ; aKInd++)
    {
-       const tPoseR & aPose = mCurPose.at(aVNumCams.at(aKInd));
+       const tPoseR & aPose = aVPose.at(aKInd);
        const cPt3dr & aC = aPose.Tr();
        cPt3dr aDir = aPose.Rot().Value(aDirBdund[aKInd]);
        aVar.Add(aDir);
 
        aVSeg.push_back(tSeg3dr(aC,aC+aDir));
-      // aVC.push_back(aC);
-      // aDir.push_back(aDir);
    }
    if (aVar.StdDev() < aEpsilon)
    {
@@ -355,6 +351,23 @@ std::pair<tREAL8,cPt3dr> cElemBA::InterBundles
    tREAL8 aRatio = tREAL8(aNbObs) / (aNbObs-3.0);
 
    return std::pair<tREAL8,cPt3dr>(aRatio*aAvAng.Average(),aPGround);
+}
+
+
+std::pair<tREAL8,cPt3dr> cElemBA::InterBundles
+                         (
+                               const std::vector<int> &aVNumCams,
+                               const cPt3dr * aDirBdund,
+                               tREAL8 aEpsilon
+                          ) const
+{
+   int aNbC = aVNumCams.size();
+
+   std::vector<tPoseR> aVPoses;
+   for (int aKInd=0 ; aKInd<aNbC ; aKInd++)
+     aVPoses.push_back(mCurPose.at(aVNumCams.at(aKInd)));
+
+   return AnglesInterBundles(aVPoses,aDirBdund,aEpsilon);
 }
 
 

@@ -304,9 +304,11 @@ int cAppli_SelectPairOriRel::Exe()
 
     std::vector aVstr = VectMainSet(0);
 
+    tNameSet aSetName;
     for (const auto & aName : aVstr)
     {
         mGr.NewVertex(cASPO_AV(aName));
+        aSetName.Add(aName);
     }
     mVertices = mGr.AllVertices();
 
@@ -398,7 +400,7 @@ int cAppli_SelectPairOriRel::Exe()
     }
 
     SaveInFile(aSetOfPair,mPhProj.OriRel_NamePairsOfAllImages(false));
-
+    SaveInFile(aSetName,mPhProj.OriRel_NameAllImages(false));
     for (const auto & aNameIm : aVstr)
     {
        tSet3N aSet3 = mMapSet3[aNameIm];

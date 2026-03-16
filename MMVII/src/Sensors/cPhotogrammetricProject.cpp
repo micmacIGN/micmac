@@ -1517,6 +1517,12 @@ std::string cPhotogrammetricProject::OriRel_NameOriAllTripletsOf1Image
     return OriRel_DirOfImage(aNameIm,isIn) + std::string("Names_AllTripletsOfIm")  + "." + aPost;
 }
 
+std::string cPhotogrammetricProject::OriRel_NameAllImages(bool isIn, std::string aPost) const
+{
+    SetDefPost(aPost);
+
+    return DPOriRel().FullDirInOut(isIn)  + std::string("Names_AllImages") + "." + aPost;
+}
 
 
 std::string cPhotogrammetricProject::OriRel_NamePairsOfAllImages(bool isIn, std::string aPost) const

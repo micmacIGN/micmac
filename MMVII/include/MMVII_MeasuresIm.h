@@ -376,6 +376,16 @@ class cInterfImportHom : public cMemCheck
       private :
 };
 
+class cMemoryInterfImportHom : public cInterfImportHom
+{
+      public :
+           void GetHom(cSetHomogCpleIm &,const std::string & aNameIm1,const std::string & aNameIm2) const override;
+           bool HasHom(const std::string & aNameIm1,const std::string & aNameIm2) const  override;
+
+           void Add(const cSetHomogCpleIm &,const std::string & aNameIm1,const std::string & aNameIm2)     ;
+      private :
+             std::map<tSS,cSetHomogCpleIm> mMapN2Cple;
+};
 
 /**   This class store multiple homologous point, ie after fusion of
  *    points computed by pair of images
@@ -450,10 +460,18 @@ class cComputeMergeMulTieP : public cMemCheck
         cComputeMergeMulTieP
         (
              const  std::vector<std::string> & aVNames,
-	     cInterfImportHom * =nullptr,
-	     cIPhProj*  aPhP = nullptr,
-	     bool WithImageIndex = false
+             cInterfImportHom * =nullptr,
+             cIPhProj*  aPhP = nullptr,
+             bool WithImageIndex = false
         );
+
+        size_t NbPtsTot() const;
+
+        // Reduction by randomization
+        cComputeMergeMulTieP(const cComputeMergeMulTieP&,int aNbPtsTot);
+        // Reduction by spatial selection
+        cComputeMergeMulTieP(int aNbPtsTot,const cComputeMergeMulTieP&);
+
 
         /// Construct a sub-structure corresponing to the name selected
         cComputeMergeMulTieP(const cComputeMergeMulTieP&,const  std::vector<std::string> & aVNamesSelected);

@@ -72,6 +72,9 @@ extern cSpecMMVII_Appli  TheSpec_OriRelPairsOf1m;
 extern cSpecMMVII_Appli  TheSpec_OriRelAllPairs;
 extern cSpecMMVII_Appli  TheSpec_SelectPairOriRel;
 extern cSpecMMVII_Appli  TheSpec_OriRel3Im;
+extern cSpecMMVII_Appli  TheSpec_OriRelTripletsOf1m;
+extern cSpecMMVII_Appli  TheSpec_OriRelAllTriplets;
+
 
 
 extern cSpecMMVII_Appli  TheSpecMeshCheck; 
