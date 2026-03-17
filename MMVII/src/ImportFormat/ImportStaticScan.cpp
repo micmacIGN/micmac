@@ -447,7 +447,7 @@ void cAppli_ImportStaticScan::fixLineColRasterDirections()
         for (auto & aCol: mSL_importer.mVectPtsCol)
             aCol = mSL_importer.NbCol() -1 - aCol;
         // invert start and end
-        mSL_importer.mThetaStart = mSL_importer.mThetaStep+(mSL_importer.mNbCol-1)*mSL_importer.mThetaStep;
+        mSL_importer.mThetaStart = mSL_importer.mThetaStart+(mSL_importer.mNbCol-1)*mSL_importer.mThetaStep;
         mSL_importer.mThetaStep = -mSL_importer.mThetaStep;
     }
 
