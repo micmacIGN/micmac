@@ -8,49 +8,6 @@
 namespace MMVII
 {
 
-enum class eModePE2I
-           {
-              eRansac,
-              ePlane1,
-              ePlane2,
-              eNbVals
-           };
-
-///  Basic class to store the pose between 2 images
-class cCdtPoseRel2Im
-{
-  public :
-      cCdtPoseRel2Im(const tPoseR&,eModePE2I,tREAL8 aScore,const std::string& aMsg);
-      cCdtPoseRel2Im();
-
-      tPoseR                 mPose;  ///< The pose itself
-      eModePE2I              mMode;
-      tREAL8                 mScore; ///< The score /residual : the smaller the better
-      tREAL8                 mScore0; ///< The score before BA
-      std::string            mMsg;   ///< Message for tuning
-};
-
-class cCdtFinalPoseRel2Im
-{
-    public :
-       std::string            mIm1;
-       std::string            mIm2;
-       tPoseR                 mPose;
-       std::string            mMsg;
-       tREAL8                 mScorePix;
-       std::optional<cPt2dr>  mScorePixGT;
-};
-
-void AddData(const  cAuxAr2007 & anAux,cCdtFinalPoseRel2Im & aCdt)
-{
-   MMVII::AddData(cAuxAr2007("Im1",anAux),aCdt.mIm1);
-   MMVII::AddData(cAuxAr2007("Im2",anAux),aCdt.mIm2);
-   MMVII::AddData(cAuxAr2007("Pose",anAux),aCdt.mPose);
-   MMVII::AddData(cAuxAr2007("PixRnkScore",anAux),aCdt.mScorePix);
-   MMVII::AddData(cAuxAr2007("Origin",anAux),aCdt.mMsg);
-   MMVII::AddOptData(anAux,"GTDisTrRot",aCdt.mScorePixGT);
-}
-
 
 
 cCdtPoseRel2Im::cCdtPoseRel2Im(const tPoseR& aPose,eModePE2I aMode,tREAL8 aScore,const std::string& aMsg) :
@@ -65,6 +22,22 @@ cCdtPoseRel2Im::cCdtPoseRel2Im(const tPoseR& aPose,eModePE2I aMode,tREAL8 aScore
 cCdtPoseRel2Im::cCdtPoseRel2Im() :
     cCdtPoseRel2Im(tPoseR::Identity(),eModePE2I::eNbVals,1e20,MMVII_NONE)
 {
+}
+
+void AddData(const  cAuxAr2007 & anAux,cCdtPoseRel2Im & aCdt)
+{
+   MMVII::AddData(cAuxAr2007("Pose",anAux),aCdt.mPose);
+   MMVII::AddData(cAuxAr2007("PixRnkScore",anAux),aCdt.mScore);
+   MMVII::AddData(cAuxAr2007("Origin",anAux),aCdt.mMsg);
+   MMVII::AddOptData(anAux,"GTDisTrRot",aCdt.mScorePixGT);
+}
+
+
+void AddData(const  cAuxAr2007 & anAux,cCdtFinalPoseRel2Im & aCdt)
+{
+   MMVII::AddData(cAuxAr2007("Im1",anAux),aCdt.mIm1);
+   MMVII::AddData(cAuxAr2007("Im2",anAux),aCdt.mIm2);
+   MMVII::AddData(cAuxAr2007("VCdts",anAux),aCdt.mVCdt);
 }
 
 
@@ -131,7 +104,7 @@ class cEstimatePosRel2Im :  public cOptimizeRotAndVUnit // Herit for combinatori
          const cSetHomogCpleIm  &    aSetHomFull,
          const    cSetHomogCpleIm &     aSetHomAvg,
          const    cSetHomogCpleIm &     aSetHomSmall,
-         int                  aNbKBestSol,
+         tREAL8                  aDensitySol,
          cTimerSegm *          =nullptr
      );
 
@@ -226,6 +199,7 @@ class cEstimatePosRel2Im :  public cOptimizeRotAndVUnit // Herit for combinatori
 
     int                          mKMaxME;   ///< Store result of direction  in [0-] used for Mat Ess
     cCmp_cCdtPoseRel2Im          mCmpSol;     ///< Compare Cdt for K Best
+    tREAL8                       mDensitySol;
     int                          mNbKBestS;
     std::vector<tCmpSol*>        mVKBS;
   //  tCmpSol                      mKBSPlane1; ///< struct for K standard best sol
@@ -252,7 +226,7 @@ cEstimatePosRel2Im::cEstimatePosRel2Im
     const cSetHomogCpleIm &     aSetHomFull,
     const cSetHomogCpleIm &     aSetHomAvg,
     const cSetHomogCpleIm &     aSetHomSmall,
-    int                  aNbKBestSol,
+    tREAL8                  aDensitySol,
     cTimerSegm *         aTimeSegm
 ) :
    cOptimizeRotAndVUnit(5,4,false),
@@ -273,7 +247,8 @@ cEstimatePosRel2Im::cEstimatePosRel2Im
    mSysL1      (AllocL1_Barrodale<tREAL8>(9)),
    mSysL2      (new cLeasSqtAA<tREAL8>(9)),
    mKMaxME     (MatEss_GetKMax(mSetSmallCpleDir, 1e-6)),
-   mNbKBestS   (aNbKBestSol),
+   mDensitySol (aDensitySol),
+   mNbKBestS   (std::max(1,round_ni(mDensitySol*10))),
    mVKBS       (),
    mTimeSegm   (aTimeSegm),
    mBestScoreWR (1e10),
@@ -418,7 +393,8 @@ void cEstimatePosRel2Im::TestPlanar()
         tREAL8 aSurfPerPix = aSz.x()*aSz.y()/ mVDir1.size(); // S = Pi R^2
         tREAL8 aR0 = std::sqrt(aSurfPerPix/M_PI);
 
-        for (int aNbTestLoc=0 ; aNbTestLoc<200 ; aNbTestLoc++)
+        int aNbTestLoc = std::max(1,round_ni(200*mDensitySol));
+        for (int aKTest=0 ; aKTest<aNbTestLoc ; aKTest++)
         {
            // random point
            int  aKPt = RandUnif_N(mVDir1.size());
@@ -450,7 +426,7 @@ void cEstimatePosRel2Im::TestPlanar()
     for (int aNbPts = 4 ; aNbPts<std::min(mNbPtsTot,20) ; aNbPts++)
     {
         std::vector<cSetIExtension> aVecSetInd;
-        int aNbTest = 40.0 / std::sqrt(aNbPts-3);
+        int aNbTest = std::max(1,round_ni((40.0*mDensitySol) / std::sqrt(aNbPts-3)));
         GenRanQsubCardKAmongN(aVecSetInd,aNbTest,aNbPts,mVDir1.size());
 
         for (const auto & aSet : aVecSetInd )
@@ -516,7 +492,7 @@ void cEstimatePosRel2Im::GenerateMatEssSolutions()
 
     for (int aNbPt=8 ; aNbPt<aNbPtsMax ; aNbPt++)
     {
-        EstimPose_By_MatEssRansac(aNbPt,20);
+        EstimPose_By_MatEssRansac(aNbPt,std::max(1,round_ni(20*mDensitySol)));
     }
 }
 
@@ -588,6 +564,7 @@ void cEstimatePosRel2Im::MakeBundleAdjustment(int aNbIter)
 cCdtFinalPoseRel2Im cEstimatePosRel2Im::MakeDecision(bool Show)
 {
     // Parse all method and extract best score
+    /*
     cCdtPoseRel2Im aBest(tPoseR::Identity(),eModePE2I::eNbVals,1e10,"NONE");
     for (auto & aKB : mVKBS)
     {
@@ -610,17 +587,55 @@ cCdtFinalPoseRel2Im cEstimatePosRel2Im::MakeDecision(bool Show)
         if (Show)
            StdOut() << "------------------=======================------------------\n";
     }
+    */
 
     cCdtFinalPoseRel2Im aRes;
-
-    aRes.mScorePix = aBest.mScore * mFocMoy;
-    aRes.mMsg      = aBest.mMsg;
-    aRes.mPose     = BA_RefineOnePose(aBest.mPose,mSetFullCpleDir);
-    if (mWithGT)
+    std::vector<cCdtPoseRel2Im> & aVBest = aRes.mVCdt;
+    for (auto & aKB : mVKBS)
     {
-        tREAL8 aDTr = Norm2(aRes.mPose.Tr()-mGTPose.Tr());
-        tREAL8 aDRot = aRes.mPose.Rot().Dist(mGTPose.Rot());
-        aRes.mScorePixGT = cPt2dr(aDTr,aDRot)*mFocMoy;
+        cWhichMin<const cCdtPoseRel2Im*,tREAL8>  aMinElem;
+        for (const auto & anE : aKB->Elements())
+            aMinElem.Add(&anE,anE.mScore);
+        aVBest.push_back(*aMinElem.IndexExtre());
+    }
+    SortOnCriteria(aVBest,[](const auto & aCdt){return aCdt.mScore;});
+
+
+    if (aVBest.back().mMode==eModePE2I::eRansac)
+    {
+        // Worst sol in ransac
+        // in this case, probably the scene is planar and the two planary solution
+        // can  not be separated at this step, we maintain them
+        aVBest.resize(2);
+    }
+    else
+    {
+        // 2nd planar solution worst than ransac, is not necessary, and finally
+        // maintain only the best sol
+        aVBest.resize(1);
+    }
+
+    for ( auto & aCdt : aVBest )
+    {
+        aCdt.mScore *= mFocMoy;
+        aCdt.mPose     = BA_RefineOnePose(aCdt.mPose,mSetFullCpleDir);
+        if (mWithGT)
+        {
+            tREAL8 aDTr = Norm2(aCdt.mPose.Tr()-mGTPose.Tr());
+            tREAL8 aDRot = aCdt.mPose.Rot().Dist(mGTPose.Rot());
+            aCdt.mScorePixGT = cPt2dr(aDTr,aDRot)*mFocMoy;
+        }
+
+        if (Show)
+        {
+           StdOut() << "@@ Msg=" << aCdt.mMsg
+                    << " Mod" << int(aCdt.mMode)
+                    << " Sc=" << aCdt.mScore
+                   << " Sc0=" << aCdt.mScore0 *mFocMoy;
+           if (mWithGT)
+              StdOut() << " DistGT=" << aCdt.mPose.DistPose(mGTPose,1.0) *mFocMoy;
+           StdOut()   << "\n";
+        }
     }
 
     return aRes;
@@ -717,7 +732,7 @@ class cAppli_OriRelPairOfIm : public cMMVII_Appli
          cEstimatePosRel2Im  *     mEstimatePose;
          bool                      mShow;
          int                       mNbMinHom;
-         int                       mNbSolInit;
+         tREAL8                    mDensitySol;
          int                       mNbIterBA;
          int                       mNbSimulPt;
          std::vector<double>       mParamOutLayer;
@@ -745,7 +760,7 @@ cAppli_OriRelPairOfIm::cAppli_OriRelPairOfIm(const std::vector<std::string> & aV
     mEstimatePose (nullptr),
     mShow         (aMode==0),
     mNbMinHom     (10),
-    mNbSolInit    (10),
+    mDensitySol   (0.3),
     mNbIterBA     (5),
     mNbSimulPt    (0),
     mUseOri4GT    (false),
@@ -795,7 +810,7 @@ cCollecSpecArg2007 & cAppli_OriRelPairOfIm::ArgOpt(cCollecSpecArg2007 & anArgOpt
             <<  mPhProj.DPMulTieP().ArgDirInOpt()
 
             <<  AOpt2007(mNbMinHom,"NbMinHom","Number minimal of homologous point required",{eTA2007::HDV})
-            <<  AOpt2007(mNbSolInit,"NbSol0","Number of solution initial (before BA)",{eTA2007::HDV})
+            <<  AOpt2007(mDensitySol,"CompForce","How much computation do we pay?",{eTA2007::HDV})
             <<  AOpt2007(mNbIterBA,"NbIterBA","Number of iteration in Bundle/Adj",{eTA2007::HDV})
 
             <<  AOpt2007(mUseOri4GT,"UseOriGT","Set if orientation contains also exterior as a ground truth",{eTA2007::HDV})
@@ -867,18 +882,14 @@ int cAppli_OriRelPairOfIm::DoAllPairs()
 {
     // ======= Extract, as a set, all the first images ====================
     tNameSet aSetN1;
-    for (const auto & aPair : mVecPairs )
-    {
-        aSetN1.Add(aPair->V1());
-    }
-    std::vector<const std::string *> aVecStr;
-    aSetN1.PutInVect(aVecStr,true);
+    ReadFromFile(aSetN1,mPhProj.OriRel_NameAllImages(true));
+    std::vector<std::string > aVecStr = ToVect(aSetN1);
 
     // =========== Parse these images to generate a list of command ============
     std::list<cParamCallSys> aListCom;
-    for (const auto aPtrStr : aVecStr)
+    for (const auto& aName : aVecStr)
     {
-        cParamCallSys aParam(cMMVII_Appli::FullBin(),TheSpec_OriRelPairsOf1m.Name(),*aPtrStr);
+        cParamCallSys aParam(cMMVII_Appli::FullBin(),TheSpec_OriRelPairsOf1m.Name(),aName);
 
         for (size_t aKP=2 ; aKP<mArgv.size() ; aKP++)
         {
@@ -903,12 +914,11 @@ int cAppli_OriRelPairOfIm::DoPairsOf1Im()
         if (aPair->V1() == mIm1)
         {
             tRes1Pair aRes = EstimatePose2IM(aPair->V1(), aPair->V2());
+            aRes.second.mIm1 = mIm1;
+            aRes.second.mIm2 = aPair->V2();
             if (aRes.first == EXIT_SUCCESS)
             {
-                aRes.second.mIm1 = mIm1;
-                aRes.second.mIm2 = aPair->V2();
                 aVecRes.push_back(aRes.second);
-
                 SaveInFile(aRes.second, mPhProj.OriRel_NameOriPair2Images(mIm1,mIm2,false));
             }
             else if (aRes.first== RESULT_NO_POSE)
@@ -947,6 +957,8 @@ cAppli_OriRelPairOfIm::tRes1Pair
          mPC1GT = mPhProj.ReadCamPCFromFolder(aOriGT,mIm1,true);
          mPC2GT = mPhProj.ReadCamPCFromFolder(aOriGT,mIm2,true);
          mGTPose = mPC1GT->Norm1RelativePose(*mPC2GT);
+
+         // StdOut() << "GGTTTTTTRel2I=" << mGTPose.Tr() << "\n";
      }
 
      // as initialisation are both optional, used to check that one at least is used
@@ -965,7 +977,7 @@ cAppli_OriRelPairOfIm::tRes1Pair
 
      if ((int)mCpleHFull.NbH()<mNbMinHom)
      {
-         return tRes1Pair(RESULT_NO_POSE,cCdtFinalPoseRel2Im());
+         return tRes1Pair(RESULT_NO_POSE,{});
      }
 
 
@@ -1002,7 +1014,7 @@ cAppli_OriRelPairOfIm::tRes1Pair
      mCalib1 =  mPhProj.InternalCalibFromImage(mIm1);
      mCalib2 =  mPhProj.InternalCalibFromImage(mIm2);
 
-     mEstimatePose = new cEstimatePosRel2Im(*mCalib1,*mCalib2,mCpleHFull,mCpleHAvg,mCpleHSmall,mNbSolInit,mTimeSegm);
+     mEstimatePose = new cEstimatePosRel2Im(*mCalib1,*mCalib2,mCpleHFull,mCpleHAvg,mCpleHSmall,mDensitySol,mTimeSegm);
      if (mUseOri4GT)
          mEstimatePose->SetGT(mGTPose);
 
@@ -1011,8 +1023,8 @@ cAppli_OriRelPairOfIm::tRes1Pair
 
      cCdtFinalPoseRel2Im aCdt = mEstimatePose->MakeDecision(mShow);
 
-     if (mUseOri4GT && mShow)
-         mEstimatePose->ShowSol(mGTPose,"GroundTruh");
+   /*  if (mUseOri4GT && mShow)
+         mEstimatePose->ShowSol(mGTPose,"GroundTruh");*/
 
      if (mShow)
          StdOut() << "NbPts=" << mCpleHFull.NbH() << "\n";

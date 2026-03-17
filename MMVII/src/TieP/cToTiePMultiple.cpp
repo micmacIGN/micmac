@@ -6,6 +6,7 @@
 #include "MMVII_PCSens.h"
 
 #include "TieP.h"
+#include "MMVII_GeomTpl.h"
 
 /**
    \file  cImplemConvertHom
@@ -19,7 +20,31 @@
 namespace MMVII
 {
 
+/* ****************************************************************** */
+/*                                                                    */
+/*                cMemoryInterfImportHom                              */
+/*                                                                    */
+/* ****************************************************************** */
 
+
+bool cMemoryInterfImportHom::HasHom(const std::string & aN1,const std::string & aN2) const
+{
+    //return BoolFind(mMapN2Cple,tSS(aN1,aN2));
+
+    return mMapN2Cple.find(tSS(aN1,aN2)) != mMapN2Cple.end();
+}
+
+
+void cMemoryInterfImportHom::GetHom(cSetHomogCpleIm & aCple,const std::string & aN1,const std::string & aN2) const
+{
+    const auto & anIter = mMapN2Cple.find(tSS(aN1,aN2));
+    aCple = anIter->second;
+}
+
+void cMemoryInterfImportHom::Add(const cSetHomogCpleIm & aCple,const std::string & aN1,const std::string & aN2)
+{
+     mMapN2Cple[tSS(aN1,aN2)] = aCple;
+}
 
     //================================  tPairTiePMult  ===================
     //================================  tPairTiePMult  ===================
@@ -340,6 +365,8 @@ cComputeMergeMulTieP::cComputeMergeMulTieP
         }
     }
 }
+
+
 cComputeMergeMulTieP::cComputeMergeMulTieP
 (
        const std::vector<std::string> & aVNames,
@@ -364,6 +391,114 @@ cComputeMergeMulTieP::cComputeMergeMulTieP
    if (WithImageIndexe)
       SetImageIndexe();
 }
+
+size_t cComputeMergeMulTieP::NbPtsTot() const
+{
+   size_t aRes = 0;
+   for (const auto & [aConfig,aVal1Conf] : mPts)
+       aRes += aVal1Conf.mVPIm.size() / aConfig.size();
+   return aRes;
+}
+
+cComputeMergeMulTieP::cComputeMergeMulTieP(const cComputeMergeMulTieP& aCMTP,int aNbPtsTarget):
+    cComputeMergeMulTieP(aCMTP.mVNames)
+{
+     size_t aNb0 =    aCMTP.NbPtsTot();
+     cRandKAmongN aSelector(aNbPtsTarget,aNb0);
+     //StdOut()  << " --SEL " << aNbPtsTarget << " ON " << aNb0 << "\n";
+     for (const auto & [aConfig,aValIn] : aCMTP.mPts)
+     {
+         size_t aNbIm = aConfig.size();
+         cVal1ConfTPM & aValOut = mPts[aConfig];
+         size_t aNbPts = aValIn.mVPIm.size() / aNbIm;
+         // StdOut() << " CONFIG " << aNb
+         for (size_t aKPts=0 ; aKPts<aNbPts ; aKPts++)
+         {
+             if (aSelector.GetNext())
+             {
+                 for (size_t aKIm=0 ; aKIm<aNbIm ; aKIm++)
+                 {
+                     aValOut.mVPIm.push_back(aValIn.mVPIm.at(aKPts*aNbIm+aKIm));
+                 }
+             }
+         }
+     }
+
+}
+
+class cDistSelSpatial_MTP
+{
+   public :
+      cDistSelSpatial_MTP(const std::vector<cPt2dr>* aVPts,int aNbIm) :
+          mVPts (aVPts),
+          mNbIm (aNbIm)
+      {
+      }
+
+      tREAL8 operator () (int aK1,int aK2,int) const
+      {
+          tREAL8 aRes = 0.0;
+          const cPt2dr * aPtr1 = mVPts->data() + aK1*mNbIm;
+          const cPt2dr * aPtr2 = mVPts->data() + aK2*mNbIm;
+
+          for (int aKIm=0 ; aKIm<mNbIm; aKIm++)
+              aRes += SqN2(aPtr1[aKIm]-aPtr2[aKIm]);
+
+          return aRes;
+      }
+
+      const std::vector<cPt2dr>* mVPts;
+      int mNbIm;
+};
+
+
+
+cComputeMergeMulTieP::cComputeMergeMulTieP(int aNbTarget,const cComputeMergeMulTieP& aCMTP):
+    cComputeMergeMulTieP(aCMTP.mVNames)
+{
+    size_t aNbTot =    aCMTP.NbPtsTot();
+    //StdOut()  << " --SEL " << aNbPtsTarget << " ON " << aNb0 << "\n";
+    for (const auto & [aConfig,aValIn] : aCMTP.mPts)
+    {
+        //  --------  read input data -----------------------
+        const std::vector<cPt2dr> & aPtsIn = aValIn.mVPIm;
+        size_t aNbIm = aConfig.size();
+        size_t aNbPtsIn = aPtsIn.size() / aNbIm;
+
+        // -------- create a vector of index in [0 1 2 ... NbPts]
+        std::vector<int> aVIndIn(aNbPtsIn);
+        for (size_t aKP=0 ; aKP<aNbPtsIn ; aKP++)
+            aVIndIn.at(aKP)= aKP;
+
+        // ------------ read output data
+        std::vector<int> aVIndOut;
+        size_t aNbPtsOut = round_up(aNbPtsIn * (aNbTarget/tREAL8(aNbTot)));
+        std::vector<cPt2dr> & aPtsOut = mPts[aConfig].mVPIm;
+
+        // ------------ select index of output --------------------
+        cDistSelSpatial_MTP aDSP(&aPtsIn,aNbIm);
+
+        // StdOut() << aDSP(1,2,3);
+
+        Tpl_SelectOnSpatialCriteria
+         (
+                   aVIndOut,
+                   aVIndIn,
+                   aNbPtsOut,
+                   aDSP,
+                   1 // unused
+         );
+        // FakeUseIt(aNbPtsOut);
+
+         // ------------- transferate index in pts ----------------
+         for (const auto  anInd : aVIndOut)
+         {
+             for (size_t aKIm=0; aKIm<aNbIm ; aKIm++)
+                 aPtsOut.push_back(aPtsIn.at(aKIm+aNbIm*anInd));
+        }
+    }
+}
+
 const std::vector<std::list<std::pair<size_t,tPairTiePMult*>>> & cComputeMergeMulTieP::IndexeOfImages()  const
 {
 	return mImageIndexes;
@@ -468,11 +603,11 @@ std::vector<cPMulGCPIm>
     for (size_t aK=0 ; aK<aNbPMul ; aK++)
     {
         aRes.at(aK).mVPIm = std::vector<cPt2dr>(aValue.mVPIm.begin()+aK*aMult,aValue.mVPIm.begin()+(aK+1)*aMult);
-	if (! aValue.mVIdPts.empty())
-            aRes.at(aK).mName = ToStr(aValue.mVIdPts.at(aK));
-	if (! aValue.mVPGround.empty())
-            aRes.at(aK).mPGround = aValue.mVPGround.at(aK);
-         aRes.at(aK).mVIm = aConfigIm;
+        if (! aValue.mVIdPts.empty())
+           aRes.at(aK).mName = ToStr(aValue.mVIdPts.at(aK));
+        if (! aValue.mVPGround.empty())
+           aRes.at(aK).mPGround = aValue.mVPGround.at(aK);
+        aRes.at(aK).mVIm = aConfigIm;
     }
 
     // sort
@@ -1040,7 +1175,6 @@ class cImage
        cGeneratePointDiff<2>  mGenPts;  ///< Generate point all different
 };
 
-typedef std::pair<std::string,std::string>  tSS;  // pair of name for storing Name x Name => Cple homol
 
 /** class for generating Multiple random points + correspond random
  * homologous for generating them

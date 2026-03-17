@@ -322,7 +322,51 @@ template <class Type> cLeasSqtAA<Type> cDecSumSqLinear<Type>::OriSys() const
     return aResult;
 }
 
+   /* ===================================================== */
+   /* =====              cVarPts                      ===== */
+   /* ===================================================== */
 
+template <class Type,const int Dim> cPtxd<Type,Dim> Sq_CByC1P(const cPtxd<Type,Dim>  & aP1)
+{
+  return CByC1P(aP1,Square<Type>);
+}
+
+
+
+template <const int Dim>  cVarPts<Dim>::cVarPts() :
+    mNb    (0),
+    mSomP  (tPt::PCste(0.0)),
+    mSomP2 (tPt::PCste(0.0))
+{
+}
+
+template <const int Dim> void cVarPts<Dim>::Add(const tPt& aPt)
+{
+    mNb++;
+    mSomP += aPt;
+    mSomP2 += Sq_CByC1P(aPt);
+}
+
+template <const int Dim> cPtxd<tREAL8,Dim>  cVarPts<Dim>::VarPt() const
+{
+   tPt anAvg = mSomP / mNb;
+   tPt aVar = mSomP2/mNb - Sq_CByC1P(anAvg);
+
+   return aVar;
+}
+
+template <const int Dim> tREAL8 cVarPts<Dim>::StdDev() const
+{
+   tREAL8 aSum = 0.0;
+   tPt aVar =  VarPt();
+
+   for (int aD=0 ; aD<Dim ; aD++)
+       aSum += std::max(0.0,aVar[aD]);
+   return std::sqrt(aSum);
+}
+
+template  class  cVarPts<2>;
+template  class  cVarPts<3>;
 
 
 /* ===================================================== */

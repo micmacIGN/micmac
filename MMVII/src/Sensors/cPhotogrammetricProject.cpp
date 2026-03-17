@@ -1241,7 +1241,7 @@ void cPhotogrammetricProject::ReadHomolMultiSrce
         cSetHomogCpleIm &aCpleH,
         const std::string & aNI1,
         const std::string & aNI2
-      )
+      ) const
 {
    aNbInit=0;
    aCpleH.Clear();
@@ -1505,7 +1505,7 @@ std::string cPhotogrammetricProject::OriRel_NameOriAllPairsOf1Image
     return OriRel_DirOfImage(aNameIm,isIn) + std::string("OriRel_AllPairsOfIm")  + "." + aPost;
 }
 
-std::string cPhotogrammetricProject::OriRel_NameOriAllTripletsOf1Image
+std::string cPhotogrammetricProject::OriRel_NameAllTripletsOf1Image
             (
                 const std::string&aNameIm,
                 bool isIn,
@@ -1517,6 +1517,26 @@ std::string cPhotogrammetricProject::OriRel_NameOriAllTripletsOf1Image
     return OriRel_DirOfImage(aNameIm,isIn) + std::string("Names_AllTripletsOfIm")  + "." + aPost;
 }
 
+std::string cPhotogrammetricProject::OriRel_OrientAllTripletsOf1Image
+            (
+                const std::string&aNameIm,
+                bool isIn,
+                std::string aPost
+             ) const
+{
+    SetDefPost(aPost);
+
+    return OriRel_DirOfImage(aNameIm,isIn) + std::string("Orient_AllTripletsOfIm")  + "." + aPost;
+}
+
+
+
+std::string cPhotogrammetricProject::OriRel_NameAllImages(bool isIn, std::string aPost) const
+{
+    SetDefPost(aPost);
+
+    return DPOriRel().FullDirInOut(isIn)  + std::string("Names_AllImages") + "." + aPost;
+}
 
 
 std::string cPhotogrammetricProject::OriRel_NamePairsOfAllImages(bool isIn, std::string aPost) const

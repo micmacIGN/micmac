@@ -96,6 +96,7 @@ template <class Type> class cSelector ;
 template <class Type> class cDataSelector ;
 template <class Type> class cUnOrderedPair ;
 class cTripletName;
+typedef std::pair<std::string,std::string>  tSS;  // pair of name for storing Name x Name => Cple homol
 
 typedef cSelector<std::string>      tNameSelector;
 typedef cExtSet<std::string>        tNameSet;
