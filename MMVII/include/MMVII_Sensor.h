@@ -634,8 +634,10 @@ class cPhotogrammetricProject : public cIPhProj
     std::string OriRel_NameOriPair2Images(const std::string&aNameIm1,const std::string&aNameIm2,bool isIn, std::string aPost="" ) const;
 
     /// Name of file for all pairs of 1 image (only pairs, not orientation)
-    std::string OriRel_NameOriAllTripletsOf1Image(const std::string&aNameIm1,bool isIn, std::string aPost="") const;
+    std::string OriRel_NameAllTripletsOf1Image(const std::string&aNameIm1,bool isIn, std::string aPost="") const;
 
+    /// Name of file for all pairs of 1 image (only pairs, not orientation)
+    std::string OriRel_OrientAllTripletsOf1Image(const std::string&aNameIm1,bool isIn, std::string aPost="") const;
 	 //===================================================================
      //==================   RADIOMETRY       =============================
 	 //===================================================================

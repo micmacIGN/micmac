@@ -1505,7 +1505,7 @@ std::string cPhotogrammetricProject::OriRel_NameOriAllPairsOf1Image
     return OriRel_DirOfImage(aNameIm,isIn) + std::string("OriRel_AllPairsOfIm")  + "." + aPost;
 }
 
-std::string cPhotogrammetricProject::OriRel_NameOriAllTripletsOf1Image
+std::string cPhotogrammetricProject::OriRel_NameAllTripletsOf1Image
             (
                 const std::string&aNameIm,
                 bool isIn,
@@ -1516,6 +1516,20 @@ std::string cPhotogrammetricProject::OriRel_NameOriAllTripletsOf1Image
 
     return OriRel_DirOfImage(aNameIm,isIn) + std::string("Names_AllTripletsOfIm")  + "." + aPost;
 }
+
+std::string cPhotogrammetricProject::OriRel_OrientAllTripletsOf1Image
+            (
+                const std::string&aNameIm,
+                bool isIn,
+                std::string aPost
+             ) const
+{
+    SetDefPost(aPost);
+
+    return OriRel_DirOfImage(aNameIm,isIn) + std::string("Orient_AllTripletsOfIm")  + "." + aPost;
+}
+
+
 
 std::string cPhotogrammetricProject::OriRel_NameAllImages(bool isIn, std::string aPost) const
 {

@@ -175,7 +175,7 @@ class cElemBA
        cCalculator<double> *              mEqElemCamN;   ///< Colinerity equation - Cam N
        cCalculator<double> *              mEqElemCam12;   ///< Co-planrarity equatipn
 
-       cSetInterUK_MultipeObj<double>     mSetInterv;   ///< coordinator for autom numbering
+       cSetInterUK_MultipeObj<double> *   mSetInterv;   ///< coordinator for autom numbering
        cResolSysNonLinear<double> *       mSys;         ///< Solver
        cLeasSqtAA<tREAL8> *               mSystAA;      ///< Pointer to dense least square solve (short cut for linDet12 case)
        cP3dNormWithUK                     mTr2;         ///< Unknown  trans for cam2 force to unity

@@ -404,7 +404,7 @@ int cAppli_SelectPairOriRel::Exe()
     for (const auto & aNameIm : aVstr)
     {
        tSet3N aSet3 = mMapSet3[aNameIm];
-       SaveInFile(aSet3,mPhProj.OriRel_NameOriAllTripletsOf1Image(aNameIm,false));
+       SaveInFile(aSet3,mPhProj.OriRel_NameAllTripletsOf1Image(aNameIm,false));
     }
    // delete mTimeSegm;
 

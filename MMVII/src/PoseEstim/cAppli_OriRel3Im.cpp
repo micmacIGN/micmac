@@ -634,6 +634,8 @@ cCollecSpecArg2007 & cAppli_OriRelTripletsOfIm::ArgOpt(cCollecSpecArg2007 & anAr
 
 cOriTriplets * cAppli_OriRelTripletsOfIm::Do1Triplet(const std::vector<std::string> & a3Names)
 {
+   // static int aCpt = 0; aCpt++;
+   // StdOut() << " Do1TripletDo1Triplet=" << a3Names  << " Cpt=" << aCpt<< "\n";
 
     std::vector<tPoseR>      aVPoseRef;
     mUseOri4GT = mUseOri4GT ||  IsInit(&mFolderOriGT);
@@ -680,7 +682,8 @@ void cAppli_OriRelTripletsOfIm::DoAllTriplet()
 
 void cAppli_OriRelTripletsOfIm::DoTripletOf1Image()
 {
-    std::string aName3 =  mPhProj.OriRel_NameOriAllTripletsOf1Image(mIm1,true);
+    mPhProj.DPOriRel().SetDirOutInIfNotInit();
+    std::string aName3 =  mPhProj.OriRel_NameAllTripletsOf1Image(mIm1,true);
     cExtSet<cTripletName> aSet3;
     ReadFromFile (aSet3,aName3);
     std::vector<const cTripletName *> aV3;
@@ -700,7 +703,7 @@ void cAppli_OriRelTripletsOfIm::DoTripletOf1Image()
 
         delete anOri3;
     }
-    SaveInFile(aVData,"toto.xml");
+    SaveInFile(aVData,mPhProj.OriRel_OrientAllTripletsOf1Image(mIm1,false));
 }
 
 int cAppli_OriRelTripletsOfIm::Exe()

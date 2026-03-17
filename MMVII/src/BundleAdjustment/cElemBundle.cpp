@@ -24,7 +24,7 @@ cElemBA::cElemBA(eModResBund aMode,const std::vector<tPoseR>& aVPose) :
     mEqElemCamN  (EqBundleElem_CamN(mMode,true,mSzBuf,true)),
     mEqElemCam12 (EqBundleElem_Cam12(mMode,true,mSzBuf,true)),
   //  mEqElemCamN (nullptr),
-    mSetInterv   (),
+    mSetInterv   (new   cSetInterUK_MultipeObj<double> ),
     mSys         (nullptr),
     mTr2         (cPt3dr(0,0,1),"BAElem","Base1"),
     mRot2        (tRotR::Identity()),
@@ -43,17 +43,17 @@ cElemBA::cElemBA(eModResBund aMode,const std::vector<tPoseR>& aVPose) :
        mTr2.SetPNorm(mCurPose.at(1).Tr());
        mRot2.SetRot(mCurPose.at(1).Rot());
 
-       mSetInterv.AddOneObj(&mTr2);
-       mSetInterv.AddOneObj(&mRot2);
+       mSetInterv->AddOneObj(&mTr2);
+       mSetInterv->AddOneObj(&mRot2);
     }
     for (size_t aKP=mIndCamGen ; aKP<mCurPose.size() ; aKP++)
     {
         mPoseN.push_back(new cPoseWithUK(mCurPose.at(aKP)));
-        mSetInterv.AddOneObj(mPoseN.back());
+        mSetInterv->AddOneObj(mPoseN.back());
     }
 
     //  ------------------ Create the non linear system -------------------------
-    mSys = new cResolSysNonLinear<double>(eModeSSR::eSSR_LsqDense,mSetInterv.GetVUnKnowns());
+    mSys = new cResolSysNonLinear<double>(eModeSSR::eSSR_LsqDense,mSetInterv->GetVUnKnowns());
     mSystAA = mSys->SysLinear()->Get_tAA();
     // in this case, as we short-cut the standard system, we supress this warning
     if (mMode==eModResBund::eLinDet12)
@@ -62,6 +62,10 @@ cElemBA::cElemBA(eModResBund aMode,const std::vector<tPoseR>& aVPose) :
 
 cElemBA::~cElemBA()
 {
+    //  WARN  & TRICKY : I have made pointer of mSetInterv, because it must be destroyed before mPoseN
+    // in destuctor of mSetInterv, some clearing method on the object are applied ....
+    delete mSetInterv;
+
     DeleteAllAndClear(mPoseN);
     delete mSys;
 }
@@ -376,7 +380,7 @@ void cElemBA::OneIter(tREAL8 aLVM)
     // --------- Do the computation
     const auto & aVectSol =  mSys->SolveUpdateReset(aLVM);
     // Update the current unknowns
-    mSetInterv.SetVUnKnowns(aVectSol);
+    mSetInterv->SetVUnKnowns(aVectSol);
 
     // -------- Transferate the result to poses (as they have differnt struct in uknowns)
     if (mSCCam12)
