@@ -13,12 +13,30 @@ namespace MMVII
 
 template <const int Dim> cDataGenUnTypedIm<Dim>::cDataGenUnTypedIm
                          (
-                             const cPtxd<int,Dim> & aP0,
-                             const cPtxd<int,Dim> & aP1
+                             const tPixI & aP0,
+                             const tPixI & aP1
                          )  :
                             cPixBox<Dim>(aP0,aP1)
 {
 }
+
+template <const int Dim> cDataGenUnTypedIm<Dim>::~cDataGenUnTypedIm()
+{
+
+}
+
+template <const int Dim> void cDataGenUnTypedIm<Dim>::VI_VPtsSetV(const  std::vector<tPixI> & aVPt, int  aV)
+{
+   for (const auto & aPix : aVPt)
+       VI_SetV(aPix,aV);
+}
+
+template <const int Dim> void cDataGenUnTypedIm<Dim>::VD_VPtsSetV(const  std::vector<tPixI> & aVPt,tREAL8  aV)
+{
+   for (const auto & aPix : aVPt)
+       VI_SetV(aPix,aV);
+}
+
 
 
 template <class Type> cDataGenUnTypedIm<2> * Tpl_ReadIm2DGen(const cDataFileIm2D &aDFI,const cBox2di & aBox)
@@ -56,7 +74,12 @@ cDataGenUnTypedIm<2> * ReadIm2DGen(const std::string &aName)
     return ReadIm2DGen(aName,cBox2di::Empty());
 }
 
-
+template <const int Dim>
+std::pair<tREAL8,cPt2dr> cDataGenUnTypedIm<Dim>::GetValueAndGradInterpol(const cDiffInterpolator1D &,const cPt2dr & aP) const
+{
+    MMVII_INTERNAL_ERROR("Unhandled type in cDataGenUnTypedIm::GetValueAndGradInterpol");
+    return {0.,{0.,0.}};
+}
 
 
 /* ========================== */
@@ -431,10 +454,22 @@ template class cDataTypedIm<tREAL4,2>;
 template class cDataTypedIm<tREAL4,3>;
 */
 
+template class cDataGenUnTypedIm<1>;
+template class cDataGenUnTypedIm<2>;
+template class cDataGenUnTypedIm<3>;
+template class cDataGenUnTypedIm<4>;
+template class cDataGenUnTypedIm<5>;
+
+
+
+
+
 #define MACRO_INSTANTIATE_cDataTypedIm(aType)\
 template class cDataTypedIm<aType,1>;\
 template class cDataTypedIm<aType,2>;\
-template class cDataTypedIm<aType,3>;
+template class cDataTypedIm<aType,3>;\
+template class cDataTypedIm<aType,4>;\
+template class cDataTypedIm<aType,5>;
 
 
 MACRO_INSTANTIATE_cDataTypedIm(tINT1)

@@ -44,6 +44,7 @@ tREAL8 IntegrLinear(tREAL8 aX);
 class cRessampleWeigth
 {
     public :
+        // aSzK = 1 correspond to a "perfect sensor"
          static cRessampleWeigth  GaussBiCub(const cPt2dr & aPtsIn,const cAff2D_r & aMapIn, double aSzK);
     // private :
          std::vector<cPt2di>  mVPts;  // Pts used

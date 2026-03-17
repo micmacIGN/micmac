@@ -432,6 +432,8 @@ template <class Type>
            {
                std::vector<tREAL8> aVRes = aCam.ListAngularProjResiudal(*aSetTest);
 
+              aScore = RankWeigthedAverage(aVRes,1.0,true);
+/*
                std::sort(aVRes.begin(),aVRes.end());
                cWeightAv<tREAL8,tREAL8> aWAvg;
                for (size_t aK = 0 ; aK<aVRes.size(); aK++)
@@ -443,6 +445,7 @@ template <class Type>
                     aWAvg.Add(aW,aVRes.at(aK));
                }
                aScore = aWAvg.Average();
+*/
             //   StdOut() << "============ ==========SS= " << aScore  << "====\n";
 
               //  aScore = aSR.ErrAtProp(0.8);

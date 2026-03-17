@@ -12,13 +12,8 @@ namespace MMVII
 /** \file MMVII_StaticLidar.h
     \brief Static lidar internal representation
 
-
-
 */
 
-
-cPt3dr cart2spher(const cPt3dr & aPtCart);
-cPt3dr spher2cart(const cPt3dr & aPtspher);
 tREAL8 toMinusPiPlusPi(tREAL8 aAng, tREAL8 aOffset = 0.);
 
 
@@ -41,6 +36,7 @@ public:
     bool HasSpherical() const {return mHasSpherical;}
     bool HasRowCol() const {return mHasRowCol;}
     bool NoMiss() const {return mNoMiss;}
+    bool AllPointsReturn() const {return mAllPointsReturn;}
     bool IsStructured() const {return mIsStrucured;}
     int NbCol() const {return mNbCol;}
     int NbLine() const {return mNbLine;}
@@ -51,8 +47,10 @@ public:
     tREAL8 DistMinToExist() const {return mDistMinToExist;}
     tPoseR ReadPose() const { return mReadPose;}
     bool checkLineCol(); // verify that mMaxCol/mMaxLine ar compatible with mVectPtsLine/mVectPtsCol
+    void decimXY(const cPt2di & aDecim);
     const cRotation3D<tREAL8> & RotInput2TSL() const { return mRotInput2TSL; }
     const cRotation3D<tREAL8> & RotInput2Raster() const { return mRotInput2Raster; }
+    std::pair<tREAL8,tREAL8> AvgDistAndNbValid() const; //< return average dist for valid points, and number of valid points
 
     float ColToLocalThetaApprox(float aCol) const;
     float LineToLocalPhiApprox(float aLine) const;
@@ -82,7 +80,8 @@ protected:
     bool mHasSpherical; //< in original read data
     bool mHasRowCol;    //< in original read data
 
-    bool mNoMiss; // seems to be full
+    bool mNoMiss; // seems to be full (even if some points are (0,0,0)
+    bool mAllPointsReturn; // some points are (0,0,0) => no angle!
     bool mIsStrucured;
     tPoseR mReadPose;
     tREAL8 mDistMinToExist;
@@ -103,13 +102,14 @@ public :
 
     cStaticLidar(const std::string &aNameFile, const std::string & aStationName,
                  const std::string & aScanName, const tPose &aPose, cPerspCamIntrCalib *aCalib,
-                 cRotation3D<tREAL8> aRotInput2Raster);
+                 cRotation3D<tREAL8> aRotInput2Raster, tREAL8 aSigma);
 
-    static cStaticLidar *FromFile(const std::string & aNameCalibFile, const std::string &aNameScanFile, const std::string & aNameRastersDir);
+    static cStaticLidar *FromFile(const std::string & aNameScanFile, const std::string & aNameRastersDir="");
 
+    bool AreRastersReady() const { return mAreRastersReady;}
     void ToPly(const std::string & aName, bool useMask=false) const;
     void AddData(const  cAuxAr2007 & anAux) ;
-
+    virtual void ToFile(const std::string &) const override;
     void fillRasters(const cStaticLidarImporter & aSL_importer, const std::string &aPhProjDirOut, bool saveRasters);
 
     //inline tREAL8 lToPhiApprox(int l, double aPhiStart, double aPhiStep) const { return aPhiStart + l * aPhiStep; }
@@ -121,8 +121,9 @@ public :
     void MaskBuffer(const cStaticLidarImporter &aSL_importer, tREAL8 aAngBuffer, const std::string &aPhProjDirOut);
     void SelectPatchCenters1(int aNbPatches);
     void SelectPatchCenters2(const cStaticLidarImporter &aSL_importer, int aNbPatches);
+    void MakeVisu(const cPhotogrammetricProject & aPhProj) const;     ///< show 8bit dist image with patch centers
     void MakePatches(std::list<std::set<cPt2di> > &aLPatches,
-                     std::vector<cSensorCamPC *> &aVCam, int aNbPointByPatch, int aSzMin) const;
+                     const std::vector<cSensorCamPC *> &aVCam, int aNbPointByPatch, int aSzMin) const;
 
     cPt3dr Image2InputXYZ(const cPt2di & aRasterPx) const; // in input frame
     cPt3dr Image2InputXYZ(const cPt2dr & aRasterPx) const;
@@ -138,8 +139,15 @@ public :
 
     cPt2dr Ground2ImagePrecise(const cPt3dr & aGroundPt) const;
 
-    static std::string ScanPrefixName() { return "Scan-"; }
-    static std::string CalibPrefixName() { return "Calib-"; }
+    static std::string  PrefixName() ;
+    std::string  V_PrefixName() const override;
+    static std::string Pat2Sup(const std::string & aPatSelect);
+
+    cDataIm2D<tREAL4> &getRasterDistance() const;
+    bool IsValidPoint(const cPt2dr &aRasterPx) const;
+    tREAL8 Sigma() const { return mSigma; }
+
+
 private :
     template <typename TYPE> void fillRaster(const cStaticLidarImporter & aSL_importer, const std::string& aPhProjDirOut, const std::string& aFileName,
                     std::function<TYPE (int)> func, bool saveRaster); // do not keep image in memory
@@ -166,6 +174,9 @@ private :
     std::string mRasterThetaErrPath;
     std::string mRasterPhiErrPath;
 
+    bool mAreRastersReady;
+
+    tREAL8 mSigma;
     std::vector<cPt2di> mPatchCenters;
 
     // rasters for filtering
@@ -189,7 +200,8 @@ template <typename TYPE>
 {
     cPt3dr aPtCam3D = Image2Camera3D(aRasterPx);
     tREAL8 aDist = Norm2(aPtCam3D);
-    cPt2dr aDir = InternalCalib()->Value(aPtCam3D);
+    cPt2dr aPx = InternalCalib()->Value(aPtCam3D);
+    cPt2dr aDir = (aPx - InternalCalib()->PP()) / InternalCalib()->F();
     return {aDir.x(), aDir.y(), aDist};
 }
 void AddData(const  cAuxAr2007 & anAux,cStaticLidar & aSL);

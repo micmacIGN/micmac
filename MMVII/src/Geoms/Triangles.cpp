@@ -112,7 +112,7 @@ template <class Type,const int Dim>
 {
     cWhichMax<int,typename tPt::tBigNum> aWMax(0,SqN2(KVect(0)));
     for (int aK=1 ; aK<3 ; aK++)
-        aWMax.Add(aK,SqN2(KVect(1)));
+        aWMax.Add(aK,SqN2(KVect(aK)));  // MPD => KVect(1) , why ???
 
     return aWMax.IndexExtre();
 }
@@ -182,6 +182,15 @@ template <class Type,const int Dim> Type cTriangle<Type,Dim>::MinDist() const
 }
 
 
+
+
+/*
+template <class Type,const int Dim> Type cTriangle<Type,4>::Area() const 
+{
+    MMVII_INTERNAL_ERROR("cTriangle:Area for dim 4");
+   return 0.0;
+}
+*/
 
 
 
@@ -764,6 +773,8 @@ INSTANTIATE_TRI(tREAL8)
 INSTANTIATE_TRI(tREAL16)
 
 template class cTriangle<tREAL8,1>;
+template class cTriangle<tREAL8,4>;
+template class cTriangle<tREAL8,5>;
 
 /*
 template class cTriangulation<tREAL8,2>;

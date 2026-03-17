@@ -252,7 +252,7 @@ void cAppliRadiom2ImageSameMod::ComputeLinearModel()
     mCurSys->AddObservationLinear(mSomWLinear/1e2,mSVFixSum,tElSys(mNbIm));
 
     // we get a vector of ratio
-    cDenseVect<tElSys> aSol = mCurSys->SolveUpdateReset();
+    const cDenseVect<tElSys>  & aSol = mCurSys->SolveUpdateReset();
 
     // aSol.SetAvg(1.0);  // we force Avg to 1
     mSetInterv->SetVUnKnowns(aSol); // we retransfer the value in object
@@ -414,7 +414,7 @@ void   cAppliRadiom2ImageSameMod::OneIterationGen(int aDegFroze)
        mCurSys->AddObservationLinear(aSomWeight/1e2,mSVFixSum,tElSys(mNbIm));
     }
 
-    cDenseVect<tElSys> aSol = mCurSys->SolveUpdateReset();
+    const cDenseVect<tElSys> & aSol = mCurSys->SolveUpdateReset();
     mSetInterv->SetVUnKnowns(aSol);
 }
 

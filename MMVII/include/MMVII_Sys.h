@@ -58,29 +58,6 @@ int GlobParalSysCallByMkF(const std::string & aNameMkF,const std::list<cParamCal
 std::string MMVII_CanonicalRootDirFromExec();
 
 
-class FileLock
-{
-public:
-    FileLock();
-    explicit FileLock(const std::string& name);
-    ~FileLock();
-    bool lock(const std::string& name);
-    void unlock();
-    bool hasLock();
-
-private:
-#ifdef WIN32
-    void *mHandle = nullptr;
-#else
-    int mFd = -1;
-#endif
-    void doLock(const std::string& name);
-    void doUnlock();
-    bool doHasLock();
-};
-
-
-
 };
 
 #endif  //  _MMVII_Sys_H_

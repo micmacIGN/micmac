@@ -32,9 +32,11 @@ cCorresp32_BA::cCorresp32_BA
     mSzBuf         (100),
     mEqColinearity (mSensor->SetAndGetEqColinearity(true,mSzBuf,false))
 {
-
+// StdOut() << "cCorresp32_BA::cCorresp32_BAcCorresp32_BA::cCorresp32_BAcCorresp32_BA::cCorresp32_BA\n"; getchar();
     for (auto & anObj : mSensor->GetAllUK())
+    {
         mSetInterv.AddOneObj(anObj); // #DOC-AddOneObj
+    }
     //   mSetInterv.AddOneObj(m CamPC); // #DOC-AddOneObj
     //   mSetInterv.AddOneObj(m Calib);  // #DOC-AddOneObj
 

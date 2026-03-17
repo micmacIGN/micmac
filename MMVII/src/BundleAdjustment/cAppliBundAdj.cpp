@@ -61,7 +61,7 @@ class cAppliBundlAdj : public cMMVII_Appli
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
      private :
-
+        bool AcceptEmptySet(int aK) const override {return true;}
         std::vector<tREAL8>  ConvParamStandard(const std::vector<std::string> &,size_t aSzMin,size_t aSzMax) ;
 
         void  AddOneSetGCP3D(const std::string & aFolderIn, const std::string &aFolderOut, tREAL8 aWFactor); // aFolderOut="" if no out
@@ -85,8 +85,9 @@ class cAppliBundlAdj : public cMMVII_Appli
 	std::vector<double>       mBRSigma_Rat; // RIGIDBLOC
         std::vector<std::string>  mParamRefOri;  // Force Poses to be +- equals to this reference
 
-        std::vector<std::vector<std::string>>  mParamLidarPhgr; // parameters for lidar photogra/lidar via triangulation
-        std::vector<std::vector<std::string>>  mParamLidarPhoto; // parameters for lidar photogra/lidar via rasterization
+        std::vector<std::vector<std::string>>  mParamLidarPhgr; // parameters for photogra/lidar adj via triangulation
+        std::vector<std::vector<std::string>>  mParamLidarPhoto; // parameters for photogra/lidar adj via rasterization
+        std::vector<std::vector<std::string>>  mParamLidarLidar; // parameters for lidar-lidar adj
 
 	int                       mNbIter;
 
@@ -94,7 +95,8 @@ class cAppliBundlAdj : public cMMVII_Appli
 	std::vector<std::vector<std::string>>  mVVParFreeCalib;
 	std::string               mPatFrosenCenters;
 	std::string               mPatFrosenOrient;
-    std::string               mPatFrosenClino;
+       std::string               mPatFrosenClino;
+       std::string               mPatFrozenTSL;
 	std::vector<tREAL8>       mViscPose;
         tREAL8                    mLVM;  ///< Levenberk Markard
         bool                      mMeasureAdded ;
@@ -150,13 +152,15 @@ cCollecSpecArg2007 & cAppliBundlAdj::ArgOpt(cCollecSpecArg2007 & anArgOpt)
       << AOpt2007(mGCPFilterAdd,"GCPFilterAdd","Pattern to filter GCP by additional info")
       << AOpt2007(mTiePWeight,"TiePWeight","Tie point weighting [Sig0,SigAtt?=-1,Thrs?=-1,Exp?=1]",{{eTA2007::ISizeV,"[1,4]"}})
       << AOpt2007(mAddTieP,"AddTieP","For additional TieP, [[Folder,SigG...],[Folder,...]] ")
-      << AOpt2007(mParamLidarPhgr,"LidarPhotogra","Paramaters for adj Lidar/Phgr via triangulation [[Mode,Ply,Sigma,Interp?,Perturbate?,NbPtsPerPatch=32]*]")
-      << AOpt2007(mParamLidarPhoto,"LidarPhoto","Paramaters for adj Lidar/Phgr via rasterisation [[Mode,Ply,Sigma,Interp?,Perturbate?,NbPtsPerPatch=32]*]")
+      << AOpt2007(mParamLidarPhgr,"LidarPhotogra","Paramaters for Lidar/Phgr adj via triangulation [[Mode,Ply,Sigma,Interp?,Perturbate?,NbPtsPerPatch=32]*]")
+      << AOpt2007(mParamLidarPhoto,"LidarPhoto","Paramaters for Lidar/Phgr adj via rasterisation [[Mode,PatScan,Sigma,Interp?,Perturbate?,NbPtsPerPatch=32]*]")
+      << AOpt2007(mParamLidarLidar,"LidarLidar","Paramaters for Lidar/Lidar adj via rasterisation [[PatScan,Sigma,ThrsInit?=1,ThrsFinal?=0.1,Interp?=[Linear]]]")
       << AOpt2007(mPatParamFrozCalib,"PPFzCal","Pattern for freezing internal calibration parameters")
       << AOpt2007(mVVParFreeCalib,"PPFreeCal","Pattern for free internal calibration parameters [[PatCal1,PatParam1],[PatCal2,PatParam2] ...] ")
       << AOpt2007(mPatFrosenCenters,"PatFzCenters","Pattern of images for freezing center of poses")
       << AOpt2007(mPatFrosenOrient,"PatFzOrient","Pattern of images for freezing orientation of poses")
       << AOpt2007(mPatFrosenClino,"PatFzClino","Pattern of clinometers for freezing boresight")
+      << AOpt2007(mPatFrozenTSL,"PatFzTSL","Pattern of static lidar for freezing pose")
       << AOpt2007(mViscPose,"PoseVisc","Sigma viscosity on pose [SigmaCenter,SigmaRot]",{{eTA2007::ISizeV,"[2,2]"}})
       << AOpt2007(mLVM,"LVM","Levenberg–Marquardt parameter (to have better conditioning of least squares)",{eTA2007::HDV})
       << AOpt2007(mBRSigma,"BRW","Bloc Rigid Weighting [SigmaCenter,SigmaRot]",{{eTA2007::ISizeV,"[2,2]"}})  // RIGIDBLOC
@@ -391,6 +395,17 @@ int cAppliBundlAdj::Exe()
         mBA.Add1AdjLidarPhoto(aParam);
     }
 
+    for (const auto & aParam : mParamLidarLidar)
+    {
+        MMVII_INTERNAL_ASSERT_User(aParam.size()>=2,eTyUEr::eUnClassedError,"Not enough parameters for LidarLidar");
+        mMeasureAdded = true;
+        mBA.Add1AdjLidarLidar(aParam);
+    }
+
+    if (IsInit(&mPatFrozenTSL))
+    {
+        mBA.SetFrozenTSL(mPatFrozenTSL);
+    }
 
     MMVII_INTERNAL_ASSERT_User(mMeasureAdded,eTyUEr::eUnClassedError,"Not any measure added");
 
@@ -398,11 +413,7 @@ int cAppliBundlAdj::Exe()
       mBA.Set_UC_UK(mParamShow_UK_UC);
 
     //   ========== [2]   Make Iteration =============================
-    for (int aKIter=0 ; aKIter<mNbIter ; aKIter++)
-    {
-        bool isLastIter =  (aKIter==(mNbIter-1)) ;
-        mBA.OneIteration(mLVM,isLastIter,mShow_Cond);
-    }
+    mBA.Iterate(mNbIter, mLVM, mShow_Cond);
 
     //   ========== [3]   Save resulst =============================
     for (auto & aSI : mBA.VSIm())
@@ -418,6 +429,7 @@ int cAppliBundlAdj::Exe()
     mBA.Save_newGCP3D();
     mBA.SaveTopo(); // just for debug for now
     mBA.SaveClino();
+    mBA.SaveTSL();
 
     mBA.SaveBlockInstr();
 

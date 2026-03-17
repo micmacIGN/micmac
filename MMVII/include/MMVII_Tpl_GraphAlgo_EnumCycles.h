@@ -2,6 +2,7 @@
 #define _MMVII_Tpl_GraphAlgo_EnumCycle_H_
 
 #include "MMVII_Tpl_GraphStruct.h"
+#include "MMVII_Tpl_GraphAlgo_SPCC.h"
 
 
 
@@ -56,7 +57,7 @@ template <class TGraph>   class cAlgoEnumCycle
           const std::vector<tEdge*> &  CurPath() const {return mCurPath;}
 
           size_t  MaxSzCycle() const {return  mMaxSzCycle;}
-	  TGraph &   Graph() {return mGraph;}
+          TGraph &   Graph() {return mGraph;}
 
      private :
           /// Internal method for 1 edge, WithMarker=>do we mark the edge at the end for not going several time

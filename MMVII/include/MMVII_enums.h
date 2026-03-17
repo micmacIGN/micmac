@@ -40,6 +40,7 @@ enum class eTA2007
                 FFI,           ///< File Filter Interval
                 Orient,        ///< Orientation
                 OriTriplet,    ///< Relative oreintations between triplets of images
+                OriRel,        ///< Data for relative orientation pair (triplet here or in OriTriplet, to see?)
                 RadiomData,    ///< Data for Radiometry
                 RadiomModel,   ///< Model for Radiometry
                 MeshDev,       ///< Mesh Devlopment
@@ -142,7 +143,7 @@ enum class eFormatExtern
            {
               eMMV1,      ///< MicMac-V1 format, can import Orient/Calib/
               eMeshRoom,  ///< For example, not suppoted for now
-              eColMap,    ///< For example, not suppoted for now
+              eColmap,    ///< For example, not suppoted for now
               eNbVals     ///< Tag for number of value
 	   };
 /// Appli Data Type
@@ -673,6 +674,19 @@ enum class eMTDIm
               eNbVals
            };
 
+/// Mode of residual of bundle (in Elem Bundle)
+enum class eModResBund
+{
+        eAngle,
+        eProduct,
+        eDist12,
+        eAng12,
+        eDet12,   // Case where
+        eLinDet12,   // Case where
+        eNbVals
+};
+bool ModResBund_IsMode12(eModResBund);
+bool ModResBund_IsModeGen(eModResBund);
 
 const std::string & E2Str(const eModeFusionData &);
 const std::string & E2Str(const eTyClino &);
@@ -706,13 +720,17 @@ const std::string & E2Str(const eModeEpipMatch &);
 const std::string & E2Str(const eModeTestPropCov &);         
 const std::string & E2Str(const eModePaddingEpip &);         
 const std::string & E2Str(const eModeCaracMatch &);         
-const std::string & E2Str(const eModeSSR &);         
+const std::string & E2Str(const eModeSSR &);
+const std::string & E2Str(const eModResBund &);
+
 
 template <class Type> Type  Str2E(const std::string &, bool WithDef=false);
 //template <class Type> const Type & Str2E(const std::string &);
 template <class Type> std::string   StrAllVall();
 /// return a vector with list all label corresponding to aPat
 template <class Type> std::vector<Type> SubOfPat(const std::string & aPat,bool AcceptEmpty=false);
+/// return all values
+template <class Type> std::vector<Type> AllEnumValues();
 /// logically ~ SubOfPat, but returned as a vec of bool, indexable by (int)Label for direct access
 template <class Type> std::vector<bool> VBoolOfPat(const std::string & aPat,bool AcceptEmpty=false);
 
@@ -739,6 +757,12 @@ class DelAuto
       static constexpr bool No  = false;
 };
 class SVP
+{
+   public :
+      static constexpr bool Yes = true;
+      static constexpr bool No  = false;
+};
+class eAllowEmpty
 {
    public :
       static constexpr bool Yes = true;

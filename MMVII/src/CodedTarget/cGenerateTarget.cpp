@@ -125,6 +125,10 @@ const cOneEncoding * cDecodeFromCoulBits::Encoding() const
     return mSpec->EncodingFromCode(mCode.FlagBits());
 }
 
+const  tSet32Bits &  cDecodeFromCoulBits::Code () const
+{
+      return mCode;
+}
 
 /**************************************************/
 /*                                                */

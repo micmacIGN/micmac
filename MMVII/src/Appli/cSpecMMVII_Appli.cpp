@@ -201,7 +201,7 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpecGenCodedTarget);
         TheVecAll.push_back(&TheSpecExtractCircTarget);
         TheVecAll.push_back(&TheSpecExtractCheckBoardTarget);
-        TheVecAll.push_back(&TheSpecExtractCodedTarget);
+        //TheVecAll.push_back(&TheSpecExtractCodedTarget);
         TheVecAll.push_back(&TheSpecGenerateEncoding);
         TheVecAll.push_back(&TheSpecSimulCodedTarget);
         TheVecAll.push_back(&TheSpecSimulSphere);
@@ -223,8 +223,12 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpec_OriBundlAdj);
         TheVecAll.push_back(&TheSpec_TopoAdj);
         TheVecAll.push_back(&TheSpecSample3DpointsFromCloudIntoImage);
-
+        TheVecAll.push_back(&TheSpec_GCPAbsOri);
         TheVecAll.push_back(&TheSpec_OriRel2Im);
+        TheVecAll.push_back(&TheSpec_OriRelPairsOf1m);
+        TheVecAll.push_back(&TheSpec_OriRelAllPairs);
+        TheVecAll.push_back(&TheSpec_SelectPairOriRel);
+
         TheVecAll.push_back(&TheSpecMeshCheck);
         TheVecAll.push_back(&TheSpecProMeshImage);
         TheVecAll.push_back(&TheSpecMeshImageDevlp);
@@ -284,6 +288,7 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpec_ExportUndistMesIm);
         TheVecAll.push_back(&TheSpecAppliExtractLine);
         TheVecAll.push_back(&TheSpecAppliBubbles);
+        TheVecAll.push_back(&TheSpecAppliFranges);
         TheVecAll.push_back(&TheSpec_CERN_ImportClino);
         TheVecAll.push_back(&TheSpec_MMV2_MesIm_2_MMV1);
         TheVecAll.push_back(&TheSpec_MergeMesImGCP);
@@ -291,8 +296,14 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpec_PerturbRandomOri);
         TheVecAll.push_back(&TheSpec_ImportTriplet);
         TheVecAll.push_back(&TheSpec_ArboTriplet);
+        
+        TheVecAll.push_back(&TheSpec_HierarchSfm);
+        TheVecAll.push_back(&TheSpec_VisuPoseStr3D);
+        TheVecAll.push_back(&TheSpec_TransformPoses);
 
         TheVecAll.push_back(&TheSpecAppliBenchAPBI);
+        TheVecAll.push_back(&TheSpecAppliTestElemBundle);
+
 
 
         std::sort(TheVecAll.begin(),TheVecAll.end(),CmpCmd);

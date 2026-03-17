@@ -25,6 +25,7 @@ namespace MMVII
 
 cPt3dr  BundleInters(cPt3dr & aABC,const tSeg3dr & aSeg1,const tSeg3dr & aSeg2,tREAL8 aW12)
 {
+  // StdOut() << "BundleIntersBundleIntersBundleIntersBundleIntersBundleInters\n";
    cPt3dr  aV1   = aSeg1.V12();
    cPt3dr  aV2   = aSeg2.V12();
    cPt3dr  aNorm = aV1 ^ aV2;
@@ -32,6 +33,8 @@ cPt3dr  BundleInters(cPt3dr & aABC,const tSeg3dr & aSeg1,const tSeg3dr & aSeg2,t
    cDenseMatrix<tREAL8> aMat =  M3x3FromCol(aV1,-aV2,aNorm);
    aABC = SolveCol(aMat,aSeg2.P1()-aSeg1.P1());
 
+   // We need a draw, but the formula is correct also it does not use ABC.y()
+   // P2 - P1 = x V1 - V2
    return aSeg1.P1() + aV1 * aABC.x() + aNorm * (aABC.z() * (1.0-aW12));
 }
 

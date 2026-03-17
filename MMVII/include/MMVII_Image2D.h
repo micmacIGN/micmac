@@ -148,7 +148,7 @@ template <class Type>  class cDataIm2D  : public cDataTypedIm<Type,2>
        /// Interpolated value, using a generic interpolator
        double GetValueInterpol(const cInterpolator1D &,const cPt2dr & aP) const ;
        /// Interpolated value+derivative, using a generic diffentiable interpolator
-       std::pair<tREAL8,cPt2dr> GetValueAndGradInterpol(const cDiffInterpolator1D &,const cPt2dr & aP) const ;
+       std::pair<tREAL8,cPt2dr> GetValueAndGradInterpol(const cDiffInterpolator1D &,const cPt2dr & aP) const override;
        /// Interpolated value, using a generic interpolator, accept point partially inside, if accept no point
        /// must give a def value & Ok
        double ClipedGetValueInterpol(const cInterpolator1D &,const cPt2dr & aP,double  aDefVal=0,bool * Ok=nullptr) const ;
@@ -251,6 +251,10 @@ template <class Type>  class cDataIm2D  : public cDataTypedIm<Type,2>
         double  VD_GetV(const cPt2di& aP)  const override; ///< call GetV
         void VI_SetV(const  cPt2di & aP,const int & aV)    override ; ///< call SetV
         void VD_SetV(const  cPt2di & aP,const double & aV) override ; ///< call SetV
+
+        void VPtsSetV(const  std::vector<cPt2di> & aP,Type aVl) ;
+        void VI_VPtsSetV(const  std::vector<cPt2di> & aP, int  aV) override; ///< Call VPtsSetV
+        void VD_VPtsSetV(const  std::vector<cPt2di> & aP, tREAL8 aV) override; ///< Call VPtsSetV
 
         // ==  raw pointer on origin of line
         const Type * GetLine(int aY)  const;
@@ -418,6 +422,9 @@ template <class Type>  class cIm2D
 
        static cIm2D<Type> FromFile(const std::string& aName);  ///< Allocate and init from file
        static cIm2D<Type> FromFile(const std::string& aName,const cBox2di & );  ///< Allocate and init from file
+
+       /// Create a "Dirac image" : null except in aPDirac where it values aValDirac
+       static cIm2D<Type> DiracImage(const cPt2di & aP0,const cPt2di & aP1,Type aValDirac,const cPt2di & aPDirac);
 
        // void Read(const cDataFileIm2D &,cPt2di & aP0,cPt3dr Dyn /* RGB*/);  // 3 to 1
        // void Read(const cDataFileIm2D &,cPt2di & aP0,cIm2D<Type> aI2,cIm2D<Type> aI3);  // 3 to 3
@@ -640,16 +647,16 @@ class cRGBImage
         cPt2di mSzz;   ///< Sz with zoom, "physicall" pixel
         int    mZoom;
         tREAL8 mRZoom;
-	cPt2dr mOffsetZoom;  ///< Offset for corresponding real pixel to physicall
+	cPt2dr mOffsetZoom;  ///< Offset for corresponding real pixel to physical
         tIm1C  mImR;
         tIm1C  mImG;
         tIm1C  mImB;
 };
 
-template <class Type> void SetGrayPix(cRGBImage& aRGBIm,const cPt2di & aPix,const cDataIm2D<Type> & aGrayIm,const double & aMul=1.0);
-template <class Type> void SetGrayPix(cRGBImage& aRGBIm,const cDataIm2D<Type> & aGrayIm,const double & aMul=1.0);
-template <class Type> cRGBImage  RGBImFromGray(const cDataIm2D<Type> & aGrayIm,const double & aMul=1.0,int aZoom=1);
-template <class Type> cRGBImage  RGBImFromGray(const cDataIm2D<Type> & aGrayIm,const cBox2di&,const double & aMul=1.0,int aZoom=1);
+template <class Type> void SetGrayPix(cRGBImage& aRGBIm,const cPt2di & aPix,const cDataIm2D<Type> & aGrayIm, double aMul=1.0);
+template <class Type> void SetGrayPix(cRGBImage& aRGBIm,const cDataIm2D<Type> & aGrayIm, double aMul=1.0);
+template <class Type> cRGBImage  RGBImFromGray(const cDataIm2D<Type> & aGrayIm, double aMul=1.0,int aZoom=1);
+template <class Type> cRGBImage  RGBImFromGray(const cDataIm2D<Type> & aGrayIm,const cBox2di&, double aMul=1.0,int aZoom=1);
 
 
 /// 8 neighboors stored in order compatible with freeman-numbering

@@ -849,6 +849,7 @@ void BenchGeom(cParamExeBench & aParam)
 
 
     cEllipse::BenchEllispe();
+    cEllipse3D::Bench();
 
     BenchIsometrie(aParam);
     BenchRotation3D(aParam);

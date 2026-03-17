@@ -18,6 +18,14 @@ template <class Type> Type Average(const std::vector<Type> &);
 double  IKthVal(std::vector<double> & aV, int aK);
 
 
+/** this function aims to be some universal weighting function for supression of outlayers when we are
+ initally completely "blind" , the weithing is decreasing function of the rank, it can be linear
+or have a cos shape (~ 1 in 0 , Esp^2 at max), and can be modulated with a pow. The RankMin is added 
+iw we want than even high value have some influence.
+*/
+tREAL8 RankWeigthedAverage(const std::vector<tREAL8>&,tREAL8 aPow,bool CosTransf,tREAL8 aRkMin=0.0);
+
+
 tREAL8 AngleFromRad(eTyUnitAngle);
 tREAL8 AngleFromRad(tREAL8 aAngInRad,eTyUnitAngle);
 tREAL8 Rad2DMgon(tREAL8 aAngInRad);
@@ -1075,7 +1083,7 @@ template <class Type> class  cPolynom
            cPolynom<Type> operator * (const  Type & aVal) const;
            cPolynom<Type> Deriv() const;
 
-	   cPolynom<Type> & operator += (const cPolynom<Type> & aP2);
+           cPolynom<Type> & operator += (const cPolynom<Type> & aP2);
 
            std::vector<Type> RealRoots(const Type & aTol,int ItMax) const;
 

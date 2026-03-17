@@ -149,6 +149,11 @@ enum class eTypeEqCol
 
 NS_SymbolicDerivative::cCalculator<double> * EqColinearityCamPPC(eProjPC  aType,const cPt3di & aDeg,bool WithDerive,int aSzBuf,bool ReUse,bool isFraserMode,eTypeEqCol);
 
+           // .............  TO BE REMOVED ULTIMATELY Equation colinearity , imply external parameter, Projectiion .............
+NS_SymbolicDerivative::cCalculator<double> * EqColinearityCamProj(bool WithDerive,int aSzBuf,bool ReUse);
+    // .............   Equation colinearity , imply external parameter, Projectiion .............
+NS_SymbolicDerivative::cCalculator<double> * EqColinearityOnBundle(bool WithDerive,int aSzBuf,bool ReUse);
+
 
           
            // .............   Equation radiometry .............
@@ -169,6 +174,9 @@ NS_SymbolicDerivative::cCalculator<double> * Old_EqClinoBloc(bool WithDerive,int
 NS_SymbolicDerivative::cCalculator<double> * Old_EqClinoRot(bool WithDerive,int aSzBuf,bool Reuse);  // CLINOBLOC
 
 
+NS_SymbolicDerivative::cCalculator<double> * EqBundleElem_Cam1(eModResBund,bool WithDerive,int aSzBuf,bool ReUse);  // RIGIDBLOC
+NS_SymbolicDerivative::cCalculator<double> * EqBundleElem_Cam2(eModResBund,bool WithDerive,int aSzBuf,bool ReUse);  // RIGIDBLOC
+NS_SymbolicDerivative::cCalculator<double> * EqBundleElem_Cam12(eModResBund aMode,bool WithDerive,int aSzBuf,bool ReUse) ; // RIGIDBLOC
 
 
 
@@ -224,10 +232,11 @@ NS_SymbolicDerivative::cCalculator<double> * EqNetworkConsDistFixPoints(bool Wit
 ///  idem, but more adapted to real case (as in surface devlopment)
 NS_SymbolicDerivative::cCalculator<double> * EqNetworkConsDistFixPoints(bool WithDerive,int aSzBuf,int aNbPts);
 
-           // .............   Registration Lidar/Image   .............
-NS_SymbolicDerivative::cCalculator<double> * EqEqLidarImPonct(bool WithDerive,int aSzBuf);
-NS_SymbolicDerivative::cCalculator<double> * EqEqLidarImCensus(bool WithDerive,int aSzBuf);
-NS_SymbolicDerivative::cCalculator<double> * EqEqLidarImCorrel(bool WithDerive,int aSzBuf);
+           // .............   Registration Lidar/Image and Lidar/Lidar   .............
+NS_SymbolicDerivative::cCalculator<double> * EqEqLidarImPonct(bool WithDerive,int aSzBuf,bool aScanPoseUk);
+NS_SymbolicDerivative::cCalculator<double> * EqEqLidarImCensus(bool WithDerive,int aSzBuf,bool aScanPoseUk);
+NS_SymbolicDerivative::cCalculator<double> * EqEqLidarImCorrel(bool WithDerive,int aSzBuf,bool aScanPoseUk);
+NS_SymbolicDerivative::cCalculator<double> * EqEqLidarLidar(bool WithDerive,int aSzBuf);
 
 
 };

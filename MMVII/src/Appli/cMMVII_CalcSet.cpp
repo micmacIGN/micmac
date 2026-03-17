@@ -136,6 +136,7 @@ static void OneBenchEditSet
        RemoveFile(aDirI+Input,true);
     }
 
+
     // On utilise les ArgOpt  de l'appli que l'on modifie physiquement car : (1) c'est 
     //  impose par ExeCallMMVII (2) A la fin il sont remis a zero, donc pas de pb pour  les
     // reutiliser à chaque fois
@@ -160,6 +161,7 @@ static void OneBenchEditSet
         anAp.StrObl() <<   (UseDirP ? "" : aDirI)+Input  << anOp << aPat,
         anArgOpt
     );
+
 
 
     RenameFiles(aDirI+Ouput,aDirT+Ouput);
@@ -188,6 +190,7 @@ static void OneBenchEditSet
        MMVII_INTERNAL_ASSERT_always(aSet.In(aNF)==(ExpSet.find('0'+aK)!=std::string::npos),"Exp Set in OneBenchEditSet");
 
    }
+
 }
 
 int   cAppli_EditSet::ExecuteBench(cParamExeBench & aParam) 
@@ -278,6 +281,8 @@ int cAppli_EditSet::Exe()
 
    tNameSet aInput = SetNameFromString(mNameXmlIn,false);
    tNameSet aNew =  MainSet0();
+   bool isFileNone =   (FileOfPath(mNameXmlOut,false) == MMVII_NONE);
+   //SetIfNotInit(mShow,isFileNone ? 2 : 1);
 
    if (IsInit(&mChgName))
    {
@@ -317,8 +322,7 @@ int cAppli_EditSet::Exe()
       aRes = aNewRes;
    }
 
-
-   if (mShow)
+   if (mShow )
    {
        tNameSet   aTot(aInput+aNew);
 
@@ -347,7 +351,7 @@ int cAppli_EditSet::Exe()
    }
 
    // Back to cSetName
-   if (FileOfPath(mNameXmlOut,false) != MMVII_NONE)
+   if (! isFileNone)
       SaveInFile(aRes,mNameXmlOut);
 
    return EXIT_SUCCESS;

@@ -89,6 +89,7 @@ cMMVII_BundleAdj::cMMVII_BundleAdj(cPhotogrammetricProject * aPhp) :
     mPatFrozenCenter (""),
     mPatFrozenOrient (""),
     mPatFrozenClinos (""),
+    mPatFrozenTSL    (""),
     //mMesGCP           (nullptr),
     //mSigmaGCP         (-1),
     mBlRig            (nullptr),
@@ -101,7 +102,8 @@ cMMVII_BundleAdj::cMMVII_BundleAdj(cPhotogrammetricProject * aPhp) :
     mDirRefCam        (nullptr),
     mSigmaViscAngles  (-1.0),
     mSigmaViscCenter  (-1.0),
-    mNbIter           (0),
+    mNbMaxIter        (-1),
+    mIter             (0),
     mVerbose          (true),
     mShow_UC_UK       (false),
     mRUCSUR           (nullptr),
@@ -121,6 +123,7 @@ cMMVII_BundleAdj::~cMMVII_BundleAdj()
     delete mRUCSUR;
     // DeleteAllAndClear(mGCP_UK);
     DeleteAllAndClear(mVBA_Lidar);
+    DeleteAllAndClear(mVBA_LidarLidar);
 
     DeleteLineAdjust();
     DeleteBlockInstr();
@@ -253,10 +256,23 @@ void cMMVII_BundleAdj::InitIteration()
     }
 }
 
-
-void cMMVII_BundleAdj::OneIteration(tREAL8 aLVM,bool isLastIter, bool doShowCond)
+void cMMVII_BundleAdj::Iterate(int aNbMaxIter, tREAL8 mLVM, bool aShow_Cond)
 {
-    mIsLastIter=isLastIter;
+    mNbMaxIter = aNbMaxIter;
+    for (int aKIter=0 ; aKIter<NbMaxIter() ; aKIter++)
+    {
+        OneIteration(aKIter==0,mLVM,aShow_Cond);
+    }
+}
+
+
+void cMMVII_BundleAdj::OneIteration(bool isFirstIter, tREAL8 aLVM, bool doShowCond)
+{
+    MMVII_INTERNAL_ASSERT_tiny (mNbMaxIter>0,"BA: mNbMaxIter is not initialized");
+
+    bool isLastIter =  (mIter==(mNbMaxIter-1)) ;
+    mIsLastIter = isLastIter;
+
     // if it's first step, alloc ressources
     if (mPhaseAdd)
     {
@@ -304,7 +320,7 @@ void cMMVII_BundleAdj::OneIteration(tREAL8 aLVM,bool isLastIter, bool doShowCond
                 nbMatches++;
             }
         }
-        if (mVerbose)
+        if (mVerbose && isFirstIter)
             StdOut() << "Frozen centers: " << nbMatches << ".\n";
     }
    
@@ -321,7 +337,7 @@ void cMMVII_BundleAdj::OneIteration(tREAL8 aLVM,bool isLastIter, bool doShowCond
                 nbMatches++;
             }
         }
-        if (mVerbose)
+        if (mVerbose && isFirstIter)
             StdOut() << "Frozen orients: " << nbMatches << ".\n";
     }
     // if necessary fix hard cosntraint onf Gauge of Rigid-Block of instrument
@@ -332,6 +348,24 @@ void cMMVII_BundleAdj::OneIteration(tREAL8 aLVM,bool isLastIter, bool doShowCond
         mBlClino->SetFrozenVar(*mR8_Sys, mPatFrozenClinos);
     }
     
+    // if necessary, fix frozen poses of static lidar
+    if (mPatFrozenTSL !="")
+    {
+        // Freeze full pose (TODO: be able to to fix only verticalization)
+        tNameSelector aSel = AllocRegex(cStaticLidar::Pat2Sup(mPatFrozenTSL));
+        int nbMatches = 0;
+        for (auto & [aScanName, aLidar] : mMapTSL)
+        {
+            if (aSel.Match(aScanName))
+            {
+                mR8_Sys->SetFrozenVarCurVal(*aLidar,aLidar->Center());
+                mR8_Sys->SetFrozenVarCurVal(*aLidar,aLidar->Omega());
+                nbMatches++;
+            }
+        }
+        if (mVerbose && isFirstIter)
+            StdOut() << "Frozen TSL poses: " << nbMatches << ".\n";
+    }
 
     if (mBlRig) // RIGIDBLOC
     {
@@ -390,7 +424,10 @@ void cMMVII_BundleAdj::OneIteration(tREAL8 aLVM,bool isLastIter, bool doShowCond
     }
 
     for (const auto & aLidarPh : mVBA_Lidar )
-       aLidarPh->AddObs();
+        aLidarPh->AddObs();
+
+    for (const auto & aLidarLidar : mVBA_LidarLidar )
+        aLidarLidar->AddObs();
 
     // Add observation for line adjustment
     IterAdjustOnLine();
@@ -407,11 +444,11 @@ void cMMVII_BundleAdj::OneIteration(tREAL8 aLVM,bool isLastIter, bool doShowCond
     const auto & aVectSol = mR8_Sys->SolveUpdateReset(aLVM,{},{mRUCSUR},doShowCond);
     mSetIntervUK.SetVUnKnowns(aVectSol);
 
-    mNbIter++;
+    mIter++;
     if(mVerbose)
     {
         StdOut() << "---------------------- "
-                 << " End Iter" << mNbIter   
+                 << " End Iter" << mIter
                   << " StdDevLast=" << std::sqrt(mR8_Sys->VarLastSol())
                   << " StdDevCur=" << std::sqrt(mR8_Sys->VarCurSol())
                   //<< " VarLast=" << mR8_Sys->VarLastSol()
@@ -527,6 +564,11 @@ void cMMVII_BundleAdj::SetParamFreeCalib(const std::vector<std::vector<std::stri
 void cMMVII_BundleAdj::SetFrozenCenters(const std::string & aPattern)
 {    
     mPatFrozenCenter = aPattern;
+}
+
+void cMMVII_BundleAdj::SetFrozenTSL(const std::string & aPattern)
+{
+    mPatFrozenTSL = aPattern;
 }
 
 void cMMVII_BundleAdj::SetFrozenOrients(const std::string & aPattern)
@@ -801,6 +843,38 @@ void cMMVII_BundleAdj::Add1AdjLidarPhotogra(const std::vector<std::string> &aPar
 void cMMVII_BundleAdj::Add1AdjLidarPhoto(const std::vector<std::string> &aParam)
 {
     mVBA_Lidar.push_back(new cBA_LidarPhotograRaster(mPhProj, *this,aParam));
+}
+
+cStaticLidar * cMMVII_BundleAdj::AddStaticLidar(const std::string &aScanName)
+{
+    AssertPhpAndPhaseAdd();
+    if (mMapTSL.count(aScanName)==0)
+    {
+        cStaticLidar * aLidarData = mPhProj->ReadStaticLidar(aScanName, true, true);
+        MMVII_INTERNAL_ASSERT_User(aLidarData,
+                                   eTyUEr::eUnClassedError,"Error opening static scans " + aScanName);
+
+        mMapTSL[aScanName] = aLidarData;
+
+        MMVII_INTERNAL_ASSERT_tiny (!aLidarData->UkIsInit(),"Multiple add of TSL : " + aLidarData->NameImage());
+        mSetIntervUK.AddOneObj(aLidarData);
+        aLidarData->SetAndGetEqColinearity(true,10,true);  // WithDer, SzBuf, ReUse
+    }
+    return mMapTSL.at(aScanName);
+}
+
+const std::unordered_map<std::string, cStaticLidar *> &cMMVII_BundleAdj::MapTSL() const {return mMapTSL;}
+
+void cMMVII_BundleAdj::Add1AdjLidarLidar(const std::vector<std::string> &aParam)
+{
+    mVBA_LidarLidar.push_back(new cBA_LidarLidarRaster(mPhProj, *this,aParam));
+}
+
+
+void cMMVII_BundleAdj::SaveTSL()
+{
+    for (auto & [aScanName, aLidar] : mMapTSL)
+        aLidar->ToFile(mPhProj->DPOrient().FullDirOut() + aScanName);
 }
 
 /* ---------------------------------------- */

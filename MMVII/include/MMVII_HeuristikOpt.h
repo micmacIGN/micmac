@@ -2,6 +2,10 @@
 #define  _MMVII_Heuristik_Opt_H_
 
 #include "MMVII_Ptxd.h"
+#include "MMVII_Mappings.h"
+#include "MMVII_Geom3D.h"
+#include "MMVII_PCSens.h"
+
 
 
 namespace MMVII
@@ -53,6 +57,31 @@ template <const int Dim> class cOptimByStep
         tPtR                          mPt0;      ///< memorize init point to avoid we go too far
 
 };
+
+/** Class that can be used Clino+Vert or for pose estimation */
+
+class cOptimizeRotAndVUnit  : public cDataMapping<tREAL8,5,1>
+{
+     public :
+          typedef std::pair<tRotR,cPt3dr> tSol;
+
+          /// Cstructor  isSignAmb -> yes for clino as it's invariant to sign chg in vertical & I &J
+          cOptimizeRotAndVUnit(int aNbSamleRot,int aNbSampleSphere,bool isSignAmb);
+          std::pair<tREAL8,tSol> ComputeSolInit(tREAL8 aDistNeigh,tREAL8 anEpsilon,int aNbTest,tREAL8 aDeltaSc);
+
+     private :
+          virtual tREAL8 ScoreRotAndVect (const tRotR&,const cPt3dr &) const = 0;
+          std::pair<tRotR,cPt3dr>  P5toRotP3(const cPtxd<tREAL8,5>& aPt) const;
+          cPt1dr  Value(const cPtxd<tREAL8,5>&) const override ;
+
+          int  mNbSampleRot;
+          int  mNbSampleSphere;
+          bool mIsSignAmb;
+          tRotR mCurRot0;         //< Cur value of rotation used as a starting point
+          cP3dNormWithUK mCurV0;  //< Cur unit vector  used used as starting point (J,K complement)
+
+};
+
 
 
 

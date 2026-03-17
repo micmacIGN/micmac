@@ -152,6 +152,7 @@ class cDataPerspCamIntrCalib
       std::vector<std::string> & VecInfo() ;
 
       const cMapPProj2Im& MapPProj2Im() const { return mMapPProj2Im;}
+      cMapPProj2Im& MapPProj2Im() { return mMapPProj2Im;}
       const std::string & Name() const; ///< Accessor
 
    protected :
@@ -558,7 +559,13 @@ class cP3dNormWithUK :  public cObjWithUnkowns<tREAL8>,
 
         void SetPNorm(const cPt3dr & aTr);
         cPt3dr GetPNorm () const;
+        cPt3dr GetPNorm (const cPt2dr &) const;
+
         cPt2dr & DuDv();
+        const cPt3dr & RawPNorm() const; //< Accessor to mPNorm, rather for tuning/debug
+        const cPt3dr & U() const; ///< Accessor
+        const cPt3dr & V() const; ///< Acessor
+
 
         void AddIdexesAndObs(std::vector<int> &, std::vector<double>&);
    private :
@@ -639,8 +646,10 @@ class cSensorCamPC : public cSensorImage
      const cPt3dr * CenterOfPC() const override;
          /// Return the calculator, adapted to the type, for computing colinearity equation
          cCalculator<double> * CreateEqColinearity(bool WithDerives,int aSzBuf,bool ReUse) override;
-     /// Push the current rotation, as equation are fixed using delta-rot
-     void PushOwnObsColinearity(std::vector<double> &,const cPt3dr &) override;
+        /// Return the calculator, collinearity equation on bundles
+         cCalculator<double> * CreateEqColinearityOnBundle(bool WithDerives,int aSzBuf,bool ReUse);
+	 /// Push the current rotation, as equation are fixed using delta-rot
+	 void PushOwnObsColinearity(std::vector<double> &,const cPt3dr &) override;
 
      /// return the 3-d plane crossing the 2-d seg, depth is optionnal as theoretically it define the same plane
          cPlane3D  SegImage2Ground(const tSeg2dr &,tREAL8 aDepth=1.0) const;
@@ -653,6 +662,9 @@ class cSensorCamPC : public cSensorImage
 
      /// return the pose of aCam2 relatively to Cam1;  Pose().MapInverse()*aCam2.Pose();
      tPose RelativePose(const cSensorCamPC& aCame) const;
+
+     /// Idem   RelativePose , but enforce norm of base to 1
+     tPose Norm1RelativePose(const cSensorCamPC& aCame) const;
 
 
      // different accessor to the pose
@@ -675,8 +687,10 @@ class cSensorCamPC : public cSensorImage
          void PutUknowsInSetInterval() override ;  // add the interval on udpate
          void OnUpdate() override;                 // "reaction" after linear update
 
-     /// contain itself + internal calib
-     std::vector<tPtrOUK>  GetAllUK() override;
+	 /// contain itself + internal calib
+	 std::vector<tPtrOUK>  GetAllUK() override;
+     /// contain itself
+     std::vector<tPtrOUK>  GetAllUKPose() ;
 
      /// retur
      void  FillGetAdrInfoParam(cGetAdrInfoParam<tREAL8> &) override;
@@ -686,7 +700,7 @@ class cSensorCamPC : public cSensorImage
          size_t NumXOmega() const;   /// num of mOmega().x when used as cObjWithUnkowns (y and z follow)
 
          void AddData(const cAuxAr2007 & anAux);
-     void  ToFile(const std::string & ) const override ; ///< export in xml/dmp ...
+     virtual void  ToFile(const std::string & ) const override ; ///< export in xml/dmp ...
      static cSensorCamPC * FromFile(const std::string &,bool Remanent=true); ///< create form xml/dmp ...
      static  std::string  NameOri_From_Image(const std::string & aNameImage);
 
@@ -714,6 +728,7 @@ class cSensorCamPC : public cSensorImage
         void Bench();
         cSensorCamPC(const cSensorCamPC&) = delete;
 
+    protected:
     cPoseWithUK          mPose_WU;
     /*
         cIsometry3D<tREAL8>  mPose;   ///< transformation Cam to Word
@@ -732,18 +747,20 @@ class cCamSimul : public cMemCheck
 {
    public :
       static cCamSimul * Alloc2VIewTerrestrial(eProjPC aProj1,eProjPC aProj2,bool SubVert);
+      static cCamSimul * AllocNVIewTerrestrial(int aNb,eProjPC aProj,bool SubVert);
 
       ~cCamSimul();
       static void BenchPoseRel2Cam(cTimerSegm * aTS,bool PerfInter,bool SubVert,bool Planar);
+      static void BenchHierchBA(cTimerSegm * aTS,bool PerfInter,bool isSubVert);
       void TestCam(cSensorCamPC * aCam) const;
 
       const std::vector<cSensorCamPC *> & ListCam() const;
 
    private :
       /// Add a cam of given type by generating a random calib
-      void AddCam(eProjPC aProj1,bool SubVert);
+      void AddCam(eProjPC aProj1,bool SubVert,std::string Name="Test");
       /// Once computed the calib generate the pose to creat a cam
-      void AddCam(cPerspCamIntrCalib *,bool SubVert);
+      void AddCam(cPerspCamIntrCalib *,bool SubVert,std::string Name="Test");
 
       ///  Constructor , gives default values to numerical quantities (Prof ...)
       cCamSimul();

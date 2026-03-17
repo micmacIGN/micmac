@@ -14,6 +14,7 @@
 #include "MMVII_Geom2D.h"
 #include "Formulas_ClinoBloc.h"
 #include "Formulas_ClinoRot.h"
+#include "Formulas_CalibBundles.h"
 
 #include "MMVII_PCSens.h"
 #include "MMVII_2Include_Serial_Tpl.h"
@@ -206,19 +207,20 @@ cCalculator<double> * EqColinearityCamPPC(eProjPC  aType,const cPt3di & aDeg,boo
     cCalculator<double> * aRes = StdAllocCalc(NameEqColinearityCamPPC(aType,aDeg,WithDerive,isFraserMode,aTypeEqCol),aSzBuf,true,ReUse);
 
     TestResDegree(aRes,aDeg,"EqColinearityCamPPC");
-    /*
-     if (aRes==nullptr)
-     {
-         StdOut() << " *  Generated Degree Are " <<   TheVectDegree << std::endl;
-	 MMVII_UsersErrror
-         (
-	      eTyUEr::eBadDegreeDist,
-	      "Required degree for distorsion  EqColinearityCamPPC has not been generated"
-         );
-     }
-     */
 
      return aRes;
+}
+
+     //    Projection (operates on bundles)
+cCalculator<double> * EqColinearityCamProj(bool WithDerive,int aSzBuf,bool ReUse)
+{
+    return StdAllocCalc(NameFormula(cFormula_EqColinearityCamProj(),WithDerive),aSzBuf,true,ReUse);
+}
+
+//    Projection (operates on bundles and generic camera)
+cCalculator<double> * EqColinearityOnBundle(bool WithDerive,int aSzBuf,bool ReUse)
+{
+    return StdAllocCalc(NameFormula(cFormula_EqColinearityOnBundle(),WithDerive),aSzBuf,true,ReUse);
 }
 
      //    Radiometry
@@ -367,6 +369,27 @@ cCalculator<double> * Old_EqClinoRot(bool WithDerive,int aSzBuf,bool ReUse)  // 
     return StdAllocCalc(NameFormula(cFormulaClinoRot(),WithDerive),aSzBuf,false,ReUse);
 }
 
+
+cCalculator<double> * EqBundleElem_Cam1(eModResBund aMode,bool WithDerive,int aSzBuf,bool ReUse)  // RIGIDBLOC
+{
+    return  ModResBund_IsModeGen(aMode) ?
+               StdAllocCalc(NameFormula(cFormulaBundleElem_Cam1(aMode),WithDerive),aSzBuf,false,ReUse) :
+               nullptr;
+}
+cCalculator<double> * EqBundleElem_Cam2(eModResBund aMode,bool WithDerive,int aSzBuf,bool ReUse)  // RIGIDBLOC
+{
+    return   ModResBund_IsModeGen(aMode) ?
+                StdAllocCalc(NameFormula(cFormulaBundleElem_Cam2(aMode),WithDerive),aSzBuf,false,ReUse) :
+                nullptr;
+}
+
+cCalculator<double> * EqBundleElem_Cam12(eModResBund aMode,bool WithDerive,int aSzBuf,bool ReUse)  // RIGIDBLOC
+{
+    return   ModResBund_IsMode12(aMode) ?
+                 StdAllocCalc(NameFormula(cFormulaBundleElem_CamDet12(aMode),WithDerive),aSzBuf,false,ReUse):
+                 nullptr ;
+}
+// cFormulaBundleElem_Cam1
 // topo subframe with dist parameter
 template <class Type> cCalculator<Type> * TplEqTopoSubFrame(bool WithDerive,int aSzBuf)
 {
@@ -463,22 +486,28 @@ cCalculator<double> * EqSumSquare(int aNb,bool WithDerive,int aSzBuf,bool ReUse)
 }
 
 
-  // Projection image lidar 
+  // Projection image lidar
 
-cCalculator<double> * EqEqLidarImPonct(bool WithDerive,int aSzBuf)
+cCalculator<double> * EqEqLidarImPonct(bool WithDerive,int aSzBuf, bool aScanPoseUk)
 {
-    return StdAllocCalc(NameFormula(cEqLidarImPonct(),WithDerive),aSzBuf);
+    return StdAllocCalc(NameFormula(cEqLidarImPonct(aScanPoseUk),WithDerive),aSzBuf);
 }
 
-cCalculator<double> * EqEqLidarImCensus(bool WithDerive,int aSzBuf)
+cCalculator<double> * EqEqLidarImCensus(bool WithDerive,int aSzBuf, bool aScanPoseUk)
 {
-    return StdAllocCalc(NameFormula(cEqLidarImCensus(),WithDerive),aSzBuf);
+    return StdAllocCalc(NameFormula(cEqLidarImCensus(aScanPoseUk),WithDerive),aSzBuf);
 }
 
-cCalculator<double> * EqEqLidarImCorrel(bool WithDerive,int aSzBuf)
+cCalculator<double> * EqEqLidarImCorrel(bool WithDerive,int aSzBuf, bool aScanPoseUk)
 {
-    return StdAllocCalc(NameFormula(cEqLidarImCorrel(),WithDerive),aSzBuf);
+    return StdAllocCalc(NameFormula(cEqLidarImCorrel(aScanPoseUk),WithDerive),aSzBuf);
 }
+
+cCalculator<double> * EqEqLidarLidar(bool WithDerive,int aSzBuf)
+{
+    return StdAllocCalc(NameFormula(cEqLidarLidar(),WithDerive),aSzBuf);
+}
+
 
 /* **************************** */
 /*      BENCH  PART             */
@@ -791,6 +820,11 @@ const std::vector<cPt3di>
 			   {2,0,0}
       };
 
+const std::vector<cPt3di>
+    TheVectDegreeEquiRect
+    {
+        {0,0,0},
+    };
 
 int cAppliGenCode::Exe()
 {
@@ -811,6 +845,14 @@ int cAppliGenCode::Exe()
        GenerateCodeCamPerpCentrale<cProjStenope>(aDeg,true,eTypeEqCol::ePt);
        GenerateCodeCamPerpCentrale<cProjStenope>(aDeg,true,eTypeEqCol::eLine);
    }
+        // ---   Colinearity for normalised camera (operates on bundles) -----------------
+   for (const auto WithDer : {true,false})
+   {
+       // to be removed ultimately
+       GenCodesFormula((tREAL8*)nullptr,cFormula_EqColinearityCamProj(),WithDer);
+
+       GenCodesFormula((tREAL8*)nullptr,cFormula_EqColinearityOnBundle(),WithDer);
+   }
 
        //  ---  Here we generate the degree for SIA-cylindric systematisms -----------------
    
@@ -819,6 +861,13 @@ int cAppliGenCode::Exe()
        GenerateOneDist(aDegSIA,false);
        GenerateCodeCamPerpCentrale<cProjStenope>(aDegSIA,false,eTypeEqCol::ePt);
    }
+
+    // ---   Colinearity for equi-rect sensors (static lidar) -----------------
+   for (const auto & aDeg :  TheVectDegreeEquiRect)
+   {
+       GenerateCodeCamPerpCentrale<cProj_EquiRect>(aDeg,true,eTypeEqCol::ePt);
+   }
+
 
    GenerateCodeCamPerpCentrale<cProjFE_EquiDist>(cPt3di(3,1,1),true,eTypeEqCol::ePt);
 
@@ -844,10 +893,16 @@ int cAppliGenCode::Exe()
 
    for (const auto WithDer : {true,false})
    {
-       GenCodesFormula((tREAL8*)nullptr,cEqLidarImPonct(),WithDer); // RIGIDBLOC
-       GenCodesFormula((tREAL8*)nullptr,cEqLidarImCensus(),WithDer); // RIGIDBLOC
-       GenCodesFormula((tREAL8*)nullptr,cEqLidarImCorrel(),WithDer); // RIGIDBLOC
-								      //
+       GenCodesFormula((tREAL8*)nullptr,cEqLidarImPonct(false),WithDer); // Lidar tri
+       GenCodesFormula((tREAL8*)nullptr,cEqLidarImCensus(false),WithDer);
+       GenCodesFormula((tREAL8*)nullptr,cEqLidarImCorrel(false),WithDer);
+
+       GenCodesFormula((tREAL8*)nullptr,cEqLidarImPonct(true),WithDer); // Lidar static with pose
+       GenCodesFormula((tREAL8*)nullptr,cEqLidarImCensus(true),WithDer);
+       GenCodesFormula((tREAL8*)nullptr,cEqLidarImCorrel(true),WithDer);
+
+       GenCodesFormula((tREAL8*)nullptr,cEqLidarLidar(),WithDer); // lidar/lidar
+
        GenCodesFormula((tREAL8*)nullptr,cFormulaSumSquares(8),WithDer); // example for contraint
 
        GenCodesFormula((tREAL8*)nullptr,cFormulaBlocRigid(),WithDer); // RIGIDBLOC
@@ -855,6 +910,16 @@ int cAppliGenCode::Exe()
        GenCodesFormula((tREAL8*)nullptr,cFormulaRattBRExist(),WithDer); // RIGIDBLOC
        GenCodesFormula((tREAL8*)nullptr,cFormulaClino(0,3),WithDer);
        GenCodesFormula((tREAL8*)nullptr,cFormulaVNormOrthog(),WithDer);
+
+       for (const auto aMode : {eModResBund::eAngle,eModResBund::eProduct})
+       {
+            GenCodesFormula((tREAL8*)nullptr,cFormulaBundleElem_Cam1(aMode),WithDer);
+            GenCodesFormula((tREAL8*)nullptr,cFormulaBundleElem_Cam2(aMode),WithDer);
+       }
+       for (const auto aMode : {eModResBund::eDet12,eModResBund::eDist12,eModResBund::eAng12})
+       {
+           GenCodesFormula((tREAL8*)nullptr,cFormulaBundleElem_CamDet12(aMode),WithDer);
+       }
 
        GenCodesFormula((tREAL8*)nullptr,cFormulaClinoBloc(),WithDer); // CLINOBLOC
        GenCodesFormula((tREAL8*)nullptr,cFormulaClinoRot(),WithDer); // CLINOBLOC
@@ -936,6 +1001,7 @@ int cAppliGenCode::Exe()
    GenerateCodeProjCentralPersp<cProjOrthoGraphic>();
    GenerateCodeProjCentralPersp<cProjFE_EquiSolid>(); //  ->  asin
    GenerateCodeProjCentralPersp<cProj_EquiRect>(); //  ->  asin
+
 
 
 /*

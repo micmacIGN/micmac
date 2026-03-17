@@ -286,9 +286,12 @@ class cFormulaClino
             }
 
          private :
-            int  mD0Corr;
-            int  mD1Corr;
+            int  mD0Corr; ///< Min degree of correction
+            int  mD1Corr; ///< Max degree of correction  (!! Included)
+
 };
+
+   /** Formula for enforcing 2 normalized vector to be orthog */
 
 class cFormulaVNormOrthog
 {
@@ -301,6 +304,7 @@ class cFormulaVNormOrthog
            {
                 return  Append
                         (
+                          // NamesP3("Rot") , // where does it comes from ???? error copy/Paste
                             NamesP2("DuDv1") ,
                             NamesP2("DuDv2")
                         );
@@ -340,6 +344,7 @@ class cFormulaVNormOrthog
 
          private :
 };
+
 
 };
 

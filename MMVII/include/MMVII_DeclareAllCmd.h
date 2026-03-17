@@ -72,8 +72,11 @@ extern cSpecMMVII_Appli  TheSpecTestCovProp;
 extern cSpecMMVII_Appli  TheSpec_OriConvV1V2; 
 extern cSpecMMVII_Appli  TheSpec_OriUncalibSpaceResection; 
 extern cSpecMMVII_Appli  TheSpec_OriCalibratedSpaceResection; 
-extern cSpecMMVII_Appli  TheSpec_OriCheckGCPDist; 
+extern cSpecMMVII_Appli  TheSpec_OriCheckGCPDist;
 extern cSpecMMVII_Appli  TheSpec_OriRel2Im;
+extern cSpecMMVII_Appli  TheSpec_OriRelPairsOf1m;
+extern cSpecMMVII_Appli  TheSpec_OriRelAllPairs;
+extern cSpecMMVII_Appli  TheSpec_SelectPairOriRel;
 extern cSpecMMVII_Appli  TheSpecMeshCheck;
 extern cSpecMMVII_Appli  TheSpecSample3DpointsFromCloudIntoImage;
 extern cSpecMMVII_Appli  TheSpecProMeshImage;
@@ -135,16 +138,25 @@ extern cSpecMMVII_Appli  TheSpec_TutoFormalDeriv;
 extern cSpecMMVII_Appli  TheSpec_ExportUndistMesIm;
 extern cSpecMMVII_Appli  TheSpecAppliExtractLine;
 extern cSpecMMVII_Appli  TheSpecAppliBubbles;
+extern cSpecMMVII_Appli  TheSpecAppliFranges;
+
 extern cSpecMMVII_Appli  TheSpec_CERN_ImportClino;
 extern cSpecMMVII_Appli  TheSpec_MMV2_MesIm_2_MMV1;
 extern cSpecMMVII_Appli TheSpec_MergeMesImGCP;
 extern cSpecMMVII_Appli  TheSpec_ExifData;
-
 extern cSpecMMVII_Appli  TheSpec_PerturbRandomOri;
 extern cSpecMMVII_Appli  TheSpec_ImportTriplet;
 extern cSpecMMVII_Appli  TheSpec_ArboTriplet;
+extern cSpecMMVII_Appli  TheSpec_GCPAbsOri;
+
+extern cSpecMMVII_Appli  TheSpec_HierarchSfm;
+extern cSpecMMVII_Appli  TheSpec_VisuPoseStr3D;
+extern cSpecMMVII_Appli  TheSpec_TransformPoses;
 
 extern cSpecMMVII_Appli  TheSpecAppliBenchAPBI;
+extern cSpecMMVII_Appli  TheSpecAppliTestElemBundle;
+
+
 };
 
 #endif  //  _MMVII_DeclareAllCmd_H_

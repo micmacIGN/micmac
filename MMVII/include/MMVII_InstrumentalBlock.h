@@ -394,8 +394,10 @@ class cIrbComp_Cam1 : public cMemCheck
          tPoseR PosBInSysA(const cIrbComp_Cam1 & aCamB) const;
 
          bool IsInit() const ;  //< Is  mCamPC set ?
-         cSensorCamPC * CamPC() const; //< Accessor
-         tPoseR  Pose() const;  //< Accessor 2 mCamPC
+         // const cSensorCamPC * CamPC() const; //< Accessor
+          cSensorCamPC * CamPC() const ; //< Accessor
+
+          tPoseR   Pose() const ;  //< Accessor 2 mCamPC
          std::string NameIm() const; //<  Accessor 2 mCamPC
 
 
@@ -419,14 +421,18 @@ class cIrbComp_CamSet  : public cMemCheck
 
           const std::vector<cIrbComp_Cam1> &  VCompPoses() const;  ///<  Accessor
           cIrbComp_Cam1 & KthCam(int aK) ;
+          const cIrbComp_Cam1 & KthCam(int aK) const ;
+
+          const cIrbComp_Cam1 & CamMaster() const ;
+
 
           cSensorCamPC * SingleCamPoseInstr(bool OkNot1=false) const ;
 
     private :
-         cIrbComp_CamSet(const cIrbComp_CamSet &) = delete;
+       //  cIrbComp_CamSet(const cIrbComp_CamSet &) = delete;
 
          void AddImagePose(int anIndex,cSensorCamPC * aCamPC,bool Adopt);
-         const cIrbComp_Block &      mBlock;
+         const cIrbComp_Block *      mBlock;
          std::vector<cIrbComp_Cam1>  mVCompPoses;
 };
 
@@ -458,7 +464,7 @@ class   cIrbComp_TimeS : public cMemCheck
     public :
          friend cIrbComp_Block;
 
-         cIrbComp_TimeS (const cIrbComp_Block &);
+         cIrbComp_TimeS (const cIrbComp_Block &,const std::string & anIdent);
          const cIrbComp_CamSet & SetCams() const;  //< Accessor
           cIrbComp_CamSet & SetCams();  //< Accessor
           const cIrbComp_ClinoSet & SetClino() const;
@@ -474,14 +480,15 @@ class   cIrbComp_TimeS : public cMemCheck
          tREAL8 ScoreDirClino(const cPt3dr& aDir,size_t aKClino) const;
 
     private :
-         cIrbComp_TimeS(const cIrbComp_TimeS&) = delete;
-         const cIrbComp_Block &            mCompBlock;
+         //cIrbComp_TimeS(const cIrbComp_TimeS&) = delete;
+         const cIrbComp_Block *            mCompBlock;
          cIrbComp_CamSet                   mSetCams;
          cIrbComp_ClinoSet                 mSetClino;
 
          /** Not sure which role will play the notion of "pose of the instrument"*/
          bool                              mPoseInstrIsInit;
          tPoseR                            mPoseInstr;
+         std::string                       mIdent;
 };
 
 ///  class for using a rigid bloc in computation (calibration/compensation)
@@ -535,10 +542,16 @@ class   cIrbComp_Block : public cMemCheck
        /// return the average of score of all clinos loaded
        tREAL8 ScoreDirClino(const cPt3dr& aDir,size_t aKClino) const;
 
+       cPt3dr   VerticalOfTimes(const   cIrbComp_TimeS &) const;
+       const cSysCo &                      OriSysCo() const ; //< Accessor, test !=0
+        cSysCo &                      OriSysCo()  ; //< Accessor, test !=0
+        void SetVerticalCste(const cPt3dr &aVertical);
+
     private :
        /// non copiable, too "dangerous"
        cIrbComp_Block(const cIrbComp_Block & ) = delete;
-       const cPhotogrammetricProject &     PhProj();  //< Accessor, test !=0
+       const cPhotogrammetricProject &     PhProj() const;  //< Accessor, test !=0
+
 
        /**  return the data for time stamps (cams, clino ...)  corresponding to TS, possibly init it*/
        cIrbComp_TimeS &  DataOfTimeS(const std::string & aTS);
@@ -546,6 +559,10 @@ class   cIrbComp_Block : public cMemCheck
        ///cIrbComp_TimeS *  PtrDataOfTimeS(const std::string & aTS);
 
 
+       tPtrSysCo                             mOriSysCo;
+       /// to accelerate ClinoInit in this current ca
+       bool                                  mIsVertCste;
+       cPt3dr                                mCsteVert;
        cIrbCal_Block *                       mCalBlock;
        bool                                  mCalIsAdopted;
        const cPhotogrammetricProject *       mPhProj;

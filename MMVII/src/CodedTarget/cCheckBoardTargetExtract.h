@@ -165,8 +165,9 @@ class cCdEllipse : public cCdRadiom
 
            void GenImageFail(const std::string & aWhyFail);
 
-           /// once compute ellipse, use line to compute  affinity image <-> ref target
-           void EstimateAffinity();
+           /**  once compute ellipse, use line to compute  affinity image <-> ref target, at first call
+            *   the geometry will be used to decode, at second code we will solve the ambiguity one equivalent codes */
+           void EstimateAffinity(bool seconCall);
 	private : 
 
 	   /// Most basic method, return minimal of all lenght
@@ -183,10 +184,11 @@ class cCdEllipse : public cCdRadiom
 	   cPt2dr               mCornerlEl_WB;
 	   cPt2dr               mCornerlEl_BW;
 	   cAff2D_r             mAffIm2Mod;
-	   tREAL8               mMaxEllD; /// Maximal distance 2 ellipse (for frontier point, not on lines)
+	   tREAL8               mMaxEllD; ///< Maximal distance 2 ellipse (for frontier point, not on lines)
 	   const cOneEncoding * mCode;
-	   bool                 mBOutCB;  /// Is there black point outside the  check board
+	   bool                 mBOutCB;  ///< Is there black point outside the  check board
            bool                 mIsCircle;  ///< Was it obtained enforcing a circle
+       int                  mCodeInit;  ///< Code as it was initally read
 };
 
 class cCdMerged : public  cCdEllipse

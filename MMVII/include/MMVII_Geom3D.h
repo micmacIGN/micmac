@@ -35,6 +35,8 @@ template <class Type> inline cPtxd<Type,3> PSymXY (const cPtxd<Type,3> & aP)
 //  Cylindric coordinates, 
 cPt3dr Cart2Cyl(const cPt3dr & aPtCart);
 cPt3dr Cyl2Cart(const cPt3dr & aPtspher);
+cPt3dr cart2spher(const cPt3dr & aPtCart);
+cPt3dr spher2cart(const cPt3dr & aPtspher);
 
 
 
@@ -225,6 +227,15 @@ template <class Type> class cRotation3D
 
 typedef cRotation3D<tREAL8> tRotR; 
 void AddData(const  cAuxAr2007 & anAux,tRotR&);
+/** Make aq "pretty print" of line aY of matrice Rot,  assume |coeffs| <=1,
+ * print them as int, assure a "perfect" allignment */
+void PP_1Line_MatRot(const cMatrix<tREAL8> & aMat,int aY,size_t aNbChar=4);
+
+/// Make a pretty print of full matric
+void PP_Full_MatRot(const cMatrix<tREAL8> & aMat,size_t aNbChar=4);
+void PP_Full_2MatRot(const cMatrix<tREAL8> & aMat1,const cMatrix<tREAL8> & aMat2,size_t aNbChar=4);
+
+
 
 
 /**  Class for 3D "affine" rotation of vector
@@ -261,6 +272,8 @@ template <class Type> class cIsometry3D
        cIsometry3D(const tPt& aTr,const tRot &);
        tTypeMapInv  MapInverse() const; // {return cIsometry3D(-mRot.Inverse(mTr),mRot.MapInverse());}
        tTypeMap  operator* (const tTypeMap &) const;
+       tTypeMap  ScaleTr (Type aScale) const;
+
        static tTypeMap Identity();
 
        ///  Distance with normalisation to unity on center, W= weight of center dist vs rot
@@ -406,7 +419,12 @@ template <class Type> class cSimilitud3D
        cRotation3D<Type>  mRot;
 };
 typedef cSimilitud3D<tREAL8>  tSim3dR;
+
+///  Tr ->   aSim.Value(aR.Tr();   R -> Sym.Rot *  R
 template <class Type> cIsometry3D<Type>    TransfoPose(const cSimilitud3D<Type> & aSim,const cIsometry3D<Type> & aR);
+
+///  Compute the similitude tha make P0 Identity and P0/P1 unit base
+tSim3dR  SimOfPosesRef(const tSim3dR & aP0,const tSim3dR & aP1);
 
 /// V1 and V2 being pose "identic" but in different repair, compute the transfer similitude that best align
 std::pair<tREAL8,tSim3dR>   EstimateSimTransfertFromPoses(const std::vector<tPoseR> & aV1,const std::vector<tPoseR> & aV2);
@@ -645,6 +663,7 @@ class cSampleQuat
 
 
          cPt4dr  KthQuat(int aK) const; ///< Main method return the number of rot
+         tRotR   KthRot(int aK) const;
          size_t NbRot() const;  ///< Accessor
          size_t NbStep() const;  ///< Accessor
 
@@ -694,7 +713,8 @@ class cSampleHyperCube
 class cSampleSphere3D
 {
    public :
-      cSampleSphere3D(int aNbStep);
+      cSampleSphere3D(int aNbStep,bool isProj=false);
+
       cPt3dr KthPt(int aK) const;
       int NbSamples() const;
    private :
@@ -702,6 +722,80 @@ class cSampleSphere3D
 };
 
 
+class cEllipse3D
+{
+    public:
+        static void Bench();
+
+        cEllipse3D();
+
+        void AddData(const cPt3dr&, double);
+        void Normalise();
+        void Reset();
+
+
+        cPt3dr & CDG();
+        const cPt3dr & CDG()const ;
+
+        double & Sxx();
+        const double & Sxx()const ;
+
+        double & Syy();
+        const double & Syy()const ;
+
+        double & Szz();
+        const double & Szz()const ;
+
+        double & Sxy();
+        const double & Sxy()const ;
+
+        double & Sxz();
+        const double & Sxz()const ;
+
+        double & Syz();
+        const double & Syz()const ;
+
+        double & Pds();
+        const double & Pds()const ;
+
+        bool & Norm();
+        const bool & Norm()const ;
+
+    private:
+        cPt3dr mCDG;
+        double mSxx;
+        double mSyy;
+        double mSzz;
+        double mSxy;
+        double mSxz;
+        double mSyz;
+        double mPds;
+        bool mNorm;
+
+};
+
+class cGenGauss3D
+{
+    public :
+        cGenGauss3D(const cEllipse3D & anEl );
+        const double & ValP(int aK) const {return mVP(aK);};
+        const cDenseVect<tREAL8>   VecP(int aK) const {return mVecP.ReadCol(aK); };
+        const cPt3dr  & CDG() const {return mCDG;}
+
+        //distribution de points selon e1,e2,e3
+        //indiqué par (2*aN1+1),(2*aN2+1),(2*aN3+1) et Gauss
+        void GetDistribGaus(std::vector<cPt3dr> &,int,int,int);
+
+        //5-pts distribution
+        void GetDistrib5Pts(std::vector<cPt3dr> &,double);
+
+    private :
+
+        cPt3dr mCDG;
+        cDenseVect<tREAL8> mVP;
+        cDenseMatrix<tREAL8> mVecP;
+
+};
 
 
 

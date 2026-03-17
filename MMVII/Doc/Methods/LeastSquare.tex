@@ -74,6 +74,110 @@ The minimum of $R(X)$ is then reached for $X=\overline X$ and it is given by:
 	R(\overline X) =    C - B \cdot \overline X \label{Lst:Res:Min}
 \end{equation}
 
+%-----------------------------------------------------------------------
+%-----------------------------------------------------------------------
+%-----------------------------------------------------------------------
+
+
+\section{Weighting}
+
+Observation weighting is a difficult subject, as in MMVII least squares
+optimisations many heterogeneous observations are used, and some may be
+faulty.
+
+\subsection{cResidualWeighter}
+
+MMVII's default weighter \texttt{cResidualWeighter} is a simple constant value
+for a set of observations.
+It can be constructed from a float value and is used for classical least squares:
+the weight do not depend on the residual.
+
+Least squares makes the system very sensible to outliers, and thus this weighter
+is preferred for reliable observations, their residual following a gaussian law.
+
+\subsection{Simulating least L1}
+
+We are in a weighted least squares adjustment, trying to minimize the sum of the squares
+of the residuals $r_j(X)$, with a weight $w_j$:
+\begin{equation*}
+	\sum_j w_j \cdot r_j(X)^2 
+\end{equation*}
+It is easy to compute, but very sensible to outliers.
+
+L1 optimization is less sensible to outliers but complicated to compute.
+We would try to minimize the sum of absolute values of the residuals:
+\begin{equation*}
+	\sum_j w_j \cdot | r_j(X) |
+\end{equation*}
+
+With a weight function of the residual, least squares can have L1 qualities.
+Minimizing:
+\begin{equation*}
+	\sum_j w_j\left( r_j(X) \right) \cdot r_j(X)^2
+\end{equation*}
+with
+\begin{equation*}
+	w_j\left( r_j(X) \right) = \frac{1}{|r_j(X)|}
+\end{equation*}
+is a least squares system simulating least L1. Since infinite weight may happen, we use an attenuated formula,
+making it more similar to classic least squares for small residuals and L1 for bigger ones:
+\begin{equation*}
+	w_j\left( r_j(X) \right) = \frac{1}{ 1 + \sqrt{r_j(X)^2}}
+\end{equation*}
+
+
+\subsection{cStdWeighterResidual}
+MMVII's standard weighting classe based on residual, \texttt{cStdWeighterResidual} is used in case
+of possible faults among observations.
+
+It is parametrized by:
+
+\begin{itemize}
+  \item $\sigma$: the classical variance
+  \item $\sigma_{att}$: an attenuation parameter
+  \item $Exp$: an other attenuation parameter
+  \item $Thrs$: the threshold above which the observation is cancelled
+\end{itemize}
+
+For a residual $r$, the weight $w$ is:
+
+$$ w(r) =
+\left\{
+    \begin{array}{ll}
+        0 & \mbox{if } |r|>Thrs \\
+        \frac{1}{\sigma^2} \cdot \frac{1}{1+ \left(\frac{r^2}{\sigma_{att}^2}\right)^{\frac{Exp}{2}}}  & \mbox{else}
+    \end{array}
+\right.
+$$
+
+The defaults values are:
+\begin{itemize}
+  \item $\sigma_{att}$: -1, meaning that the attenuation part is not used, only $\frac{1}{\sigma^2}$
+  \item $Exp$: 1, to be similar to an attenuated $L1$ weighting
+  \item $Thrs$: -1, meaning that no threshold is used
+\end{itemize}
+
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=10cm]{Methods/Images/cStdWeighterResidual}\caption{cStdWeighterResidual $w(r)$ representation}
+        \label{fig:cStdWeighterResidual}
+\end{figure}
+
+\begin{comment}
+Thrs = 10
+set samples 1000
+set yrange [-0.1 : 1.1]
+w(r, sigma, sigma_att, Exp) = (abs(r) > Thrs) ? 0 : (1 / sigma**2) * (1 / (1 + (r**2 / sigma_att**2)**(Exp/2)))
+set xlabel "r"
+set ylabel "w(r)"
+plot [-Thrs-1:Thrs+1] \
+    (1 / sigma**2) with lines title "sigma=1, sigma_{att}=-1, Exp=1, Thrs=-1", \
+    w(x, 1, 1, 1.) with lines title "sigma=1, sigma_{att}=1, Exp=1, Thrs=10", \
+    w(x, 1, 2, 1.) with lines title "sigma=1, sigma_{att}=2, Exp=1, Thrs=10", \
+    w(x, 1, 2, 2.) with lines title "sigma=2, sigma_{att}=2, Exp=2, Thrs=10"
+\end{comment}
+
 
 %-----------------------------------------------------------------------
 %-----------------------------------------------------------------------
