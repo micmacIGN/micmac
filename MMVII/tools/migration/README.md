@@ -183,7 +183,7 @@ Please note:
 **WARNING**: MMVII is essentially a command line tool with a somewhat specific syntax.
 
 
-Download the MMVII archive file [here](https://github.com/micmacv2/MMVII/releases/download/Windows_MMVII_build/mmvii_windows.zip).\
+Download the MMVII archive file [here](https://github.com/micmac-V2/MMVII/releases/download/Windows_MMVII_build/mmvii_windows.zip).\
 Extract the .zip file in the directory of you choice (avoid **c:\Program Files**), c:\pgms for example.\
 The main executable will be  **c:\pgms\MMV2\bin\MMVII.EXE**. There is a graphical front-end to help writing command line: **c:\pgms\MMV2\bin\vMMVII.EXE**.\
 
@@ -208,7 +208,7 @@ There may be a lot of cryptic messages and some **"##   - Nb Warning "** at the 
 
 # Documentation
 
-The latest version of the (work in progress) documentation can be downloaded directly **[HERE](https://github.com/micmacv2/MMVII/releases/download/MMVII_Documentation/Doc2007_a4.pdf)**.
+The latest version of the (work in progress) documentation can be downloaded directly **[HERE](https://github.com/micmac-V2/MMVII/releases/download/MMVII_Documentation/Doc2007_a4.pdf)**.
 You can build documentation from sources if you have installed the MMVII sources:
 
 
@@ -290,7 +290,7 @@ MMVII sources includes codes from:
 
 # Useful links
 * [MicMac v1](https://github.com/micmacIGN/micmac)
-* [MMVII Documentation](https://github.com/micmacv2/MMVII/releases/tag/MMVII_Documentation)
+* [MMVII Documentation](https://github.com/micmac-V2/MMVII/releases/tag/MMVII_Documentation)
 * [MMVII Programming Session 22-24 Nov 2023](https://www.youtube.com/playlist?list=PLO_lg_3H3aFuMamUsImMzNGPwfkAZge5m)
 
 
