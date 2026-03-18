@@ -131,22 +131,32 @@ class cElemBA
             even if bundle intersection is un-accurate, we converge to the good sollution */
        void AddHomBundle_Cam1Cam2(const cPt3dr & aDirB0,const cPt3dr & aDirB1,tREAL8 aW,tREAL8 aEpsilon=1e-6, tREAL8 aNoise=0);
 
+       /// Return Residual + Intersection
+       std::pair<tREAL8,cPt3dr> InterBundles(const std::vector<int> &aVNumCams,const cPt3dr * aDirBdund,tREAL8 aEpsilon=1e-6) const;
+       /// Add  Obs for N cam, "compagnion" of InterBundles
+       tREAL8 AddHom_NCam(const std::vector<int> &,const cPt3dr * ,const cPt3dr &aPGr,tREAL8 aW) ;
+
+
        void OneIter(tREAL8 aLVM);  ///< Iterate one obs have been added
        cResolSysNonLinear<double> *  Sys();   ///< Accesor
        const std::vector<tPoseR>  &  CurPose() const; ///< Acessor
 
        tREAL8 AvgRes1() const; /// Average of residual of Cam1
        tREAL8 AvgRes2() const;  /// Average of residual of Cam2
+       tREAL8 AvgResN() const;  /// Average of residual of CamN
 
    private :
        /// Add obs of Bundle for cam1, to put in Substiution structe - Colinearity
-       void AddEquationColinearity_Cam1(cSetIORSNL_SameTmp<tREAL8> &,const cPt3dr & aDirB0,tREAL8  aWeight);
+       tREAL8 AddEquationColinearity_Cam1(cSetIORSNL_SameTmp<tREAL8> &,const cPt3dr & aDirB0,tREAL8  aWeight);
 
        /// Add obs of Bundle for cam2, to put in Substiution structe  - Colinearity
-       void AddEquationColinearity_Cam2(cSetIORSNL_SameTmp<tREAL8> &,const cPt3dr & aDirB1,tREAL8  aWeight);
+       tREAL8 AddEquationColinearity_Cam2(cSetIORSNL_SameTmp<tREAL8> &,const cPt3dr & aDirB1,tREAL8  aWeight);
+
+       /// Add obs of Bundle for cam2, to put in Substiution structe  - Colinearity
+       tREAL8 AddEquationColinearity_CamN(size_t aIndC,cSetIORSNL_SameTmp<tREAL8> &,const cPt3dr & aDirB1,tREAL8  aWeight);
 
        /// Add obs for Cam 1 & 2, no point computed/No Schuur -> Coplanarity
-       void AddEquationCoplanarity(const cPt3dr & aDirB1,const cPt3dr & aDirB2,tREAL8  aWeight);
+       tREAL8 AddEquationCoplanarity(const cPt3dr & aDirB1,const cPt3dr & aDirB2,tREAL8  aWeight);
 
        /// Compute bundle given camera an local direction
        tSeg3dr  Bundle(int aKCam,const cPt3dr &) const;
@@ -162,10 +172,10 @@ class cElemBA
        int                                mSzBuf;       ///<  Sz Buf for calculator
        cCalculator<double> *              mEqElemCam1;  ///< Colinearity equation - Cam1
        cCalculator<double> *              mEqElemCam2;   ///< Colinearity equation - Cam2
+       cCalculator<double> *              mEqElemCamN;   ///< Colinerity equation - Cam N
        cCalculator<double> *              mEqElemCam12;   ///< Co-planrarity equatipn
 
-      // cCalculator<double> *              mEqElemCamN;
-       cSetInterUK_MultipeObj<double>     mSetInterv;   ///< coordinator for autom numbering
+       cSetInterUK_MultipeObj<double> *   mSetInterv;   ///< coordinator for autom numbering
        cResolSysNonLinear<double> *       mSys;         ///< Solver
        cLeasSqtAA<tREAL8> *               mSystAA;      ///< Pointer to dense least square solve (short cut for linDet12 case)
        cP3dNormWithUK                     mTr2;         ///< Unknown  trans for cam2 force to unity
@@ -174,6 +184,12 @@ class cElemBA
 
        cWeightAv<tREAL8>                  mRes1;        ///< Average of residual Cam1
        cWeightAv<tREAL8>                  mRes2;        ///< Average of residual Cam2
+       cWeightAv<tREAL8>                  mResN;        ///< Average of residual Cam > 2
+
+       /// do we use special case for cam 1(fixed) and 2 (Unit base)
+       bool                               mSCCam12;
+       /// Index of first camera "not special" , depend of mSCCam12
+       size_t                             mIndCamGen;
 
 };
 
@@ -289,8 +305,41 @@ class cPS_CompPose
         tCmpSol *                  mCmpSol;      ///< will a maximum of 2 best solution
 };
 
+enum class eModePE2I
+           {
+              eRansac,
+              ePlane1,
+              ePlane2,
+              eNbVals
+           };
 
 
+///  Basic class to store the pose between 2 images
+class cCdtPoseRel2Im
+{
+  public :
+      cCdtPoseRel2Im(const tPoseR&,eModePE2I,tREAL8 aScore,const std::string& aMsg);
+      cCdtPoseRel2Im();
+
+      tPoseR                 mPose;  ///< The pose itself
+      eModePE2I              mMode;
+      tREAL8                 mScore; ///< The score /residual : the smaller the better
+      tREAL8                 mScore0; ///< The score before BA
+      std::string            mMsg;   ///< Message for tuning
+      std::optional<cPt2dr>  mScorePixGT;
+};
+
+class cCdtFinalPoseRel2Im
+{
+    public :
+       std::string                 mIm1;
+       std::string                 mIm2;
+       std::vector<cCdtPoseRel2Im> mVCdt;
+};
+void AddData(const  cAuxAr2007 & anAux,cCdtFinalPoseRel2Im & aCdt);
+
+/// Given a set of pose, normalize it to relative : first pose identity, first base unitary
+void NormalizePosesRef(std::vector<tPoseR> & aVPose);
 
 
 };

@@ -3,7 +3,7 @@
 #include "MMVII_util_tpl.h"
 #include "../BundleAdjustment/BundleAdjustment.h"
 #include "MMVII_2Include_Tiling.h"
-
+#include "MMVII_GeomTpl.h"
 /**
    \file Measures.cpp
 
@@ -174,33 +174,18 @@ cSetHomogCpleIm  cSetHomogCpleIm::SelectRandom(int aNbSel) const
     return aRes;
 }
 
+
+
 cSetHomogCpleIm  cSetHomogCpleIm::SelectOnSpatialCriteria(int aNbSel) const
 {
     cSetHomogCpleIm aRes;
 
-    if ((int)NbH()<=aNbSel)
-    {
-       aRes  = *this;
-    }
-    else
-    {
-        std::vector<tREAL8> aVDistMin(NbH(),1e8);
-
-        while (aNbSel)
-        {
-            aNbSel--;
-            cWhichMax<size_t,tREAL8> aMaxD;
-            for (size_t aKH=0 ; aKH<NbH() ; aKH++)
-                aMaxD.Add(aKH,tREAL8(aVDistMin.at(aKH)));
-
-            size_t aKMax = aMaxD.IndexExtre();
-            aRes.Add(KthHom(aKMax));
-            cPt2dr aPt = KthHom(aKMax).mP1;
-
-            for (size_t aKH=0 ; aKH<NbH() ; aKH++)
-                UpdateMin(aVDistMin.at(aKH),SqN2(aPt-KthHom(aKH).mP1));
-        }
-    }
+    Tpl_SelectOnSpatialCriteria
+    (
+        aRes.mSetH,mSetH,aNbSel,
+        [](const auto & aCa,const auto & aCb,const int&){return SqN2(aCa.mP1-aCb.mP1);},
+        0
+     );
     return aRes;
 }
 

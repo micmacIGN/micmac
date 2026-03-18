@@ -10,7 +10,25 @@
 namespace MMVII
 {
 
+void NormalizePosesRef(std::vector<tPoseR> & aVPose)
+{
+   // make first pose the origin of coordinate
+   if (aVPose.empty()) return;
+   tPoseR aP0Inv =  aVPose.at(0).MapInverse() ;
+   for (auto & aPose : aVPose)
+   {
+       //  aP0 : C0->W  aP1 :C1->W   ##  aP0-1 * aP1 :  C1->W->C0
+       aPose = aP0Inv * aPose;
+   }
 
+   // make first base unitary
+   if (aVPose.size()<=2) return;
+   tREAL8 aScale = Norm2(aVPose.at(1).Tr());
+   for (auto & aPose : aVPose)
+   {
+       aPose = tPoseR(aPose.Tr()/aScale,aPose.Rot());
+   }
+}
 
 /* ************************************** */
 /*                                        */
