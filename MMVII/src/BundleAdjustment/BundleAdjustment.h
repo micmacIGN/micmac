@@ -388,6 +388,7 @@ protected :
     double                         mWFactor;          ///< weight for observations
     size_t                         mNbUsedPoints;   ///< number of lidar used points
     size_t                         mNbUsedObs;      ///< number of lidar obs used
+
 };
 
 
@@ -451,12 +452,28 @@ protected:
     std::list<std::vector<int>>    mLPatchesI;      ///< set of patches as index in Tri, consituted by 3D points in a lidar scan
 };
 
-
 /**
- * use lidar raster geometry, with unknown pose
+ * common part for all raster-based lidar adj
 */
 
-class cBA_LidarPhotograRaster : public cBA_LidarPhotogra
+class cBA_LidarRaster
+{
+public:
+    void CreateZbuffers(cPhotogrammetricProject *aPhProj, bool aDebug=false);
+    void UpdateWeightersMap(const cMMVII_BundleAdj &aBA, double aWFactor); // create or update map, on each iteration
+
+protected:
+    std::vector<cStaticLidarBAData>   mVScans;      ///< vector of raster representations of lidar
+    std::map<std::string,cIm2D<tREAL4>> mMapZbuf; ///< fusion of all zbuffers for one scan B name
+    std::map<std::string,cStdWeighterResidual> mWeightersMap;   ///< map from "nameScanA-nameScanB" to the appropriate weighter
+    tREAL8                            mThresholdInit, mThresholdFinal;   ///< distance where scan points are supposed to be hidden
+};
+
+/**
+ * uses lidar raster geometry, with unknown pose
+*/
+
+class cBA_LidarPhotograRaster : public cBA_LidarPhotogra, public cBA_LidarRaster
 {
 public :
     /// constructor, take the global bundle struct + one vector of param
@@ -476,7 +493,6 @@ protected:
          int                     aKPt
          ) override;
 
-    std::vector<cStaticLidarBAData> mVScans;      ///< vector of raster representations of lidar
 };
 
 
@@ -484,7 +500,7 @@ protected:
  * Class for adjustment between two lidar scans
  */
 
-class cBA_LidarLidarRaster: public cBA_LidarBase
+class cBA_LidarLidarRaster: public cBA_LidarBase, public cBA_LidarRaster
 {
 public :
     /// constructor, take the global bundle struct + one vector of param
@@ -495,9 +511,6 @@ public :
     /// add observation
     void AddObs() override;
 
-    void UpdateWeightersMap(); // create or update map, on each iteration
-
-    void CreateZbuffers(bool aDebug=false);
 
 protected :
     /**  Add observation for 1 Patch of point */
@@ -513,10 +526,6 @@ protected :
          int                     aKPt
          ) override;
 
-    std::vector<cStaticLidarBAData>   mVScans;      ///< vector of raster representations of lidar
-    std::map<std::string,cStdWeighterResidual> mWeightersMap;   ///< map from "nameScanA-nameScanB" to the appropriate weighter
-    tREAL8                            mThresholdInit, mThresholdFinal;   ///< distance where scan points are supposed to be hidden
-    std::map<std::string,cIm2D<tREAL4>> mMapZbuf; ///< fusion of all zbuffers for one scan B name
 };
 
 
