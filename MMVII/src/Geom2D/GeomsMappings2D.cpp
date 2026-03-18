@@ -690,7 +690,7 @@ template <class Type> void cHomogr2D<Type>::ToEqParam
 template <class Type> void cHomogr2D<Type>::DerivFromParam(std::vector<cDenseVect<Type>> & aVecOut,const tPt &aPIn) const
 {
     cDenseVect<Type> & aVX = aVecOut.at(0);
-    cDenseVect<Type> & aVY = aVecOut.at(0);
+    cDenseVect<Type> & aVY = aVecOut.at(1);
 
 
     Type aHX = S(mHX,aPIn);
@@ -715,9 +715,9 @@ template <class Type> void cHomogr2D<Type>::DerivFromParam(std::vector<cDenseVec
     aVY(iHXy) = 0.0;
     aVY(iHX1) = 0.0;
 
-    aVX(iHYx) = aPIn.x() / aHZ;
-    aVX(iHYy) = aPIn.y() / aHZ;
-    aVX(iHY1) = 1.0 / aHZ;
+    aVY(iHYx) = aPIn.x() / aHZ;
+    aVY(iHYy) = aPIn.y() / aHZ;
+    aVY(iHY1) = 1.0 / aHZ;
 
     aVY(iHZx) = - (aHY * aPIn.x()) / Square(aHZ);
     aVY(iHZy) = - (aHY * aPIn.y()) / Square(aHZ);
@@ -917,7 +917,7 @@ template <class Type>
 void cRot2D<Type>::DerivFromParam(std::vector<cDenseVect<Type>> & aVecOut,const tPt & aPt) const
 {
     cDenseVect<Type> & aVX = aVecOut.at(0);
-    cDenseVect<Type> & aVY = aVecOut.at(0);
+    cDenseVect<Type> & aVY = aVecOut.at(1);
 
     // Pt -> Sc * Pt     d(Sc*Pt)/Dteta =  dSc/Dteta * Pt = (0,1)  * Sc * Pt
     cPtxd<Type,2> aPSc = Sc() * aPt ;
@@ -925,7 +925,6 @@ void cRot2D<Type>::DerivFromParam(std::vector<cDenseVect<Type>> & aVecOut,const 
 
     aVX(RotIndTrx)  = 1;
     aVX(RotIndTry)  = 0;
-
     aVX(RotIndTeta) = -aPSc.y();
 
     aVY(RotIndTrx)  = 0;

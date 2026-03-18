@@ -597,12 +597,12 @@ template <class tMap,class TypeEl> void TplBenchMap2D_LSQ(TypeEl *)
 
      tMap aMap =  tMap::StdGlobEstimate(aVIn,aVOut);
 
-     // Test for
-     if (sizeof(TypeEl)==8)
+     // Test for derivation, do it only for most accurate
+     if (sizeof(TypeEl)==16)
      {
          cDenseVect<TypeEl> aVParam = aMap.GetParam();
          tMap aMapBis = tMap::FromParam(aVParam);
-         StdOut() << "MAPNAEEMM   " << tMap::Name() << "\n";
+        //  StdOut() << "MAPNAEEMM   " << tMap::Name() << "\n";
          for (int aK=0 ; aK<10 ; aK++)
          {
              cPtxd<TypeEl,2> aPt = cPtxd<TypeEl,2>::PRandC();
@@ -626,10 +626,19 @@ template <class tMap,class TypeEl> void TplBenchMap2D_LSQ(TypeEl *)
                 cPtxd<TypeEl,2> aDerDif = (aMap1.Value(aPt)-aMap0.Value(aPt)) / (2* aEps);
                 cPtxd<TypeEl,2> aDerF(aDerXY.at(0)(aKP),aDerXY.at(1)(aKP));
 
-                StdOut() << aDerDif  - aDerF << "\n";
-//                 FromParam
+                TypeEl aNormDif = Norm2(aDerDif  - aDerF);
+
+
+              /*  StdOut() << " NnnNN=" <<
+                            aNormDif
+                           << " DDif=" << aDerDif  << " DerF="<<  aDerF << " K=" << aKP
+                         <<  " " << tMap::Name() << "\n";  */
+                MMVII_INTERNAL_ASSERT_bench(aNormDif<1e-6,"DerivFromParam");
+
              }
          }
+
+
      }
 
      if (tMap::NbDOF%2) // in this case match cannot be perfect "naturally", not enoug DOF, must cheat
