@@ -156,10 +156,10 @@ For those who really need it, you can reactivate use of the MicMac V1 lib  :
 
 - Install **MicMac v1** by following the instructions **[HERE](https://github.com/micmacIGN/micmac)**.
 
-- Activate the CMake option **MMVII_KEEP_LIBRARY_MMV1** in the step '__Configure CMAKE and generate makefiles:
-        ```bash
-        cmake .. -DMMVII_KEEP_LIBRARY_MMV1=on -DMMV1_PATH=your_directory_of_micmacv1
-        ```
+- Enable the CMake option **MMVII_KEEP_LIBRARY_MMV1** and specify the source path of mimac in **MMV1_PATH** in the step __Configure CMAKE and generate makefiles__:
+```bash
+	cmake .. -DMMVII_KEEP_LIBRARY_MMV1=on -DMMV1_PATH=your_directory_of_micmacv1
+```
 
 
 ### Graphical User Interface vMMVII
@@ -292,4 +292,6 @@ MMVII sources includes codes from:
 * [MicMac v1](https://github.com/micmacIGN/micmac)
 * [MMVII Documentation](https://github.com/micmacv2/MMVII/releases/tag/MMVII_Documentation)
 * [MMVII Programming Session 22-24 Nov 2023](https://www.youtube.com/playlist?list=PLO_lg_3H3aFuMamUsImMzNGPwfkAZge5m)
+
+
 
