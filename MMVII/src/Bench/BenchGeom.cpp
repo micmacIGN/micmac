@@ -598,17 +598,38 @@ template <class tMap,class TypeEl> void TplBenchMap2D_LSQ(TypeEl *)
      tMap aMap =  tMap::StdGlobEstimate(aVIn,aVOut);
 
      // Test for
-     {/*
+     if (sizeof(TypeEl)==8)
+     {
+         cDenseVect<TypeEl> aVParam = aMap.GetParam();
+         tMap aMapBis = tMap::FromParam(aVParam);
+         StdOut() << "MAPNAEEMM   " << tMap::Name() << "\n";
          for (int aK=0 ; aK<10 ; aK++)
          {
              cPtxd<TypeEl,2> aPt = cPtxd<TypeEl,2>::PRandC();
-             std::vector<cDenseVect<TypeEl>> aVXY= aDerivFromParam(aMap,aPt);
+             // Test that GetParam() -> FromParam()
+             TypeEl aDist = Norm2(aMap.Value(aPt)-aMapBis.Value(aPt));
+             MMVII_INTERNAL_ASSERT_bench(aDist<1e-9,"FromParam -> GetParam");
+
+             std::vector<cDenseVect<TypeEl>> aDerXY= DerivFromParam(aMap,aPt);
 
              for (size_t aKP = 0 ; aKP<tMap::NbDOF ; aKP++)
              {
-                 FromParam
+                TypeEl aEps = 1e-5;
+                cDenseVect<TypeEl> aVParam0 = aVParam.Dup();
+                cDenseVect<TypeEl> aVParam1 = aVParam.Dup();
+                aVParam0(aKP) -= aEps;
+                aVParam1(aKP) += aEps;
+
+                tMap aMap0 = tMap::FromParam(aVParam0);
+                tMap aMap1 = tMap::FromParam(aVParam1);
+
+                cPtxd<TypeEl,2> aDerDif = (aMap1.Value(aPt)-aMap0.Value(aPt)) / (2* aEps);
+                cPtxd<TypeEl,2> aDerF(aDerXY.at(0)(aKP),aDerXY.at(1)(aKP));
+
+                StdOut() << aDerDif  - aDerF << "\n";
+//                 FromParam
              }
-         }*/
+         }
      }
 
      if (tMap::NbDOF%2) // in this case match cannot be perfect "naturally", not enoug DOF, must cheat

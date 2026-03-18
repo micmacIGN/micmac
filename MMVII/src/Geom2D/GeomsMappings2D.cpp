@@ -479,6 +479,12 @@ template <class Type>  cAffin2D<Type> cAffin2D<Type>::FromParam(const cDenseVect
           );
 }
 
+template <class Type>  cDenseVect<Type> cAffin2D<Type>::GetParam() const
+{
+    return cDenseVect<Type>(std::vector<Type>{mTr.x(),mTr.y(),mVX.x(),mVY.x(),mVX.y(),mVY.y()});
+}
+
+
 template <class Type>  
       void cAffin2D<Type>::ToEqParam(tPt& aRHS,std::vector<cDenseVect<Type>>& aVXY,const tPt & aPIn,const tPt & aPOut)
 {
@@ -595,6 +601,11 @@ template <class Type> cHomogr2D<Type> cHomogr2D<Type>::FromParam(const cDenseVec
                tElemH(aV(iHYx),aV(iHYy),aV(iHY1)),
                tElemH(aV(iHZx),aV(iHZy),1.0    )
            );
+}
+template <class Type>  cDenseVect<Type> cHomogr2D<Type>::GetParam() const
+{
+    return cDenseVect<Type>
+            (std::vector<Type>{mHX.x(),mHX.y(),mHX.z(),   mHY.x(),mHY.y(),mHY.z(),    mHZ.x(),mHZ.y()});
 }
 
 template <class Type> cHomogr2D<Type>  cHomogr2D<Type>::FromMinimalSamples(const tTabMin& aTabIn,const tTabMin&aTabOut)
@@ -866,6 +877,12 @@ template <class Type>  cRot2D<Type> cRot2D<Type>::FromParam(const cDenseVect<Typ
               tPt(aVec(RotIndTrx),aVec(RotIndTry)),
               aVec(RotIndTeta)
           );
+}
+
+template <class Type>  cDenseVect<Type> cRot2D<Type>::GetParam() const
+{
+    return cDenseVect<Type>
+            (std::vector<Type>{Tr().x(),Tr().y(),mTeta});
 }
 
 template <class Type>  
