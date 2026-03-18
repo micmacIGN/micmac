@@ -1047,6 +1047,8 @@ cAppli_OriRelPairOfIm::tRes1Pair
 
 void cAppli_OriRelPairOfIm::Generate5Pts(const cCdtFinalPoseRel2Im& aFinalPose)
 {
+    // MPDER : quick & dirty for compile
+#if (0)
     StdOut() << "Generate 5 virtual points per pair" << std::endl;
 
     // construct an elliposoid over the 3D points
@@ -1088,6 +1090,7 @@ void cAppli_OriRelPairOfIm::Generate5Pts(const cCdtFinalPoseRel2Im& aFinalPose)
     }
     mCpleH5Pts.Add(aVHCple5Pts);
 
+#endif
 }
 
 /* ====================================================== */
