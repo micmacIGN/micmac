@@ -102,7 +102,7 @@ struct cLidarPatch
 {
     size_t                      mId;        //< Number in cStaticVector.mPatchCenters
     std::set<cPt2di>            mLPatchesP; //< px in raster, consituted by points in a lidar scan, begin() is center
-    std::map<std::string, bool> mImVisible; //< for each Im/scanB names, if visible via zbuffers
+    std::unordered_set<std::string> mHiddenOnImage; //< for Im/scanB names, if hidden via zbuffers
 };
 
 

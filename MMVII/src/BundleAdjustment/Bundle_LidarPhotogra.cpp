@@ -656,11 +656,11 @@ cBA_LidarLidarRaster::~cBA_LidarLidarRaster()
 void cBA_LidarLidarRaster::CreateZbuffers(bool aDebug)
 {
     mMapZbuf.clear();
-    // clear all patches visibility
+    // clear all patches unvisibility
     for (auto & aScanDataA: mVScans)
     {
         for (auto & aPatch:aScanDataA.mLPatches)
-            aPatch.mImVisible.clear();
+            aPatch.mHiddenOnImage.clear();
     }
     for (auto & aScanDataB: mVScans)
     {
@@ -699,7 +699,7 @@ void cBA_LidarLidarRaster::CreateZbuffers(bool aDebug)
             //MMVII_INTERNAL_ASSERT_tiny(aZBuf.IsOk(), "Error zbuffer");
 
             if (mMapZbuf.count(aImName)==0)
-                mMapZbuf.emplace(aScanDataA.mScanName, aZBuf.ZBufIm());
+                mMapZbuf.emplace(aImName, aZBuf.ZBufIm());
             else {
                 // merge zbuffers
                 mMapZbuf.at(aImName).MergeKeepMaxInPlace(aZBuf.ZBufIm());
@@ -745,7 +745,8 @@ void cBA_LidarLidarRaster::CreateZbuffers(bool aDebug)
                     }
                 }
                 //std::cout<<"        visible: "<<aIsUsablePt<<"\n";
-                aPatch.mImVisible[aImName] = aIsUsablePt;
+                if (!aIsUsablePt)
+                    aPatch.mHiddenOnImage.insert(aImName);
             }
         }
     }
@@ -757,7 +758,7 @@ void cBA_LidarLidarRaster::AddObs()
 {
     if (mBA.Iter()==0)
     {
-        //CreateZbuffers(true);
+        CreateZbuffers(true);
     }
 
     mLastResidual.Reset();
@@ -867,7 +868,7 @@ tREAL8 cBA_LidarLidarRaster::Add1Patch(const cLidarPatch &aPatch, const cStaticL
 
         // 1st test: zbuffer visibility
         //std::cout<<"Im "<<aScanBData.mScanName<<" patch "<<aPatch.mId<<" vis "<<aPatch.mImVisible.at(aScanBData.mScanName)<<"\n";
-        if (!aPatch.mImVisible.at(aScanBData.mScanName))
+        if (aPatch.mHiddenOnImage.count(aScanBData.mScanName)>0)
             continue;
         cDataGenUnTypedIm<2> & aGenDImDist = aScanTo->getRasterDistance();
 
