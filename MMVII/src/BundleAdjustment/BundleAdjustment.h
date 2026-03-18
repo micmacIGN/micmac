@@ -354,31 +354,6 @@ struct cStaticLidarBAData
 
 
 /**
- * For one image (or scan B), all the visibility data
- * TODO: be able to avoid some zbuffer calculations if not needed!
- */
-class cImageScanVisibiltyData
-{
-public :
-    /// computes z buffer and visibles patches
-    cImageScanVisibiltyData(const std::string & aImName,
-                            cSensorCamPC * aCam,
-                            std::vector<cStaticLidarBAData> &aVLidars,
-                            cPhotogrammetricProject * aPhProj,
-                            bool aDebug);
-    const std::vector<int> & getVisiblePatchsId(const std::string &aLidarAName) const;
-protected:
-    std::string                             mImName; ///< or scanB name for lidar-lidar
-    cPhotogrammetricProject *               mPhProj;
-
-    // all the maps are indexed by ScanAName
-    std::map<std::string,cIm2D<tREAL4>>     mMapZbufferImage; ///< z buffer image of triangulation of scanA on image K or scan B
-    // TODO: is it useful??
-    std::map<std::string,std::vector<int>>  mMapVisiblePatchsId; ///< ref to mLPatchesP elements, computed from zbuffer and distance
-};
-
-
-/**
  * base class for lidar/photo and lidar/lidar adj
  */
 class cBA_LidarBase
@@ -541,7 +516,7 @@ protected :
     std::vector<cStaticLidarBAData>   mVScans;      ///< vector of raster representations of lidar
     std::map<std::string,cStdWeighterResidual> mWeightersMap;   ///< map from "nameScanA-nameScanB" to the appropriate weighter
     tREAL8                            mThresholdInit, mThresholdFinal;   ///< distance where scan points are supposed to be hidden
-    std::map<std::string,cImageScanVisibiltyData> mMapVisibility; ///< visibility indexed by scan B name
+    std::map<std::string,cIm2D<tREAL4>> mMapZbuf; ///< fusion of all zbuffers for one scan B name
 };
 
 

@@ -577,99 +577,6 @@ void  cBA_LidarPhotogra::Add1Patch(tREAL8 aWeight,const std::vector<cPt3dr> & aV
 
 //-------------------------------------------------------------
 
-
-cImageScanVisibiltyData::cImageScanVisibiltyData(const std::string &aImName, cSensorCamPC *aCam,
-                                                 std::vector<cStaticLidarBAData> & aVLidars,
-                                                 cPhotogrammetricProject *aPhProj,
-                                                 bool aDebug)
-    : mImName(aImName), mPhProj(aPhProj)
-{
-    int aMarginInsideImage = 1;
-    tREAL4 aDistTolerancy = 0.2; // for overlapping walls with incorrect pose
-    //std::cout<<"cImageScanVisibiltyData "<<aImName<<"\n";
-
-    // create all z buffers
-    for (auto & aScanDataA: aVLidars)
-    {
-        cMeshTri3DIterator aTriIt(aScanDataA.mLidarRaster->getTriangulation());
-        if (mImName == aScanDataA.mScanName)
-            continue;
-        ScopedTimer aTimer("Zbuffer");
-        //StdOut() << "Create zbuffer: " << aScanDataA.mScanName+"_on_image_" << mImName<<"\n";
-
-        cSIMap_Ground2ImageAndProf aMapCamDepth(aCam);
-
-        cSetVisibility aSetVis(aCam,aMarginInsideImage);
-
-        double Infty =1e20;
-        cPt2di aSzPix = aCam->SzPix();
-        cBox3dr  aBox(cPt3dr(aMarginInsideImage,aMarginInsideImage,-Infty),
-                     cPt3dr(aSzPix.x()-aMarginInsideImage,aSzPix.y()-aMarginInsideImage,Infty));
-        cDataBoundedSet<tREAL8,3>  aSetCam(aBox);
-
-        // full resolution zbuffer, to have the same coords as original image
-        // TODO: smaller resolution
-        cZBuffer aZBuf(aTriIt,aSetVis,aMapCamDepth,aSetCam,
-                       1,aCam->PixelDomain().Sz());
-        aZBuf.MakeZBuf(eZBufModeIter::ProjInit);
-
-        if (!aZBuf.IsOk())
-            StdOut() << "Warning! Zbuffer empty.\n";
-        //MMVII_INTERNAL_ASSERT_tiny(aZBuf.IsOk(), "Error zbuffer");
-
-        mMapZbufferImage.emplace(aScanDataA.mScanName, aZBuf.ZBufIm());
-        if (aDebug)
-            aZBuf.ZBufIm().DIm().ToFile(mPhProj->DirVisuAppli()
-                        +"ZBuf-"+aScanDataA.mScanName+"_on_image_"
-                        +aImName+".tif");
-    }
-
-    // filter patches using all existing zbuffers
-    for (auto & aScanDataA: aVLidars)
-    {
-        //std::cout<<"test patchs of "<<aScanDataA.mScanName<<"\n";
-        mMapVisiblePatchsId.emplace(aScanDataA.mScanName, std::vector<int>{});
-        auto & aVVisiblePatchs = mMapVisiblePatchsId[aScanDataA.mScanName];
-        for (auto & aPatch: aScanDataA.mLPatches)
-        {
-            const cPt2di & aPtScan = *aPatch.mLPatchesP.begin(); // center is 1st point
-            cPt3dr aPtGround = aScanDataA.mLidarRaster->Image2Ground(aPtScan);
-            cPt2dr aPtImage = aCam->Ground2Image(aPtGround);
-            tREAL4 aDistWithTolerancy = -(Norm2(aPtGround - aCam->Center()) - aDistTolerancy);
-            bool aIsUsablePt = true;
-            //std::cout<<"  patch "<<aPatch.mId<<": "<<aPtScan<<" "<<aPtGround<<": "<<aPtImage<<": "<<aDistWithTolerancy<<"\n";
-            for (const auto & [aScanName, aZbufIm]: mMapZbufferImage)
-            {
-                //std::cout<<"    zbuf "<<aScanName<<": "<<aZbufIm.DIm().Sz()<<"\n";
-                if (!aZbufIm.DIm().InsideBL(aPtImage))
-                {
-                    //std::cout<<"      out\n";
-                    aIsUsablePt = false;
-                    break;
-                }
-                auto aZbufVal = aZbufIm.DIm().GetVBL(aPtImage);
-                if ((aZbufVal > -1e9) && (aZbufVal > aDistWithTolerancy))
-                {
-                    //std::cout<<"      hidden "<<aZbufVal<<"\n";
-                    aIsUsablePt = false;
-                    break;
-                }
-            }
-            //std::cout<<"        visible: "<<aIsUsablePt<<"\n";
-            aPatch.mImVisible[mImName] = aIsUsablePt;
-            if (aIsUsablePt)
-                aVVisiblePatchs.push_back(aPatch.mId);
-        }
-    }
-}
-
-const std::vector<int> &cImageScanVisibiltyData::getVisiblePatchsId(const std::string &aLidarAName) const
-{
-    return mMapVisiblePatchsId.at(aLidarAName);
-}
-
-//-------------------------------------------------------------
-
 cBA_LidarLidarRaster::cBA_LidarLidarRaster(cPhotogrammetricProject * aPhProj,
                                            cMMVII_BundleAdj& aBA, const std::vector<std::string>& aParam) :
     cBA_LidarBase(aPhProj, aBA, aParam)
@@ -748,7 +655,7 @@ cBA_LidarLidarRaster::~cBA_LidarLidarRaster()
 
 void cBA_LidarLidarRaster::CreateZbuffers(bool aDebug)
 {
-    mMapVisibility.clear();
+    mMapZbuf.clear();
     // clear all patches visibility
     for (auto & aScanDataA: mVScans)
     {
@@ -757,10 +664,90 @@ void cBA_LidarLidarRaster::CreateZbuffers(bool aDebug)
     }
     for (auto & aScanDataB: mVScans)
     {
-        mMapVisibility.emplace(aScanDataB.mScanName,
-            cImageScanVisibiltyData(aScanDataB.mScanName,
-                                    aScanDataB.mLidarRaster,
-                                    mVScans,mPhProj,aDebug));
+        int aMarginInsideImage = 1;
+        tREAL4 aDistTolerancy = 0.2; // for overlapping walls with incorrect pose
+        //std::cout<<"Visibility "<<aImName<<"\n";
+        std::string aImName = aScanDataB.mScanName;
+        cSensorCamPC * aCam = aScanDataB.mLidarRaster;
+        // create all z buffers
+        for (auto & aScanDataA: mVScans)
+        {
+            cMeshTri3DIterator aTriIt(aScanDataA.mLidarRaster->getTriangulation());
+            if (aImName == aScanDataA.mScanName)
+                continue;
+            ScopedTimer aTimer("Zbuffer");
+            //StdOut() << "Create zbuffer: " << aScanDataA.mScanName+"_on_image_" << aImName<<"\n";
+
+            cSIMap_Ground2ImageAndProf aMapCamDepth(aCam);
+
+            cSetVisibility aSetVis(aCam,aMarginInsideImage);
+
+            double Infty =1e20;
+            cPt2di aSzPix = aCam->SzPix();
+            cBox3dr  aBox(cPt3dr(aMarginInsideImage,aMarginInsideImage,-Infty),
+                         cPt3dr(aSzPix.x()-aMarginInsideImage,aSzPix.y()-aMarginInsideImage,Infty));
+            cDataBoundedSet<tREAL8,3>  aSetCam(aBox);
+
+            // full resolution zbuffer, to have the same coords as original image
+            // TODO: smaller resolution
+            cZBuffer aZBuf(aTriIt,aSetVis,aMapCamDepth,aSetCam,
+                           1,aCam->PixelDomain().Sz());
+            aZBuf.MakeZBuf(eZBufModeIter::ProjInit);
+
+            if (!aZBuf.IsOk())
+                StdOut() << "Warning! Zbuffer empty.\n";
+            //MMVII_INTERNAL_ASSERT_tiny(aZBuf.IsOk(), "Error zbuffer");
+
+            if (mMapZbuf.count(aImName)==0)
+                mMapZbuf.emplace(aScanDataA.mScanName, aZBuf.ZBufIm());
+            else {
+                // merge zbuffers
+                mMapZbuf.at(aImName).MergeKeepMaxInPlace(aZBuf.ZBufIm());
+            }
+
+            if (aDebug)
+                aZBuf.ZBufIm().DIm().ToFile(mPhProj->DirVisuAppli()
+                                            +"ZBuf-"+aScanDataA.mScanName+"_on_image_"
+                                            +aImName+".tif");
+        }
+        if (aDebug)
+            mMapZbuf.at(aImName).DIm().ToFile(mPhProj->DirVisuAppli()
+                                           +"ZBuf-total_image_"
+                                           +aImName+".tif");
+
+        // filter patches using all existing zbuffers
+        for (auto & aScanDataA: mVScans)
+        {
+            //std::cout<<"test patchs of "<<aScanDataA.mScanName<<"\n";
+            for (auto & aPatch: aScanDataA.mLPatches)
+            {
+                const cPt2di & aPtScan = *aPatch.mLPatchesP.begin(); // center is 1st point
+                cPt3dr aPtGround = aScanDataA.mLidarRaster->Image2Ground(aPtScan);
+                cPt2dr aPtImage = aCam->Ground2Image(aPtGround);
+                tREAL4 aDistWithTolerancy = -(Norm2(aPtGround - aCam->Center()) - aDistTolerancy);
+                bool aIsUsablePt = true;
+                //std::cout<<"  patch "<<aPatch.mId<<": "<<aPtScan<<" "<<aPtGround<<": "<<aPtImage<<": "<<aDistWithTolerancy<<"\n";
+                for (const auto & [aScanName, aZbufIm]: mMapZbuf)
+                {
+                    //std::cout<<"    zbuf "<<aScanName<<": "<<aZbufIm.DIm().Sz()<<"\n";
+                    if (!aZbufIm.DIm().InsideBL(aPtImage))
+                    {
+                        //std::cout<<"      out\n";
+                        aIsUsablePt = false;
+                        break;
+                    }
+                    auto aZbufVal = aZbufIm.DIm().GetVBL(aPtImage);
+                    if ((aZbufVal > -1e9) && (aZbufVal > aDistWithTolerancy))
+                    {
+                        //std::cout<<"      hidden "<<aZbufVal<<"\n";
+                        aIsUsablePt = false;
+                        break;
+                    }
+                }
+                //std::cout<<"        visible: "<<aIsUsablePt<<"\n";
+                aPatch.mImVisible[aImName] = aIsUsablePt;
+            }
+        }
     }
 }
 
@@ -770,7 +757,7 @@ void cBA_LidarLidarRaster::AddObs()
 {
     if (mBA.Iter()==0)
     {
-        CreateZbuffers(true);
+        //CreateZbuffers(true);
     }
 
     mLastResidual.Reset();
