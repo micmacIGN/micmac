@@ -98,7 +98,7 @@ protected:
 };
 
 // record all data for each patch
-struct cLidarPatch
+struct cLidarRasterPatch
 {
     size_t                      mId;        //< Number in cStaticVector.mPatchCenters
     std::set<cPt2di>            mLPatchesP; //< px in raster, consituted by points in a lidar scan, begin() is center
@@ -135,7 +135,7 @@ public :
     void SelectPatchCenters1(int aNbPatches);
     void SelectPatchCenters2(const cStaticLidarImporter &aSL_importer, int aNbPatches);
     void MakeVisu(const cPhotogrammetricProject & aPhProj) const;     ///< show 8bit dist image with patch centers
-    void MakePatches(std::list<cLidarPatch> &aLPatches,
+    void MakePatches(std::list<cLidarRasterPatch> &aLPatches,
                      const std::vector<cSensorCamPC *> &aVCam, int aNbPointByPatch, int aSzMin) const;
 
     cPt3dr Image2InputXYZ(const cPt2di & aRasterPx) const; // in input frame

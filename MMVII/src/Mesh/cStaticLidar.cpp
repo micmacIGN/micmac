@@ -718,7 +718,7 @@ void cStaticLidar::TriangulateRegular(const std::string & aVisuPath, int aFactor
     if (mTriangulation)
         delete mTriangulation;
 
-    ScopedTimer aTimer("ToTriangulation3DRegular");
+    //ScopedTimer aTimer("ToTriangulation3DRegular");
     tREAL8 aLimitCosTriangles = 0.999;
     tREAL8 aLimitLenOnMinDist = 50/InternalCalib()->F();
     //TODO remove triangles too much in view direction?
@@ -786,7 +786,7 @@ void cStaticLidar::TriangulateRegular(const std::string & aVisuPath, int aFactor
         }
 
     mTriangulation = new cTriangulation3D<tREAL8>(aVPt3D, aVFace);
-    StdOut() <<"Scan triangulation regular "<< mStationName+"_"+mScanName <<": "<<aVPt3D.size()<<" pts, "<<aVFace.size()<<" faces\n";
+    //StdOut() <<"Scan triangulation regular "<< mStationName+"_"+mScanName <<": "<<aVPt3D.size()<<" pts, "<<aVFace.size()<<" faces\n";
     mTriangulation->WriteFile(aVisuPath + mStationName+"_"+mScanName+"_regular.ply",true);
 }
 
@@ -796,7 +796,7 @@ void cStaticLidar::Triangulate(const std::string & aVisuPath, int aFactor)
     if (mTriangulation)
         delete mTriangulation;
 
-    ScopedTimer aTimer("ToTriangulation3D");
+    //ScopedTimer aTimer("ToTriangulation3D");
     tREAL8 aLimitCosTriangles = 0.9999;
     tREAL8 aLimitLenOnMinDist = 0.2;
     //TODO make triangulation in instrument frame, add pose later?
@@ -863,7 +863,7 @@ void cStaticLidar::Triangulate(const std::string & aVisuPath, int aFactor)
     }
 
     mTriangulation = new cTriangulation3D<tREAL8>(aVPt3D, aVFaceFiltered);
-    StdOut() <<"Scan triangulation "<< mStationName+"_"+mScanName <<": "<<aVPt3D.size()<<" pts, "<<aVFaceFiltered.size()<<" faces\n";
+    //StdOut() <<"Scan triangulation "<< mStationName+"_"+mScanName <<": "<<aVPt3D.size()<<" pts, "<<aVFaceFiltered.size()<<" faces\n";
     mTriangulation->WriteFile(aVisuPath + mStationName+"_"+mScanName+".ply",true);
 
 }
@@ -1342,7 +1342,7 @@ void cStaticLidar::MakeVisu(const cPhotogrammetricProject & aPhProj) const
 }
 
 void cStaticLidar::MakePatches
-    (std::list<cLidarPatch> &aLPatches,
+    (std::list<cLidarRasterPatch> &aLPatches,
      const std::vector<cSensorCamPC *> & aVCam,
      int    aNbPointByPatch,
      int    aSzMin

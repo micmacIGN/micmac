@@ -347,9 +347,8 @@ class cData1ImLidPhgr
 // record all data for each scan raster
 struct cStaticLidarBAData
 {
-    std::string                    mScanName;      //< scan id
     cStaticLidar *                 mLidarRaster;   //< raster representations of lidar
-    std::list<cLidarPatch>         mLPatches;      //< all the patches data after size estimation and visibility
+    std::list<cLidarRasterPatch>   mLPatches;      //< all the patches data after size estimation and visibility
 };
 
 
@@ -407,7 +406,8 @@ class cBA_LidarPhotogra: public cBA_LidarBase
     protected :
        void InitEq(bool aScanPoseUk);
 
-       void Add1Patch(tREAL8 aWeight,const std::vector<cPt3dr> & aVPatchGr, const std::string & aScanName);
+       void Add1Patch(tREAL8 aWeight, const std::vector<cPt3dr> & aVPatchGr,
+                      const std::string & aScanName, const std::unordered_set<std::string> &aHiddenOnImage);
 
        /// Method for adding observations with radiometric differences as similatity criterion
        void AddPatchDifRad(tREAL8 aWeight,const std::vector<cPt3dr> & aVPatchGr,const std::vector<cData1ImLidPhgr> &aVData) ;
@@ -459,7 +459,7 @@ protected:
 class cBA_LidarRaster
 {
 public:
-    void CreateZbuffers(cPhotogrammetricProject *aPhProj, bool aDebug=false);
+    void CreateZbuffers(cPhotogrammetricProject *aPhProj, const cMMVII_BundleAdj &aBA, bool aOnScans, bool aDebug); ///< on images or on scans
     void UpdateWeightersMap(const cMMVII_BundleAdj &aBA, double aWFactor); // create or update map, on each iteration
 
 protected:
@@ -514,7 +514,7 @@ public :
 
 protected :
     /**  Add observation for 1 Patch of point */
-    tREAL8 Add1Patch(const cLidarPatch &aPatch, const cStaticLidarBAData & aScanData); // returns min residual for this point
+    tREAL8 Add1Patch(const cLidarRasterPatch &aPatch, const cStaticLidarBAData & aScanData); // returns min residual for this point
 
     void AddPatchDist(const cPt3dr &aPGround, const std::vector<cData1ImLidPhgr> &aVData) ;
 
@@ -601,7 +601,7 @@ class cMMVII_BundleAdj
           cBA_GCP& getGCP() { return mGCP;}
 
           ///  ============  Add Lidar/Photogra ===============          void AddLineAdjust(const std::vector<std::string> &);
-          cStaticLidar *AddStaticLidar(const std::string &aScanName);
+          cStaticLidar *AddStaticLidar(const std::string &aScanFileName);
           void Add1AdjLidarPhotogra(const std::vector<std::string> &);
           void Add1AdjLidarPhoto(const std::vector<std::string> &);
           void Add1AdjLidarLidar(const std::vector<std::string> &);

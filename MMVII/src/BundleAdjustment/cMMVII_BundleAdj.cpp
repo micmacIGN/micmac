@@ -350,7 +350,7 @@ void cMMVII_BundleAdj::OneIteration(bool isFirstIter, tREAL8 aLVM, bool doShowCo
     if (mPatFrozenTSL !="")
     {
         // Freeze full pose (TODO: be able to to fix only verticalization)
-        tNameSelector aSel = AllocRegex(cStaticLidar::Pat2Sup(mPatFrozenTSL));
+        tNameSelector aSel = AllocRegex(mPatFrozenTSL);
         int nbMatches = 0;
         for (auto & [aScanName, aLidar] : mMapTSL)
         {
@@ -841,22 +841,24 @@ void cMMVII_BundleAdj::Add1AdjLidarPhoto(const std::vector<std::string> &aParam)
     mVBA_Lidar.push_back(new cBA_LidarPhotograRaster(mPhProj, *this,aParam));
 }
 
-cStaticLidar * cMMVII_BundleAdj::AddStaticLidar(const std::string &aScanName)
+cStaticLidar * cMMVII_BundleAdj::AddStaticLidar(const std::string &aScanFileName)
 {
     AssertPhpAndPhaseAdd();
-    if (mMapTSL.count(aScanName)==0)
-    {
-        cStaticLidar * aLidarData = mPhProj->ReadStaticLidar(aScanName, true, true);
-        MMVII_INTERNAL_ASSERT_User(aLidarData,
-                                   eTyUEr::eUnClassedError,"Error opening static scans " + aScanName);
+    // fisrt, read xml to get sensor name
+    cStaticLidar * aLidarTmp = mPhProj->ReadStaticLidar(aScanFileName, true, false);
 
-        mMapTSL[aScanName] = aLidarData;
+    if (mMapTSL.count(aLidarTmp->NameImage())==0)
+    {
+        cStaticLidar * aLidarData = mPhProj->ReadStaticLidar(aScanFileName, true, true);
+        MMVII_INTERNAL_ASSERT_User(aLidarData,
+                                   eTyUEr::eUnClassedError,"Error opening static scans " + aScanFileName);
+        mMapTSL[aLidarData->NameImage()] = aLidarData;
 
         MMVII_INTERNAL_ASSERT_tiny (!aLidarData->UkIsInit(),"Multiple add of TSL : " + aLidarData->NameImage());
         mSetIntervUK.AddOneObj(aLidarData);
         aLidarData->SetAndGetEqColinearity(true,10,true);  // WithDer, SzBuf, ReUse
     }
-    return mMapTSL.at(aScanName);
+    return mMapTSL.at(aLidarTmp->NameImage());
 }
 
 const std::unordered_map<std::string, cStaticLidar *> &cMMVII_BundleAdj::MapTSL() const {return mMapTSL;}
@@ -870,7 +872,7 @@ void cMMVII_BundleAdj::Add1AdjLidarLidar(const std::vector<std::string> &aParam)
 void cMMVII_BundleAdj::SaveTSL()
 {
     for (auto & [aScanName, aLidar] : mMapTSL)
-        aLidar->ToFile(mPhProj->DPOrient().FullDirOut() + aScanName);
+        aLidar->ToFile(mPhProj->DPOrient().FullDirOut() + aLidar->NameOriStd());
 }
 
 /* ---------------------------------------- */
