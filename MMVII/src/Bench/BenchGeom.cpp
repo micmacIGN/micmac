@@ -572,7 +572,7 @@ template <class tMap,class TypeEl> void TplBenchMap2D_LSQ(TypeEl *)
 
 
      TypeEl anAccuracy =  tElemNumTrait<TypeEl>::Accuracy();
-     if (tNumTrait<TypeEl>::TyNum()!= eTyNums::eTN_REAL4)
+     if (tNumTrait<TypeEl>::TyNum() == eTyNums::eTN_REAL4)
      {
          anAccuracy = 10;
      }
@@ -614,23 +614,26 @@ template <class tMap,class TypeEl> void TplBenchMap2D_LSQ(TypeEl *)
           TypeEl anEr = Norm2(aVOut[aK] - aMap.Value(aVIn[aK]));
 
           anEr /= anAccuracy;
+          TypeEl aDiv=std::min(TypeEl(1.0),Square(aMap.Divisor(aVIn[aK])));
+
           // Very leniant with homography ....
         // StdOut() << " ERRRR=" << anEr << " " << tElemNumTrait<TypeEl>::Accuracy() << "\n";
           if ((anEr> TheMinEr_M2DLASQ) && (tNumTrait<TypeEl>::TyNum()!= eTyNums::eTN_REAL4) )
           {
-              if (false)
+              if (false)  // to maintain, as there has been many error
               {
                  TheMinEr_M2DLASQ = anEr;
                  StdOut() << "ERRR=" << anEr
                           <<  " M=" << tMap::Name()
+                           << " D="   << aDiv
                           <<  " T=" << tNumTrait<TypeEl>::NameType()
                           << "\n";
               }
           }
-          TypeEl aDiv=std::min(TypeEl(1.0),Square(aMap.Divisor(aVIn[aK])));
           if ((aDiv>1e-10) && (anEr*aDiv>=1e-2))
           {
                StdOut()  << "Diivv " << aMap.Divisor(aVIn[aK])
+                         <<  " T=" << tNumTrait<TypeEl>::NameType()
                          << " DD=" << aDiv
                          << " E=" << anEr << std::endl;
                MMVII_INTERNAL_ASSERT_bench(false,"Least Sq Estimat 4 Mapping");

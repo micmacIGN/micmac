@@ -18,9 +18,16 @@ template <class Type>  cTrans2D<Type> cTrans2D<Type>::FromParam(const cDenseVect
    return cTrans2D<Type> ( tPt(aVec(TrIndTrx),aVec(TrIndTry)));
 }
 
+//template <class Type>
+ /*void cTrans2D<Type>::DerivFromParam(std::vector<cDenseVect<Type>> & aVecOut,const tPt &aPIn)
+ {
+
+ }*/
+
 template <class Type>  
       void cTrans2D<Type>::ToEqParamFromLinear(Type & aLHSOut,cDenseVect<Type>& aVecOut,const tPt &aPIn,const Type & aLHSIn,const tPt & aVec)
 {
+
    //  aLHSIn = aVec . (aPIn+aTr)
    //  aLHSIn - aVec.aPIn = aVec.x * aTr.x + aVec.y * aTr.y
    aVecOut(TrIndTrx) =  aVec.x();
@@ -83,6 +90,14 @@ template <class Type>  cHomot2D<Type> cHomot2D<Type>::FromParam(const cDenseVect
               aVec(HomotIndScale)
           );
 }
+
+/*
+   //  aLHSIn = aVec . (aPIn+aTr)
+   //  aLHSIn - aVec.aPIn = aVec.x * aTr.x + aVec.y * aTr.y
+   aVecOut(TrIndTrx) =  aVec.x();
+   aVecOut(TrIndTry) =  aVec.y();
+   aLHSOut = aLHSIn - Scal(aVec,aPIn);
+*/
 
 template <class Type>  
       void cHomot2D<Type>::ToEqParamFromLinear(Type & aLHSOut,cDenseVect<Type>& aVecOut,const tPt &aPIn,const Type & aLHSIn,const tPt & aVec)
