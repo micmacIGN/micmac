@@ -54,15 +54,15 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
             std::vector<cPt3dr> get3DTargetCorners(std::string& aCode);
             void doPseudoBench();
             void TargetSample(bool& isOk);
+            void LSCorresp(bool& isOk);
             cAffin2D<tREAL8> getLocalAff2D(cPt2dr aPix, tREAL8 delta);
             //--mandatory
             cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override;
             cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override;
-            void doComputeTransFunc();
             std::vector<cPt2di> getRansacPts();
             void doComputeCoOccIm(tDIm* aDImIn);
             void ComputeBasePtsRes();
-            void SampleCorresp(bool& isTarget);
+            void RansacCorresp(bool& isTarget);
             void RansacTransFunc(cPt2dr& theSol, std::vector<cPt2di> aVBitCenters);
             cStdStatRes wL1Score(cPt2dr& aSol, cDataIm2D<tREAL8>* aDWStdIm);
             cPhotogrammetricProject mPhProj;
@@ -101,6 +101,9 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
             tDIm* mDCurrTrue;
             tIm mCoOccMat;
             tDIm* mDCoOccMat;
+            tREAL8 mCurrWL1Med;
+            cIm2D<tREAL8> mWStdDeltaIm;
+            cDataIm2D<tREAL8>* mDWStdDeltaIm;
             std::map<std::string, std::vector<cPt3dr>> mMTargetsWorldBasePoints;
             std::map<cSensorCamPC*,std::map<std::string,std::vector<cPt2dr>>> mMCamTgtBasePts;
 
@@ -154,7 +157,8 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
         mCurrRef (cPt2di(1,1)),
         mCurrPred (cPt2di(1,1)),
         mCurrTrue (cPt2di(1,1)),
-        mCoOccMat (cPt2di(1,1))
+        mCoOccMat (cPt2di(1,1)),
+        mWStdDeltaIm (cPt2di(1,1))
 
     {
         //···> constructor does nothing
@@ -388,10 +392,11 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
     void cAppli_CheckBoardTargetRefine::TargetRefine(bool& isOk)
     {
         CurrTgtExtent(isOk);//computes current target extent
-        if (isOk)// && mCurrCam->NameImage() == "K127_202409211622-00-cam-22348125-38-66255657607881-23.tiff")
+        if (isOk && mCurrCam->NameImage() == "K127_202409211622-00-cam-22348125-38-66255657607881-23.tiff")
         {
             TargetSample(isOk);
-            if(isOk){SampleCorresp(isOk);}
+            if(isOk){RansacCorresp(isOk);}//first mapping
+            if(isOk){LSCorresp(isOk);}//refine mapping
         }
     }
 
@@ -495,7 +500,7 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
         }
     }
 
-    void cAppli_CheckBoardTargetRefine::SampleCorresp(bool& isTarget)
+    void cAppli_CheckBoardTargetRefine::RansacCorresp(bool& isTarget)
     {
         //1-look if it exists a "good" transfunc on bits centers if not leave.
         std::vector<cPt3dr> aVWorldBitCenters = target2World(mCurrTgtCode, mFullSpec->BitsCenters());
@@ -516,6 +521,7 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
         for (const auto & aPix : aRectInt)
         {
             if (mDTgtMasq->GetV(aPix)==mMasqVal) continue;
+
             cComputeStdDev<tREAL8>  aCDev;
             for (int aK=0 ; aK<8 ; aK++)
             {
@@ -528,15 +534,59 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
         if (aScore.Avg() > mWL1Limit){isTarget=false; return;}
 
         isTarget=true;
+
+        //set residual median value
+        std::vector<tREAL8> aVSortedRes = aScore.VRes();
+        std::sort(aVSortedRes.begin(), aVSortedRes.end());
+        mCurrWL1Med = aVSortedRes[aVSortedRes.size()/2];
+    }
+
+    void cAppli_CheckBoardTargetRefine::LSCorresp(bool& isOk)
+    {
+        //1-create LS struct
+        cLeasSqtAA<tREAL8> aLSSystem(10);
+        cDiffInterpolator1D * aInterpol = cDiffInterpolator1D::AllocFromNames({"Linear"});
+        //2-iterate on "good" pixels and add corresponding observations to the struct
+        int ix=0;
+        for (const auto& aPix : *mDCurrPred)
+        {
+            if (mDTgtMasq->GetV(aPix)!=mMasqVal && mDWStdDeltaIm->GetV(aPix)<=mCurrWL1Med)
+            {
+                ++ix;
+                (void) ix;
+                auto [aValue,aGrad] = mDCurrPred->GetValueAndGradInterpol(*aInterpol,ToR(aPix));
+                tREAL8 aI=(tREAL8)mDCurrPred->GetV(aPix);
+                tREAL8 ai=(tREAL8)mDCurrTrue->GetV(aPix);
+                auto& aPartix=aGrad.x();//interpol
+                auto& aPartiy=aGrad.y();//interpol
+                cDenseVect<tREAL8> aVEqObs({aI*aPix.x(),
+                                            aI*aPix.y(),
+                                            aI,
+                                            aI,
+                                            -aPartix*aPix.x(),
+                                            -aPartix*aPix.y(),
+                                            -aPartix,
+                                            -aPartiy*aPix.x(),
+                                            -aPartiy*aPix.y(),
+                                            -aPartiy});
+                aLSSystem.PublicAddObservation(1, aVEqObs, ai);
+            }
+        }
+        //3-solve the system
+        StdOut() << "BEGIN LSQUARE SOLVING" << std::endl;
+        auto aVObs = aLSSystem.V_tAA();
+        auto aSol = aLSSystem.PublicSolve();
+        StdOut() << "LS Solution : " << aSol;
+        isOk = true;
     }
 
     /* From here ~ utils methods which called above */
 
     cStdStatRes cAppli_CheckBoardTargetRefine::wL1Score(cPt2dr& aSol, cDataIm2D<tREAL8>* aDWStdIm)
     {
-        tIm aWStdDeltaIm(aDWStdIm->Sz());
-        tDIm& aDWStdDeltaIm = aWStdDeltaIm.DIm();
-        aDWStdDeltaIm.InitCste(0);
+        mWStdDeltaIm = aDWStdIm->Sz();
+        mDWStdDeltaIm = &mWStdDeltaIm.DIm();
+        mDWStdDeltaIm->InitCste(0);
 
         tREAL8 aSig0 = 1;
         cStdStatRes aStat;
@@ -546,15 +596,15 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
             if(mDTgtMasq->GetV(aPix) != mMasqVal)
             {
                 tREAL8 aDelta = abs(mDCurrPred->GetV(aPix) - (mDCurrTrue->GetV(aPix)*aSol[0] + aSol[1]));
-                int aWVal = aDelta * (aSig0/(aDWStdIm->GetV(aPix)+aSig0));
-                aDWStdDeltaIm.SetVTrunc(aPix,aDelta);
+                tREAL8 aWVal = aDelta * (aSig0/(aDWStdIm->GetV(aPix)+aSig0));
+                mDWStdDeltaIm->SetVTrunc(aPix,aDelta);
                 aStat.Add(aWVal);
             }
         }
 
         if (mVisu)
         {
-            aDWStdDeltaIm.ToFile(NameVisu(mCurrCam->NameImage(),"WStdDeltaIm"+mCurrTgtCode));
+            mDWStdDeltaIm->ToFile(NameVisu(mCurrCam->NameImage(),"WStdDeltaIm"+mCurrTgtCode));
         }
 
         return aStat;
