@@ -570,6 +570,20 @@ template <class Type> typename tBaseNumTrait<Type>::tBase SumIm(const cDataIm2D<
 }
 
 
+/*****************************************************/
+/*                                                   */
+/*          Generic transfo                          */
+/*                                                   */
+/*****************************************************/
+
+template<class Type, int Dim, class Func>   // I1 = lambda(I1,I2)
+void TransfoInPlace(cDataTypedIm<Type, Dim> & aI1,const cDataTypedIm<Type, Dim> & aI2, Func aFunc)
+{
+    aI1.AssertSameArea(aI2);
+    for (int aK=0 ; aK<aI1.NbElem() ; aK++)
+        aI1.GetRDL(aK) = aFunc(aI1.GetRDL(aK), aI2.GetRDL(aK));
+}
+
 
 
 };

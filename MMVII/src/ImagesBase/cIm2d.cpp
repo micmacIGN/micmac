@@ -274,7 +274,6 @@ template <class Type>  void  cIm2D<Type>::DecimateInThis(int aFact,const cIm2D<T
       mPIm->SetV(aP,aDIn.GetV(aP*aFact));
 }
 
-
 template <class Type>  cIm2D<Type>  cIm2D<Type>::GaussDeZoom(int aFact, int aNbIterExp,double dilate) const
 {
     double aS0 = DefStdDevImWellSample;
