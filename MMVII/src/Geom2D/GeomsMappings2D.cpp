@@ -5,6 +5,15 @@
 namespace MMVII
 {
 
+// When the maping is a linear function of parameters, like Trans, Sim, Affin , Scale : we can deduce the
+// partial derivate from the parametric equation. So better avois redundancy
+
+template <class tMap> void LinearDerivFromParam(const tMap& aMap,std::vector<typename tMap::tDV> aVV,const typename tMap::tPt &aPIn )
+{
+    typename tMap::tPt aPOut(0,0),aRHS;
+    aMap.ToEqParam(aRHS,aVV.at(0),aVV.at(1),aPIn,aPOut);
+}
+
 
 /* ========================== */
 /*          cTrans2D          */
@@ -18,11 +27,13 @@ template <class Type>  cTrans2D<Type> cTrans2D<Type>::FromParam(const cDenseVect
    return cTrans2D<Type> ( tPt(aVec(TrIndTrx),aVec(TrIndTry)));
 }
 
-//template <class Type>
- /*void cTrans2D<Type>::DerivFromParam(std::vector<cDenseVect<Type>> & aVecOut,const tPt &aPIn)
- {
 
- }*/
+template <class Type>  cDenseVect<Type> cTrans2D<Type>::GetParam() const
+{
+    return cDenseVect<Type>(std::vector<Type>{mTr.x(),mTr.y()});
+}
+
+
 
 template <class Type>  
       void cTrans2D<Type>::ToEqParamFromLinear(Type & aLHSOut,cDenseVect<Type>& aVecOut,const tPt &aPIn,const Type & aLHSIn,const tPt & aVec)
@@ -49,6 +60,16 @@ template <class Type>
 
    aRHS = aPOut - aPIn;
 }
+
+
+template <class Type>
+void cTrans2D<Type>::DerivFromParam(std::vector<cDenseVect<Type>> & aVecOut,const tPt & aPIn) const
+{
+    LinearDerivFromParam(*this,aVecOut,aPIn);
+}
+
+
+
 template <class Type>  
       void cTrans2D<Type>::ToEqParam(tPt& aRHS,std::vector<cDenseVect<Type>>& aVXY,const tPt & aPIn,const tPt & aPOut)
 {
@@ -75,6 +96,9 @@ template <class Type>  Type cTrans2D<Type>::Divisor(const tPt & aPIn) const {ret
 
 static constexpr int HomotIndScale = TrIndTry+1;
 
+
+
+
 template <class Type>  cHomot2D<Type> cHomot2D<Type>::RandomHomotInv(const Type & AmplTr,const Type & AmplSc,const Type & AmplMinSc)
 {
     auto v1 = tPt::PRandC() * AmplTr;
@@ -89,6 +113,11 @@ template <class Type>  cHomot2D<Type> cHomot2D<Type>::FromParam(const cDenseVect
               tPt(aVec(TrIndTrx),aVec(TrIndTry)),
               aVec(HomotIndScale)
           );
+}
+
+template <class Type>  cDenseVect<Type> cHomot2D<Type>::GetParam() const
+{
+    return cDenseVect<Type>(std::vector<Type>{mTr.x(),mTr.y(),mSc});
 }
 
 /*
@@ -135,6 +164,13 @@ template <class Type>
    aVY(HomotIndScale) = aPIn.y();
 
    aRHS = aPOut;
+}
+
+
+template <class Type>
+void cHomot2D<Type>::DerivFromParam(std::vector<cDenseVect<Type>> & aVecOut,const tPt & aPt) const
+{
+    LinearDerivFromParam(*this,aVecOut,aPt);
 }
 
 
@@ -231,6 +267,12 @@ template <class Type>  cSim2D<Type> cSim2D<Type>::FromParam(const cDenseVect<Typ
           );
 }
 
+template <class Type>  cDenseVect<Type> cSim2D<Type>::GetParam() const
+{
+    return cDenseVect<Type>(std::vector<Type>{mTr.x(),mTr.y(),mSc.x(),mSc.y()});
+}
+
+
 template <class Type>  
       void cSim2D<Type>::ToEqParam(tPt& aRHS,std::vector<cDenseVect<Type>>& aVXY,const tPt & aPIn,const tPt & aPOut)
 {
@@ -255,6 +297,8 @@ template <class Type>
    aLHSOut = aLHSIn;
 }
 
+
+
 template <class Type>  void cSim2D<Type>::ToEqParam(tPt& aRHS,cDenseVect<Type>& aVX,cDenseVect<Type> & aVY,const tPt & aPIn,const tPt & aPOut)
 {
    //  param = trx try scx scy
@@ -273,6 +317,28 @@ template <class Type>  void cSim2D<Type>::ToEqParam(tPt& aRHS,cDenseVect<Type>& 
    aRHS = aPOut;
 }
 
+template <class Type>
+void cSim2D<Type>::DerivFromParam(std::vector<cDenseVect<Type>> & aVecOut,const tPt & aPt) const
+{
+   LinearDerivFromParam(*this,aVecOut,aPt);
+}
+
+
+/*
+template <class Type>
+void cSim2D<Type>::DerivFromParam(std::vector<cDenseVect<Type>> & aVecOut,const tPt & aPt) const
+{
+    cDenseVect<Type> & aVX = aVecOut.at(0) ;
+    cDenseVect<Type> & aVY = aVecOut.at(1);
+    aVX.DIm().InitNull();
+    aVY.DIm().InitNull();
+
+    aVX(SimIndTrx) = 1.0;
+    aVX(SimIndScx) = aPt.x();
+
+    aVY(SimIndTry) = 1.0;
+    aVY(HomotIndScale) = aPt.y();
+}*/
 
 template <class Type>  cPtxd<Type,2> cSim2D<Type>::DiffInOut(const tPt & aPIn,const tPt & aPOut) const
 {
@@ -441,6 +507,12 @@ template <class Type>  void cAffin2D<Type>::ToEqParam(tPt& aRHS,cDenseVect<Type>
    aRHS = aPOut;
 }
 
+template <class Type>
+void cAffin2D<Type>::DerivFromParam(std::vector<cDenseVect<Type>> & aVecOut,const tPt & aPt) const
+{
+     LinearDerivFromParam(*this,aVecOut,aPt);
+}
+
 /*
     aR0ToIn (1,0) = aTabIn[0] + VecX = aTabIn[1]
 
@@ -559,6 +631,11 @@ template <class Type>
     ToEqParam(aRHS,aVXY.at(0),aVXY.at(1),aPIn,aPOut);
 }
 
+  /** Also not a purely linear parameters, but handled differently from rotation (that assume map close to ident).
+   *  Here we transformate the equation to a purely linear form by multiplying by quotient :
+   *     + it works with "big" parameters (not close to ident)
+   *     - it change the residual
+   */
 template <class Type> void cHomogr2D<Type>::ToEqParam
                            (
                                  tPt & aRHS,
@@ -597,6 +674,42 @@ template <class Type> void cHomogr2D<Type>::ToEqParam
       aVY(iHZy) = - In.y() * J;
 
       aRHS = Out;
+}
+
+template <class Type> void cHomogr2D<Type>::DerivFromParam(std::vector<cDenseVect<Type>> & aVecOut,const tPt &aPIn) const
+{
+    cDenseVect<Type> & aVX = aVecOut.at(0);
+    cDenseVect<Type> & aVY = aVecOut.at(0);
+
+
+    Type aHX = S(mHX,aPIn);
+    Type aHY = S(mHY,aPIn);
+    Type aHZ = S(mHZ,aPIn);
+
+    //  (A X + B Y + C) / aHZ
+    aVX(iHXx) = aPIn.x() / aHZ;
+    aVX(iHXy) = aPIn.y() / aHZ;
+    aVX(iHX1) = 1.0 / aHZ;
+
+    aVX(iHYx) = 0.0;
+    aVX(iHYy) = 0.0;
+    aVX(iHY1) = 0.0;
+
+    aVX(iHZx) = - (aHX * aPIn.x()) / Square(aHZ);
+    aVX(iHZy) = - (aHX * aPIn.y()) / Square(aHZ);
+
+    //----------------------------------------------------
+
+    aVY(iHXx) = 0.0;
+    aVY(iHXy) = 0.0;
+    aVY(iHX1) = 0.0;
+
+    aVX(iHYx) = aPIn.x() / aHZ;
+    aVX(iHYy) = aPIn.y() / aHZ;
+    aVX(iHY1) = 1.0 / aHZ;
+
+    aVY(iHZx) = - (aHY * aPIn.x()) / Square(aHZ);
+    aVY(iHZy) = - (aHY * aPIn.y()) / Square(aHZ);
 }
 
 
@@ -761,8 +874,13 @@ template <class Type>
     ToEqParam(aRHS,aVXY.at(0),aVXY.at(1),aPIn,aPOut);
 }
 
+
+ /**  This formula works  IFF  we assume small teta, and because in least square refine the solution is
+  refined as delta to the current solution, using the group structure*/
+
 template <class Type>  void cRot2D<Type>::ToEqParam(tPt& aRHS,cDenseVect<Type>& aVX,cDenseVect<Type> & aVY,const tPt & aPIn,const tPt & aPOut)
 {
+          //StdOut() << " cRot2D<Type>::ToEqParamcRot2D<Type>::ToEqParam \n"; getchar();
    //  param = trx try scx scy
    //  XOut  =   1*trx + 0*try +   XIN - teta YIN 
    //  YOut  =   0*trx + 1*try +   YIN + teta XIN 
@@ -777,6 +895,26 @@ template <class Type>  void cRot2D<Type>::ToEqParam(tPt& aRHS,cDenseVect<Type>& 
    aRHS = aPOut -aPIn;
 }
 
+
+template <class Type>
+void cRot2D<Type>::DerivFromParam(std::vector<cDenseVect<Type>> & aVecOut,const tPt & aPt) const
+{
+    cDenseVect<Type> & aVX = aVecOut.at(0);
+    cDenseVect<Type> & aVY = aVecOut.at(0);
+
+    // Pt -> Sc * Pt     d(Sc*Pt)/Dteta =  dSc/Dteta * Pt = (0,1)  * Sc * Pt
+    cPtxd<Type,2> aPSc = Sc() * aPt ;
+
+
+    aVX(RotIndTrx)  = 1;
+    aVX(RotIndTry)  = 0;
+
+    aVX(RotIndTeta) = -aPSc.y();
+
+    aVY(RotIndTrx)  = 0;
+    aVY(RotIndTry)  = 1;
+    aVY(RotIndTeta) = aPSc.x();
+}
 
 template <class Type>  cRot2D<Type> cRot2D<Type>::FromMinimalSamples(const tTabMin& aTabIn,const tTabMin& aTabOut)
 {
@@ -857,6 +995,35 @@ template   void ToEqInSeg<cSim2D<tREAL8>>(tREAL8& aRHS,cDenseVect<tREAL8> & aVec
 // ==============================================================================
 
 
+template <class tMap> std::vector<typename tMap::tDV>  DerivFromParam(const tMap& aMap,const typename tMap::tPt &aPIn)
+{
+    typedef typename tMap::tTypeElem Type;
+    cDenseVect<Type> aVX(tMap::NbDOF);
+    cDenseVect<Type> aVY(tMap::NbDOF);
+
+    std::vector< cDenseVect<Type>> aRes{aVX,aVY};
+    aMap.DerivFromParam(aRes,aPIn);
+
+    return aRes;
+}
+
+#define INSTANTIATE_DerivFromParam(TYPE,TMAP)\
+template  std::vector<cDenseVect<TYPE>>  DerivFromParam<TMAP>(const TMAP&,const cPtxd<TYPE,2> & );
+
+#define INSTANTIATE_DerivFromParam_1TYPE(TYPE)\
+INSTANTIATE_DerivFromParam(TYPE,cTrans2D<TYPE>)\
+INSTANTIATE_DerivFromParam(TYPE,cHomot2D<TYPE>)\
+INSTANTIATE_DerivFromParam(TYPE,cSim2D<TYPE>)\
+INSTANTIATE_DerivFromParam(TYPE,cAffin2D<TYPE>)\
+INSTANTIATE_DerivFromParam(TYPE,cRot2D<TYPE>)\
+INSTANTIATE_DerivFromParam(TYPE,cHomogr2D<TYPE>)
+
+INSTANTIATE_DerivFromParam_1TYPE(tREAL16)
+INSTANTIATE_DerivFromParam_1TYPE(tREAL8)
+INSTANTIATE_DerivFromParam_1TYPE(tREAL4)
+
+
+
 
 #define MACRO_INSTATIATE_ALL_MAP_GEOM2D_OF_TYPE(TYPE) \
 template class cTrans2D<TYPE>;\
@@ -870,5 +1037,7 @@ template class cHomot2D<TYPE>;
 MACRO_INSTATIATE_ALL_MAP_GEOM2D_OF_TYPE(tREAL4);
 MACRO_INSTATIATE_ALL_MAP_GEOM2D_OF_TYPE(tREAL8);
 MACRO_INSTATIATE_ALL_MAP_GEOM2D_OF_TYPE(tREAL16);
+
+
 
 };

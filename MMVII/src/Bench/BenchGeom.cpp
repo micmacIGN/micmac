@@ -597,6 +597,20 @@ template <class tMap,class TypeEl> void TplBenchMap2D_LSQ(TypeEl *)
 
      tMap aMap =  tMap::StdGlobEstimate(aVIn,aVOut);
 
+     // Test for
+     {/*
+         for (int aK=0 ; aK<10 ; aK++)
+         {
+             cPtxd<TypeEl,2> aPt = cPtxd<TypeEl,2>::PRandC();
+             std::vector<cDenseVect<TypeEl>> aVXY= aDerivFromParam(aMap,aPt);
+
+             for (size_t aKP = 0 ; aKP<tMap::NbDOF ; aKP++)
+             {
+                 FromParam
+             }
+         }*/
+     }
+
      if (tMap::NbDOF%2) // in this case match cannot be perfect "naturally", not enoug DOF, must cheat
      {
          aVOut.clear();
