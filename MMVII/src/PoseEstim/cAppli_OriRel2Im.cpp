@@ -153,6 +153,9 @@ class cEstimatePosRel2Im :  public cOptimizeRotAndVUnit // Herit for combinatori
      /// Initialize de ground truth
      void SetGT(const tPoseR&);
 
+     /// Get tie points (as directions)
+     const cSetHomogCpleDir & SetFullCpleDir() const {return mSetFullCpleDir;}
+
   private :
         //  --- Avoid unwated copies --------------------------------
     cEstimatePosRel2Im(const cEstimatePosRel2Im&) = delete;
@@ -696,6 +699,9 @@ class cAppli_OriRelPairOfIm : public cMMVII_Appli
         /// Randomize the poistion of a point, while maintaining it inside camera
         cPt2dr  RandomizePt(const cPt2dr&,const cSensorCamPC&) const;
 
+        /// Generate virtual 5 tie-points per motion
+        void Generate5Pts(const cCdtFinalPoseRel2Im&);
+
         int                       mModeCompute;
         cPhotogrammetricProject   mPhProj;
         std::string               mIm1;
@@ -707,7 +713,8 @@ class cAppli_OriRelPairOfIm : public cMMVII_Appli
         int                       mNbAvg;
         cSetHomogCpleIm           mCpleHSmall;
         int                       mNbSmall;
-
+        bool                      mDo5Pts;
+        cSetHomogCpleIm           mCpleH5Pts;
 
 
 
@@ -740,6 +747,7 @@ cAppli_OriRelPairOfIm::cAppli_OriRelPairOfIm(const std::vector<std::string> & aV
     mNbBig        (2000),
     mNbAvg        (500),
     mNbSmall      (150),
+    mDo5Pts       (false),
     mCalib1       (nullptr),
     mCalib2       (nullptr),
     mEstimatePose (nullptr),
@@ -797,10 +805,11 @@ cCollecSpecArg2007 & cAppli_OriRelPairOfIm::ArgOpt(cCollecSpecArg2007 & anArgOpt
             <<  AOpt2007(mNbMinHom,"NbMinHom","Number minimal of homologous point required",{eTA2007::HDV})
             <<  AOpt2007(mNbSolInit,"NbSol0","Number of solution initial (before BA)",{eTA2007::HDV})
             <<  AOpt2007(mNbIterBA,"NbIterBA","Number of iteration in Bundle/Adj",{eTA2007::HDV})
+            <<  AOpt2007(mDo5Pts,"Do5Pts","Generate 5 virtual tie points")
 
             <<  AOpt2007(mUseOri4GT,"UseOriGT","Set if orientation contains also exterior as a ground truth",{eTA2007::HDV})
             <<  AOpt2007(mFolderOriGT,"OriGT","If ground truth ori != calib")
-            <<  AOpt2007(mNbSimulPt,"NbSimulPt","Number os fimulation point, if any",{eTA2007::HDV})
+            <<  AOpt2007(mNbSimulPt,"NbSimulPt","Number of simulation point, if any",{eTA2007::HDV})
             <<  AOpt2007(mParamOutLayer,"OutLayers","Param for generating outlayers [Nb,Sigma]",{{eTA2007::ISizeV,"[2,2]"}})
             <<  AOpt2007(mShow,"Show","Show messages",{eTA2007::HDV})
    ;
@@ -1011,6 +1020,9 @@ cAppli_OriRelPairOfIm::tRes1Pair
 
      cCdtFinalPoseRel2Im aCdt = mEstimatePose->MakeDecision(mShow);
 
+     if (mDo5Pts)
+         Generate5Pts(aCdt);
+
      if (mUseOri4GT && mShow)
          mEstimatePose->ShowSol(mGTPose,"GroundTruh");
 
@@ -1021,7 +1033,50 @@ cAppli_OriRelPairOfIm::tRes1Pair
      return tRes1Pair(EXIT_SUCCESS,aCdt);
 }
 
+void cAppli_OriRelPairOfIm::Generate5Pts(const cCdtFinalPoseRel2Im& aFinalPose)
+{
+    StdOut() << "Generate 5 virtual points per pair" << std::endl;
 
+    // construct an elliposoid over the 3D points
+    cEllipse3D aEllipse;
+
+    int aNbHPts = mEstimatePose->SetFullCpleDir().VDir1().size();
+    for (int aK=0; aK<aNbHPts; aK++)
+    {
+        // intersect in 3D
+        tSeg3dr aSeg1(cPt3dr(0.0,0.0,0.0),mEstimatePose->SetFullCpleDir().VDir1()[aK]);
+        tSeg3dr aSeg2( aFinalPose.mPose.Tr(),aFinalPose.mPose.Value(mEstimatePose->SetFullCpleDir().VDir2()[aK]));
+        cPt3dr aCoeffI;
+
+        cPt3dr aP = BundleInters(aCoeffI,aSeg1,aSeg2);
+        aEllipse.AddData(aP,1.0);
+
+    }
+    aEllipse.Normalise();
+
+    // generate 5 virtual points
+    std::vector<cPt3dr> aV5pts;
+    cGenGauss3D aG3D(aEllipse);
+    aG3D.GetDistrib5Pts(aV5pts,1.0);
+
+    // back project to images
+    cHomogCpleIm aVHCple5Pts;
+    tPoseR aPoseId = tPoseR::Identity();
+    for (size_t aK=0; aK<aV5pts.size(); aK++)
+    {
+
+        if (mCalib1->DegreeVisibility(aV5pts.at(aK)) &&
+            mCalib2->DegreeVisibility(aV5pts.at(aK)))
+        {
+            aVHCple5Pts.mP1 = mCalib1->Value( aPoseId.Inverse(aV5pts.at(aK)));
+            aVHCple5Pts.mP2 = mCalib2->Value( aFinalPose.mPose.Inverse(aV5pts.at(aK)) );
+        }
+        else
+            StdOut() << "------------------ not visible----" << std::endl;
+    }
+    mCpleH5Pts.Add(aVHCple5Pts);
+
+}
 
 /* ====================================================== */
 /*               OriPoseEstimRel2Im                       */

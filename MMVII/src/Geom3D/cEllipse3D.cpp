@@ -286,7 +286,7 @@ void cGenGauss3D::GetDistrib5Pts(std::vector<cPt3dr> & aVPts,double aScale)
     // Correction factor: the 5-point scheme reconstructs variance as (4/5)*v^2*lambda,
     // so scale by sqrt(5)/(2*v) to recover exact eigenvalues.
     const double v = InvErrFonc(2.0/3.0);
-    const double aCorr = std::sqrt(5.0) / (2.0*v);
+    const double aCorr = std::sqrt(5.0)/(2.0*v);
 
     cPt3dr aVec0,aVec1,aVec2;
     GetCol(aVec0,mVecP,0);
