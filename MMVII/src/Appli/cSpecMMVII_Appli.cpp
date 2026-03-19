@@ -222,7 +222,9 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpec_OriCheckGCPDist);
         TheVecAll.push_back(&TheSpec_OriBundlAdj);
         TheVecAll.push_back(&TheSpec_TopoAdj);
+#if(MMVII_USE_PDAL)
         TheVecAll.push_back(&TheSpecSample3DpointsFromCloudIntoImage);
+#endif
         TheVecAll.push_back(&TheSpec_GCPAbsOri);
         TheVecAll.push_back(&TheSpec_OriRel2Im);
         TheVecAll.push_back(&TheSpec_OriRelPairsOf1m);

@@ -43,10 +43,9 @@ void cBA_LidarBase::init(const std::vector<std::string>& aParam, size_t aWeightP
         aParamInt = Str2VStr(aParam.at(aInterpolParamIndex));
     }
 
+
     // create the interpolator itself
     mInterp  = cDiffInterpolator1D::AllocFromNames(aParamInt);
-    // delete mInterp;
-    // mInterp = cScaledInterpolator::AllocTab(cCubicInterpolator(-0.5),3,1000);
 }
 
 
@@ -68,6 +67,14 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cPhotogrammetricProject * aPhProj,
 {
     init(aParam, 2, 3);
 
+    // Re allocate mInterp as it does not get initialized using init method
+
+    std::vector<std::string> aParamInt {"Tabul","1000","SinCApod","10","10"};
+    if(aParam.size()>=4 and aParam.at(3)!="")
+        aParamInt = Str2VStr(aParam.at(3));
+
+    mInterp  = cDiffInterpolator1D::AllocFromNames(aParamInt);
+
    if (aParam.size() >=5)
    {
        mPertRad = (aParam.at(4) != "");
@@ -79,6 +86,8 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cPhotogrammetricProject * aPhProj,
                                   eTyUEr::eUnClassedError,"Only 1 point per patch in "+ToStr(eImatchCrit::eDifRad)+" mode");
    }
 
+
+   // Additional params
    if (aParam.size() >=7)
    {
        mDensity = cStrIO<size_t>::FromStr(aParam.at(6));
@@ -104,13 +113,13 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cPhotogrammetricProject * aPhProj,
    }
 
    // parse the camera and create images
-   for (const auto aPtrCam : aBA.VSIm())
+   for (const auto aPtrCam : aBA.VSCPC())
    {
        // is it a central perspective camera ?
        if (aPtrCam->IsSensorCamPC())
        {
            mVCam.push_back(aPtrCam->GetSensorCamPC());  // yes get it
-           mVIms.push_back(cIm2D<tU_INT1>::FromFile(aPtrCam->NameImage()));  // read the image
+           mVIms.push_back(ReadIm2DGen(aPtrCam->NameImage()));  // read the image
 
            if (mNbScale>1)
            {
@@ -146,19 +155,22 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cPhotogrammetricProject * aPhProj,
                                                                   aCalib));
                     }
             }
-           else
-           {
-               MMVII_UnclasseUsEr("cBA_LidarPhotogra : sensor is not central perspective");
-           }
+       }
+
+       else
+       {
+           MMVII_UnclasseUsEr("cBA_LidarPhotogra : sensor is not central perspective");
        }
    }
 
     // read images before 1st iteration // TODO: read only images that may correspond to scans?
-    for (const auto aPtrCam : aBA.VSCPC())
+
+   if (mPertRad)
     {
-        auto & aImage = aPtrCam->LoadImage();
-        if (mPertRad)
+        for (const auto aPtrCam : aBA.VSCPC())
         {
+            auto & aImage = aPtrCam->LoadImage();
+
             for (auto  aPix : aImage)
             {
                 tREAL8 aMul =   (3+ sin(aPix.x()/70.0)) / 4.0;
@@ -200,11 +212,6 @@ cBA_LidarPhotograTri::cBA_LidarPhotograTri(cPhotogrammetricProject * aPhProj,
     // Creation of the patches, to comment ...
     if (mModeSim!=eImatchCrit::eDifRad)
     {
-        //cBox2dr aBox = BoxOfTri(mTri);
-        //cBox2dr aBox = mTri.Box2D();
-        // estimate the distance for computing patching assuming a uniform  distribution
-        // Pi d^ 2  /NbByP = Surf / NbTot
-        //tREAL8 aDistMoy = std::sqrt(mNbPointByPatch *aBox.NbElem()/ (mTri.NbPts()*M_PI));
         tREAL8 aDistMoy = std::sqrt(mNbPointByPatch / (mDensity*M_PI));
         tREAL8 aDistReject =  aDistMoy *1.2;
 
@@ -249,6 +256,7 @@ cBA_LidarPhotograTri::cBA_LidarPhotograTri(cPhotogrammetricProject * aPhProj,
             std::vector<cPt3dr> aVP;
             for (const auto anInd : aPatchIndex)
                 aVP.push_back(ToR(mTri->KthPts(anInd)));
+
             std::vector<cData1ImLidPhgr> aVDenseData;
             EvalGeomConsistency(aVP,aVDenseData,mInitRes,true,mNbScale-1);
             if (EvalCorrel(aVDenseData)>mThresholdAcceptCorrel)
@@ -263,7 +271,7 @@ cBA_LidarPhotograTri::cBA_LidarPhotograTri(cPhotogrammetricProject * aPhProj,
         }
         mLPatchesI = aSetOfPatches;
 
-        StdOut()<<"Selected points to correl "<<mLPatchesI.size()<<std::endl;
+        //StdOut()<<"Selected points to correl "<<mLPatchesI.size()<<"  "<<aSetOfPatches.size()<<std::endl;
 
         mBoxSelected=aBoxObj.CurBox();
 
@@ -308,10 +316,13 @@ cBA_LidarPhotograRaster::cBA_LidarPhotograRaster(cPhotogrammetricProject * aPhPr
 
 cBA_LidarPhotogra::~cBA_LidarPhotogra() 
 {
+    delete mInterp;
     for (auto & aVC : mVSCams)
     {
         DeleteAllAndClear(aVC);
     }
+
+    DeleteAllAndClear(mVIms);
 }
 
 cBA_LidarPhotograTri::~cBA_LidarPhotograTri()
@@ -961,7 +972,7 @@ void cBA_LidarPhotogra::EvalGeomConsistency(const std::vector<cPt3dr>& aVPatchGr
         for (size_t aKIm=0 ; aKIm<mVCam.size() ; aKIm++)
         {
             cSensorCamPC * aCam =  (aNbs==0) ? mVCam[aKIm] :  mVSCams[aKIm][aNbs-1]; // extract cam
-            cDataIm2D<tU_INT1> & aDIm = mVIms[aKIm].DIm();
+            /*cDataIm2D<tU_INT1>*/ auto & aDIm = mVIms[aKIm];
 
             if (aCam->IsVisible(aVPatchGr.at(0))) // first test : is central point visible
             {
@@ -984,9 +995,9 @@ void cBA_LidarPhotogra::EvalGeomConsistency(const std::vector<cPt3dr>& aVPatchGr
                                 cPt2dr aPIm = aCam->Ground2Image(aP3D); // extract the image  projection
                                 // unscale point
                                 aPIm = MulCByC(aPIm,cPt2dr(pow (2,aNbs),pow (2,aNbs)));
-                                if (aDIm.InsideInterpolator(*mInterp,aPIm,1.0))  // is it sufficiently inside
+                                if (aDIm->InsideInterpolator(*mInterp,aPIm,1.0))  // is it sufficiently inside
                                 {
-                                    auto aVGr = aDIm.GetValueAndGradInterpol(*mInterp,aPIm); // extract pair Value/Grad of image
+                                    auto aVGr = aDIm->GetValueAndGradInterpol(*mInterp,aPIm); // extract pair Value/Grad of image
                                     aDD_GridRadiom->VD_SetV(aPix,aVGr.first);
                                     aData.mVGr.push_back(aVGr); // push it at end of stack
                                 }
@@ -1047,7 +1058,8 @@ void cBA_LidarPhotogra::EvalGeomConsistency(const std::vector<cPt3dr>& aVPatchGr
        for (size_t aKIm=0 ; aKIm<mVCam.size() ; aKIm++)
        {
            cSensorCamPC * aCam =  (aNbs==0) ? mVCam[aKIm] :  mVSCams[aKIm][aNbs-1]; // extract cam
-           cDataIm2D<tU_INT1> & aDIm = mVIms[aKIm].DIm();
+           /*cDataIm2D<tU_INT1>*/ auto  & aGenDIm = mVIms[aKIm];
+            //auto & aGenDIm = aCam->LoadImage();
 
            if (aCam->IsVisible(aVPatchGr.at(0))) // first test : is central point visible
            {
@@ -1058,10 +1070,10 @@ void cBA_LidarPhotogra::EvalGeomConsistency(const std::vector<cPt3dr>& aVPatchGr
                    cPt3dr aPGround = aVPatchGr.at(aKPt);
                    if (aCam->IsVisible(aPGround))  // is the point visible in the camera
                    {
-                       cPt2dr aPIm = mVCam[aKIm]->Ground2Image(aPGround); // extract the image  projection
-                       if (aDIm.InsideInterpolator(*mInterp,aPIm,1.0))  // is it sufficiently inside
+                       cPt2dr aPIm = aCam->Ground2Image(aPGround); // extract the image  projection
+                       if (aGenDIm->InsideInterpolator(*mInterp,aPIm,1.0))  // is it sufficiently inside
                        {
-                           auto aVGr = aDIm.GetValueAndGradInterpol(*mInterp,aPIm); // extract pair Value/Grad of image
+                           auto aVGr = aGenDIm->GetValueAndGradInterpol(*mInterp,aPIm); // extract pair Value/Grad of image
                            aData.mVGr.push_back(aVGr); // push it at end of stack
                        }
                    }
@@ -1204,7 +1216,8 @@ void  cBA_LidarPhotogra::Add1Patch(tREAL8 aWeight,const std::vector<cPt3dr> & aV
                 }
             }
             std::string aPath = mPhProj->DirVisuAppli() + "iter" + ToStr(mBA.NbIter(),1) + "_" + mBA.VSCPC()[aData.mKIm]->NameImage() + "_patch.png";
-            aImDist8b.ToFile(aPath);
+            aImDist8b.
+                (aPath);
          }
      }
 #endif
@@ -1243,7 +1256,7 @@ void cBA_LidarPhotogra::Add1PatchMulScale(tREAL8 aWeight,const std::vector<cPt3d
     for (size_t aKIm=0 ; aKIm<mVCam.size() ; aKIm++)
     {
         cSensorCamPC * aCam = (aNbs==0) ? mVCam[aKIm] : mVSCams[aKIm][aNbs-1]; // extract cam
-        cDataIm2D<tU_INT1> & aDIm = mVIms[aKIm].DIm(); // extract image
+        /*cDataIm2D<tU_INT1>*/ auto & aDIm = mVIms[aKIm]; // extract image
         if (aCam->IsVisible(aVPatchGr.at(0))) // first test : is central point visible
         {
             cData1ImLidPhgr  aData; // data that will be filled
@@ -1256,9 +1269,9 @@ void cBA_LidarPhotogra::Add1PatchMulScale(tREAL8 aWeight,const std::vector<cPt3d
                     cPt2dr aPIm = MulCByC(mVCam[aKIm]->Ground2Image(aPGround),
                                           cPt2dr(pow(2,aNbs), pow(2,aNbs))); // extract the image  projection
 
-                    if (aDIm.InsideInterpolator(*mInterp,aPIm,1.0))  // is it sufficiently inside
+                    if (aDIm->InsideInterpolator(*mInterp,aPIm,1.0))  // is it sufficiently inside
                     {
-                        auto aVGr = aDIm.GetValueAndGradInterpol(*mInterp,aPIm); // extract pair Value/Grad of image
+                        auto aVGr = aDIm->GetValueAndGradInterpol(*mInterp,aPIm); // extract pair Value/Grad of image
                         aData.mVGr.push_back(aVGr); // push it at end of stack
                     }
                 }

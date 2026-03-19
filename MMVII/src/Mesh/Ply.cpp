@@ -8,17 +8,20 @@
 #include "../PoseEstim/VisPoseAndStructure.h"
 
 #include <omp.h>
-#include <pdal/PointTable.hpp>
-#include <pdal/PointView.hpp>
-#include <pdal/io/LasReader.hpp>
-#include <pdal/io/LasHeader.hpp>
-#include <pdal/Options.hpp>
 
-#include <pdal/Reader.hpp>
-#include <pdal/Writer.hpp>
-#include <pdal/Streamable.hpp>
-#include <pdal/PointView.hpp>
-#include <pdal/util/ProgramArgs.hpp>
+#if(MMVII_USE_PDAL)
+    #include <pdal/PointTable.hpp>
+    #include <pdal/PointView.hpp>
+    #include <pdal/io/LasReader.hpp>
+    #include <pdal/io/LasHeader.hpp>
+    #include <pdal/Options.hpp>
+    #include <pdal/Reader.hpp>
+    #include <pdal/Writer.hpp>
+    #include <pdal/Streamable.hpp>
+    #include <pdal/PointView.hpp>
+    #include <pdal/util/ProgramArgs.hpp>
+#endif
+
 #include "ogrsf_frmts.h"
 #include "MMVII_AimeTieP.h"
 //#include "V1VII.h"
@@ -84,7 +87,7 @@ SOFTWARE.
 
 
 
-
+#if(MMVII_USE_PDAL)
 using  namespace pdal;
 
  struct ClassificationTags
@@ -100,7 +103,7 @@ using  namespace pdal;
    const std::string DSMMarker="dsm_marker";
    const std::string DTMMarker="dtm_marker";
  };
-
+#endif
  enum class eLabelIm_MASQ : tU_INT1
  {
     eFree,     // Mode MicMac V1
@@ -211,6 +214,7 @@ template <class Type> void cTriangulation3D<Type>::PlyInit(const std::string & a
  }
 }
 
+#if (MMVII_USE_PDAL)
  template <class Type> void cTriangulation3D<Type>::LasInit(const std::string & aNameFile, bool SelectForRegistration)
  {
    //StdOut()<<"START READING LAZ "<<std::endl;
@@ -272,7 +276,7 @@ template <class Type> void cTriangulation3D<Type>::PlyInit(const std::string & a
        StdOut()<<"selecting points while reading las "<<std::endl;
 
  }
-
+#endif
 
 template <class Type> void cTriangulation3D<Type>::Bench()
 {
@@ -336,11 +340,12 @@ template <class Type>  cTriangulation3D<Type>::cTriangulation3D(const std::strin
     {
        PlyInit(aName);
     }
-
+#if(MMVII_USE_PDAL)
     else if (UCaseEqual(LastPostfix(aName),"laz"))
     {
        LasInit(aName,SelectPointsByClass);
     }
+#endif
     else
     {
        MMVII_UserError(eTyUEr::eBadPostfix,"Unknown postfix in cTriangulation3D");
@@ -675,7 +680,7 @@ template <class Type> void cTriangulation3D<Type>::SamplePts(
 template <class Type>
 bool cTriangulation3D<Type>::IsGoodPatchNadir(const std::vector<cPt3dr>& aVPts,
                                          const std::vector<cSensorCamPC*> & aCameras,
-                                         const std::vector<cIm2D<tU_INT1>> & mVIms,
+                                         const std::vector<cDataGenUnTypedIm<2>*> & mVIms,
                                          tREAL8 AC_RHO,
                                          tREAL8 VAR_RHO,
                                          int    aSzMin,
@@ -712,7 +717,6 @@ bool cTriangulation3D<Type>::IsGoodPatchNadir(const std::vector<cPt3dr>& aVPts,
     for (size_t aKIm=0 ; aKIm<aCameras.size() ; aKIm++)
     {
         const cSensorCamPC * aCam = aCameras[aKIm]; // extract cam
-        //const cDataIm2D<tU_INT1> & aDIm = mVIms[aKIm].DIm(); // extract image
 
         std::vector<tREAL8> aPatchDepths;
 
@@ -766,7 +770,7 @@ bool cTriangulation3D<Type>::IsGoodPatchNadir(const std::vector<cPt3dr>& aVPts,
     {
          StdOut()<<"compute autocorelle "<<std::endl;
         const cSensorCamPC * aCam = aCameras[aMinAngleInd]; // extract cam
-        const cDataIm2D<tU_INT1> & aDIm = mVIms[aMinAngleInd].DIm(); // extract image
+        const auto & aDIm = mVIms[aMinAngleInd]; // extract image
 
 
         if (aCam->IsVisible(aVPts.at(0)))
@@ -775,9 +779,9 @@ bool cTriangulation3D<Type>::IsGoodPatchNadir(const std::vector<cPt3dr>& aVPts,
             cPt2dr aPIm= MulCByC(aCam->Ground2Image(aVPts[0]),
                                   cPt2dr(pow (2,aScale),pow (2,aScale)));
 
-            if (WindInside4BL(aDIm,ToI(aPIm),Pt_round_up(cPt2dr(AC_RHO+aSzW+1,AC_RHO+aSzW+1))))
+            if (WindInside4BL(*aDIm,ToI(aPIm),Pt_round_up(cPt2dr(AC_RHO+aSzW+1,AC_RHO+aSzW+1))))
             {
-                cCutAutoCorrelDir<tU_INT1> aCACD(aDIm,cPt2di(0,0),AC_RHO,2,aSzW);
+                cCutAutoCorrelDir<tU_INT1> aCACD(*aDIm,cPt2di(0,0),AC_RHO,2,aSzW);
 
                 //StdOut()<<getchar()<<std::endl;
                 /*isNotAutoCorr =  !(aCACD.AutoCorrel((ToI(aPIm)),
@@ -912,7 +916,7 @@ template <class Type>
            tREAL8 aDistReject,
            int    aSzMin,
            const std::vector<cSensorCamPC * > & aCameras,
-           const std::vector<cIm2D<tU_INT1>> & mVIms,
+           const std::vector<cDataGenUnTypedIm<2>*> & mVIms,
            tREAL8 aThreshold,
            const std::vector<std::vector<cSensorCamPC * >> & mVSCams,
            int  aScale

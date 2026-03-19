@@ -15,7 +15,7 @@ template <class Type> class  cAutoCorrelDir
 {
 public :
 
-    cAutoCorrelDir(cDataIm2D<Type> & anIm,const cPt2di & aP0,double aRho,int aSzW) :
+    cAutoCorrelDir(cDataGenUnTypedIm<2> & anIm,const cPt2di & aP0,double aRho,int aSzW) :
         mDIm   (&anIm),
         mP0    (aP0),
         mRho   (aRho),
@@ -25,15 +25,15 @@ public :
         //mDIm->DupIn(anIm);
     }
 
-    cAutoCorrelDir(const cDataIm2D<Type> & anIm,const cPt2di & aP0,double aRho,int aSzW) :
-        mDIm   (&(const_cast<cDataIm2D<Type>&>(anIm))),
+    cAutoCorrelDir(const cDataGenUnTypedIm<2> & anIm,const cPt2di & aP0,double aRho,int aSzW) :
+        mDIm   (&(const_cast<cDataGenUnTypedIm<2>&>(anIm))),
         mP0    (aP0),
         mRho   (aRho),
         mSzW   (aSzW)
     {
     }
 
-    cAutoCorrelDir(cDataIm2D<Type> & anIm, const cPt2di & aP0, double aRho, std::vector<cPt2dr> aIndW):
+    cAutoCorrelDir(cDataGenUnTypedIm<2> & anIm, const cPt2di & aP0, double aRho, std::vector<cPt2dr> aIndW):
         mDIm (&anIm),
         mP0 (aP0),
         mRho(aRho),
@@ -41,8 +41,8 @@ public :
     {
     }
 
-    cAutoCorrelDir(const cDataIm2D<Type> & anIm, const cPt2di & aP0, double aRho, std::vector<cPt2dr> aIndW):
-        mDIm (&(const_cast<cDataIm2D<Type>&>(anIm))),
+    cAutoCorrelDir(const cDataGenUnTypedIm<2> & anIm, const cPt2di & aP0, double aRho, std::vector<cPt2dr> aIndW):
+        mDIm (&(const_cast<cDataGenUnTypedIm<2>&>(anIm))),
         mP0 (aP0),
         mRho(aRho),
         mIndW (aIndW)
@@ -59,7 +59,7 @@ public :
         return aRes2;
     }*/
 
-    void ResetIm(cDataIm2D<Type> & aTIm) {mDIm->DupIn(aTIm);}
+    //void ResetIm(cDataGenUnTypedIm<2> & aTIm) {mDIm->DupIn(aTIm);}
 
 
 protected :
@@ -90,7 +90,7 @@ protected :
             for (int aDy=-aSzW ; aDy<=aSzW ; aDy++)
             {
                 cPt2di aP1 = aP0 + cPt2di(aDx,aDy);
-                aMat.Add(mDIm->GetV(aP1),
+                aMat.Add(mDIm->VI_GetV(aP1),
                          mDIm->GetVBL(ToR(aP1)+anOffset));
             }
         }
@@ -116,7 +116,7 @@ protected :
             for (int aDy=-aSzW ; aDy<=aSzW ; aDy++)
             {
                 cPt2di aP1 = aP0 + cPt2di(aDx,aDy);
-                aMat.Add(mDIm->GetV(aP1),mDIm->GetV(aP1+anOffset));
+                aMat.Add(mDIm->VI_GetV(aP1),mDIm->VI_GetV(aP1+anOffset));
             }
         }
         return aMat.Correl();
@@ -124,15 +124,15 @@ protected :
 
     double   ICensusOneOffset(const cPt2di & aP0,const cPt2di & anOffset,int aSzW)
     {
-        double aVC1 = mDIm->GetV(aP0);
-        double aVC2 = mDIm->GetV(aP0+anOffset);
+        double aVC1 = mDIm->VI_GetV(aP0);
+        double aVC2 = mDIm->VI_GetV(aP0+anOffset);
 
         double aSomDif = 0.0;
         double aNb     = 0.0;
         for (const auto & aDP : cRect2::BoxWindow(aSzW))
         {
-            double aV1 = mDIm->GetV(aP0+aDP);
-            double aV2 = mDIm->GetV(aP0+aDP+anOffset);
+            double aV1 = mDIm->VI_GetV(aP0+aDP);
+            double aV2 = mDIm->VI_GetV(aP0+aDP+anOffset);
             double aR1 = NormalisedRatioPos(aV1,aVC1);
             double aR2 = NormalisedRatioPos(aV2,aVC2);
 
@@ -160,7 +160,7 @@ protected :
     }
 
 
-    cDataIm2D<Type>  *mDIm;
+    cDataGenUnTypedIm<2>  *mDIm;
     cPt2di   mP0;
     double  mRho;
     int     mSzW;
@@ -174,7 +174,7 @@ public :
     int mNumOut;
     double  mCorOut;
 
-    cCutAutoCorrelDir(cDataIm2D<Type> & anIm,const cPt2di & aP0,double aRho,int aBuf,int aSzW ) :
+    cCutAutoCorrelDir(cDataGenUnTypedIm<2> & anIm,const cPt2di & aP0,double aRho,int aBuf,int aSzW ) :
         cAutoCorrelDir<Type> (anIm,aP0,aRho,aSzW),
         //mVPt(SortedAngleFlux2StdCont(mVPt,circle(Pt2dr(0,0),aRho))),
         mVPt (SortedVectOfRadius(0.0,aRho,false)),
@@ -184,7 +184,7 @@ public :
             //mNbPts = mVPt.size();
         }
 
-        cCutAutoCorrelDir(const cDataIm2D<Type> & anIm,const cPt2di & aP0,double aRho,int aBuf, int aSzW ) :
+        cCutAutoCorrelDir(const cDataGenUnTypedIm<2> & anIm,const cPt2di & aP0,double aRho,int aBuf, int aSzW ) :
             cAutoCorrelDir<Type> (anIm,aP0,aRho,aSzW),
             mVPt (SortedVectOfRadius(0.0,aRho,false)),
             mNbPts                 (mVPt.size())
@@ -193,14 +193,14 @@ public :
             //mNbPts = mVPt.size();
         }
 
-        cCutAutoCorrelDir(cDataIm2D<Type> & anIm,const cPt2di & aP0,double aRho,int aBuf,std::vector<cPt2dr> aIndW  ) :
+        cCutAutoCorrelDir(cDataGenUnTypedIm<2> & anIm,const cPt2di & aP0,double aRho,int aBuf,std::vector<cPt2dr> aIndW  ) :
             cAutoCorrelDir<Type> (anIm,aP0,aRho,aIndW),
             mVPt (SortedVectOfRadius(0.0,aRho,false)),
             mNbPts                 (mVPt.size())
         {
         }
 
-        cCutAutoCorrelDir(const cDataIm2D<Type> & anIm,const cPt2di & aP0,double aRho,int aBuf, std::vector<cPt2dr> aIndW ) :
+        cCutAutoCorrelDir(const cDataGenUnTypedIm<2> & anIm,const cPt2di & aP0,double aRho,int aBuf, std::vector<cPt2dr> aIndW ) :
             cAutoCorrelDir<Type> (anIm,aP0,aRho,aIndW),
             mVPt (SortedVectOfRadius(0.0,aRho,false)),
             mNbPts                 (mVPt.size())
@@ -208,10 +208,10 @@ public :
         }
 
 
-    void ResetIm(cDataIm2D<Type> & anIm)
+    /*void ResetIm(cDataGenUnTypedIm<2> & anIm)
         {
             cAutoCorrelDir<Type>::ResetIm(anIm);
-        }
+        }*/
 
 
         void GetVPts()

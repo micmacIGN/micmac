@@ -1,3 +1,4 @@
+#if(MMVII_USE_PDAL)
 #include <cMMVII_Appli.h>
 #include "MMVII_Geom3D.h"
 #include "MMVII_Mappings.h"
@@ -241,3 +242,4 @@ INSTANTIATE_TRI3DLAS(tREAL8)
 INSTANTIATE_TRI3DLAS(tREAL16)
 
 };
+#endif

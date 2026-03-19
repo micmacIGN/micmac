@@ -439,11 +439,9 @@ void cOneLevel::CreateNuageLastFile(const std::string& Dir, const std::string& I
     MakeFileXML(aNMVII,Dir+"MMLastNuage.xml");
 }
 #else
+void cOneLevel::CreateNuageLastFile(const std::string& Dir, const std::string& ImName)
 {
-    void cOneLevel::CreateNuageLastFile(const std::string& Dir, const std::string& ImName)
-    {
-        MMVII_INTERNAL_ERROR("This functionality requires compiling MMV2 with MMV1");
-    }
+    MMVII_INTERNAL_ERROR("This functionality requires compiling MMV2 with MMV1");
 }
 #endif
 
@@ -885,7 +883,7 @@ cParamCallSys cAppli::ComMatch(cParam1Match & aParam)
                        "-l", DirTmpOfCmd()+aParam.mClipNameIm1,
                        "-r", DirTmpOfCmd()+aParam.mClipNameIm2,
                        "-o", DirTmpOfCmd() +aParam.mClipNamePx,
-                       "-gpu", ToString(mSpecGpu)
+                       "-gpu", ToStr(mSpecGpu)
                 );
             break;
         }

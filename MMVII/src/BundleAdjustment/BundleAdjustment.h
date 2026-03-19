@@ -426,7 +426,7 @@ class cBA_LidarPhotogra: public cBA_LidarBase
        eImatchCrit                    mModeSim;        ///< type of similarity used
        cDiffInterpolator1D *          mInterp;         ///< Interpolator, used to extract  Value & Grad of images
        std::vector<cSensorCamPC *>    mVCam;           ///< Vector of central perspective camera
-       std::vector<cIm2D<tU_INT1>>    mVIms;           ///< Vector of images associated to each cam
+       std::vector<cDataGenUnTypedIm<2>*>    mVIms;           ///< Vector of images associated to each cam
        std::vector<std::vector<cSensorCamPC * >>   mVSCams;   /// < Cameras to handle multi scale cameras
        cWeightAv<tREAL8,tREAL8>       mLastResidual;   ///< Accumulate the radiometric residual
        std::list<std::vector<int> >   mLPatchesI;       ///< set of 3D patches

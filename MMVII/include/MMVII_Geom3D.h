@@ -476,7 +476,7 @@ template <class Type> class cTriangulation3D : public cTriangulation<Type,3>
            void SamplePts(const bool & targetted,const tREAL8 & aStep);
            bool IsGoodPatchNadir(const std::vector<cPt3dr>& aVPts,
                                  const std::vector<cSensorCamPC*> & aCameras,
-                                 const std::vector<cIm2D<tU_INT1>> & mVIms,
+                                 const std::vector<cDataGenUnTypedIm<2>*> & mVIms,
                                  tREAL8 AC_RHO,
                                  tREAL8 VAR_RHO,
                                  int    aSzMin,
@@ -499,7 +499,7 @@ template <class Type> class cTriangulation3D : public cTriangulation<Type,3>
            void MakePatches(std::list<std::vector<int> > & ,tREAL8 aDistNeigh,tREAL8 aDistReject,int aSzMin) const;
            void MakePatchesTargetted(std::list<std::vector<int> > & , tREAL8 aDistNeigh, tREAL8 aDistReject, int aSzMin,
                                      const std::vector<cSensorCamPC *> & ,
-                                     const std::vector<cIm2D<tU_INT1>> & ,
+                                     const std::vector<cDataGenUnTypedIm<2>*> & ,
                                      tREAL8 aThreshold,
                                      const std::vector<std::vector<cSensorCamPC *>> & mVSCams = {},
                                      int aScale =0
@@ -518,6 +518,7 @@ template <class Type> class cTriangulation3D : public cTriangulation<Type,3>
 
 };
 
+#if(MMVII_USE_PDAL)
 template <class Type> class cTriangulation3DLas : public cTriangulation<Type,3>
 {
 public:
@@ -554,7 +555,7 @@ private :
                                                     cPtxd<Type,2>(1,1));
     std::vector<int> mVSelectedIds;
 };
-
+#endif
 
 
 class cPlane3D

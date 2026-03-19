@@ -1,3 +1,4 @@
+#if(MMVII_USE_PDAL)
 #include "cMMVII_Appli.h"
 #include "MMVII_PCSens.h"
 #include "MMVII_Geom2D.h"
@@ -22,53 +23,6 @@ namespace cNs_Sample3DpointsFromCloudIntoImage
 
 class cAppliSample3DpointsFromCloudIntoImage;
 
-/*
-class cWorldCoordinates
-{
-
-public:
-  cWorldCoordinates(std::string tfw_file)
-  {
-    ifstream input_tfw(tfw_file);
-    string aline;
-    std::vector< string > acontent;
-    while(std::getline(input_tfw,aline))
-      {
-        acontent.push_back(aline);
-      }
-    input_tfw.close();
-
-    gsd_x=stof(acontent.at(0));
-    gsd_y=stof(acontent.at(3));
-    x_ul=stof(acontent.at(4));
-    y_ul=stof(acontent.at(5));
-
-    acontent.clear();
-  };
-
-  void to_world_coordinates(const cPt2dr & aPx, cPt2dr & aWPx);
-  void to_pixel_coordinates(cPt2dr & aWPx, cPt2dr & aPx);
-
-  tREAL4 gsd_x=0;
-  tREAL4 gsd_y=0;
-  tREAL4 x_ul=0;
-  tREAL4 y_ul=0;
-};
-
-
-void cWorldCoordinates::to_world_coordinates(const cPt2dr & aPx, cPt2dr & aWPx)
-{
-aWPx.x()=x_ul+aPx.x()*gsd_x;
-aWPx.y()=y_ul+aPx.y()*gsd_y;
-}
-
-void cWorldCoordinates::to_pixel_coordinates(cPt2dr & aWPx, cPt2dr & aPx)
-{
-aPx.x()=(aWPx.x()-x_ul)/gsd_x;
-aPx.y()=(aWPx.y()-y_ul)/gsd_y;
-}
-<<<<<<< HEAD
-*/
 
 /* =================================================================== */
 /*                                                                     */
@@ -257,5 +211,5 @@ cSpecMMVII_Appli  TheSpecSample3DpointsFromCloudIntoImage
 );
 
 };
-
+#endif
 
