@@ -513,6 +513,11 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
         RansacTransFunc(theSol, aVTrueBitCenters);
         if (theSol == cPt2dr{0,0}){isTarget=false; return;}
 
+        if (mShow)
+        {
+            StdOut() << "Ransac sol on bits: " << theSol <<"\n";
+        }
+
         cIm2D<tREAL8> aWStdIm(mDCurrPred->Sz());
         cDataIm2D<tREAL8>* aDWStdIm = &aWStdIm.DIm();
         cRect2 aRectInt = mDCurrPred->Dilate(-1);
@@ -545,38 +550,43 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
     {
         //1-create LS struct
         cLeasSqtAA<tREAL8> aLSSystem(10);
-        cDiffInterpolator1D * aInterpol = cDiffInterpolator1D::AllocFromNames({"Linear"});
+        std::unique_ptr<cDiffInterpolator1D> aInterpol;
+        aInterpol.reset(cDiffInterpolator1D::AllocFromNames({"Linear"}));
         //2-iterate on "good" pixels and add corresponding observations to the struct
         int ix=0;
         for (const auto& aPix : *mDCurrPred)
         {
             if (mDTgtMasq->GetV(aPix)!=mMasqVal && mDWStdDeltaIm->GetV(aPix)<=mCurrWL1Med)
             {
-                ++ix;
-                (void) ix;
-                auto [aValue,aGrad] = mDCurrPred->GetValueAndGradInterpol(*aInterpol,ToR(aPix));
-                tREAL8 aI=(tREAL8)mDCurrPred->GetV(aPix);
-                tREAL8 ai=(tREAL8)mDCurrTrue->GetV(aPix);
-                auto& aPartix=aGrad.x();//interpol
-                auto& aPartiy=aGrad.y();//interpol
-                cDenseVect<tREAL8> aVEqObs({aI*aPix.x(),
-                                            aI*aPix.y(),
-                                            aI,
-                                            aI,
-                                            -aPartix*aPix.x(),
-                                            -aPartix*aPix.y(),
-                                            -aPartix,
-                                            -aPartiy*aPix.x(),
-                                            -aPartiy*aPix.y(),
-                                            -aPartiy});
-                aLSSystem.PublicAddObservation(1, aVEqObs, ai);
+                if (mDCurrPred->InsideInterpolator(*aInterpol, ToR(aPix)))
+                {
+                    ++ix;
+                    (void) ix;
+                    auto [aValue,aGrad] = mDCurrPred->GetValueAndGradInterpol(*aInterpol,ToR(aPix));
+                    tREAL8 aI=(tREAL8)mDCurrPred->GetV(aPix);
+                    tREAL8 ai=(tREAL8)mDCurrTrue->GetV(aPix);
+                    auto& aPartix=aGrad.x();//interpol
+                    auto& aPartiy=aGrad.y();//interpol
+                    cDenseVect<tREAL8> aVEqObs({aI*aPix.x(),
+                                                aI*aPix.y(),
+                                                aI,
+                                                1,
+                                                -aPartix*aPix.x(),
+                                                -aPartix*aPix.y(),
+                                                -aPartix,
+                                                -aPartiy*aPix.x(),
+                                                -aPartiy*aPix.y(),
+                                                -aPartiy});
+                    aLSSystem.PublicAddObservation(1, aVEqObs, ai);
+                }
             }
         }
         //3-solve the system
-        StdOut() << "BEGIN LSQUARE SOLVING" << std::endl;
-        auto aVObs = aLSSystem.V_tAA();
         auto aSol = aLSSystem.PublicSolve();
-        StdOut() << "LS Solution : " << aSol;
+        if (mShow)
+        {
+            StdOut() << "LS Solution : " << aSol << std::endl;
+        }
         isOk = true;
     }
 
