@@ -590,7 +590,7 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
         isOk = true;
     }
 
-    /* From here ~ utils methods which called above */
+    /* From here ~ utils methods which are called above */
 
     cStdStatRes cAppli_CheckBoardTargetRefine::wL1Score(cPt2dr& aSol, cDataIm2D<tREAL8>* aDWStdIm)
     {
@@ -605,7 +605,7 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
         {
             if(mDTgtMasq->GetV(aPix) != mMasqVal)
             {
-                tREAL8 aDelta = abs(mDCurrPred->GetV(aPix) - (mDCurrTrue->GetV(aPix)*aSol[0] + aSol[1]));
+                tREAL8 aDelta = abs(mDCurrTrue->GetV(aPix) - (mDCurrPred->GetV(aPix)*aSol[0] + aSol[1]));
                 tREAL8 aWVal = aDelta * (aSig0/(aDWStdIm->GetV(aPix)+aSig0));
                 mDWStdDeltaIm->SetVTrunc(aPix,aDelta);
                 aStat.Add(aWVal);
@@ -714,19 +714,19 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
             tPt2di p1 = aVBitCenters[bit1];
             tPt2di p2 = aVBitCenters[bit2];
 
-            tREAL8 G1 = mDCurrTrue->GetV(p1), G2 = mDCurrTrue->GetV(p2);
-            tREAL8 G3 = mDCurrPred->GetV(p1), G4 = mDCurrPred->GetV(p2);
+            tREAL8 G1 = mDCurrPred->GetV(p1), G2 = mDCurrPred->GetV(p2);
+            tREAL8 G3 = mDCurrTrue->GetV(p1), G4 = mDCurrTrue->GetV(p2);
 
             if(G1==G2) {continue;}
 
             a1 = (G3-G4)/(G1-G2);
             a2 = G3-a1*G1;
 
-            for (const auto& aPix : * mDCurrPred)
+            for (const auto& aPix : * mDCurrTrue)
             {
                 if (mDTgtMasq->GetV(aPix)==mMasqVal) continue;
-                tREAL8 val = a1*mDCurrTrue->GetV(aPix) + a2;
-                tREAL8 delta = val - mDCurrPred->GetV(aPix);
+                tREAL8 val = a1*mDCurrPred->GetV(aPix) + a2;
+                tREAL8 delta = val - mDCurrTrue->GetV(aPix);
                 aL1Score += abs(delta);
             }
 
