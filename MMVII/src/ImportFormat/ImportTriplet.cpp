@@ -283,8 +283,9 @@ int cAppli_ImportTriplet::Exe()
     }
 
     /// save triplets' graph to mmvii format
-    mPhProj.SaveTriplets(aSetOfTri, !mFileBin);
+    //  MPD -> no compiles ..  mPhProj.SaveTriplets(aSetOfTri, !mFileBin);
 
+    MMVII_INTERNAL_ERROR(" mPhProj.SaveTriplets supress, dont compiles");
 
 
     return EXIT_SUCCESS;
