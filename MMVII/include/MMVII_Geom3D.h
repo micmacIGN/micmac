@@ -725,7 +725,7 @@ class cGenGauss3D
         void GetDistribGaus(std::vector<cPt3dr> &,int,int,int);
 
         //5-pts distribution
-        void GetDistrib5Pts(std::vector<cPt3dr> &,double);
+        void GetDistrib5Pts(std::vector<cPt3dr> &,double aSca=1.0);
 
     private :
 

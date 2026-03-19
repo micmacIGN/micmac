@@ -715,7 +715,7 @@ class cAppli_OriRelPairOfIm : public cMMVII_Appli
         cPt2dr  RandomizePt(const cPt2dr&,const cSensorCamPC&) const;
 
         /// Generate virtual 5 tie-points per motion
-        void Generate5Pts(const cCdtFinalPoseRel2Im&);
+        void Generate5Pts(const tPoseR&);
 
         int                       mModeCompute;
         cPhotogrammetricProject   mPhProj;
@@ -729,7 +729,6 @@ class cAppli_OriRelPairOfIm : public cMMVII_Appli
         cSetHomogCpleIm           mCpleHSmall;
         int                       mNbSmall;
         bool                      mDo5Pts;
-        cSetHomogCpleIm           mCpleH5Pts;
 
 
 
@@ -816,6 +815,8 @@ cCollecSpecArg2007 & cAppli_OriRelPairOfIm::ArgOpt(cCollecSpecArg2007 & anArgOpt
             <<  mPhProj.DPTieP().ArgDirInOpt()
             <<  mPhProj.DPGndPt2D().ArgDirInOpt()
             <<  mPhProj.DPMulTieP().ArgDirInOpt()
+
+            <<  mPhProj.DPTieP().ArgDirOutOpt()
 
             <<  AOpt2007(mNbMinHom,"NbMinHom","Number minimal of homologous point required",{eTA2007::HDV})
             <<  AOpt2007(mDensitySol,"CompForce","How much computation do we pay?",{eTA2007::HDV})
@@ -1033,7 +1034,7 @@ cAppli_OriRelPairOfIm::tRes1Pair
      cCdtFinalPoseRel2Im aCdt = mEstimatePose->MakeDecision(mShow);
 
      if (mDo5Pts)
-         Generate5Pts(aCdt);
+         Generate5Pts(aCdt.mVCdt.at(0).mPose);
 
    /*  if (mUseOri4GT && mShow)
          mEstimatePose->ShowSol(mGTPose,"GroundTruh");*/
@@ -1045,52 +1046,86 @@ cAppli_OriRelPairOfIm::tRes1Pair
      return tRes1Pair(EXIT_SUCCESS,aCdt);
 }
 
-void cAppli_OriRelPairOfIm::Generate5Pts(const cCdtFinalPoseRel2Im& aFinalPose)
+void cAppli_OriRelPairOfIm::Generate5Pts(const tPoseR& aPoseR)
 {
-    // MPDER : quick & dirty for compile
-#if (0)
-    StdOut() << "Generate 5 virtual points per pair" << std::endl;
+//#if (0)
+
+    // structure containing the virtual points
+    cSetHomogCpleIm aCpleH5Pts;
 
     // construct an elliposoid over the 3D points
     cEllipse3D aEllipse;
+
+    // left image pose
+    tPoseR aPoseL = tPoseR::Identity();
 
     int aNbHPts = mEstimatePose->SetFullCpleDir().VDir1().size();
     for (int aK=0; aK<aNbHPts; aK++)
     {
         // intersect in 3D
-        tSeg3dr aSeg1(cPt3dr(0.0,0.0,0.0),mEstimatePose->SetFullCpleDir().VDir1()[aK]);
-        tSeg3dr aSeg2( aFinalPose.mPose.Tr(),aFinalPose.mPose.Value(mEstimatePose->SetFullCpleDir().VDir2()[aK]));
+        tSeg3dr aSeg1( aPoseL.Tr(),aPoseL.Value(mEstimatePose->SetFullCpleDir().VDir1()[aK]));
+        tSeg3dr aSeg2( aPoseR.Tr(),aPoseR.Value(mEstimatePose->SetFullCpleDir().VDir2()[aK]));
         cPt3dr aCoeffI;
 
         cPt3dr aP = BundleInters(aCoeffI,aSeg1,aSeg2);
+
+        // add 3D point to the ellipsoid
         aEllipse.AddData(aP,1.0);
 
     }
     aEllipse.Normalise();
 
     // generate 5 virtual points
+    double aScale = 1.0;
     std::vector<cPt3dr> aV5pts;
+    int aNbMaxTry = 3;
+
     cGenGauss3D aG3D(aEllipse);
     aG3D.GetDistrib5Pts(aV5pts,1.0);
 
-    // back project to images
+    // find the optimal scale to fit all virtual tie points in image domain
+    for (int aTry=0; aTry<aNbMaxTry; aTry++)
+    {
+        aV5pts.clear();
+        aG3D.GetDistrib5Pts(aV5pts, aScale);
+
+        bool aAllVisible = true;
+        for (size_t aK=0; aK<aV5pts.size(); aK++)
+        {
+            cPt3dr aPCamL = aPoseL.Inverse(aV5pts.at(aK));
+            cPt3dr aPCamR = aPoseR.Inverse(aV5pts.at(aK));
+            if (mCalib1->DegreeVisibility(aPCamL) > 0 &&
+                mCalib2->DegreeVisibility(aPCamR) > 0)
+                continue;
+            aAllVisible = false;
+            break;
+        }
+        if (aAllVisible) break;
+        aScale *= 0.9;
+    }
+
+    // back project to images (all points are now visible)
     cHomogCpleIm aVHCple5Pts;
-    tPoseR aPoseId = tPoseR::Identity();
     for (size_t aK=0; aK<aV5pts.size(); aK++)
     {
+        cPt3dr aPCamL = aPoseL.Inverse(aV5pts.at(aK));
+        cPt3dr aPCamR = aPoseR.Inverse(aV5pts.at(aK));
 
-        if (mCalib1->DegreeVisibility(aV5pts.at(aK)) &&
-            mCalib2->DegreeVisibility(aV5pts.at(aK)))
+        if (mCalib1->DegreeVisibility(aPCamL) > 0 &&
+            mCalib2->DegreeVisibility(aPCamR) > 0)
         {
-            aVHCple5Pts.mP1 = mCalib1->Value( aPoseId.Inverse(aV5pts.at(aK)));
-            aVHCple5Pts.mP2 = mCalib2->Value( aFinalPose.mPose.Inverse(aV5pts.at(aK)) );
+            aVHCple5Pts.mP1 = mCalib1->Value(aPCamL);
+            aVHCple5Pts.mP2 = mCalib2->Value(aPCamR);
+            aCpleH5Pts.Add(aVHCple5Pts);
         }
-        else
-            StdOut() << "------------------ not visible----" << std::endl;
     }
-    mCpleH5Pts.Add(aVHCple5Pts);
 
-#endif
+    std::string aDirPath = mPhProj.DPTieP().FullDirOut() + mIm1 + "/";
+    CreateDirectories(aDirPath,true);
+    aCpleH5Pts.ToFile( aDirPath + mIm2 + ".csv");
+
+
+//#endif
 }
 
 /* ====================================================== */

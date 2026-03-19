@@ -8,7 +8,7 @@
 #include "MMVII_Clino.h"
 #include "cExternalSensor.h"
 #include "MMVII_Topo.h"
-#include "MMVII_PoseTriplet.h"
+#include "MMVII_PoseRel.h"
 #include "MMVII_InstrumentalBlock.h"
 
 /**
@@ -1455,23 +1455,21 @@ std::vector<std::string> cPhotogrammetricProject::ReadTopoMes() const
 
 //  see cMetaDataImages.cpp
 
-static const std::string PrefixTripletSet = "TripletSet_";
-
-void cPhotogrammetricProject::SaveTriplets(const cTripletSet &aSet,bool  useXmlraterThanDmp) const
+std::vector<cDataSolOriTriplet> cPhotogrammetricProject::ReadAllTriplets(const std::vector<std::string>& aVImages)
+    const
 {
-    std::string anExt = useXmlraterThanDmp ? PostF_XmlFiles  : PostF_DumpFiles;
-    std::string aName =  mDPOriTriplets.FullDirOut() + PrefixTripletSet + aSet.Name() + "." + anExt;
-    StdOut() << "aName: " << aName << std::endl;
-    aSet.ToFile(aName);
-}
+    std::vector<cDataSolOriTriplet> aRes;
+    for (const auto& aNameIm : aVImages)
+    {
+        std::string aFileName = OriRel_OrientAllTripletsOf1Image(aNameIm,true);
+        if (!ExistFile(aFileName))
+            continue;
 
-cTripletSet * cPhotogrammetricProject::ReadTriplets() const
-{
-    std::vector<std::string> aVNames = GetFilesFromDir(mDPOriTriplets.FullDirIn(),AllocRegex(PrefixTripletSet+".*"));
-
-    int aK = (aVNames.size()>1) ? 1 : 0;
-    return cTripletSet::FromFile(mDPOriTriplets.FullDirIn()+aVNames[aK]);
-
+        std::vector<cDataSolOriTriplet> aVData;
+        ReadFromFile(aVData,aFileName);
+        aRes.insert(aRes.end(),aVData.begin(),aVData.end());
+    }
+    return aRes;
 }
 
         // ==============  OriRel =========================

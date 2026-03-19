@@ -97,19 +97,10 @@ void FilterHomOnPropResidualAng
 /*                                              */
 /* ******************************************** */
 
-class cDataSolOriTriplet
-{
-   public :
-       cDataSolOriTriplet();
 
-       std::vector<std::string> mVNames;
-       tPoseR                mP01;
-       tPoseR                mP02;
-       tREAL8                mScore;  ///<  Score, Rank-Weighted
-       std::optional<cPt2dr> mDistGT; ///< Distance to ground truth
-};
 
 cDataSolOriTriplet::cDataSolOriTriplet() :
+    mP0      (tPoseR::Identity()),
     mScore   (1e8)
 {
 }

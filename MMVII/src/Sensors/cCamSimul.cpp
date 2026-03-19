@@ -423,7 +423,7 @@ void cCamSimul::BenchHierchBA(cTimerSegm * aTS,
             // if new triplet
             if (inserted)
             {
-                StdOut() << "New triplet " << aTriplets.size() << ": " << t[0] << " " << t[1] << " " << t[2] << std::endl;
+                //StdOut() << "New triplet " << aTriplets.size() << ": " << t[0] << " " << t[1] << " " << t[2] << std::endl;
 
                 for (int node : t)
                 {
@@ -434,8 +434,6 @@ void cCamSimul::BenchHierchBA(cTimerSegm * aTS,
                         aEdges.push_back(std::make_pair(t[0],t[1]));
                         aEdges.push_back(std::make_pair(t[1],t[2]));
                         aEdges.push_back(std::make_pair(t[2],t[0]));
-
-                        StdOut() << "\t **** New node " << node << std::endl;
 
                     }
                 }
@@ -452,7 +450,7 @@ void cCamSimul::BenchHierchBA(cTimerSegm * aTS,
         std::sort(aSetIm.begin(),aSetIm.end());
 
         // generate homologous points
-        StdOut() << "Generate tie points" << std::endl;
+        //StdOut() << "Generate tie points" << std::endl;
         //cPhotogrammetricProjectMemory::AddMulTieP(const std::string & aNameIm,
         //                                        const cVecTiePMul & aVec)
 
@@ -563,57 +561,44 @@ void cCamSimul::BenchHierchBA(cTimerSegm * aTS,
         }
 
 
-        std::unique_ptr<cTripletSet>  a3Set(new cTripletSet);
+        std::vector<cDataSolOriTriplet> a3Set;
 
-        // compute relative orientation of the triplets
-        size_t aTriCount=0;
         for (auto & aT : aTriplets)
         {
-            // generate cams
             cSensorCamPC * aCam1 = aCamSim->mListCam.at(aT[0]);
             cSensorCamPC * aCam2 = aCamSim->mListCam.at(aT[1]);
             cSensorCamPC * aCam3 = aCamSim->mListCam.at(aT[2]);
 
-            tPoseR aPose1 = tPoseR::Identity();
             tPoseR aPose2toPose1 = aCam1->RelativePose(*aCam2);
             tPoseR aPose3toPose1 = aCam1->RelativePose(*aCam3);
 
-            //normalise the triplet
             double dist = Norm2(aPose2toPose1.Tr());
             aPose2toPose1.Tr() = aPose2toPose1.Tr() / dist;
             aPose3toPose1.Tr() = aPose3toPose1.Tr() / dist;
 
-            // save to triplet structure for hierarchical init
-            std::vector<cView> aTViews;
-            aTViews.push_back(cView(aPose1,aCam1->NameImage()));
-            aTViews.push_back(cView(aPose2toPose1,aCam2->NameImage()));
-            aTViews.push_back(cView(aPose3toPose1,aCam3->NameImage()));
+            cDataSolOriTriplet aThisTri;
+            aThisTri.mVNames = {aCam1->NameImage(), aCam2->NameImage(), aCam3->NameImage()};
+            aThisTri.mP01 = aPose2toPose1;
+            aThisTri.mP02 = aPose3toPose1;
 
-            cTriplet aThisTri;
-            aThisTri.Id() = aTriCount;
-            aThisTri.PVec() = aTViews;
-
-            a3Set->PushTriplet(aThisTri);
-
-            aTriCount++;
-
+            a3Set.push_back(aThisTri);
         }
         // generate outliers on triplets
         for (int aKtri=0; aKtri<aTriOutNb; aKtri++)
         {
             int aRandTri = RandUnif_N(aNbTri);
-
-            for (int aK=1; aK<3; aK++) //first camera is spared
+            for (int aK=1; aK<3; aK++)
             {
-                tPose& aCurP = a3Set->Set()[aRandTri].Pose(aK).Pose();
+                tPoseR& aCurP = (aK==1) ? a3Set[aRandTri].mP01 : a3Set[aRandTri].mP02;
                 aCurP.Tr() = aCurP.Tr() + cPt3dr::PRandInSphere() * aTriOutAmpl[0];
                 aCurP.Rot() = aCurP.Rot() * tRotR::RandomSmallElem(aTriOutAmpl[1]);
             }
         }
 
+
         // run hierarchical init
         StdOut() << "Start Hierarchical SfM" << std::endl;
-        cMakeArboTriplet  aMk3(*a3Set,false,1.0,aMemPhProj,anAp);
+        cMakeArboTriplet  aMk3(a3Set,false,1.0,aMemPhProj,anAp);
 
         //aMk3.ViscPose() = mViscPose;
         aMk3.LVM() = 0.1;

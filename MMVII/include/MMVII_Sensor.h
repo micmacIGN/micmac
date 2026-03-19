@@ -38,7 +38,7 @@ class  cCalculMetaDataProject;
 class  cGlobCalculMetaDataProject;
 class  cBA_Topo;
 class  cBA_GCP;
-class  cTripletSet;
+class  cDataSolOriTriplet;
 class  cStaticLidar;
 
 /**  helper for cPixelDomain, as the cPixelDomain must be serialisable we must separate the
@@ -614,9 +614,9 @@ class cPhotogrammetricProject : public cIPhProj
     //===================================================================
     //==================   ORIENTATION OF TRIPLETS    ==================
     //===================================================================
-    void SaveTriplets(const cTripletSet&,bool useXmlraterThanDmp=true) const;
-    cTripletSet * ReadTriplets() const;
-
+    //void SaveTriplets(const cTripletSet&,bool useXmlraterThanDmp=true) const;
+    //cTripletSet * ReadTriplets() const;
+      std::vector<cDataSolOriTriplet> ReadAllTriplets(const std::vector<std::string>& aVImages) const;
     //===================================================================
     //==================   RELATIVE ORIENTATION    ======================
     //===================================================================

@@ -341,6 +341,20 @@ void AddData(const  cAuxAr2007 & anAux,cCdtFinalPoseRel2Im & aCdt);
 /// Given a set of pose, normalize it to relative : first pose identity, first base unitary
 void NormalizePosesRef(std::vector<tPoseR> & aVPose);
 
+class cDataSolOriTriplet
+{
+    public :
+        cDataSolOriTriplet();
+
+        std::vector<std::string> mVNames;
+        tPoseR                mP0;
+        tPoseR                mP01;
+        tPoseR                mP02;
+        tREAL8                mScore;  ///<  Score, Rank-Weighted
+        std::optional<cPt2dr> mDistGT; ///< Distance to ground truth
+};
+
+void AddData(const cAuxAr2007&, cDataSolOriTriplet&);
 
 };
 #endif // _MMVII_POSE_REL_H_

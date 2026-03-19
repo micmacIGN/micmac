@@ -69,7 +69,7 @@ cCollecSpecArg2007 & cAppli_HierarchSfm::ArgObl(cCollecSpecArg2007 & anArgObl)
     return anArgObl
            << Arg2007(mPatImIn,"Pattern/file for images",{{eTA2007::MPatFile,"0"},{eTA2007::FileDirProj}})
            <<  mPhProj.DPOrient().ArgDirInMand("Input calibration folder")
-           <<  mPhProj.DPOriTriplets().ArgDirInMand("Input relative motions")
+           <<  mPhProj.DPOriRel().ArgDirInMand("Input relative motions")
         ;
 }
 
@@ -79,7 +79,7 @@ cCollecSpecArg2007 & cAppli_HierarchSfm::ArgOpt(cCollecSpecArg2007 & anArgOpt)
            <<  mPhProj.DPMulTieP().ArgDirInOpt("","Input features")
            <<  mPhProj.DPOrient().ArgDirInOpt("","Ground truth input orientation directory")
            <<  mPhProj.DPOrient().ArgDirOutOpt("","Global orientation output directory")
-           <<  mPhProj.DPOriTriplets().ArgDirOutOpt("","Directory for dmp-save of triplet (for faster read later)")
+           //<<  mPhProj.DPOriTriplets().ArgDirOutOpt("","Directory for dmp-save of triplet (for faster read later)")
            <<  AOpt2007(mViscPose,"ViscPose","Regularization on poses for BA: [SigmaTr,SigmaRot]",{eTA2007::HDV})
            <<  AOpt2007(mLVM,"LVM","Levenberg-marquadt regularization",{eTA2007::HDV})
            <<  AOpt2007(mSigmaTPt,"SigmaTPt","Sigma for tie-points",{eTA2007::HDV})
@@ -94,39 +94,31 @@ int cAppli_HierarchSfm::Exe()
     mPhProj.FinishInit();
 
     cAutoTimerSegm  aATS(TimeSegm(),"Read motions");
-    cTripletSet *  a3Set =  mPhProj.ReadTriplets();
-
+    //cTripletSet *  a3Set =  mPhProj.ReadTriplets();
     std::vector<std::string> aSetIm = VectMainSet(0);
+    std::vector<cDataSolOriTriplet> a3Set = mPhProj.ReadAllTriplets(aSetIm);
 
     // filter triplets to match the image set
     std::regex aPat(mPatImIn);
-    std::vector<cTriplet> aNewTriSet;
-    for (auto a3 : a3Set->Set())
+    std::vector<cDataSolOriTriplet> aNewTriSet;
+    for (auto& a3 : a3Set)
     {
         int aMatches=0;
-        for (auto& im : a3.PVec())
+        for (auto& im : a3.mVNames)
         {
             std::smatch aBoundMatch;
-            if (std::regex_search(im.Name(),aBoundMatch,aPat))
+            if (std::regex_search(im,aBoundMatch,aPat))
                 aMatches++;
         }
 
         if (aMatches==3)
             aNewTriSet.push_back(a3);
     }
-    a3Set->Set() = aNewTriSet;
-
-    // save triplets to dmp
-    if (mPhProj.DPOriTriplets().DirOutIsInit())
-    {
-        mPhProj.SaveTriplets(*a3Set,false);
-        delete a3Set;
-        return EXIT_SUCCESS;
-    }
-
+    a3Set = aNewTriSet;
 
     TimeSegm().SetIndex("cMakeArboTriplet");
-    cMakeArboTriplet  aMk3(*a3Set,mDoCheck,mWBalance,mPhProj,*this);
+    cMakeArboTriplet  aMk3(a3Set,mDoCheck,mWBalance,mPhProj,*this);
+
     if (IsInit(&mViscPose))
         aMk3.ViscPose() = mViscPose;
     if (IsInit(&mLVM))
@@ -180,7 +172,6 @@ int cAppli_HierarchSfm::Exe()
 
     aMk3.ShowStat();
 
-    delete a3Set;
 
     return EXIT_SUCCESS;
 }
