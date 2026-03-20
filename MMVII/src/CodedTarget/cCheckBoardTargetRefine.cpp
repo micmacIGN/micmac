@@ -587,6 +587,10 @@ const std::vector<std::string> TargetLoc = {"ul","ur","ll","lr"};
         {
             StdOut() << "LS Solution : " << aSol << std::endl;
         }
+        if (mVisu)
+        {
+
+        }
         isOk = true;
     }
 
