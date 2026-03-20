@@ -8,7 +8,8 @@
 #include "MMVII_Image2D.h"
 
 #include <string>
-#include <gdal_priv.h>
+#include "gdal_priv.h"
+#include "FileLock.h"
 
 /*
  * GDAL API interface to MMVII to read/write image file
@@ -118,90 +119,99 @@ public:
         , mGdalNbChan(0)
         , mNbImg(0)
     {}
-    void operator()(IoMode aMode, const cDataFileIm2D &aDF, const tvIm& aVecImV2, const cPt2di & aP0File,double aDyn,const cRect2& aR2)
+    void operator()(IoMode aMode, const cDataFileIm2D &aDF, const tvIm& aVecImV2, const cPt2di & aP0File, double aDyn, const cRect2& aR2)
     {
-        mDataFile = &aDF;
-        auto aName = mDataFile->Name();
-        mGdalNbChan = mDataFile->NbChannel();
-        mNbImg = static_cast<int>(aVecImV2.size());
+        mDataFile    = &aDF;
+        mGdalNbChan  = mDataFile->NbChannel();
+        mNbImg       = static_cast<int>(aVecImV2.size());
 
         auto aIm2D = aVecImV2[0];
         cRect2 aRectFullIm(aIm2D->P0(), aIm2D->P1());
-        cRect2 aRectIm =  (aR2 == cRect2::TheEmptyBox) ? aRectFullIm : aR2;
-        cRect2 aRectFile (aRectIm.Translate(aP0File)) ;
+        cRect2 aRectIm  = (aR2 == cRect2::TheEmptyBox) ? aRectFullIm : aR2;
+        cRect2 aRectFile(aRectIm.Translate(aP0File));
 
-        MMVII_INTERNAL_ASSERT_strong(aRectFile.IncludedIn(aDF), "Read/write out of image file (" + aName + ")");
-        MMVII_INTERNAL_ASSERT_strong(aRectIm.IncludedIn(aRectFullIm), "Read/write out of Image buffer (" + aName + ")");
+        auto aName = mDataFile->Name();
+        MMVII_INTERNAL_ASSERT_strong(aRectFile.IncludedIn(aDF),        "Read/write out of image file ("   + aName + ")");
+        MMVII_INTERNAL_ASSERT_strong(aRectIm.IncludedIn(aRectFullIm),  "Read/write out of Image buffer (" + aName + ")");
 
-        auto notUpdatable = false;
-        if (mDataFile->IsCreateAtFirstWrite())
+        if (aMode == IoMode::Read)
         {
-            if (aMode != IoMode::Write)
-            {
-                MMVII_INTERNAL_ERROR("GDAL read: image file created with CreateOnWrite() must be written before trying to read it (" + aName + ")");
-            }
-            if (aRectFile.Sz() != aDF.Sz() || aRectFile.P0() != cPt2di(0,0))
-            {
-                MMVII_INTERNAL_ERROR("GDAL write: image file created with CreateOnWrite() must be fully written on first write (" + aName + ")");
-            }
-            // Delayed file creation, Dataset can be created in memory depending of file format driver
-            mGdalDataset = cGdalApi::CreateDataset(aDF, &notUpdatable);
-            if (notUpdatable) {
-                cGdalApi::SetCreatedNoUpdate(*mDataFile);
-            } else {
-                cGdalApi::SetCreated(*mDataFile);
-            }
-        }
-        else if (mDataFile->IsCreatedNoUpdate() && aMode == IoMode::Write)
-        {
-            if (aRectFile.Sz() != aDF.Sz() || aRectFile.P0() != cPt2di(0,0))
-            {
-                MMVII_INTERNAL_ERROR("GDAL write: this image file format must be fully written on each write (" + aName + ")");
-            }
-            mGdalDataset = cGdalApi::CreateDataset(aDF, &notUpdatable);
+            Read(aVecImV2, aRectIm, aRectFile, aDyn);
         }
         else
         {
-            mGdalDataset = cGdalApi::OpenDataset(aDF.Name(), aMode==IoMode::Read ? GA_ReadOnly : GA_Update, cGdalApi::eOnError::RaiseError);
+            FileLock gdalLock(aName);
+            Write(aVecImV2, aRectIm, aRectFile, aDyn);
+        }
+    }
+
+private:
+    void Read(const tvIm& aVecImV2, const cRect2& aRectIm, const cRect2& aRectFile, double aDyn)
+    {
+        auto aName = mDataFile->Name();
+
+        if (mDataFile->IsCreateAtFirstWrite())
+            MMVII_INTERNAL_ERROR("GDAL read: image file created with CreateOnWrite() must be written before trying to read it (" + aName + ")");
+
+        mGdalDataset = cGdalApi::OpenDataset(aName, GA_ReadOnly, cGdalApi::eOnError::RaiseError);
+
+        if (mGdalNbChan == mNbImg && mNbImg != 0)
+            GdalReadNtoN(aVecImV2, aRectIm, aRectFile, aDyn);   // file N -> N img channels
+        else if (mGdalNbChan == 1 && mNbImg != 0)
+            GdalRead1toN(aVecImV2, aRectIm, aRectFile, aDyn);   // file 1 -> N img channels
+        else if (mGdalNbChan != 0 && mNbImg == 1)
+            GdalReadNto1(aVecImV2, aRectIm, aRectFile, aDyn);   // file N -> 1 img channel
+        else
+            MMVII_INTERNAL_ERROR("Gdal read: Images vector size: " + std::to_string(mNbImg) + ", file channels: " + std::to_string(mGdalNbChan) + " (" + aName + ")");
+
+        cGdalApi::CloseDataset(mGdalDataset);
+    }
+
+    void Write(const tvIm& aVecImV2, const cRect2& aRectIm, const cRect2& aRectFile, double aDyn)
+    {
+        auto aName      = mDataFile->Name();
+        bool notUpdatable = false;
+
+        if (mDataFile->IsCreateAtFirstWrite())
+        {
+            if (aRectFile.Sz() != mDataFile->Sz() || aRectFile.P0() != cPt2di(0, 0))
+                MMVII_INTERNAL_ERROR("GDAL write: image file created with CreateOnWrite() must be fully written on first write (" + aName + ")");
+
+            mGdalDataset = cGdalApi::CreateDataset(*mDataFile, &notUpdatable);
+            notUpdatable ? cGdalApi::SetCreatedNoUpdate(*mDataFile) : cGdalApi::SetCreated(*mDataFile);
+        }
+        else if (mDataFile->IsCreatedNoUpdate())
+        {
+            if (aRectFile.Sz() != mDataFile->Sz() || aRectFile.P0() != cPt2di(0, 0))
+                MMVII_INTERNAL_ERROR("GDAL write: this image file format must be fully written on each write (" + aName + ")");
+
+            mGdalDataset = cGdalApi::CreateDataset(*mDataFile, &notUpdatable);
+        }
+        else
+        {
+            mGdalDataset = cGdalApi::OpenDataset(aName, GA_Update, cGdalApi::eOnError::RaiseError);
         }
 
-        FileLock gdalLock;
-        if (aMode == IoMode::Read) {
-            if (mGdalNbChan == mNbImg && mNbImg != 0) {
-                GdalReadNtoN(aVecImV2,aRectIm,aRectFile,aDyn);     // file N -> N img channels
-            } else if (mGdalNbChan == 1 && mNbImg != 0) {
-                GdalRead1toN(aVecImV2,aRectIm,aRectFile,aDyn);     // file 1 -> N img channels
-            } else if (mGdalNbChan != 0 && mNbImg == 1) {
-                GdalReadNto1(aVecImV2,aRectIm,aRectFile,aDyn);     // file N -> 1 img channels
-            } else {
-                MMVII_INTERNAL_ERROR("Gdal read: Images vector size: " + std::to_string(mNbImg) + ", file channels: " + std::to_string(mGdalNbChan) + " (" + aName + ")");
-            }
-        } else {
-            if (! notUpdatable)
-                gdalLock.lock(aName);
-            if (mGdalNbChan == mNbImg && mNbImg != 0) {
-                GdalWriteNtoN(aVecImV2,aRectIm,aRectFile,aDyn);     // img N -> N file channels
-            } else if (mGdalNbChan != 0 && mNbImg == 1) {
-                GdalWrite1toN(aVecImV2,aRectIm,aRectFile,aDyn);     // img 1 -> N file channels
-            } else {
-                MMVII_INTERNAL_ERROR("Gdal write: Images vector size: " + std::to_string(mNbImg) + ", file channels: " + std::to_string(mGdalNbChan) + " (" + aName + ")");
-            }
-        }
+        if (mGdalNbChan == mNbImg && mNbImg != 0)
+            GdalWriteNtoN(aVecImV2, aRectIm, aRectFile, aDyn);  // img N -> N file channels
+        else if (mGdalNbChan != 0 && mNbImg == 1)
+            GdalWrite1toN(aVecImV2, aRectIm, aRectFile, aDyn);  // img 1 -> N file channels
+        else
+            MMVII_INTERNAL_ERROR("Gdal write: Images vector size: " + std::to_string(mNbImg) + ", file channels: " + std::to_string(mGdalNbChan) + " (" + aName + ")");
 
-        if (notUpdatable) {
+        if (notUpdatable)
+        {
             // Copy image from memory to file if image file driver needs it
-            remove(aName.c_str());
-            auto aGdalDriver = cGdalApi::GetDriver(aName);
+            auto aGdalDriver  = cGdalApi::GetDriver(aName);
             auto aGdalOptions = cGdalApi::GetCreateOptions(aGdalDriver, mDataFile->CreateOptions());
             remove(aName.c_str());
             auto mFinalDataset = aGdalDriver->CreateCopy(aName.c_str(), mGdalDataset, FALSE, aGdalOptions.List(), NULL, NULL);
             cGdalApi::CloseDataset(mFinalDataset);
         }
+
         cGdalApi::CloseDataset(mGdalDataset);
-        gdalLock.unlock();
     }
 
-private:
     // Helper class: manage N (1 by default) image buffers read from/write to file with GDAL
     // "Inherits" from outer class (GdalIO) the template parameter "TypeFile"
     class GDalBuffer
@@ -213,11 +223,6 @@ private:
         {
             auto aSize = sizeof(TypeFile)*aRectIm.Sz().x()*aRectIm.Sz().y();
             std::generate(mBuffer.begin(), mBuffer.end(),[aSize](){return static_cast<TypeFile*>(cMemManager::Calloc(1,aSize));});
-/*            for (auto& aBuf : mBuffer)
-            {
-                aBuf = static_cast<TypeFile*>(cMemManager::Calloc(1,aSize));
-            }
-*/
         }
         ~GDalBuffer()
         {

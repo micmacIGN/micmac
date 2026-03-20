@@ -166,6 +166,7 @@ class cREAL8_RSNL
           void   SetUnShared(const std::vector<int> &  aVUk);
           void   SetAllUnShared();
 
+          void SetUseWarningNotEnoughObs(bool);  ///< Modifier
           //  ===
 	protected :
           static constexpr int  TheLabelFrozen  =-1;
@@ -182,6 +183,7 @@ class cREAL8_RSNL
           // int                  mNbUnkown;
           int                  mCurMaxEquiv;       ///< Used to label the 
 	  std::vector<int>     mEquivNum;       ///< Equivalence numerotation, used for shared unknowns
+      bool                 mUseWarningNotEnoughObs; ///< Allow to avoid this warning for some special case
 };
 
 
@@ -277,17 +279,17 @@ template <class Type> class cResolSysNonLinear : public cREAL8_RSNL
           typedef cResidualWeighter<Type>                       tResidualW;
           typedef cObjWithUnkowns<Type>                         tObjWUk;
 
-	  /// basic constructor, using a mode of matrix + a solution  init
+           /// basic constructor, using a mode of matrix + a solution  init
           cResolSysNonLinear(eModeSSR,const tDVect & aInitSol);
-	  ///  constructor  using linear system, allow finer control
+          ///  constructor  using linear system, allow finer control
           cResolSysNonLinear(tLinearSysSR *,const tDVect & aInitSol);
-	  /// destructor 
+          /// destructor
           ~cResolSysNonLinear();
 
 
           /// Accessor
           const tDVect  &    CurGlobSol() const;
-	  cREAL8_RSNL::tDVect    R_CurGlobSol() const override;  ///<  tREAL8 Equivalent
+          cREAL8_RSNL::tDVect    R_CurGlobSol() const override;  ///<  tREAL8 Equivalent
    
           /// Accessor
           int NbVar() const;  
@@ -311,7 +313,7 @@ template <class Type> class cResolSysNonLinear : public cREAL8_RSNL
           const tDVect  &    SolveUpdateReset(const Type & aLVM =0.0,tVPtr_SUR AfterCstr = {},tVPtr_SUR AfterLVM = {}, bool calcCond=false) ;
 
 
-	  cREAL8_RSNL::tDVect      R_SolveUpdateReset(const tREAL8& = 0.0) override ;
+          cREAL8_RSNL::tDVect      R_SolveUpdateReset(const tREAL8& = 0.0) override ;
 
           /// Add 1 equation fixing variable
           void   AddEqFixVar(const int & aNumV,const Type & aVal,const Type& aWeight);
@@ -555,6 +557,9 @@ template <class Type> class cLinearOverCstrSys  : public cMemCheck
 
        /// Virtual methods => virtaul ~X()
        virtual ~cLinearOverCstrSys();
+
+       /// Down cast to dense L2 syst if it is one, nullptr else
+       virtual cLeasSqtAA<Type> * Get_tAA(bool SVP=false) ;
        
 
        /**  This the method for adding observation with temporaray unknown, the class can have various answer
@@ -610,10 +615,15 @@ template <class Type> class cLinearOverCstrSys  : public cMemCheck
       virtual void   AddCov(const cDenseMatrix<Type> &,const cDenseVect<Type>& ,const std::vector<int> &aVInd);
 
       Type LVMW(int aK) const;
-      
+      /// Add LVM like in non linear sys, but do it on null solution (as there is no current sol)
+      void AddLVMCstr(tREAL8 aW);
+
       Type  VarLastSol() const;
       Type  VarCurSol()  const;
       Type  VarOfSol(const cDenseVect<Type> & aSol)  const;
+
+
+
 
     protected :
        int mNbVar;
@@ -728,8 +738,9 @@ template <class Type> class  cLeasSqtAA  :  public cLeasSq<Type>
        cDenseMatrix<Type> & tAA   () ;         ///< Accessor  , warn not symetrized
        cDenseVect<Type>   & tARhs () ;         ///< Accessor 
 
+       /// return this
+       cLeasSqtAA<Type> * Get_tAA(bool SVP)  override;
 
-        
 
       cDenseMatrix<Type> tAA_Solve(const cDenseMatrix<Type> &) const override;
 

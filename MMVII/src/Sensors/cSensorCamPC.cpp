@@ -79,10 +79,11 @@ cPt3dr cP3dNormWithUK::GetPNorm(const cPt2dr & aDuDv) const
 {
     return  VUnit(mPNorm + mU*aDuDv.x() + mV*aDuDv.y());
 }
-const cPt3dr & cP3dNormWithUK::RawPNorm() const
-{
-    return mPNorm;
-}
+
+const cPt3dr & cP3dNormWithUK::RawPNorm() const{return mPNorm;}
+const cPt3dr & cP3dNormWithUK::U() const{return mU;}
+const cPt3dr & cP3dNormWithUK::V() const{return mV;}
+
 
 void cP3dNormWithUK::SetPNorm(const cPt3dr & aTr)
 {
@@ -418,6 +419,10 @@ void cSensorCamPC::SetCenter(const cPt3dr & aC)
      SetPose(tPose(aC,Orient()));
 }
 
+std::vector<cObjWithUnkowns<tREAL8> *>  cSensorCamPC::GetAllUKPose()
+{
+    return std::vector<cObjWithUnkowns<tREAL8> *> {this};
+}
 
 #if (1)
 std::vector<cObjWithUnkowns<tREAL8> *>  cSensorCamPC::GetAllUK() 
@@ -584,11 +589,16 @@ tSeg3dr  cSensorCamPC::Image2Bundle(const cPt2dr & aPIm) const
 
 const cPt3dr * cSensorCamPC::CenterOfPC() const { return  & Center(); }
          /// Return the calculator, adapted to the type, for computing colinearity equation
-cCalculator<double> * cSensorCamPC::CreateEqColinearity(bool WithDerives,int aSzBuf,bool ReUse) 
+cCalculator<double> * cSensorCamPC::CreateEqColinearity(bool WithDerives,int aSzBuf,bool ReUse)
 {
-   if (mInternalCalib==nullptr) 
+   if (mInternalCalib==nullptr)
       return nullptr;
    return mInternalCalib->EqColinearity(WithDerives,aSzBuf,ReUse);
+}
+
+cCalculator<double> * cSensorCamPC::CreateEqColinearityOnBundle(bool WithDerives,int aSzBuf,bool ReUse)
+{
+    return EqColinearityOnBundle(WithDerives,aSzBuf,ReUse);
 }
 
 cCalculator<double> * cSensorCamPC::EqProjSeg()
@@ -632,6 +642,12 @@ cIsometry3D<tREAL8>  cSensorCamPC::RelativePose(const cSensorCamPC& aCam2) const
     //  (A->W)-1 (B->W)(B) = (A->W)-1 (W) = A
     //  (A->W) -1 (B->W)  = (B->A) 
     return Pose().MapInverse()*aCam2.Pose();
+}
+
+tPoseR cSensorCamPC::Norm1RelativePose(const cSensorCamPC& aCam2) const
+{
+    tPoseR aPose = RelativePose(aCam2);
+    return tPoseR(VUnit(aPose.Tr()),aPose.Rot());
 }
 
 
@@ -837,7 +853,7 @@ void AddData(const cAuxAr2007 & anAux,cSensorCamPC & aPC)
 
 void cSensorCamPC::ToFile(const std::string & aNameFile) const
 {
-    SaveInFile(const_cast<cSensorCamPC &>(*this),aNameFile);
+    SaveInFile(*this,aNameFile);
     if (mInternalCalib)
     {
         std::string aNameCalib = DirOfPath(aNameFile) + mInternalCalib->Name() + "." + GlobTaggedNameDefSerial();

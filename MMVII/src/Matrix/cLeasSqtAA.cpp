@@ -241,6 +241,9 @@ template<class Type> const cDenseVect<Type>   & cLeasSqtAA<Type>::tARhs () const
 template<class Type> cDenseMatrix<Type> & cLeasSqtAA<Type>::tAA ()   {return mtAA;}
 template<class Type> cDenseVect<Type>   & cLeasSqtAA<Type>::tARhs () {return mtARhs;}
 
+template<class Type> cLeasSqtAA<Type> * cLeasSqtAA<Type>::Get_tAA(bool) {return this;}
+
+
 template<class Type> cDenseVect<Type> cLeasSqtAA<Type>::SpecificSparseSolve()
 {
    const  cDataIm2D<Type> & aDIm = mtAA.DIm();
@@ -412,6 +415,18 @@ template<class Type> Type cLinearOverCstrSys<Type>::VarLastSol() const
     return mLastSumWRHS2 / mLastSumW;
 }
 
+template<class Type> void cLinearOverCstrSys<Type>::AddLVMCstr(tREAL8 aW)
+{
+   if (aW<=0) return;
+   for (int aK=0 ; aK<mNbVar ; aK++)
+   {
+       cSparseVect<Type> aSV;
+       aSV.AddIV(aK,1.0);
+       // Dont forget that the linear system compute the difference with current solution ...
+       PublicAddObservation(aW*LVMW(aK),aSV,0.0);
+   }
+}
+
 
 template<class Type> Type cLinearOverCstrSys<Type>::VarCurSol()  const
 {
@@ -423,6 +438,13 @@ template<class Type> Type cLinearOverCstrSys<Type>::VarCurSol()  const
 template<class Type> cLinearOverCstrSys<Type>::~cLinearOverCstrSys()
 {
 }
+
+template<class Type> cLeasSqtAA<Type> * cLinearOverCstrSys<Type>::Get_tAA(bool SVP)
+{
+    MMVII_INTERNAL_ASSERT_strong(SVP,"cLinearOverCstrSys<Type>::Get_tAA")
+    return nullptr;
+}
+
 
 template<class Type> int cLinearOverCstrSys<Type>::NbVar() const
 {

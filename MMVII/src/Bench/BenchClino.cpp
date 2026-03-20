@@ -290,10 +290,7 @@ namespace MMVII
         cMes2DDirInfo * aMes2DDirInfo = cMes2DDirInfo::addMes2DDirInfo(aBundleAdj->getGCP(),"in",cStdWeighterResidual());
         aBundleAdj->AddGCP2D(aMes2DDirInfo, aSetMesPtOf1Im,&aNewSensorCamPC);
 
-        for (int aKIter=0 ; aKIter<20 ; aKIter++)
-        {
-            aBundleAdj->OneIteration();
-        }
+        aBundleAdj->Iterate(20);
 
         for (size_t i = 0; i < 3; i++)
         {
@@ -412,11 +409,7 @@ namespace MMVII
         aBundleAdj->AddGCP2D(aMes2DDirInfo, aSetMesPtOf1Im,&aNewSensorCamPC);
 
 
-        for (int aKIter=0 ; aKIter<20 ; aKIter++)
-        {
-            aBundleAdj->OneIteration();
-        }
-
+        aBundleAdj->Iterate(20);
         
         MMVII_INTERNAL_ASSERT_bench(std::abs(aNewSensorCamPC.Pose().Tr().x()-aSensorCamPC.Pose().Tr().x())<1e-10,"Bench2Clinos3Point2Ba failed");
         MMVII_INTERNAL_ASSERT_bench(std::abs(aNewSensorCamPC.Pose().Tr().y()-aSensorCamPC.Pose().Tr().y())<1e-10,"Bench2Clinos3Point2Ba failed");

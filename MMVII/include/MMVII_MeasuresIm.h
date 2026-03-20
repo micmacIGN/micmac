@@ -18,6 +18,7 @@ struct cPair2D3D;
 struct cSet2D3D;
 class cMesIm1Pt;
 class cSetMesPtOf1Im;
+class cIPhProj;
 
 class cMesIm1Pt;
 class cSetMesPtOf1Im;
@@ -97,7 +98,7 @@ class cMesIm1Pt
 void AddData(const  cAuxAr2007 & anAux,cMesIm1Pt & aGCPMI);
 
 /** class for representing a set of measure in an image*/
-class cSetMesPtOf1Im : public cMemCheck
+class cSetMesPtOf1Im :  public cObj2DelAtEnd
 {
      public :
           cSetMesPtOf1Im(const std::string & aNameIm);
@@ -330,12 +331,33 @@ class cSetHomogCpleIm
         /** When we want to use Set Measure Images like Hom (WARN: dont merge when points with
          *  same coodinates already exist, this woul be longer : and another function to write if needed) */
         void AddPairSet(const cSetMesPtOf1Im&,const cSetMesPtOf1Im&);
+
+        void AddTiePMul(const cVecTiePMul&,const cVecTiePMul&);
+
         void Clear();
 
+        const cHomogCpleIm & KthHom(size_t aK) const;
+        size_t NbH() const;
+        std::pair<cBox2dr,cBox2dr> Boxes() const;
 
+        cSetHomogCpleIm  SelectRandom(int aNb) const;
+        cSetHomogCpleIm  SelectOnSpatialCriteria(int aNb) const;
 
       private :
         std::vector<cHomogCpleIm>  mSetH;
+};
+
+class cIndexHomOnP1 : public cMemCheck
+{
+   public :
+       typedef  cTiling<cCpleHomIndex> tIndex;
+
+       cIndexHomOnP1(const cSetHomogCpleIm &,int aNbInCase=10);
+       ~cIndexHomOnP1();
+       void GetIndexInNeighbourhhod(std::vector<size_t> &aRes,const cPt2dr &,tREAL8 aRay);
+   private :
+       cIndexHomOnP1(const cIndexHomOnP1 &) = delete;
+       tIndex * mIndex;
 };
 
 void AddData(const  cAuxAr2007 & anAux,cSetHomogCpleIm &);
@@ -355,6 +377,16 @@ class cInterfImportHom : public cMemCheck
       private :
 };
 
+class cMemoryInterfImportHom : public cInterfImportHom
+{
+      public :
+           void GetHom(cSetHomogCpleIm &,const std::string & aNameIm1,const std::string & aNameIm2) const override;
+           bool HasHom(const std::string & aNameIm1,const std::string & aNameIm2) const  override;
+
+           void Add(const cSetHomogCpleIm &,const std::string & aNameIm1,const std::string & aNameIm2)     ;
+      private :
+             std::map<tSS,cSetHomogCpleIm> mMapN2Cple;
+};
 
 /**   This class store multiple homologous point, ie after fusion of
  *    points computed by pair of images
@@ -385,6 +417,8 @@ class cVal1ConfTPM
 {
      public :
         std::vector<cPt2dr>  mVPIm;
+        //std::vector<cPt3dr>  mVPBun;     // optional, bundles
+        std::vector<double>  mVPZ;     // optional, if mVPIm are bundles, the Z correponds to the 3rd coordinate
         std::vector<int>     mVIdPts;    // optionnal, done when construct from point +id
         std::vector<cPt3dr>  mVPGround;  // optionnal, done when used whith camera
 };
@@ -411,6 +445,7 @@ size_t NbPtsMul(const tPairTiePMult &) ;
 size_t Multiplicity(const tPairTiePMult&);
 cPt3dr BundleInter(const tPairTiePMult &,size_t aKPts,const std::vector<cSensorImage *> &);
 void   MakePGround(tPairTiePMult &,const std::vector<cSensorImage *>&);
+void   MakePGroundFromBundles(tPairTiePMult &,const std::vector<cSensorImage *> &);
 
 
 /**   This class store multiple homologous point,
@@ -426,15 +461,24 @@ class cComputeMergeMulTieP : public cMemCheck
         cComputeMergeMulTieP
         (
              const  std::vector<std::string> & aVNames,
-              cInterfImportHom * =nullptr,
-              cPhotogrammetricProject*  aPhP = nullptr,
-              bool WithImageIndex = false
+             cInterfImportHom * =nullptr,
+             cIPhProj*  aPhP = nullptr,
+             bool WithImageIndex = false
         );
+
+        size_t NbPtsTot() const;
+
+        // Reduction by randomization
+        cComputeMergeMulTieP(const cComputeMergeMulTieP&,int aNbPtsTot);
+        // Reduction by spatial selection
+        cComputeMergeMulTieP(int aNbPtsTot,const cComputeMergeMulTieP&);
+
 
         /// Construct a sub-structure corresponing to the name selected
         cComputeMergeMulTieP(const cComputeMergeMulTieP&,const  std::vector<std::string> & aVNamesSelected);
 
         const std::vector<cSensorImage *> &  VSensors() const;  ///< Accessor, error if empty
+
         /// Data allow to iterate on multiple points
         const std::map<tConfigIm,cVal1ConfTPM> &  Pts() const;
 
@@ -506,7 +550,7 @@ cComputeMergeMulTieP * AllocStdFromMTPFromFolder
                       (
                             const std::string & aFolder,
                             const std::vector<std::string> & aVNames,
-                            cPhotogrammetricProject & aPhProj,
+                            cIPhProj & aPhProj,
                             bool  WithPtIndex,
 			    bool  WithSensor,
 			    bool  WithImageIndexe

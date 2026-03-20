@@ -2007,7 +2007,7 @@ cAppliGenOptTriplets::cAppliGenOptTriplets(int argc,char ** argv) :
 
         MakeFileXML(aXml,aNameSauveXml);
         MakeFileXML(aXml,aNameSauveBin);
-
+        std::cout << aNameSauveXml << std::endl;
 
 		aK++;
 	}

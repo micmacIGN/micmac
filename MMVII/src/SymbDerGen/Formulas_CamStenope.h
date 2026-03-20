@@ -747,6 +747,130 @@ template <typename TypeDist,typename TypeProj>  class cEqColinearityCamPPC
            bool        mLine;
 };
 
+//to be removed ultimately
+class cFormula_EqColinearityCamProj
+{
+public :
+    cFormula_EqColinearityCamProj() {}
+    std::string FormulaName() const { return "cFormula_EqColinearityCamProj";} // ToStr("cFormula_EqColinearityCamProj"
+    std::vector<std::string>  VNamesUnknowns() const
+    {
+        return Append
+            (
+                NamesP3("PGround"),     //  0-3
+                NamesPose("CCam","W")  // 3-9
+                );
+    }
+
+    std::vector<std::string>    VNamesObs() const
+    {
+        return Append(NamesP2("Bundle"),NamesMatr("M",cPt2di(3,3)));
+    }
+
+    template <typename tUk>
+    std::vector<tUk> formula
+        (
+            const std::vector<tUk> & aVUk,
+            const std::vector<tUk> & aVObs
+            ) const
+    {
+        //  extract unknown parameters from vector
+        cPtxd<tUk,3>  aPGround = VtoP3(aVUk,0);
+        cPtxd<tUk,3>  aCCcam   = VtoP3(aVUk,3);
+        cPtxd<tUk,3>  aW       = VtoP3(aVUk,6);
+
+        // obs pixel
+        cPtxd<tUk,2>  aBundle    = VtoP2(aVObs,0);
+
+        cPtxd<tUk,3>  aVCP = aPGround - aCCcam;     // vector  CenterCam -> PGround
+
+
+        cMatF<tUk> aRotInit (3,3,aVObs,2);
+        cMatF<tUk> aDeltaRot =  cMatF<tUk>::MatAxiator(aW);
+        cPtxd<tUk,3> aPCam =  aDeltaRot * (aRotInit * aVCP);
+
+
+        cPtxd<tUk,2>  aBundleProj = VtoP2(cProjStenope::Proj(ToVect(aPCam)));  // project 3D-> bundle
+
+        cPtxd<tUk,2> aResidual = aBundleProj - aBundle;  // compare to mesured bundle
+
+        return {aResidual.x(),aResidual.y()};
+    }
+
+};
+
+/**    */
+class cFormula_EqColinearityOnBundle
+{
+public:
+    cFormula_EqColinearityOnBundle() {}
+    std::string FormulaName() const { return "cFormula_EqColinearityOnBundle";} // ToStr("cFormula_EqColinearityOnBundle"
+    std::vector<std::string>  VNamesUnknowns() const
+    {
+        return Append
+            (
+                NamesP3("PGround"),     //  0-3
+                NamesPose("CCam","W")  // 3-9
+                );
+    }
+
+    std::vector<std::string>    VNamesObs() const
+    {
+        return Append(NamesP3("u"),NamesP3("v"),{"focal"},NamesMatr("M",cPt2di(3,3)));
+    }
+
+    template <typename tUk>
+    std::vector<tUk> formula
+        (
+            const std::vector<tUk> & VUk,
+            const std::vector<tUk> & VObs
+            ) const
+    {
+        // unknown parameters from vector
+        cPtxd<tUk,3>  PGround = VtoP3(VUk,0);
+        cPtxd<tUk,3>  CCcam   = VtoP3(VUk,3);
+        cPtxd<tUk,3>  W       = VtoP3(VUk,6);
+
+        // 'predicted' bundle in world frame (perspective center - ground pt)
+        cPtxd<tUk,3> CG = (PGround - CCcam);
+
+        // transform 'predicted' bundle to camera frame
+        cMatF<tUk> RotInit (3,3,VObs,7);
+        cMatF<tUk> DeltaRot =  cMatF<tUk>::MatAxiator(W);
+        cPtxd<tUk,3> cg =  DeltaRot * (RotInit * CG);
+
+        // vectors orthogonal to 'observed' bundle in camera frame
+        cPtxd<tUk,3> u = VtoP3(VObs,0);
+        cPtxd<tUk,3> v = VtoP3(VObs,3);
+
+        // focal length for residual scaling
+        tUk f = VObs.at(6);
+
+        // angle-based residual ~
+        //          minimises the difference between predicted and
+        //          observed bundles in camera frame
+        //
+        //     (cg * u) / |cg| |u| = cos alpha = 0 [rad] (because u _|_ to cg)
+        //     (cg * v) / |cg| |v| = cos alpha = 0 [rad] (because v _|_ to cg)
+        //
+        // or in pixels :
+        //
+        //   f * (cg * u) / |cg| |u| = 0 [pix]
+        //   f * (cg * v) / |cg| |v| = 0 [pix]
+        //
+        tUk cgNorm = Sqrt(cg.x()*cg.x() + cg.y()*cg.y() + cg.z()*cg.z());
+        tUk uNorm = Sqrt(u.x()*u.x() + u.y()*u.y() + u.z()*u.z());
+        tUk vNorm = Sqrt(v.x()*v.x() + v.y()*v.y() + v.z()*v.z());
+
+        tUk cguResAng = f*(cg.x()*u.x() + cg.y()*u.y() + cg.z()*u.z())/(cgNorm*uNorm);
+        tUk cgvResAng = f*(cg.x()*v.x() + cg.y()*v.y() + cg.z()*v.z())/(cgNorm*vNorm);
+
+
+        return {cguResAng,cgvResAng};
+    }
+
+};
+
 
 template cFormula<double> PScal(const   cPtxd<cFormula<double>,3> &,const   cPtxd<cFormula<double>,3> &);
 template cPtxd<cFormula<double>,3> VtoP3(const   std::vector<cFormula<double>> &, size_t);

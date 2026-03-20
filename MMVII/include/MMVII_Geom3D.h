@@ -271,6 +271,8 @@ template <class Type> class cIsometry3D
        cIsometry3D(const tPt& aTr,const tRot &);
        tTypeMapInv  MapInverse() const; // {return cIsometry3D(-mRot.Inverse(mTr),mRot.MapInverse());}
        tTypeMap  operator* (const tTypeMap &) const;
+       tTypeMap  ScaleTr (Type aScale) const;
+
        static tTypeMap Identity();
 
        ///  Distance with normalisation to unity on center, W= weight of center dist vs rot
@@ -421,7 +423,12 @@ template <class Type> class cSimilitud3D
 typedef cSimilitud3D<tREAL8>  tSim3dR;
 void AddData(const cAuxAr2007 &anAux, tSim3dR &aSim3D);
 
+
+///  Tr ->   aSim.Value(aR.Tr();   R -> Sym.Rot *  R
 template <class Type> cIsometry3D<Type>    TransfoPose(const cSimilitud3D<Type> & aSim,const cIsometry3D<Type> & aR);
+
+///  Compute the similitude tha make P0 Identity and P0/P1 unit base
+tSim3dR  SimOfPosesRef(const tSim3dR & aP0,const tSim3dR & aP1);
 
 /// V1 and V2 being pose "identic" but in different repair, compute the transfer similitude that best align
 std::pair<tREAL8,tSim3dR>   EstimateSimTransfertFromPoses(const std::vector<tPoseR> & aV1,const std::vector<tPoseR> & aV2);
@@ -561,6 +568,14 @@ cPt3dr  BundleFixZ(const tSeg3dr & aSeg1,const tREAL8 &);
 ///  Compute intersection on all pairs, and return the one minimizing sum of euclidian distances
 cPt3dr  RobustBundleInters(const std::vector<tSeg3dr> & aVSeg);
 
+/// Having poses + dir of bundles, return the ground point + resisdual as average angle
+std::pair<tREAL8,cPt3dr> AnglesInterBundles
+                         (
+                               const std::vector<tPoseR> & aVPose,
+                               const cPt3dr * aDirBdund,
+                               tREAL8 aEpsilon
+                          );
+
 /// Compute bundle intersection using a L1 criteria with barodale, "NbSegCompl" handle to be closer to euclidian distance
 // cPt3dr  L1_BundleInters(const std::vector<tSeg3dr> & aVSeg,int NbSegCompl=0,const std::vector<tREAL8> * aVWeight = nullptr);
 
@@ -650,6 +665,80 @@ class cSampleSphere3D
 };
 
 
+class cEllipse3D
+{
+    public:
+        static void Bench();
+
+        cEllipse3D();
+
+        void AddData(const cPt3dr&, double);
+        void Normalise();
+        void Reset();
+
+
+        cPt3dr & CDG();
+        const cPt3dr & CDG()const ;
+
+        double & Sxx();
+        const double & Sxx()const ;
+
+        double & Syy();
+        const double & Syy()const ;
+
+        double & Szz();
+        const double & Szz()const ;
+
+        double & Sxy();
+        const double & Sxy()const ;
+
+        double & Sxz();
+        const double & Sxz()const ;
+
+        double & Syz();
+        const double & Syz()const ;
+
+        double & Pds();
+        const double & Pds()const ;
+
+        bool & Norm();
+        const bool & Norm()const ;
+
+    private:
+        cPt3dr mCDG;
+        double mSxx;
+        double mSyy;
+        double mSzz;
+        double mSxy;
+        double mSxz;
+        double mSyz;
+        double mPds;
+        bool mNorm;
+
+};
+
+class cGenGauss3D
+{
+    public :
+        cGenGauss3D(const cEllipse3D & anEl );
+        const double & ValP(int aK) const {return mVP(aK);};
+        const cDenseVect<tREAL8>   VecP(int aK) const {return mVecP.ReadCol(aK); };
+        const cPt3dr  & CDG() const {return mCDG;}
+
+        //distribution de points selon e1,e2,e3
+        //indiqué par (2*aN1+1),(2*aN2+1),(2*aN3+1) et Gauss
+        void GetDistribGaus(std::vector<cPt3dr> &,int,int,int);
+
+        //5-pts distribution
+        void GetDistrib5Pts(std::vector<cPt3dr> &,double aSca=1.0);
+
+    private :
+
+        cPt3dr mCDG;
+        cDenseVect<tREAL8> mVP;
+        cDenseMatrix<tREAL8> mVecP;
+
+};
 
 
 

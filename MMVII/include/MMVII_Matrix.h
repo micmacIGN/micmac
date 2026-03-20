@@ -764,6 +764,24 @@ template <class Type> class cStrStat2
 };
 
 
+/// Basic Class to compute efficiently variance of fixed size of point
+template <const int Dim> class cVarPts
+{
+   public :
+      typedef cPtxd<tREAL8,Dim>  tPt;
+
+      cVarPts();  ///< Constructor, initialize to 0
+
+      void Add(const tPt&);  ///<  Add a new point
+      tPt  VarPt() const;    ///<  Variance in x,y ...
+      tREAL8  StdDev() const;   ///< Standar deviation
+   private :
+      tREAL8  mNb;          ///< Number of points
+      tPt     mSomP;        ///< Sum of points
+      tPt     mSomP2;       ///<  Sum of x^2, y^2 ...
+};
+
+
 /** More a less special case to  cStrStat2 for case 2 variable, very current and
 probably much more efficient */
 

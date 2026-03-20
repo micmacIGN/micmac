@@ -1,7 +1,7 @@
 #ifndef _MMVII_Tpl_GraphTriplet_H_
 #define _MMVII_Tpl_GraphTriplet_H_
 
-#include "MMVII_PoseTriplet.h"
+#include "MMVII_PoseRel.h"
 #include "MMVII_Tpl_GraphStruct.h"
 #include "MMVII_Tpl_GraphAlgo_SPCC.h"
 // #include "MMVII_Tpl_GraphAlgo_Group.h"
@@ -106,11 +106,11 @@ class c3G3_AttrSym
 class c3G3_AttrV
 {
    public :
-        c3G3_AttrV (cTriplet* aT0,int aKT) ;
+        c3G3_AttrV (cDataSolOriTriplet* aT0,int aKT) ;
         size_t GetIndexVertex(const t3GOP_Vertex* aV) const;
         tREAL8 CostVertexCommon(const c3G3_AttrV &,tREAL8 aWTr) const;
 
-        cTriplet*        mT0;    ///< the initial triplet itself
+        cDataSolOriTriplet*        mT0;    ///< the initial triplet itself
         int              mKT;
         t3E_GOP          mCnxE;      // the 3 edges 
         t3V_GOP           m3V;        // the 3 vertices 

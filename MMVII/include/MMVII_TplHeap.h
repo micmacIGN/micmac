@@ -61,10 +61,13 @@ template <class Type,class Compare, class TParam=DefaultParamHeap<Type> > class 
         cIndexedHeap(Compare inferior,tINT4 aCapa = 2) :
            mIsInferior    (inferior)
         {
-		mElements.reserve(aCapa);
+           mElements.reserve(aCapa);
         }
             // ==== Accesors =============
         const std::vector<Type> & Elements() const {return mElements;}  ///< Vector of elements
+        /// Vector of elements : warn if modified obviously no more heap struct
+         std::vector<Type> & Elements()  {return mElements;}
+
         const Compare & Inferior() const {return mIsInferior;}  /// Comparator
         bool IsInferior(const Type & aV1,const Type & aV2) const {return mIsInferior(aV1,aV2);}
 
@@ -89,7 +92,7 @@ template <class Type,class Compare, class TParam=DefaultParamHeap<Type> > class 
              SetNoIndex(mElements[0]);
              mElements[0] = mElements[Sz()-1];  
              ResetIndex(0);
-	     mElements.pop_back();
+             mElements.pop_back();
              HeapUp(0);
              return true;
         }
@@ -287,7 +290,10 @@ template <class Type,class Compare> class cKBestValue
       /// number of element currently stored
       int Sz() const {return  mHeap.Sz();}
       /// vector  of element currently stored
-      const std::vector<Type> & Elements() {return mHeap.Elements();}
+      const std::vector<Type> & Elements() const {return mHeap.Elements();}
+      /// Warn : if modified, no more KBest struct
+       std::vector<Type> & Elements()  {return mHeap.Elements();}
+
       /// Heap used for implementation
       tHeap & Heap() {return  mHeap ;}
 

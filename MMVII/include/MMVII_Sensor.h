@@ -38,7 +38,7 @@ class  cCalculMetaDataProject;
 class  cGlobCalculMetaDataProject;
 class  cBA_Topo;
 class  cBA_GCP;
-class  cTripletSet;
+class  cDataSolOriTriplet;
 class  cStaticLidar;
 
 /**  helper for cPixelDomain, as the cPixelDomain must be serialisable we must separate the
@@ -444,6 +444,48 @@ class cDirsPhProj : public cMemCheck
 };
 
 
+/**  Minimal virtual interface for photogrammetric project access.
+ *   Both cPhotogrammetricProject (disk-based) and cPhotogrammetricProjectMemory
+ *   (in-memory) inherit from this interface.  Code that only needs calibrations,
+ *   orientations, homologous points / multiple tie-points should accept a
+ *   cIPhProj& / cIPhProj* instead of a concrete type.
+ */
+class cIPhProj
+{
+    public :
+        virtual ~cIPhProj() = default;
+
+        //=== Calibrations ===
+        virtual cPerspCamIntrCalib *  InternalCalibFromStdName(const std::string aNameIm, bool isRemanent=true) const = 0;
+
+        //=== Orientations ===
+        virtual cSensorImage *  ReadSensor(const std::string & aNameIm, bool ToDeleteAutom, bool SVP=false) const = 0;
+        virtual cSensorCamPC *  ReadCamPC(const std::string &, bool ToDeleteAutom, bool SVP=false) const = 0;
+        virtual tPoseR          ReadPoseCamPC(const std::string & aNameIm, bool * SVP=nullptr) const = 0;
+        virtual void            SaveSensor(const cSensorImage &) const = 0;
+        virtual void            SaveCamPC(const cSensorCamPC &) const = 0;
+        virtual void            SaveCalibPC(const cPerspCamIntrCalib &) const = 0;
+
+        //=== Homologous points ===
+        virtual void  ReadHomol(cSetHomogCpleIm &,
+                                const std::string & aNameIm1,
+                                const std::string & aNameIm2,
+                                const std::string & aDir="") const = 0;
+        virtual void  SaveHomol(const cSetHomogCpleIm &,
+                                const std::string & aNameIm1,
+                                const std::string & aNameIm2,
+                                const std::string & aDir="") const = 0;
+
+        //=== Multiple tie-points ===
+        virtual void  ReadMultipleTiePFromFolder(const std::string & aFolder,
+                                                 cVecTiePMul &,
+                                                 const std::string & aNameIm,
+                                                 bool SVP=false) const = 0;
+        /// Returns default input dir for tie-points; used for diagnostics (empty string if not applicable)
+        virtual std::string  MulTiePDirIn() const = 0;
+};
+
+
 /** Class to facilitate the management of orientations (and others ?) in a photogrammetric
  * application.  Offers facilities for :
  *        * readr/write an orient to file
@@ -453,7 +495,7 @@ class cDirsPhProj : public cMemCheck
  */
 
 
-class cPhotogrammetricProject
+class cPhotogrammetricProject : public cIPhProj
 {
       public :
 
@@ -491,6 +533,8 @@ class cPhotogrammetricProject
 	  cDirsPhProj &   DPTopoMes();    ///<  Accessor  // TOPO
 	  cDirsPhProj &   DPMeasuresClino();    ///<  Accessor  // RIGIDBLOC
       cDirsPhProj &   DPStaticLidar();    ///<  Accessor  // STATIC LIDAR
+      cDirsPhProj &   DPOriRel() ;    ///<  Accessor
+
 				    
 	  const cDirsPhProj &   DPOrient() const; ///< Accessor
       const cDirsPhProj &   DPOriTriplets() const; ///< Accessor
@@ -510,6 +554,7 @@ class cPhotogrammetricProject
 	  const cDirsPhProj &   DPMeasuresClino() const;    ///<  Accessor
           const cDirsPhProj &   DPStaticLidar() const;    ///<  Accessor
 
+          const cDirsPhProj &   DPOriRel() const;    ///<  Accessor
 
 	  // Sometime we need several dir of the same type, like "ReportPoseCmp", or RefPose in bundle
 	  cDirsPhProj * NewDPIn(eTA2007 aType,const std::string & aDirIn);
@@ -518,6 +563,7 @@ class cPhotogrammetricProject
 	  const std::string &   DirVisu() const;   ///< Accessor
 	  const std::string &   DirVisuAppli() const;   ///< Accessor
 	  const std::string &   DirSysCo() const;   ///< Accessor
+      const std::string &   DirStaticLidarRasters() const;   ///< Accessor
           tPtrArg2007           ArgChSys(bool DefaultUndefined=false);
 	  /// To fix the "cur" sys co, its In,Out, or InOut, if both and diff use ArgChSys
           tPtrArg2007           ArgSysCo();
@@ -529,22 +575,23 @@ class cPhotogrammetricProject
           const std::string &   DirImportInitOri() const;   ///< Accessor
           bool IsOriInDirInit() const;
                //  Read/Write
-          void SaveSensor(const cSensorImage &) const; ///< Save camera using OutPut-orientation
-          void SaveCamPC(const cSensorCamPC &) const; ///< Save camera using OutPut-orientation
-	  void SaveCalibPC(const  cPerspCamIntrCalib & aCalib) const;  ///< Save calibration using  OutPut-orientation
+          void SaveSensor(const cSensorImage &) const override; ///< Save camera using OutPut-orientation
+          void SaveCamPC(const cSensorCamPC &) const override; ///< Save camera using OutPut-orientation
+	  void SaveCalibPC(const  cPerspCamIntrCalib & aCalib) const override;  ///< Save calibration using  OutPut-orientation
 
-	  cSensorCamPC * ReadCamPC(const std::string &,bool ToDeleteAutom,bool SVP=false) const; ///< Create Camera using Input orientation
+	  cSensorCamPC * ReadCamPC(const std::string &,bool ToDeleteAutom,bool SVP=false) const override; ///< Create Camera using Input orientation
 	  cSensorCamPC * ReadCamPC(const cDirsPhProj&,const std::string &,bool ToDeleteAutom,bool SVP=false) const; ///< Create Camera using Input orientation
+      cSensorCamPC * ReadCamPCFromFolder(const std::string&,const std::string &,bool ToDeleteAutom,bool SVP=false) const; ///< Create Camera using Input orientation
 
            /// sometime we are only  interested by the pose of the camera
-           tPoseR ReadPoseCamPC(const std::string & aNameIm,bool * SVP=nullptr) const;
+           tPoseR ReadPoseCamPC(const std::string & aNameIm,bool * SVP=nullptr) const override;
 
 
 	  /// Load a sensor, try different type (will add RPC , and others ?) use autom delete (dont need to delete it)
 	  void ReadSensor(const std::string &NameIm,cSensorImage* &,cSensorCamPC * &,bool ToDeleteAutom,bool SVP=false) const;
-	 
+
 	  /// return the generic sensor, use autom delete (dont need to delete it)
-	  cSensorImage* ReadSensor(const std::string  &aNameIm,bool ToDeleteAutom,bool SVP=false) const;
+	  cSensorImage* ReadSensor(const std::string  &aNameIm,bool ToDeleteAutom,bool SVP=false) const override;
 	  /// same as "ReadSensor" but do it from another folder than the standard input one
 	  cSensorImage* ReadSensorFromFolder(const std::string  & aFolder,const std::string  &aNameIm,bool ToDeleteAutom,bool SVP=false) const;
 
@@ -558,7 +605,7 @@ class cPhotogrammetricProject
 	  /// read Pose file  and extract the name of internal  calibration
           cPerspCamIntrCalib *  InternalCalibFromImage(const std::string &aNameIm) const;
 	  ///  compute the standard name of calibration before reading it
-	  cPerspCamIntrCalib *  InternalCalibFromStdName (const std::string aNameIm,bool isRemanent=true) const;
+	  cPerspCamIntrCalib *  InternalCalibFromStdName (const std::string aNameIm,bool isRemanent=true) const override;
 
       /// compute the calibration from the name of the file
       cPerspCamIntrCalib *  InternalCalibFromStdNameCalib (const std::string aNameIm,bool isRemanent=true) const;
@@ -567,11 +614,32 @@ class cPhotogrammetricProject
     //===================================================================
     //==================   ORIENTATION OF TRIPLETS    ==================
     //===================================================================
-    void SaveTriplets(const cTripletSet&,bool useXmlraterThanDmp=true) const;
-    cTripletSet * ReadTriplets() const;
+    //void SaveTriplets(const cTripletSet&,bool useXmlraterThanDmp=true) const;
+    //cTripletSet * ReadTriplets() const;
+      std::vector<cDataSolOriTriplet> ReadAllTriplets(const std::vector<std::string>& aVImages) const;
+    //===================================================================
+    //==================   RELATIVE ORIENTATION    ======================
+    //===================================================================
 
+    /// Name of folder for relative orientation of 1 image (indiv file + pairs + triplets)
+    std::string OriRel_DirOfImage(const std::string& aNameIm,bool isIn) const;
+
+    /// Name of file for all images in the set
+    std::string OriRel_NameAllImages(bool isIn, std::string aPost="" ) const;
+    /// Name of file for all pairs of 1 image (only pairs, not orientation)
+    std::string OriRel_NamePairsOfAllImages(bool isIn, std::string aPost="" ) const;
+    /// Name of file for all Relative Orientation of pairs of 1 image
+    std::string OriRel_NameOriAllPairsOf1Image(const std::string&aNameIm1,bool isIn, std::string aPost="" ) const;
+    /// Name of file where is stored the relative orientation of a pair of image
+    std::string OriRel_NameOriPair2Images(const std::string&aNameIm1,const std::string&aNameIm2,bool isIn, std::string aPost="" ) const;
+
+    /// Name of file for all pairs of 1 image (only pairs, not orientation)
+    std::string OriRel_NameAllTripletsOf1Image(const std::string&aNameIm1,bool isIn, std::string aPost="") const;
+
+    /// Name of file for all pairs of 1 image (only pairs, not orientation)
+    std::string OriRel_OrientAllTripletsOf1Image(const std::string&aNameIm1,bool isIn, std::string aPost="") const;
 	 //===================================================================
-         //==================   RADIOMETRY       =============================
+     //==================   RADIOMETRY       =============================
 	 //===================================================================
 
 	       //  ------------  Create data --------------------
@@ -620,7 +688,10 @@ class cPhotogrammetricProject
           bool HasMeasureImFolder(const std::string & aFolder,const std::string & aNameIma) const;
 
           /// return from Std Dir, can be out in case of reload
-	  cSetMesPtOf1Im LoadMeasureIm(const std::string &,bool InDir=true) const;
+      cSetMesPtOf1Im LoadMeasureIm(const std::string &,bool InDir=true,bool SVP=false) const;
+
+      /// Created only once in case of multiple read
+      cSetMesPtOf1Im* RemanentLoadMeasureIm(const std::string & aNameIm) const;
 
 	  /// Load the measure image from a specified folder, usefull when multiple folder
 	  cSetMesPtOf1Im LoadMeasureImFromFolder(const std::string & aFolder,const std::string &) const;
@@ -697,13 +768,20 @@ class cPhotogrammetricProject
 	 
 	 void  SaveHomol(const cSetHomogCpleIm &,
 			 const std::string & aNameIm1 ,
-			 const std::string & aNameIm2,const std::string & aDir="") const;
+			 const std::string & aNameIm2,const std::string & aDir="") const override;
 
 	 void  ReadHomol(cSetHomogCpleIm &,
 			 const std::string & aNameIm1 ,
-			 const std::string & aNameIm2,const std::string & aDir="") const;
+			 const std::string & aNameIm2,const std::string & aDir="") const override;
+     void  ReadHomol(cSetHomogCpleIm &,bool SVP,
+             const std::string & aNameIm1 ,
+             const std::string & aNameIm2,const std::string & aDir="") const;
+             //  const std::string & aNameIm2,const std::string & aDir="",bool SVP=false) const;
 
 	 std::string NameTiePIn(const std::string & aNameIm1,const std::string & aNameIm2,const std::string & aDir="") const;
+
+     ///  Read Homol from multiple source : DPTieP, DPGndPt2D, DPMulTieP
+     void ReadHomolMultiSrce(int & aNbInit,cSetHomogCpleIm &,const std::string & aNI1,const std::string & aNI2) const;
 
 	 //===================================================================
          //==================   Multiple Tie-Points  =========================
@@ -718,8 +796,9 @@ class cPhotogrammetricProject
 	 std::string NameMultipleTieP(const std::string &) const;
 	 void  SaveMultipleTieP(const cVecTiePMul&,const std::string &) const;
 	 void  ReadMultipleTieP(cVecTiePMul&,const std::string &aNameIm,bool SVP =false ) const;
-         ///  When dont read from the standard input 
-	 void  ReadMultipleTiePFromFolder(const std::string & aFolder,cVecTiePMul&,const std::string &,bool SVP =false ) const;
+         ///  When dont read from the standard input
+	 void  ReadMultipleTiePFromFolder(const std::string & aFolder,cVecTiePMul&,const std::string &,bool SVP =false ) const override;
+	 std::string  MulTiePDirIn() const override;  ///< Returns DPMulTieP().DirIn()
 	 bool HasNbMinMultiTiePoints(const std::string & aNameIm,size_t aNbMin,bool AcceptNoDirIn =false) const;
 
 	 //===================================================================
@@ -815,8 +894,10 @@ class cPhotogrammetricProject
      //==================   Static Lidar         =========================
      //===================================================================
 
-     cStaticLidar * ReadStaticLidar(const cDirsPhProj& aDP,const std::string &aScanName, bool ToDeleteAutom) const; ///< Create Static Lidar
 
+     cStaticLidar * ReadStaticLidar(const cDirsPhProj & aDP,const std::string &aScanName, bool ToDeleteAutom, bool LoadRasters) const; ///< Create Static Lidar
+     cStaticLidar * ReadStaticLidar(const std::string &aScanName, bool ToDeleteAutom, bool LoadRasters) const; ///< Create Static Lidar
+     std::vector<std::string> GetStaticLidarNames(const std::string &aPatSelect) const; ///< pattern without "Ori-Scan-"
          //==================   Camera Data Base     =========================
 
          void MakeCamDataBase();
@@ -834,6 +915,7 @@ class cPhotogrammetricProject
 	  std::string     mDirPhp;
 	  std::string     mDirVisu;
 	  std::string     mDirVisuAppli;
+      std::string     mDirStaticLidarRasters;
 
 	  std::string     mDirSysCo;        /// Folder where are stored System of coordinates
           std::string     mNameCurSysCo;      /// Data where we store the system In Or Out if given in std args
@@ -853,13 +935,14 @@ class cPhotogrammetricProject
 	  cDirsPhProj     mDPTieP;            ///<  For Homologous point
 	  cDirsPhProj     mDPMulTieP;         ///<  For multiple Homologous point
 	  cDirsPhProj     mDPMetaData;
-	  cDirsPhProj     mDPBlockInstr;       // RIGIDBLOC
-	  cDirsPhProj     mDPRigBloc;         // RIGIDBLOC
+          cDirsPhProj     mDPBlockInstr;       // RIGIDBLOC
+          cDirsPhProj     mDPRigBloc;         // RIGIDBLOC
           cDirsPhProj     mDPClinoMeters;      // +-  resulta of clino calib (boresight)
           cDirsPhProj     mDPMeasuresClino;     // measure (angles) of clino
           cDirsPhProj     mDPTopoMes;         // Topo
           cDirsPhProj     mDPStaticLidar;         // Static Lidar
- 					      //
+          cDirsPhProj     mDPOriRel;         // Relative orientation
+                          //
 
 	  std::vector<cDirsPhProj*> mDirAdded;
 	  mutable cGlobCalculMetaDataProject *  mGlobCalcMTD;
@@ -868,6 +951,73 @@ class cPhotogrammetricProject
 
 };
 void SaveAndFilterAttrEll(const cPhotogrammetricProject & aPhp,const cSetMesPtOf1Im &  aSetM,const std::set<std::string> & ToRem);
+
+
+/**  In-memory implementation of cIPhProj.
+ *   Calibrations, orientations and homologous points are stored
+ *   in maps keyed by image name rather than read from disk.
+ *
+ *   Populate with Add*() methods before use; the Read*() methods then return
+ *   the stored objects.  The Save*() methods are not meaningful in memory mode
+ *   and will trigger an error if called.
+ */
+class cPhotogrammetricProjectMemory : public cIPhProj
+{
+    public :
+
+        cPhotogrammetricProjectMemory();
+        ~cPhotogrammetricProjectMemory();
+
+        // === Population methods ===
+
+        /// Register calibration for a given image name (does NOT take ownership)
+        void  AddCalib(const std::string & aNameIm, cPerspCamIntrCalib *);
+        /// Register sensor for a given image name (does NOT take ownership)
+        void  AddSensor(const std::string & aNameIm, cSensorCamPC *);
+        /// Store homologous points for an image pair (copied)
+        void  AddHomol(const std::string & aNameIm1, const std::string & aNameIm2,
+                       const cSetHomogCpleIm &);
+        /// Store multiple tie-points for one image (copied)
+        void  AddMulTieP(const std::string & aNameIm, const cVecTiePMul &);
+
+        // === cIPhProj interface ===
+
+        cPerspCamIntrCalib *  InternalCalibFromStdName(const std::string aNameIm, bool isRemanent=true) const override;
+
+        cSensorImage *  ReadSensor(const std::string & aNameIm, bool ToDeleteAutom, bool SVP=false) const override;
+        cSensorCamPC *  ReadCamPC(const std::string &, bool ToDeleteAutom, bool SVP=false) const override;
+        tPoseR          ReadPoseCamPC(const std::string & aNameIm, bool * SVP=nullptr) const override;
+        void            SaveSensor(const cSensorImage &) const override;
+        void            SaveCamPC(const cSensorCamPC &) const override;
+        void            SaveCalibPC(const cPerspCamIntrCalib &) const override;
+
+        void  ReadHomol(cSetHomogCpleIm &,
+                        const std::string & aNameIm1,
+                        const std::string & aNameIm2,
+                        const std::string & aDir="") const override;
+        void  SaveHomol(const cSetHomogCpleIm &,
+                        const std::string & aNameIm1,
+                        const std::string & aNameIm2,
+                        const std::string & aDir="") const override;
+
+        void  ReadMultipleTiePFromFolder(const std::string & aFolder,
+                                         cVecTiePMul &,
+                                         const std::string & aNameIm,
+                                         bool SVP=false) const override;
+        std::string  MulTiePDirIn() const override;  ///< Returns ""
+
+        const std::map<std::string, cSensorCamPC *> & SensorMap() const { return mSensorMap; }  ///< Accessor
+
+    private :
+        cPhotogrammetricProjectMemory(const cPhotogrammetricProjectMemory &) = delete;
+
+        std::map<std::string, cPerspCamIntrCalib *>                    mCalibMap;
+        mutable std::map<std::string, cSensorCamPC *>                  mSensorMap;
+        mutable std::map<std::string, cSensorCamPC *>                  mOwnedSensorMap;  ///< owns sensors written via SaveCamPC (destructor deletes)
+        std::map<std::pair<std::string,std::string>, cSetHomogCpleIm>  mHomolMap;
+        std::map<std::string, cVecTiePMul>                             mMulTiePMap;
+};
+
 
 };
 

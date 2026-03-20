@@ -246,6 +246,7 @@ template<> cE2Str<eTA2007>::tMapE2Str cE2Str<eTA2007>::mE2S
                 {eTA2007::TypeInstr,"Instrum"},
                 {eTA2007::MeasureClino,"MeasureClino"},
                 {eTA2007::StaticLidar,"StaticLidar"},
+                {eTA2007::OriRel,"OriRel"},
                 {eTA2007::Topo,"Topo"},
                 {eTA2007::SysCo,"SysCo"},
                 {eTA2007::Input,"In"},
@@ -472,13 +473,18 @@ template<> cE2Str<eModResBund>::tMapE2Str cE2Str<eModResBund>::mE2S
            {
                 {eModResBund::eAngle,"Angle"},
                 {eModResBund::eProduct,"Product"},
-                {eModResBund::eDet12,"Det12"},
                 {eModResBund::eDist12,"Dist12"},
-                {eModResBund::eAng12,"Ang12"}
+                {eModResBund::eAng12,"Ang12"},
+                {eModResBund::eDet12,"Det12"},
+                {eModResBund::eLinDet12,"LinDet12"}
            };
 bool ModResBund_IsMode12(eModResBund aMode)
 {
-    return (int) aMode >= (int) eModResBund::eDet12;
+    return  ((int) aMode >= (int) eModResBund::eDist12) && ((int) aMode <= (int) eModResBund::eDet12) ;
+}
+bool ModResBund_IsModeGen(eModResBund aMode)
+{
+    return  ((int) aMode <= (int) eModResBund::eProduct) ;
 }
 
 
@@ -497,7 +503,7 @@ template<> cE2Str<eFormatExtern>::tMapE2Str cE2Str<eFormatExtern>::mE2S
            {
                 {eFormatExtern::eMMV1,"MMV1"},
                 {eFormatExtern::eMeshRoom,"MeshRoom"},
-                {eFormatExtern::eColMap,"ColMap"}
+                {eFormatExtern::eColmap,"Colmap"}
            };
 
 

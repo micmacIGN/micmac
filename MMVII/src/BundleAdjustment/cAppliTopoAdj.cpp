@@ -131,11 +131,7 @@ int cAppliTopoAdj::Exe()
     if (IsInit(&mParamShow_UK_UC))
        mBA.Set_UC_UK(mParamShow_UK_UC);
 
-    for (int aKIter=0 ; aKIter<mNbIter ; aKIter++)
-    {
-        bool isLastIter =  (aKIter==(mNbIter-1)) ;
-        mBA.OneIteration(mLVM,isLastIter);
-    }
+    mBA.Iterate(mNbIter, mLVM);
 
     mBA.Save_newGCP3D();
     mBA.SaveTopo(); // just for debug for now

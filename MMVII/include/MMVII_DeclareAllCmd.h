@@ -68,6 +68,15 @@ extern cSpecMMVII_Appli  TheSpec_OriUncalibSpaceResection;
 extern cSpecMMVII_Appli  TheSpec_OriCalibratedSpaceResection; 
 extern cSpecMMVII_Appli  TheSpec_OriCheckGCPDist; 
 extern cSpecMMVII_Appli  TheSpec_OriRel2Im; 
+extern cSpecMMVII_Appli  TheSpec_OriRelPairsOf1m;
+extern cSpecMMVII_Appli  TheSpec_OriRelAllPairs;
+extern cSpecMMVII_Appli  TheSpec_SelectPairOriRel;
+extern cSpecMMVII_Appli  TheSpec_OriRel3Im;
+extern cSpecMMVII_Appli  TheSpec_OriRelTripletsOf1m;
+extern cSpecMMVII_Appli  TheSpec_OriRelAllTriplets;
+
+
+
 extern cSpecMMVII_Appli  TheSpecMeshCheck; 
 extern cSpecMMVII_Appli  TheSpecProMeshImage; 
 extern cSpecMMVII_Appli  TheSpecMeshImageDevlp; 
@@ -140,6 +149,9 @@ extern cSpecMMVII_Appli  TheSpec_GCPBascule;
 extern cSpecMMVII_Appli  TheSpec_CheckBoardTargetRefine;
 extern cSpecMMVII_Appli  TheSpec_GCPAbsOri;
 
+extern cSpecMMVII_Appli  TheSpec_HierarchSfm;
+extern cSpecMMVII_Appli  TheSpec_VisuPoseStr3D;
+extern cSpecMMVII_Appli  TheSpec_TransformPoses;
 
 extern cSpecMMVII_Appli  TheSpecAppliBenchAPBI;
 extern cSpecMMVII_Appli  TheSpecAppliTestElemBundle;

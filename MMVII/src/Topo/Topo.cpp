@@ -434,10 +434,7 @@ void BenchTopoComp1example(const std::pair<cTopoData, cSetMesGnd3D>& aBenchData,
     cSetMesPtOf1Im aSetMesPtOf1Im;
     aBA.AddGCP2D(aMes2DDirInfo, aSetMesPtOf1Im, nullptr, eLevelCheck::NoCheck);
 
-    for (int aKIter=0 ; aKIter<aNbIter ; aKIter++)
-    {
-        aBA.OneIteration(aLVM);
-    }
+    aBA.Iterate(aNbIter, aLVM);
 
     aTopo->ToFile(cMMVII_Appli::TmpDirTestMMVII()+"bench-out.json");
 

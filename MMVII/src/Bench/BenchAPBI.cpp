@@ -45,6 +45,7 @@ cAppliTestAPBI::cAppliTestAPBI
 {
 }
 
+
 cCollecSpecArg2007 & cAppliTestAPBI::ArgObl(cCollecSpecArg2007 & anArgObl)
 {
     return anArgObl;
@@ -61,11 +62,12 @@ int cAppliTestAPBI::ExeOnParsedBox()
 {
     cIm2D<tU_INT1>  aImTest(CurSzIn());
     tU_INT1 aVal = valFromBox(CurBoxIn());
-    auto &imSrc = LoadI(CurBoxIn());
+    auto &imSrc = LoadI(CurBoxIn()); FakeUseIt(imSrc);
     for (const auto & aPix : aImTest.DIm())
-        aImTest.DIm().SetVTrunc(aPix,(aVal + (int)imSrc.GetV(aPix)) % 255);
+    {
+       aImTest.DIm().SetVTrunc(aPix,(aVal + (int)imSrc.GetV(aPix)) % 255);
+    }
     APBI_WriteIm(ImNameOut(),aImTest);
-
     return EXIT_SUCCESS;
 }
 
@@ -107,17 +109,15 @@ void BenchAPBI(cParamExeBench & aParam)
     if (! aParam.NewBench("APBI")) return;
 
 
-    cDataFileIm2D::Create(cAppliTestAPBI::ImNameIn(),eTyNums::eTN_U_INT1,
-                          cPt2di(2000+RandUnif_M_N(-100,100),2000+RandUnif_M_N(-100,100)),
-                          1
-                          );
-    auto aIm2d = cIm2D<tU_INT1>(cPt2di(2000+RandUnif_M_N(-100,100),2000+RandUnif_M_N(-100,100)));
+    cPt2di aSz (2000+RandUnif_M_N(-100,100),2000+RandUnif_M_N(-100,100));
+    auto aBoxSize = cPt2di(200+RandUnif_M_N(-10,10),200+RandUnif_M_N(-10,10));
+    auto aIm2d = cIm2D<tU_INT1>(aSz);
+
     for (const auto& aPix : aIm2d.DIm()) {
         aIm2d.DIm().SetV(aPix,(aPix.x()+aPix.y()) % 255);
     }
     cDataFileIm2D  aDF = cDataFileIm2D::Create(cAppliTestAPBI::ImNameIn(),eTyNums::eTN_U_INT1,aIm2d.DIm().Sz(),1);
     aIm2d.Write(aDF,cPt2di(0,0));
-    auto aBoxSize = cPt2di(200+RandUnif_M_N(-10,10),200+RandUnif_M_N(-10,10));
 
     cMMVII_Appli & anAp = cMMVII_Appli::CurrentAppli();
 
@@ -127,7 +127,6 @@ void BenchAPBI(cParamExeBench & aParam)
             anAp.StrObl(),
             anAp.StrOpt() << std::make_pair("SzTiles",cStrIO<cPt2di>::ToStr(aBoxSize))
             );
-
 
     auto mIm2d = cIm2D<tU_INT1>::FromFile(cAppliTestAPBI::ImNameOut());
     cParseBoxInOut<2> aPBIO =  cParseBoxInOut<2>::CreateFromSize(mIm2d.DIm(),aBoxSize);

@@ -484,6 +484,7 @@ void cMMVII_Appli::InitParam(cGenArgsSpecContext *aArgsSpecs)
   mArgFac
       <<  AOpt2007(mNumOutPut,GOP_NumVO,"Num version for output format (1 or 2)",{eTA2007::Global,{eTA2007::Range,"[1,2]"}})
       <<  AOpt2007(mSeedRand,GOP_SeedRand,"Seed for random,if <=0 init from time",aGlobHDV)
+      <<  AOpt2007(mVecAppliSpecParam,"AppSpecParam","Parameters for specific Appli Behaviour")
       <<  AOpt2007(mExtandPattern,"ExtPatFile","Do we extang patterns for files (or interpret them literally)",aGlobHDV)
 
       <<  AOpt2007(msWithWarning,GOP_WW,"Do we print warnings",aGlobHDV)
@@ -819,8 +820,8 @@ void cMMVII_Appli::InitParam(cGenArgsSpecContext *aArgsSpecs)
                const std::string & aNameInterval = mIntervFilterMS[aNum];
                if (IsInit(&aNameInterval))
                {
-		       // JOE
-		   cPatternTransfo aPat(mTransfoFFI[aNum]);
+                   // JOE
+                   cPatternTransfo aPat(mTransfoFFI[aNum]);
                    mVMainSets.at(aNum).Filter(Str2Interv<std::string>(aNameInterval),aPat);
                    // mVMainSets.at(aNum).Filter(Str2Interv<std::string>(aNameInterval));
                }
@@ -830,12 +831,12 @@ void cMMVII_Appli::InitParam(cGenArgsSpecContext *aArgsSpecs)
             {
                 // if we are in a recall mode, posibly pattern comes file xml, and file insid can be un-existent
                 if (mLevelCall>0)
-		{
-                   mVMainSets.at(aNum).Add(aVValues[aK]);
-		}
-		else
                 {
-                   MMVII_UserError(eTyUEr::eEmptyPattern,"Specified set of files was empty");
+                    mVMainSets.at(aNum).Add(aVValues[aK]);
+                }
+                else
+                {
+                    MMVII_UserError(eTyUEr::eEmptyPattern,"Specified set of files was empty");
                 }
             } else if (mVMainSets.at(aNum).size() == 1){
                 // If only 1 file matches the pattern, we replace the pattern in this arg by the matched file
@@ -909,7 +910,26 @@ void cMMVII_Appli::InitParam(cGenArgsSpecContext *aArgsSpecs)
 
   if (mMainAppliInsideP) 
      InitProfile();
+
+  MMVII_INTERNAL_ASSERT_strong(mVecAppliSpecParam.size()%2==0,"Odd size for AppSpecParam");
+  for (size_t aKP=0 ; aKP<mVecAppliSpecParam.size() ; aKP+=2)
+      mMapAppliSpecParam[mVecAppliSpecParam.at(aKP)] =  mVecAppliSpecParam.at(aKP+1);
 }
+
+std::string cMMVII_Appli::AppliSpecValue(const std::string & aKey ) const
+{
+    const auto & anIter = mMapAppliSpecParam.find(aKey);
+
+    if (anIter == mMapAppliSpecParam.end())
+        return MMVII_NONE;
+    return anIter->second;
+}
+
+std::string AppliSpecValue(const std::string & aKey )
+{
+    return cMMVII_Appli::CurrentAppli().AppliSpecValue(aKey);
+}
+
 
 void cMMVII_Appli::InitProfile()
 {
@@ -1023,6 +1043,7 @@ tPtrArg2007 cMMVII_Appli::AOptBench()
 {
      return   AOpt2007(mIsInBenchMode,GIP_BenchMode,"Is the command executed in bench mode",{eTA2007::Internal,eTA2007::HDV});
 }
+
 
 
 
@@ -1891,8 +1912,13 @@ int  cMMVII_Appli::ExeCallMMVII
          const cColStrAOpt& anAOpt
       )
 {
+
     cParamCallSys aComGlob = StrCallMMVII(0,aCom2007,anAObl,anAOpt);
-    return  GlobSysCall(aComGlob,false);
+
+    int aRes =   GlobSysCall(aComGlob,false);
+
+
+    return aRes;
 }
 
 int cMMVII_Appli::ExeComSerial(const std::list<cParamCallSys> & aL, bool forceExternal)

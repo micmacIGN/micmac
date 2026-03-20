@@ -471,6 +471,7 @@ template <class T,const int Dim>
 }
 */
 
+///  x*y*z ...
 template <class T,const int Dim> typename tNumTrait<T>::tBig MulCoord(const cPtxd<T,Dim> & aP);
 
 template <class T,const int Dim> T Cos(const cPtxd<T,Dim> &,const cPtxd<T,Dim> &);

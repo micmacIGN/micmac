@@ -266,8 +266,8 @@ int cAppli_ImportTriplet::Exe()
         aTri.Id() = aId++;
 
         aTri.PVec()[0] = (cView(tPose::Identity(),aTriXML.Name1()));
-        aTri.PVec()[1] = (cView(tPose(aCenter21,aR21),aTriXML.Name2()));
-        aTri.PVec()[2] = (cView(tPose(aCenter31,aR31),aTriXML.Name3()));
+        aTri.PVec()[1] = (cView(tPose(aCenter21,aR21.MapInverse()),aTriXML.Name2()));
+        aTri.PVec()[2] = (cView(tPose(aCenter31,aR31.MapInverse()),aTriXML.Name3()));
 
 
         ///metrics (B/h, residual)
@@ -283,8 +283,9 @@ int cAppli_ImportTriplet::Exe()
     }
 
     /// save triplets' graph to mmvii format
-    mPhProj.SaveTriplets(aSetOfTri);
+    //  MPD -> no compiles ..  mPhProj.SaveTriplets(aSetOfTri, !mFileBin);
 
+    MMVII_INTERNAL_ERROR(" mPhProj.SaveTriplets supress, dont compiles");
 
 
     return EXIT_SUCCESS;

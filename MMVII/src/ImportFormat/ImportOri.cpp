@@ -214,8 +214,8 @@ int cAppli_ImportOri::Exe()
                     StdOut() << "C=" << aCenter << "\n";
                 }
 
-	        cIsometry3D aPose(aCenter,aRot);
-	        cSensorCamPC  aCam(aNameIm,aPose,aCalib);
+            cIsometry3D aPose(aCenter,aRot);
+            cSensorCamPC  aCam(aNameIm,aPose,aCalib);
 	        mPhProj.SaveCamPC(aCam);
                 if (WithName2)
                 {

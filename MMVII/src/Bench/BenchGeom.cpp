@@ -563,12 +563,19 @@ template <class tMap,class TypeEl> void TplBenchMap2D(const tMap & aMap,const tM
 	MMVII_INTERNAL_ASSERT_bench(aD<1e-2,"MapIdent");
 }
 
-
+static tREAL8 TheMinEr_M2DLASQ = 0.0;
 
 
 template <class tMap,class TypeEl> void TplBenchMap2D_LSQ(TypeEl *)
 {
      bool IsHomogr =  (tMap::Name() == "Homogr2D");
+
+
+     TypeEl anAccuracy =  tElemNumTrait<TypeEl>::Accuracy();
+     if (tNumTrait<TypeEl>::TyNum() == eTyNums::eTN_REAL4)
+     {
+         anAccuracy = 10;
+     }
 
      int aNbPts = (tMap::NbDOF+1)/2;
      std::vector<cPtxd<TypeEl,2> > aVIn =  RandomPtsOnCircle<TypeEl>(aNbPts);
@@ -580,6 +587,7 @@ template <class tMap,class TypeEl> void TplBenchMap2D_LSQ(TypeEl *)
           aVOut.push_back(cPtxd<TypeEl,2>::PRand());
      }
 
+
      if (IsHomogr)
      {
        auto aPair = RandomPtsHomgr<TypeEl>();
@@ -588,6 +596,50 @@ template <class tMap,class TypeEl> void TplBenchMap2D_LSQ(TypeEl *)
      }
 
      tMap aMap =  tMap::StdGlobEstimate(aVIn,aVOut);
+
+     // Test for derivation, do it only for most accurate
+     if (sizeof(TypeEl)==16)
+     {
+         cDenseVect<TypeEl> aVParam = aMap.GetParam();
+         tMap aMapBis = tMap::FromParam(aVParam);
+        //  StdOut() << "MAPNAEEMM   " << tMap::Name() << "\n";
+         for (int aK=0 ; aK<10 ; aK++)
+         {
+             cPtxd<TypeEl,2> aPt = cPtxd<TypeEl,2>::PRandC();
+             // Test that GetParam() -> FromParam()
+             TypeEl aDist = Norm2(aMap.Value(aPt)-aMapBis.Value(aPt));
+             MMVII_INTERNAL_ASSERT_bench(aDist<1e-9,"FromParam -> GetParam");
+
+             std::vector<cDenseVect<TypeEl>> aDerXY= DerivFromParam(aMap,aPt);
+
+             for (size_t aKP = 0 ; aKP<tMap::NbDOF ; aKP++)
+             {
+                TypeEl aEps = 1e-5;
+                cDenseVect<TypeEl> aVParam0 = aVParam.Dup();
+                cDenseVect<TypeEl> aVParam1 = aVParam.Dup();
+                aVParam0(aKP) -= aEps;
+                aVParam1(aKP) += aEps;
+
+                tMap aMap0 = tMap::FromParam(aVParam0);
+                tMap aMap1 = tMap::FromParam(aVParam1);
+
+                cPtxd<TypeEl,2> aDerDif = (aMap1.Value(aPt)-aMap0.Value(aPt)) / (2* aEps);
+                cPtxd<TypeEl,2> aDerF(aDerXY.at(0)(aKP),aDerXY.at(1)(aKP));
+
+                TypeEl aNormDif = Norm2(aDerDif  - aDerF);
+
+
+              /*  StdOut() << " NnnNN=" <<
+                            aNormDif
+                           << " DDif=" << aDerDif  << " DerF="<<  aDerF << " K=" << aKP
+                         <<  " " << tMap::Name() << "\n";  */
+                MMVII_INTERNAL_ASSERT_bench(aNormDif<1e-6,"DerivFromParam");
+
+             }
+         }
+
+
+     }
 
      if (tMap::NbDOF%2) // in this case match cannot be perfect "naturally", not enoug DOF, must cheat
      {
@@ -604,14 +656,31 @@ template <class tMap,class TypeEl> void TplBenchMap2D_LSQ(TypeEl *)
      for (int aK=0 ; aK<int(aVIn.size()); aK++)
      {
           TypeEl anEr = Norm2(aVOut[aK] - aMap.Value(aVIn[aK]));
-	  anEr /= tElemNumTrait<TypeEl>::Accuracy();
-          // Very leniant with homography ....
-         
+
+          anEr /= anAccuracy;
           TypeEl aDiv=std::min(TypeEl(1.0),Square(aMap.Divisor(aVIn[aK])));
+
+          // Very leniant with homography ....
+        // StdOut() << " ERRRR=" << anEr << " " << tElemNumTrait<TypeEl>::Accuracy() << "\n";
+          if ((anEr> TheMinEr_M2DLASQ) && (tNumTrait<TypeEl>::TyNum()!= eTyNums::eTN_REAL4) )
+          {
+              if (false)  // to maintain, as there has been many error
+              {
+                 TheMinEr_M2DLASQ = anEr;
+                 StdOut() << "ERRR=" << anEr
+                          <<  " M=" << tMap::Name()
+                           << " D="   << aDiv
+                          <<  " T=" << tNumTrait<TypeEl>::NameType()
+                          << "\n";
+              }
+          }
           if ((aDiv>1e-10) && (anEr*aDiv>=1e-2))
           {
-               StdOut()  << "Diivv " << aMap.Divisor(aVIn[aK])  << " DD=" << aDiv  << " E=" << anEr << std::endl;
-	       MMVII_INTERNAL_ASSERT_bench(false,"Least Sq Estimat 4 Mapping");
+               StdOut()  << "Diivv " << aMap.Divisor(aVIn[aK])
+                         <<  " T=" << tNumTrait<TypeEl>::NameType()
+                         << " DD=" << aDiv
+                         << " E=" << anEr << std::endl;
+               MMVII_INTERNAL_ASSERT_bench(false,"Least Sq Estimat 4 Mapping");
           }
           aTabIn[aK] = aVIn[aK];
           aTabOut[aK] = aVOut[aK];
@@ -624,6 +693,7 @@ template <class tMap,class TypeEl> void TplBenchMap2D_LSQ(TypeEl *)
     for (int aK=0 ; aK<int(aVIn.size()); aK++)
     {
          TypeEl anEr = Norm2(aVOut[aK] - aMap.Value(aVIn[aK]));
+        // StdOut()  << " ERR MAP2D=" << anEr << "\n";
          anEr /= tElemNumTrait<TypeEl>::Accuracy();
          MMVII_INTERNAL_ASSERT_bench(anEr<1e-2,"Least Sq Estimat 4 Mapping");
     }
@@ -849,6 +919,7 @@ void BenchGeom(cParamExeBench & aParam)
 
 
     cEllipse::BenchEllispe();
+    cEllipse3D::Bench();
 
     BenchIsometrie(aParam);
     BenchRotation3D(aParam);

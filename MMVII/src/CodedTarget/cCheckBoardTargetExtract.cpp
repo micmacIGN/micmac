@@ -50,8 +50,11 @@ cAppliCheckBoardTargetExtract::cAppliCheckBoardTargetExtract(const std::vector<s
    mScales           {1.0},
    mDistMaxLocSad    (10.0),
    mDistRectInt      (20),
-   mMaxNbSP_ML0      (30000),
-   mMaxNbSP_ML1      (2000),
+
+   mSzRefThrs        (6000,4000),
+   mRefMaxNbSP_ML0      (30000),
+   mRefMaxNbSP_ML1      (2000),
+
    mPtLimCalcSadle   (2,1),
    mThresholdSym     (0.5),
    mRayCalcSym0      (4.0),
@@ -108,7 +111,7 @@ cCollecSpecArg2007 & cAppliCheckBoardTargetExtract::ArgOpt(cCollecSpecArg2007 & 
              <<  AOpt2007(mThickness,"Thickness","Thickness for modelizaing line-blur in fine radiom model",{eTA2007::HDV})
              <<  AOpt2007(mLInitTeta,"LSIT","Length Segment Init, for teta",{eTA2007::HDV})
              <<  AOpt2007(mNbBlur1,"NbB1","Number of blurr with sz1",{eTA2007::HDV})
-             <<  AOpt2007(mStrShow,"StrV","String for generate Visu : G-lobal L-abels E-llipse N-ums",{eTA2007::HDV})
+             <<  AOpt2007(mStrShow,"StrV","String for generate Visu : J-peg(glob)  T-if(glob) L-abels E-llipse N-ums",{eTA2007::HDV})
              <<  AOpt2007(mRayCalcSym0,"SymRay","Ray arround point for initial computation of symetry",{eTA2007::HDV}) 
              <<  AOpt2007(mLInitProl,"LSIP","Length Segment Init, for prolongation",{eTA2007::HDV})
              <<  AOpt2007(mNbMinPtEllipse,"NbMinPtEl","Number minimal of point for ellipse estimation",{eTA2007::HDV})
@@ -303,23 +306,26 @@ bool cAppliCheckBoardTargetExtract::IsPtTest(const cPt2dr & aPt) const
 void cAppliCheckBoardTargetExtract::GenerateVisuFinal() const
 {
       //  "G" => G-lobal image with rectangles : "green" : target with code OK, "red" : target shape but no code
-      if (contains(mStrShow,'G') )
+      if ( contains(mStrShow,'J') || contains(mStrShow,'T')  )
       {
          cRGBImage  aIm = cRGBImage::FromFile(mNameIm);
          aIm.ResetGray();
          for (auto & aCdt :  mVCdtMerged)
          {
              cPt3di aCoul =  aCdt.Code() ?  (aCdt.IsCircle() ? cRGBImage::Cyan : cRGBImage::Green)  : cRGBImage::Red;
-	     aIm.SetRGBrectWithAlpha(ToI(aCdt.mC0),50,aCoul, 0.5);
-	     if (aCdt.mScale!= 1.0)
-	        aIm.SetRGBBorderRectWithAlpha(ToI(aCdt.mC0),60,10,cRGBImage::Blue, 0.5);
+             aIm.SetRGBrectWithAlpha(ToI(aCdt.mC0),50,aCoul, 0.5);
+             if (aCdt.mScale!= 1.0)
+                aIm.SetRGBBorderRectWithAlpha(ToI(aCdt.mC0),60,10,cRGBImage::Blue, 0.5);
 
-	     if (aCdt.Code())
-	     {
-                aIm.DrawString(aCdt.Code()->Name(),cRGBImage::Red,aCdt.mC0,cPt2dr(0.5,0.05));
-	     }
-	 }
-         aIm.ToJpgFileDeZoom(NameVisu("Glob"),1);
+             if (aCdt.Code())
+             {
+                    aIm.DrawString(aCdt.Code()->Name(),cRGBImage::Red,aCdt.mC0,cPt2dr(0.5,0.05));
+             }
+         }
+         if (contains(mStrShow,'J'))
+             aIm.ToJpgFileDeZoom(NameVisu("Glob"),1);
+         if (contains(mStrShow,'T'))
+             aIm.ToFile(NameVisu("Glob")+".tif");
       }
 }
 
@@ -438,9 +444,9 @@ void cAppliCheckBoardTargetExtract::ComputeTopoSadles()
     for (const auto & aPix : aRectInt)
     {
         if (FlagSup8Neigh(*mDImBlur,aPix).NbConComp() >=4)
-	{
-	    SetLabel(ToR(aPix),eTopo0);
-	}
+        {
+           SetLabel(ToR(aPix),eTopo0);
+        }
     }
 
     //MakeImageLabels(NameVisu("1eTopo0"),*mDImBlur,*mDImLabel);
@@ -534,8 +540,9 @@ void cAppliCheckBoardTargetExtract::SaddleCritFiler()
     cAutoTimerSegm aTSMaxLoc(mTimeSegm,"3.1-MaxLoc");
 
     SortOnCriteria(mVCdtSad,[](const auto & aCdt){return - aCdt.mSadCrit;});
-    ResizeDown(mVCdtSad,mMaxNbSP_ML0);   
-    mNbSads.push_back(mVCdtSad.size()); // memo size for info
+
+    ResizeDown(mVCdtSad,mCurMaxNbSP_ML0);
+    mNbSads.push_back(mVCdtSad.size()); // memo size for info 
 
     //-todo:OK we want to know what is the mMaxNbSP_ML0 value
     StdOut() << "mMaxNbSP_ML0 saddle crit. value = " << mVCdtSad[mVCdtSad.size()-1].mSadCrit << std::endl;
@@ -547,11 +554,10 @@ void cAppliCheckBoardTargetExtract::SaddleCritFiler()
     //   [3.3]  select KBest + MaxLocal
     //  limit the number of point , a bit rough but first experiment show that sadle criterion is almost perfect on good images
     // mVCdtSad.resize(std::min(mVCdtSad.size(),size_t(mMaxNbMLS)));
-    ResizeDown(mVCdtSad,mMaxNbSP_ML1);
-    mNbSads.push_back(mVCdtSad.size()); // memo size for info
 
     //-todo:OK we want to know what is the mMaxNbSP_ML1 value
-    StdOut() << "mMaxNbSP_ML1 saddle crit. value = " << mVCdtSad[mVCdtSad.size()-1].mSadCrit << std::endl;
+    ResizeDown(mVCdtSad,mCurMaxNbSP_ML1);
+    mNbSads.push_back(mVCdtSad.size()); // memo size for info 
 
     for (const auto & aCdt : mVCdtSad)
         SetLabel(aCdt.mC,eTopoMaxLoc);
@@ -733,6 +739,12 @@ void cAppliCheckBoardTargetExtract::DoOneImageAndScale(tREAL8 aScale,const  tIm 
     mImInCur  = anIm;
     mDImInCur = &mImInCur.DIm();
     mSzImCur  = mDImInCur->Sz();
+
+    tREAL8 aMulNb =   MulCoord(mSzImCur) / tREAL8 (MulCoord( mSzRefThrs))  ;
+    aMulNb = std::max(1.0, aMulNb );
+    mCurMaxNbSP_ML0 = round_up(mRefMaxNbSP_ML0 * aMulNb);
+    mCurMaxNbSP_ML1 = round_up(mRefMaxNbSP_ML1 * aMulNb);
+
 
     if (IsInit(&mNumDebugSaddle))
        cCdSadle::TheNum2Debug= mNumDebugSaddle ;

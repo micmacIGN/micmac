@@ -159,6 +159,7 @@ template <class Type>  class cTrans2D
           typedef cTrans2D<Type>  tTypeMap;
           typedef cTrans2D<Type>  tTypeMapInv;
 
+          typedef cDenseVect<Type>  tDV;
           typedef cPtxd<Type,2>     tPt;
           typedef std::vector<tPt>  tVPts;
           typedef const tVPts&      tCRVPts;
@@ -178,6 +179,12 @@ template <class Type>  class cTrans2D
           inline tPt&     Tr() {return mTr;}
           ///  evaluate from a vec [TrX,TrY,ScX,ScY], typycally result of mean square
           static tTypeMap  FromParam(const cDenseVect<Type> &);
+          /// + reciproq of FromParam
+          cDenseVect<Type> GetParam() const;
+
+          /** Compute the derivate of X,Y to parameters inj point P */
+          void DerivFromParam(std::vector<cDenseVect<Type>> & aVecOut,const tPt &aPIn) const;
+
 
           /** Let M be a "small" map, add the obs corresponding to :  aLHSIn = M(aPIn) . aScal   */
           static void ToEqParamFromLinear(Type & aRHS,cDenseVect<Type>&,const tPt &aPIn,const Type & aLHSIn,const tPt & aScal);
@@ -219,6 +226,8 @@ template <class Type>  class cHomot2D
           static std::string Name() {return "Homot2D";}
           static constexpr int NbPtsMin = DIV_SUP(NbDOF,TheDim);
 
+          typedef cDenseVect<Type> tDV;
+
           typedef Type  tTypeElem;
           typedef cHomot2D<Type>  tTypeMap;
           typedef cHomot2D<Type>  tTypeMapInv;
@@ -230,8 +239,13 @@ template <class Type>  class cHomot2D
           typedef const tVVals *    tCPVVals;
           typedef tPt   tTabMin[NbPtsMin];  // Used for estimate with min number of point=> for ransac
 
+
+          /** Compute the derivate of X,Y to parameters inj point P */
+          void DerivFromParam(std::vector<cDenseVect<Type>> & aVecOut,const tPt &aPIn) const;
           ///  evaluate from a vec [TrX,TrY,ScX,ScY], typycally result of mean square
           static tTypeMap  FromParam(const cDenseVect<Type> &);  
+          /// + reciproq of FromParam
+          cDenseVect<Type> GetParam() const;
           /** Let M be a "small" map, add the obs corresponding to :  aLHSIn = M(aPIn) . aScal   */
           static void ToEqParamFromLinear(Type & aRHS,cDenseVect<Type>&,const tPt &aPIn,const Type & aLHSIn,const tPt & aScal);
           /// compute the vector used in least square equation
@@ -293,6 +307,8 @@ template <class Type>  class cSim2D
           static std::string Name() {return "Sim2D";}
           static constexpr int  NbPtsMin = DIV_SUP(NbDOF,TheDim);
 
+          typedef cDenseVect<Type> tDV;
+
           typedef Type          tTypeElem;
           typedef cSim2D<Type>  tTypeMap;
           typedef cSim2D<Type>  tTypeMapInv;
@@ -310,9 +326,13 @@ template <class Type>  class cSim2D
           {
           }
           cSim2D() : cSim2D<Type>(tPt(0,0),tPt(1,0)) {}
-          
+
+          /** Compute the derivate of X,Y to parameters inj point P */
+          void DerivFromParam(std::vector<cDenseVect<Type>> & aVecOut,const tPt &aPIn) const;
           ///  evaluate from a vec [TrX,TrY,ScX,ScY], typycally result of mean square
           static tTypeMap  FromParam(const cDenseVect<Type> &);  
+          /// + reciproq of FromParam
+          cDenseVect<Type> GetParam() const;
           /** Let M be a "small" map, add the obs corresponding to :  aLHSIn = M(aPIn) . aScal   */
           static void ToEqParamFromLinear(Type & aRHS,cDenseVect<Type>&,const tPt &aPIn,const Type & aLHSIn,const tPt & aScal);
           /// compute the vector used in least square equation
@@ -365,6 +385,8 @@ template <class Type>  class cRot2D
           static std::string Name() {return "Rot2D";}
           static constexpr int  NbPtsMin = DIV_SUP(NbDOF,TheDim);
 
+          typedef cDenseVect<Type> tDV;
+
           typedef Type          tTypeElem;
           typedef cRot2D<Type>  tTypeMap;
           typedef cRot2D<Type>  tTypeMapInv;
@@ -386,6 +408,7 @@ template <class Type>  class cRot2D
           
 
 
+
           inline tPt  Value(const tPt & aP) const {return mSim.Value(aP);}
           inline tPt  Inverse(const tPt & aP) const {return mSim.Inverse(aP)  ;}
           tTypeMapInv  MapInverse() const {return cRot2D<Type>(-Tr()/Sc(),-mTeta);}
@@ -398,9 +421,12 @@ template <class Type>  class cRot2D
 
           static tTypeMap RandomRot(const Type&AmplTr);
 
-
+          /** Compute the derivate of X,Y to parameters inj point P */
+          void DerivFromParam(std::vector<cDenseVect<Type>> & aVecOut,const tPt &aPIn) const;
           ///  evaluate from a vec [TrX,TrY,ScX,ScY], typycally result of mean square
           static tTypeMap  FromParam(const cDenseVect<Type> &);  
+          /// + reciproq of FromParam
+          cDenseVect<Type> GetParam() const;
           /// compute the vector used in least square equation
           static void ToEqParam(tPt & aRHS,std::vector<cDenseVect<Type>>&,const tPt &In,const tPt & Out);
           /// Old interface
@@ -445,6 +471,7 @@ template <class Type>  class cAffin2D
           typedef Type            tTypeElem;
           typedef cAffin2D<Type>  tTypeMap;
           typedef cAffin2D<Type>  tTypeMapInv;
+          typedef cDenseVect<Type> tDV;
 
           typedef cPtxd<Type,2> tPt;
           typedef std::vector<tPt>  tVPts;
@@ -479,9 +506,13 @@ template <class Type>  class cAffin2D
           static  tTypeMap  Rotation(const Type & aScale);
           static  tTypeMap  Homot(const Type & aScale);
           static  tTypeMap  HomotXY(const Type & aScaleX,const Type & aScaleY);
-                
+
+          /** Compute the derivate of X,Y to parameters inj point P */
+          void DerivFromParam(std::vector<cDenseVect<Type>> & aVecOut,const tPt &aPIn) const;
           ///  evaluate from a vec [TrX,TrY,ScX,ScY], typycally result of mean square
           static tTypeMap  FromParam(const cDenseVect<Type> &);  
+          /// + reciproq of FromParam
+          cDenseVect<Type> GetParam() const;
           /// compute the vector used in least square equation
           static void ToEqParam(tPt & aRHS,std::vector<cDenseVect<Type>>&,const tPt &In,const tPt & Out);
           /// Old interface
@@ -534,6 +565,8 @@ template <class Type>  class cHomogr2D
           // typedef cElemHomogr2D<Type>  tElemH;
           typedef cPtxd<Type,3>     tElemH;
 
+         typedef cDenseVect<Type> tDV;
+
           typedef cPtxd<Type,2>     tPt;
           typedef std::vector<tPt>  tVPts;
           typedef const tVPts&      tCRVPts;
@@ -541,8 +574,9 @@ template <class Type>  class cHomogr2D
           typedef const tVVals *    tCPVVals;
           typedef tPt   tTabMin[NbPtsMin];  // Used for estimate with min number of point=> for ransac
           ///  evaluate from a vec [TrX,TrY,ScX,ScY], typycally result of mean square
-          static tTypeMap  FromParam(const cDenseVect<Type> &);
-
+          static tTypeMap  FromParam(const tDV &);
+          /// + reciproq of FromParam
+          cDenseVect<Type> GetParam() const;
 //==================
           cHomogr2D(const tElemH & aHX,const tElemH & aHY,const tElemH & aHZ);
           cHomogr2D() ;
@@ -557,6 +591,9 @@ template <class Type>  class cHomogr2D
 
           inline tPt  Value(const tPt & aP) const   {return tPt(S(mHX,aP),S(mHY,aP)) / S(mHZ,aP);}
           inline tPt  Inverse(const tPt & aP) const {return tPt(S(mIHX,aP),S(mIHY,aP)) / S(mIHZ,aP);}
+
+           /// Derivat to parameter
+          void DerivFromParam(std::vector<cDenseVect<Type>> & aVecOut,const tPt &aPIn) const;
           /// compute the vector used in least square equation
           static void ToEqParam(tPt & aRHS,std::vector<cDenseVect<Type>>&,const tPt &In,const tPt & Out);
           /// Old interface
@@ -604,6 +641,8 @@ template <class Type>  class cHomogr2D
 };
 
 
+/** idem but result returned */
+template <class tMap> std::vector<typename tMap::tDV>  DerivFromParam(const tMap&,const typename tMap::tPt &aPIn) ;
 
 
 //template <class Type,class TMap>  cTplBox<2,Type>  ImageOfBox();

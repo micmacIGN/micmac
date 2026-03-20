@@ -40,6 +40,7 @@ enum class eTA2007
                 FFI,           ///< File Filter Interval
                 Orient,        ///< Orientation
                 OriTriplet,    ///< Relative oreintations between triplets of images
+                OriRel,        ///< Data for relative orientation pair (triplet here or in OriTriplet, to see?)
                 RadiomData,    ///< Data for Radiometry
                 RadiomModel,   ///< Model for Radiometry
                 MeshDev,       ///< Mesh Devlopment
@@ -142,7 +143,7 @@ enum class eFormatExtern
            {
               eMMV1,      ///< MicMac-V1 format, can import Orient/Calib/
               eMeshRoom,  ///< For example, not suppoted for now
-              eColMap,    ///< For example, not suppoted for now
+              eColmap,    ///< For example, not suppoted for now
               eNbVals     ///< Tag for number of value
 	   };
 /// Appli Data Type
@@ -665,12 +666,14 @@ enum class eModResBund
 {
         eAngle,
         eProduct,
-        eDet12,   // Case where
         eDist12,
         eAng12,
+        eDet12,   // Case where
+        eLinDet12,   // Case where
         eNbVals
 };
 bool ModResBund_IsMode12(eModResBund);
+bool ModResBund_IsModeGen(eModResBund);
 
 const std::string & E2Str(const eModeFusionData &);
 const std::string & E2Str(const eTyClino &);
