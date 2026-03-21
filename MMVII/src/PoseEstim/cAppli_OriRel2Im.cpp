@@ -4,6 +4,7 @@
 #include "MMVII_Tpl_Images.h"
 #include "MMVII_HeuristikOpt.h"
 #include "MMVII_DeclareAllCmd.h"
+#include "MMVII_Random.h"
 
 namespace MMVII
 {
@@ -99,6 +100,8 @@ class cEstimatePosRel2Im :  public cOptimizeRotAndVUnit // Herit for combinatori
 
      cEstimatePosRel2Im
      (
+         const std::string & aIm1,
+         const std::string & aIm2,
          cPerspCamIntrCalib & aCalib1,
          cPerspCamIntrCalib & aCalib12,
          const cSetHomogCpleIm  &    aSetHomFull,
@@ -176,6 +179,8 @@ class cEstimatePosRel2Im :  public cOptimizeRotAndVUnit // Herit for combinatori
 
 
         //  --------  Data for camera -------------------
+    std::string                  mIm1;
+    std::string                  mIm2;
     cPerspCamIntrCalib &         mCalib1;    ///< Calib of first image
     tREAL8                       mFoc1;      ///< Foc first image
     cPerspCamIntrCalib &         mCalib2;    ///< Calib second image
@@ -224,6 +229,8 @@ class cEstimatePosRel2Im :  public cOptimizeRotAndVUnit // Herit for combinatori
 
 cEstimatePosRel2Im::cEstimatePosRel2Im
 (
+    const  std::string& aIm1,
+    const  std::string& aIm2,
     cPerspCamIntrCalib & aCalib1,
     cPerspCamIntrCalib & aCalib2,
     const cSetHomogCpleIm &     aSetHomFull,
@@ -233,6 +240,8 @@ cEstimatePosRel2Im::cEstimatePosRel2Im
     cTimerSegm *         aTimeSegm
 ) :
    cOptimizeRotAndVUnit(5,4,false),
+   mIm1        (aIm1),
+   mIm2        (aIm2),
    mCalib1     (aCalib1),
    mFoc1       (mCalib1.F()),
    mCalib2     (aCalib2),
@@ -604,12 +613,30 @@ cCdtFinalPoseRel2Im cEstimatePosRel2Im::MakeDecision(bool Show)
     SortOnCriteria(aVBest,[](const auto & aCdt){return aCdt.mScore;});
 
 
+    if (Show)
+    {
+        StdOut()  << " ======== Select solution in each mode ================\n";
+        for (auto & aCdt  : aVBest )
+        {
+            if (mWithGT)
+            {
+                tREAL8 aDTr = Norm2(aCdt.mPose.Tr()-mGTPose.Tr());
+                tREAL8 aDRot = aCdt.mPose.Rot().Dist(mGTPose.Rot());
+                aCdt.mScorePixGT = cPt2dr(aDTr,aDRot)*mFocMoy;
+            }
+            ShowSol(aCdt.mPose,aCdt.mMsg);
+        }
+    }
+
+
     if (aVBest.back().mMode==eModePE2I::eRansac)
     {
         // Worst sol in ransac
         // in this case, probably the scene is planar and the two planary solution
         // can  not be separated at this step, we maintain them
         aVBest.resize(2);
+
+        //        if (mWithGT && (aVBest.at(0).
     }
     else
     {
@@ -638,6 +665,17 @@ cCdtFinalPoseRel2Im cEstimatePosRel2Im::MakeDecision(bool Show)
            if (mWithGT)
               StdOut() << " DistGT=" << aCdt.mPose.DistPose(mGTPose,1.0) *mFocMoy;
            StdOut()   << "\n";
+        }
+    }
+    if (mWithGT && (aVBest.size()>=2))
+    {
+        tREAL8 aSc0 = Norm2(aVBest.at(0).mScorePixGT.value());
+        tREAL8 aSc1 = Norm2(aVBest.at(1).mScorePixGT.value());
+        if (aSc1<aSc0)
+        {
+            StdOut() << "=====  For Images  " << mIm1 << " " << mIm2 << "\n";
+            for (const auto & aCdt : aVBest)
+                ShowSol(aCdt.mPose,aCdt.mMsg);
         }
     }
 
@@ -751,6 +789,7 @@ class cAppli_OriRelPairOfIm : public cMMVII_Appli
 
          cTimerSegm *              mTimeSegm ;
          std::vector<const tNamePair *> mVecPairs;
+         int                       mKSaveOri;
 
 };
 
@@ -773,7 +812,8 @@ cAppli_OriRelPairOfIm::cAppli_OriRelPairOfIm(const std::vector<std::string> & aV
     mUseOri4GT    (false),
     mGTPose       (tPoseR::Identity()),
     mPC1GT        (nullptr),
-    mPC2GT        (nullptr)
+    mPC2GT        (nullptr),
+    mKSaveOri     (0)
 {
 }
 
@@ -811,7 +851,7 @@ cCollecSpecArg2007 & cAppli_OriRelPairOfIm::ArgObl(cCollecSpecArg2007 & anArgObl
 
 cCollecSpecArg2007 & cAppli_OriRelPairOfIm::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
-   return       anArgOpt
+    anArgOpt
             <<  mPhProj.DPTieP().ArgDirInOpt()
             <<  mPhProj.DPGndPt2D().ArgDirInOpt()
             <<  mPhProj.DPMulTieP().ArgDirInOpt()
@@ -829,6 +869,14 @@ cCollecSpecArg2007 & cAppli_OriRelPairOfIm::ArgOpt(cCollecSpecArg2007 & anArgOpt
             <<  AOpt2007(mParamOutLayer,"OutLayers","Param for generating outlayers [Nb,Sigma]",{{eTA2007::ISizeV,"[2,2]"}})
             <<  AOpt2007(mShow,"Show","Show messages",{eTA2007::HDV})
    ;
+
+    if (mModeCompute==0)
+    {
+        anArgOpt << mPhProj.DPOrient().ArgDirOutOpt("OriOut","For saving relative or as orientations")
+                 << AOpt2007(mKSaveOri,"KSaveOri","Num of sol to save",{eTA2007::HDV})  ;
+    }
+
+    return anArgOpt;
 }
 
 
@@ -858,6 +906,8 @@ std::vector<std::string>  cAppli_OriRelPairOfIm::Samples() const
 
 int cAppli_OriRelPairOfIm::Exe()
 {
+
+
     mTimeSegm = mShow ? new cTimerSegm(this) : nullptr ;
     mPhProj.FinishInit();
 
@@ -923,6 +973,8 @@ int cAppli_OriRelPairOfIm::DoPairsOf1Im()
     {
         if (aPair->V1() == mIm1)
         {
+            if (mShow)
+                StdOut() << "====== DoPairsOf1Im, V2=" << aPair->V2() << "========\n";
             tRes1Pair aRes = EstimatePose2IM(aPair->V1(), aPair->V2());
             aRes.second.mIm1 = mIm1;
             aRes.second.mIm2 = aPair->V2();
@@ -951,6 +1003,10 @@ int cAppli_OriRelPairOfIm::DoPairsOf1Im()
 cAppli_OriRelPairOfIm::tRes1Pair
         cAppli_OriRelPairOfIm::EstimatePose2IM(const std::string& aIm1,const std::string& aIm2)
 {
+    // For debuging/tuning we must have the same behaviour when we run 1 pair or multiple pair,
+    // so to have the same random number in ransac we re initialize the number generator at each pair
+    cRandGenerator::TheOne()->setSeed(42);
+
     mIm1 = aIm1;
     mIm2 = aIm2;
     OrderMinMax(mIm1,mIm2);
@@ -1024,7 +1080,8 @@ cAppli_OriRelPairOfIm::tRes1Pair
      mCalib1 =  mPhProj.InternalCalibFromImage(mIm1);
      mCalib2 =  mPhProj.InternalCalibFromImage(mIm2);
 
-     mEstimatePose = new cEstimatePosRel2Im(*mCalib1,*mCalib2,mCpleHFull,mCpleHAvg,mCpleHSmall,mDensitySol,mTimeSegm);
+     mEstimatePose = new cEstimatePosRel2Im
+                         (aIm1,aIm2,*mCalib1,*mCalib2,mCpleHFull,mCpleHAvg,mCpleHSmall,mDensitySol,mTimeSegm);
      if (mUseOri4GT)
          mEstimatePose->SetGT(mGTPose);
 
@@ -1035,6 +1092,18 @@ cAppli_OriRelPairOfIm::tRes1Pair
 
      if (mDo5Pts)
          Generate5Pts(aCdt.mVCdt.at(0).mPose);
+
+     if (mPhProj.DPOrient().DirOutIsInit())
+     {
+         StdOut() << "OUT=" << mPhProj.DPOrient().DirOut() << "\n";
+         const auto & aC = aCdt.mVCdt.at(mKSaveOri);
+
+         cSensorCamPC aCam1(mIm1,tPoseR::Identity(),mCalib1);
+         cSensorCamPC aCam2(mIm2,aC.mPose,mCalib2);
+         mPhProj.SaveCamPC(aCam1);
+         mPhProj.SaveCamPC(aCam2);
+
+     }
 
    /*  if (mUseOri4GT && mShow)
          mEstimatePose->ShowSol(mGTPose,"GroundTruh");*/

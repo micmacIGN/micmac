@@ -299,6 +299,7 @@ template <class Type,const int Dim> void  cDataTypedIm<Type,Dim>::InitCste(const
    }
    else
    {
+      // StdOut() << "xxInitCsteInitCste " << NbElem() << " " << mRawDataLin << "\n";
       for (tINT8 aK=0 ; aK< NbElem() ; aK++)
            mRawDataLin[aK] = aVal;
    }
