@@ -1,4 +1,5 @@
 #include "MMVII_GraphTriplets.h"
+#include "MMVII_PoseRel.h"
 
 #include "MMVII_nums.h"
 #ifndef  _MMVII_ARBOTRIPLETS_H_
@@ -12,7 +13,6 @@
 #include "MMVII_Tpl_GraphAlgo_EnumCycles.h"
 #include "MMVII_Interpolators.h"
 #include "MMVII_Sensor.h"
-#include "MMVII_PoseTriplet.h"
 // #include "MMVII_Tpl_GraphAlgo_Group.h"
 #include "MMVII_Tpl_Images.h"
 
@@ -31,6 +31,13 @@ class  cBA_ArboTriplets;   // class for bundle adjustment on triplet graph
 
 
 typedef std::pair<int,int>  tPairI;
+
+inline tPoseR PoseOfDSOT(const cDataSolOriTriplet& a3, int k) {
+    if (k==0) return a3.mP0;
+    if (k==1) return a3.mP01;
+    return a3.mP02;
+}
+
 
 ///   Store the pose and an ident (int) to the image
 class  cSolLocNode
@@ -150,7 +157,7 @@ class cMakeArboTriplet
 {
 public :
 
-    cMakeArboTriplet(cTripletSet & aSet3,bool doCheck,tREAL8 aWBalance, cIPhProj &,cMMVII_Appli &);
+    cMakeArboTriplet(std::vector<cDataSolOriTriplet> & aSet3,bool doCheck,tREAL8 aWBalance, cIPhProj &,cMMVII_Appli &);
     ~cMakeArboTriplet();
 
     /// Print some info on dimensions of data
@@ -219,7 +226,7 @@ private :
     cMMVII_Appli &          mAppli;
     cIPhProj &              mPhProj;
     cTimerSegm  &           mTimeSegm;
-    cTripletSet  &          mSet3;          ///< Initial triplet structure
+    std::vector<cDataSolOriTriplet> & mSet3;          ///< Initial triplet structure
     bool                    mDoCheck;       ///< do checking ....
     t2MapStrInt             mMapStrI;       ///< Maping name of pose / int used to import triplet
     t3GOP                   mGPoses;       ///< Graph of pose

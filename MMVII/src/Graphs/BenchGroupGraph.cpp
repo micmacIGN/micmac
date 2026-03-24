@@ -7,7 +7,6 @@
 #include "MMVII_Tpl_GraphAlgo_EnumCycles.h"
 #include "MMVII_Interpolators.h"
 #include "MMVII_Sensor.h"
-#include "MMVII_PoseTriplet.h"
 #include "MMVII_Tpl_GraphAlgo_Group.h"
 
 

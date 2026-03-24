@@ -38,7 +38,7 @@ class  cCalculMetaDataProject;
 class  cGlobCalculMetaDataProject;
 class  cBA_Topo;
 class  cBA_GCP;
-class  cTripletSet;
+class  cDataSolOriTriplet;
 class  cStaticLidar;
 
 /**  helper for cPixelDomain, as the cPixelDomain must be serialisable we must separate the
@@ -614,9 +614,9 @@ class cPhotogrammetricProject : public cIPhProj
     //===================================================================
     //==================   ORIENTATION OF TRIPLETS    ==================
     //===================================================================
-    void SaveTriplets(const cTripletSet&,bool useXmlraterThanDmp=true) const;
-    cTripletSet * ReadTriplets() const;
-
+    //void SaveTriplets(const cTripletSet&,bool useXmlraterThanDmp=true) const;
+    //cTripletSet * ReadTriplets() const;
+      std::vector<cDataSolOriTriplet> ReadAllTriplets(const std::vector<std::string>& aVImages) const;
     //===================================================================
     //==================   RELATIVE ORIENTATION    ======================
     //===================================================================
@@ -624,6 +624,8 @@ class cPhotogrammetricProject : public cIPhProj
     /// Name of folder for relative orientation of 1 image (indiv file + pairs + triplets)
     std::string OriRel_DirOfImage(const std::string& aNameIm,bool isIn) const;
 
+    /// Name of file for all images in the set
+    std::string OriRel_NameAllImages(bool isIn, std::string aPost="" ) const;
     /// Name of file for all pairs of 1 image (only pairs, not orientation)
     std::string OriRel_NamePairsOfAllImages(bool isIn, std::string aPost="" ) const;
     /// Name of file for all Relative Orientation of pairs of 1 image
@@ -632,8 +634,10 @@ class cPhotogrammetricProject : public cIPhProj
     std::string OriRel_NameOriPair2Images(const std::string&aNameIm1,const std::string&aNameIm2,bool isIn, std::string aPost="" ) const;
 
     /// Name of file for all pairs of 1 image (only pairs, not orientation)
-    std::string OriRel_NameOriAllTripletsOf1Image(const std::string&aNameIm1,bool isIn, std::string aPost="") const;
+    std::string OriRel_NameAllTripletsOf1Image(const std::string&aNameIm1,bool isIn, std::string aPost="") const;
 
+    /// Name of file for all pairs of 1 image (only pairs, not orientation)
+    std::string OriRel_OrientAllTripletsOf1Image(const std::string&aNameIm1,bool isIn, std::string aPost="") const;
 	 //===================================================================
      //==================   RADIOMETRY       =============================
 	 //===================================================================
@@ -777,7 +781,7 @@ class cPhotogrammetricProject : public cIPhProj
 	 std::string NameTiePIn(const std::string & aNameIm1,const std::string & aNameIm2,const std::string & aDir="") const;
 
      ///  Read Homol from multiple source : DPTieP, DPGndPt2D, DPMulTieP
-     void ReadHomolMultiSrce(int & aNbInit,cSetHomogCpleIm &,const std::string & aNI1,const std::string & aNI2);
+     void ReadHomolMultiSrce(int & aNbInit,cSetHomogCpleIm &,const std::string & aNI1,const std::string & aNI2) const;
 
 	 //===================================================================
          //==================   Multiple Tie-Points  =========================

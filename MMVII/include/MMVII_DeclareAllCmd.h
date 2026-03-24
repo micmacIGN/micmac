@@ -82,6 +82,10 @@ extern cSpecMMVII_Appli  TheSpecSample3DpointsFromCloudIntoImage;
 extern cSpecMMVII_Appli  TheSpecProMeshImage;
 extern cSpecMMVII_Appli  TheSpecMeshImageDevlp;
 extern cSpecMMVII_Appli  TheSpecNuageBascule;
+extern cSpecMMVII_Appli  TheSpec_OriRel3Im;
+extern cSpecMMVII_Appli  TheSpec_OriRelTripletsOf1m;
+extern cSpecMMVII_Appli  TheSpec_OriRelAllTriplets;
+
 extern cSpecMMVII_Appli  TheSpecRadiom2ImageSameMod; 
 extern cSpecMMVII_Appli  TheSpecRadiomCreateModel;
 extern cSpecMMVII_Appli  TheSpecTopoComp;

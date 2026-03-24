@@ -135,6 +135,54 @@ class cFormulaBundleElem_Cam2
 
 };
 
+/// Class for third camera (in fact any camera after 2),  the base is unkwnon and any, the rotation is unknown
+class cFormulaBundleElem_Cam3
+{
+   public :
+
+        cFormulaBundleElem_Cam3(eModResBund aMode) : mMode (aMode) {}
+
+        std::string FormulaName() const { return "BunleElem_Cam3_"+E2Str(mMode);}
+
+        /// Unknowns are 3d point,  Base (unitar), Orientation of Camera
+        std::vector<std::string>  VNamesUnknowns()  const
+        {
+             return  Append(NamesP3("PGround"),NamesP3("Base"), NamesP3("Omega"));
+        }
+
+        /// Observations are Bundle, Obs of Unitary Base, Of rotation
+        std::vector<std::string>    VNamesObs() const
+        {
+            return  {Append(NamesP3("Bundle"),NamesMatr("Rot",cPt2di(3,3)))};
+        };
+
+        template <typename tUk>
+                    std::vector<tUk> formula
+                    (
+                       const std::vector<tUk> & aVUk,
+                       const std::vector<tUk> & aVObs
+                    ) const
+        {
+                size_t aIndUk =0;
+                size_t aIndObs = 0;
+
+                cPtxd<tUk,3> aPGround = VtoP3AutoIncr(aVUk,&aIndUk);      // Extract PGround
+                cPtxd<tUk,3> aDirBundle = VtoP3AutoIncr(aVObs,&aIndObs);  // Extract dir of bundle
+                cPtxd<tUk,3> aBase = VtoP3AutoIncr(aVUk,&aIndUk);    // Extract the base , any
+                cRot3dF<tUk>  aRot (aVUk,&aIndUk,aVObs,&aIndObs);         // Extarct the rotation
+
+                return  ResidualBundle_PGround
+                        (
+                            aRot.Value(aDirBundle), // Direction of bundle set in the coordinate system
+                            aPGround-aBase, // Vector Cam->PGround
+                            mMode
+                         );
+        }
+
+      private :
+        eModResBund mMode;
+
+};
 
 /* *************************************************** */
 /*                                                     */

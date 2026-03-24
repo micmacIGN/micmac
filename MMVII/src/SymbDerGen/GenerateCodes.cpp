@@ -389,6 +389,14 @@ cCalculator<double> * EqBundleElem_Cam12(eModResBund aMode,bool WithDerive,int a
                  StdAllocCalc(NameFormula(cFormulaBundleElem_CamDet12(aMode),WithDerive),aSzBuf,false,ReUse):
                  nullptr ;
 }
+
+cCalculator<double> * EqBundleElem_CamN(eModResBund aMode,bool WithDerive,int aSzBuf,bool ReUse)
+{
+    return   ModResBund_IsModeGen(aMode) ?
+                 StdAllocCalc(NameFormula(cFormulaBundleElem_Cam3(aMode),WithDerive),aSzBuf,false,ReUse):
+                 nullptr ;
+}
+
 // cFormulaBundleElem_Cam1
 // topo subframe with dist parameter
 template <class Type> cCalculator<Type> * TplEqTopoSubFrame(bool WithDerive,int aSzBuf)
@@ -915,6 +923,7 @@ int cAppliGenCode::Exe()
        {
             GenCodesFormula((tREAL8*)nullptr,cFormulaBundleElem_Cam1(aMode),WithDer);
             GenCodesFormula((tREAL8*)nullptr,cFormulaBundleElem_Cam2(aMode),WithDer);
+            GenCodesFormula((tREAL8*)nullptr,cFormulaBundleElem_Cam3(aMode),WithDer);
        }
        for (const auto aMode : {eModResBund::eDet12,eModResBund::eDist12,eModResBund::eAng12})
        {

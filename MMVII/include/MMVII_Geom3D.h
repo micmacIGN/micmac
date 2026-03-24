@@ -634,6 +634,14 @@ cPt3dr  BundleFixZ(const tSeg3dr & aSeg1,const tREAL8 &);
 ///  Compute intersection on all pairs, and return the one minimizing sum of euclidian distances
 cPt3dr  RobustBundleInters(const std::vector<tSeg3dr> & aVSeg);
 
+/// Having poses + dir of bundles, return the ground point + resisdual as average angle
+std::pair<tREAL8,cPt3dr> AnglesInterBundles
+                         (
+                               const std::vector<tPoseR> & aVPose,
+                               const cPt3dr * aDirBdund,
+                               tREAL8 aEpsilon
+                          );
+
 /// Compute bundle intersection using a L1 criteria with barodale, "NbSegCompl" handle to be closer to euclidian distance
 // cPt3dr  L1_BundleInters(const std::vector<tSeg3dr> & aVSeg,int NbSegCompl=0,const std::vector<tREAL8> * aVWeight = nullptr);
 
@@ -788,7 +796,7 @@ class cGenGauss3D
         void GetDistribGaus(std::vector<cPt3dr> &,int,int,int);
 
         //5-pts distribution
-        void GetDistrib5Pts(std::vector<cPt3dr> &,double);
+        void GetDistrib5Pts(std::vector<cPt3dr> &,double aSca=1.0);
 
     private :
 

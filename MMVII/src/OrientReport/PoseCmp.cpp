@@ -24,7 +24,7 @@ public :
     cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override;
 
 private :
-    bool AcceptEmptySet(int aK) const override {return true;}
+    bool AcceptEmptySet(int aK) const override {return ((aK==0)&&(mSpecImIn=="NONE"));}
     cPhotogrammetricProject  mPhProj;
     std::vector<int>         mPropStat;
     std::string              mSpecImIn;   ///  Pattern of xml file

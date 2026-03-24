@@ -8,7 +8,7 @@
 #include "MMVII_Clino.h"
 #include "cExternalSensor.h"
 #include "MMVII_Topo.h"
-#include "MMVII_PoseTriplet.h"
+#include "MMVII_PoseRel.h"
 #include "MMVII_InstrumentalBlock.h"
 
 /**
@@ -1241,7 +1241,7 @@ void cPhotogrammetricProject::ReadHomolMultiSrce
         cSetHomogCpleIm &aCpleH,
         const std::string & aNI1,
         const std::string & aNI2
-      )
+      ) const
 {
    aNbInit=0;
    aCpleH.Clear();
@@ -1455,23 +1455,21 @@ std::vector<std::string> cPhotogrammetricProject::ReadTopoMes() const
 
 //  see cMetaDataImages.cpp
 
-static const std::string PrefixTripletSet = "TripletSet_";
-
-void cPhotogrammetricProject::SaveTriplets(const cTripletSet &aSet,bool  useXmlraterThanDmp) const
+std::vector<cDataSolOriTriplet> cPhotogrammetricProject::ReadAllTriplets(const std::vector<std::string>& aVImages)
+    const
 {
-    std::string anExt = useXmlraterThanDmp ? PostF_XmlFiles  : PostF_DumpFiles;
-    std::string aName =  mDPOriTriplets.FullDirOut() + PrefixTripletSet + aSet.Name() + "." + anExt;
-    StdOut() << "aName: " << aName << std::endl;
-    aSet.ToFile(aName);
-}
+    std::vector<cDataSolOriTriplet> aRes;
+    for (const auto& aNameIm : aVImages)
+    {
+        std::string aFileName = OriRel_OrientAllTripletsOf1Image(aNameIm,true);
+        if (!ExistFile(aFileName))
+            continue;
 
-cTripletSet * cPhotogrammetricProject::ReadTriplets() const
-{
-    std::vector<std::string> aVNames = GetFilesFromDir(mDPOriTriplets.FullDirIn(),AllocRegex(PrefixTripletSet+".*"));
-
-    int aK = (aVNames.size()>1) ? 1 : 0;
-    return cTripletSet::FromFile(mDPOriTriplets.FullDirIn()+aVNames[aK]);
-
+        std::vector<cDataSolOriTriplet> aVData;
+        ReadFromFile(aVData,aFileName);
+        aRes.insert(aRes.end(),aVData.begin(),aVData.end());
+    }
+    return aRes;
 }
 
         // ==============  OriRel =========================
@@ -1505,7 +1503,7 @@ std::string cPhotogrammetricProject::OriRel_NameOriAllPairsOf1Image
     return OriRel_DirOfImage(aNameIm,isIn) + std::string("OriRel_AllPairsOfIm")  + "." + aPost;
 }
 
-std::string cPhotogrammetricProject::OriRel_NameOriAllTripletsOf1Image
+std::string cPhotogrammetricProject::OriRel_NameAllTripletsOf1Image
             (
                 const std::string&aNameIm,
                 bool isIn,
@@ -1517,6 +1515,26 @@ std::string cPhotogrammetricProject::OriRel_NameOriAllTripletsOf1Image
     return OriRel_DirOfImage(aNameIm,isIn) + std::string("Names_AllTripletsOfIm")  + "." + aPost;
 }
 
+std::string cPhotogrammetricProject::OriRel_OrientAllTripletsOf1Image
+            (
+                const std::string&aNameIm,
+                bool isIn,
+                std::string aPost
+             ) const
+{
+    SetDefPost(aPost);
+
+    return OriRel_DirOfImage(aNameIm,isIn) + std::string("Orient_AllTripletsOfIm")  + "." + aPost;
+}
+
+
+
+std::string cPhotogrammetricProject::OriRel_NameAllImages(bool isIn, std::string aPost) const
+{
+    SetDefPost(aPost);
+
+    return DPOriRel().FullDirInOut(isIn)  + std::string("Names_AllImages") + "." + aPost;
+}
 
 
 std::string cPhotogrammetricProject::OriRel_NamePairsOfAllImages(bool isIn, std::string aPost) const

@@ -338,8 +338,11 @@ class cAppliCheckBoardTargetExtract : public cMMVII_Appli
         // ---------------- Thresholds for Saddle point criteria --------------------
         tREAL8            mDistMaxLocSad ;  ///< =10.0, for supressing sadle-point,  not max loc in a neighboorhoud
         int               mDistRectInt;     ///< = 20,  insideness of points  for seed detection
-        size_t            mMaxNbSP_ML0 ;   ///< = 30000  Max number of best point  saddle points, before MaxLoc
-        size_t            mMaxNbSP_ML1  ;   ///< = 2000   Max number of best point  saddle points, after  MaxLoc
+        cPt2di            mSzRefThrs;       ///< Some empirrical threshold should depend on size of image, this
+        size_t            mRefMaxNbSP_ML0 ;   ///< = 30000  for ref sz,Max number of best point  saddle points, before MaxLoc
+        size_t            mCurMaxNbSP_ML0 ;   ///< Adapted to real size
+        size_t            mRefMaxNbSP_ML1  ;   ///< = 2000   Max number of best point  saddle points, after  MaxLoc
+        size_t            mCurMaxNbSP_ML1;   ///< Adapted to real size
         cPt2di            mPtLimCalcSadle;  ///< =(2,1)  limit point for calc sadle neighbour , included, 
 
 
