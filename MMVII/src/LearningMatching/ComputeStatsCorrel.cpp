@@ -1,3 +1,4 @@
+#if MMVII_USE_LIBTORCH
 #include "MMVII_all.h"
 //#include "include/MMVII_2Include_Serial_Tpl.h"
 #include "LearnDM.h"
@@ -197,6 +198,5 @@ cSpecMMVII_Appli TheSpecComputeStatsCorrel
       __FILE__
 );
 
-
-
 };
+#endif

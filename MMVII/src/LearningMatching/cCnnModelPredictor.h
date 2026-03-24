@@ -1,3 +1,4 @@
+#if MMVII_USE_LIBTORCH
 #include <torch/torch.h>
 #include <torch/script.h>
 #include <ATen/ATen.h>
@@ -49,3 +50,4 @@ class aCnnModelPredictor
 
     
 };
+#endif

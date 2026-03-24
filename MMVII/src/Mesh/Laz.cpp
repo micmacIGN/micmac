@@ -1,4 +1,4 @@
-#if(MMVII_USE_PDAL)
+#if MMVII_USE_PDAL
 #include <cMMVII_Appli.h>
 #include "MMVII_Geom3D.h"
 #include "MMVII_Mappings.h"

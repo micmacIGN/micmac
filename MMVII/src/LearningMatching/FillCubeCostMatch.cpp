@@ -1,4 +1,4 @@
-
+#if MMVII_USE_LIBTORCH
 #include "MMVII_2Include_Serial_Tpl.h"
 #include "LearnDM.h"
 
@@ -1828,6 +1828,5 @@ cSpecMMVII_Appli  TheSpecFillCubeCost
       __FILE__
 );
 
-
-
 };
+#endif

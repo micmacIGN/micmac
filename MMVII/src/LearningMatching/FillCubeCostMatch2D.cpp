@@ -1,3 +1,4 @@
+#if MMVII_USE_LIBTORCH
 #include "MMVII_all.h"
 #include "MMVII_2Include_Serial_Tpl.h"
 #include "LearnDM.h"
@@ -867,3 +868,4 @@ void cAppliFillCubeCost2D::ExeOptim()
 
 
 };
+#endif

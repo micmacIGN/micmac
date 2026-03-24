@@ -1,4 +1,5 @@
-﻿#include "cMMVII_Appli.h"
+﻿#if MMVII_USE_LIBTORCH
+#include "cMMVII_Appli.h"
 #include "MMVII_Matrix.h"
 
 // include model architecture 
@@ -2534,3 +2535,4 @@ cSpecMMVII_Appli  TheSpecMatchMultipleOrtho
 
 
 };
+#endif

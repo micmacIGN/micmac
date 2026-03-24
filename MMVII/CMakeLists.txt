@@ -48,7 +48,10 @@ endif()
 #######################################################
 
 option(MMVII_KEEP_LIBRARY_MMV1 "If ON, MMVII will use legacy MMV1 code" OFF)
+
 option(MMVII_USE_PDAL "If ON, MMVII will require PDAL to read point clouds" OFF)
+
+option(MMVII_USE_LIBTORCH "If ON, MMVII will require libtorch under MMVII_SOURCE_DIR/" OFF)
 
 #######################################################
 ##        Dependencies
@@ -75,24 +78,25 @@ if(MMVII_USE_PDAL)
 find_package(PDAL REQUIRED)
 endif()
 
-############################ libtorch  ###############
-set(TORCH_INSTALL_PREFIX "${MMVII_SOURCE_DIR}/libtorch")
+# libtorch
 
-set(TORCH_INCLUDE_DIRS
-    ${TORCH_INSTALL_PREFIX}/include
-    ${TORCH_INSTALL_PREFIX}/include/torch/csrc/api/include)
+if(MMVII_USE_LIBTORCH)
+  set(TORCH_INSTALL_PREFIX "${MMVII_SOURCE_DIR}/libtorch")
 
-if(UNIX)
-file (GLOB TORCH_LIBRARIES "${TORCH_INSTALL_PREFIX}/lib/libtorch.so" "${TORCH_INSTALL_PREFIX}/lib/libtorch_c*.so" "${TORCH_INSTALL_PREFIX}/lib/libc10*.so" "/usr/lib/x86_64-linux-gnu/libcudart.so")
+  set(TORCH_INCLUDE_DIRS
+      ${TORCH_INSTALL_PREFIX}/include
+      ${TORCH_INSTALL_PREFIX}/include/torch/csrc/api/include)
+
+  if(UNIX)
+  file (GLOB TORCH_LIBRARIES "${TORCH_INSTALL_PREFIX}/lib/libtorch.so" "${TORCH_INSTALL_PREFIX}/lib/libtorch_c*.so" "${TORCH_INSTALL_PREFIX}/lib/libc10*.so" "/usr/lib/x86_64-linux-gnu/libcudart.so")
+  endif()
+
+  if(MSVC)
+  file (GLOB  "${TORCH_INSTALL_PREFIX}/lib/*.lib")
+  endif()
+
 endif()
 
-if(MSVC)
-file (GLOB  "${TORCH_INSTALL_PREFIX}/lib/*.lib")
-endif()
-############################# libtorch  ###############
-
-#-Wl,--no-as-needed -ltorch -ltorch_cuda_cpp -ltorch_cuda_cu -ltorch_cuda -lc10d_cuda_test -ltorch_cpu -lc10 -lc10_cuda $(TORCHLIBPath)/lib/libnvrtc-builtins-4730a239.so.11.3 -lnvToolsExt -lcudart)
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
 
 # Threads
 set(THREADS_PREFER_PTHREAD_FLAG ON)
@@ -181,12 +185,18 @@ file(GLOB mmv2_headers "${mmv2_include_dir}/*.h" "${mmv2_include_dir}/*/*.h" "${
 ##        libP2007 buid (MMVII library)
 #######################################################
 add_library(P2007 "${mmv2_libsrcs}" "${mmv2_headers}")
-if(MMVII_USE_PDAL)
+if(MMVII_USE_PDAL AND MMVII_USE_LIBTORCH)
   target_include_directories(P2007 PRIVATE "${mmv2_include_dir};${mmv1_include_dir};${EIGEN3_INCLUDE_PATH};${PROJ_INCLUDE_DIRS};${GDAL_INCLUDE_DIRS};${PDAL_INCLUDE_DIRS};${TORCH_INCLUDE_DIRS}")
   target_link_libraries(P2007 PRIVATE MMVII_compiler_flags Threads::Threads ${PROJ_LIBRARIES} ${GDAL_LIBRARIES} ${PDAL_LIBRARIES} -Wl,--no-as-needed ${TORCH_LIBRARIES})
-else()
+elseif(MMVII_USE_PDAL)
+  target_include_directories(P2007 PRIVATE "${mmv2_include_dir};${mmv1_include_dir};${EIGEN3_INCLUDE_PATH};${PROJ_INCLUDE_DIRS};${GDAL_INCLUDE_DIRS};${PDAL_INCLUDE_DIRS}")
+  target_link_libraries(P2007 PRIVATE MMVII_compiler_flags Threads::Threads ${PROJ_LIBRARIES} ${GDAL_LIBRARIES} ${PDAL_LIBRARIES})
+elseif(MMVII_USE_LIBTORCH)
   target_include_directories(P2007 PRIVATE "${mmv2_include_dir};${mmv1_include_dir};${EIGEN3_INCLUDE_PATH};${PROJ_INCLUDE_DIRS};${GDAL_INCLUDE_DIRS};${TORCH_INCLUDE_DIRS}")
   target_link_libraries(P2007 PRIVATE MMVII_compiler_flags Threads::Threads ${PROJ_LIBRARIES} ${GDAL_LIBRARIES} -Wl,--no-as-needed ${TORCH_LIBRARIES})
+else()
+  target_include_directories(P2007 PRIVATE "${mmv2_include_dir};${mmv1_include_dir};${EIGEN3_INCLUDE_PATH};${PROJ_INCLUDE_DIRS};${GDAL_INCLUDE_DIRS}")
+  target_link_libraries(P2007 PRIVATE MMVII_compiler_flags Threads::Threads ${PROJ_LIBRARIES} ${GDAL_LIBRARIES})
 endif()
 
 target_link_libraries(P2007 PRIVATE E57Format)
@@ -203,6 +213,17 @@ else()
   target_compile_definitions(P2007 PUBLIC MMVII_KEEP_LIBRARY_MMV1=false)
 endif()
 
+if(MMVII_USE_PDAL)
+  target_compile_definitions(P2007 PUBLIC MMVII_USE_PDAL=true)
+else()
+  target_compile_definitions(P2007 PUBLIC MMVII_USE_PDAL=false)
+endif()
+
+if(MMVII_USE_LIBTORCH)
+  target_compile_definitions(P2007 PUBLIC MMVII_USE_LIBTORCH=true)
+else()
+  target_compile_definitions(P2007 PUBLIC MMVII_USE_LIBTORCH=false)
+endif()
 
 #######################################################
 ##        MMVII build (executable)
@@ -218,11 +239,20 @@ if(MMVII_KEEP_LIBRARY_MMV1)
   endif()
 endif()
 
-target_include_directories(MMVII PRIVATE "${mmv2_include_dir};${TORCH_INCLUDE_DIRS}")
-if(MMVII_USE_PDAL)
-  target_link_libraries(MMVII PRIVATE MMVII_compiler_flags Threads::Threads P2007 ${mmv1_libs} ${mmv2_extlibs} ${PDAL_LIBRARIES} -Wl,--no-as-needed ${TORCH_LIBRARIES})
+if(MMVII_USE_LIBTORCH)
+  target_include_directories(MMVII PRIVATE "${mmv2_include_dir};${TORCH_INCLUDE_DIRS}")
 else()
+  target_include_directories(MMVII PRIVATE "${mmv2_include_dir}")
+endif()
+
+if(MMVII_USE_PDAL AND MMVII_USE_LIBTORCH)
+  target_link_libraries(MMVII PRIVATE MMVII_compiler_flags Threads::Threads P2007 ${mmv1_libs} ${mmv2_extlibs} ${PDAL_LIBRARIES} -Wl,--no-as-needed ${TORCH_LIBRARIES})
+elseif(MMVII_USE_PDAL)
+  target_link_libraries(MMVII PRIVATE MMVII_compiler_flags Threads::Threads P2007 ${mmv1_libs} ${mmv2_extlibs} ${PDAL_LIBRARIES})
+elseif(MMVII_USE_LIBTORCH)
   target_link_libraries(MMVII PRIVATE MMVII_compiler_flags Threads::Threads P2007 ${mmv1_libs} ${mmv2_extlibs} -Wl,--no-as-needed ${TORCH_LIBRARIES})
+else()
+  target_link_libraries(MMVII PRIVATE MMVII_compiler_flags Threads::Threads P2007 ${mmv1_libs} ${mmv2_extlibs} )
 endif()
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION  VERSION_LESS "9.1")
@@ -231,13 +261,15 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CMAKE_CXX_COMPILER_VERSION  VE
   target_link_libraries(MMVII PRIVATE -lc++fs)
 endif()
 
-if(MSVC)
-  file(GLOB TORCH_DLLS "${TORCH_INSTALL_PREFIX}/lib/*.dll")
-  add_custom_command(TARGET MMVII
-                     POST_BUILD
-                     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                     ${TORCH_DLLS}
-                     $<TARGET_FILE_DIR:MMVII>)
+if(MMVII_USE_LIBTORCH)
+  if(MSVC)
+    file(GLOB TORCH_DLLS "${TORCH_INSTALL_PREFIX}/lib/*.dll")
+    add_custom_command(TARGET MMVII
+                       POST_BUILD
+                       COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                       ${TORCH_DLLS}
+                       $<TARGET_FILE_DIR:MMVII>)
+  endif()
 endif()
 
 if(OpenMP_CXX_FOUND)

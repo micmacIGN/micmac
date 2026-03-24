@@ -2,16 +2,16 @@
 
 ######### SET-UP
 mm3dBin=$(which MMVII)
-DenseMDir=${mm3dBin::(-9)}"src/DenseMatch/"
+DenseMDir=${mm3dBin::(-15)}"MMVII-TrainedModels/"
 CodeDir=${DenseMDir}"RAFT-Stereo/"
 
 # path to your trained model
-MODELPATH=${CodeDir}"models/500000_raftstereo_experiment-PATCH-640.pth"
-#375002_epoch_raftstereo_experiment.pth.gz"
+MODELPATH=${CodeDir}"1000002_epoch_raftstereo_experiment-PATCH-640.pth.gz"
 #MODELPATH=${CodeDir}"models/raftstereo-sceneflow.pth"
 # disparity scale of the trained model
 #DISPSCALE=-256.0
 ########
+
 
 
 # enter virtual env

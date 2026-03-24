@@ -518,7 +518,7 @@ template <class Type> class cTriangulation3D : public cTriangulation<Type,3>
 
 };
 
-#if(MMVII_USE_PDAL)
+#if MMVII_USE_PDAL
 template <class Type> class cTriangulation3DLas : public cTriangulation<Type,3>
 {
 public:

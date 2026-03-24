@@ -194,9 +194,12 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpecCalcHistoCarac);
         TheVecAll.push_back(&TheSpecCalcHistoNDim);
         TheVecAll.push_back(&TheSpecTestHypStep);
+#if MMVII_USE_LIBTORCH
         TheVecAll.push_back(&TheSpecFillCubeCost);
         TheVecAll.push_back(&TheSpecFillCubeCost2D);
         TheVecAll.push_back(&TheSpecMatchMultipleOrtho);
+        TheVecAll.push_back(&TheSpecComputeStatsCorrel);
+#endif
         TheVecAll.push_back(&TheSpecDMEvalRef);
         TheVecAll.push_back(&TheSpecGenCodedTarget);
         TheVecAll.push_back(&TheSpecExtractCircTarget);
@@ -210,7 +213,6 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpecCloudClip);
         TheVecAll.push_back(&TheSpecMeshDev);
         TheVecAll.push_back(&TheSpecGenMeshDev);
-        TheVecAll.push_back(&TheSpecComputeStatsCorrel);
         //TheVecAll.push_back(&TheSpecProgDynEpipolar);
         TheVecAll.push_back(&TheSpecMMGenDepthMV);
         TheVecAll.push_back(&TheSpecOrthoRectifyAndCorrel);
@@ -222,7 +224,7 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpec_OriCheckGCPDist);
         TheVecAll.push_back(&TheSpec_OriBundlAdj);
         TheVecAll.push_back(&TheSpec_TopoAdj);
-#if(MMVII_USE_PDAL)
+#if MMVII_USE_PDAL
         TheVecAll.push_back(&TheSpecSample3DpointsFromCloudIntoImage);
 #endif
         TheVecAll.push_back(&TheSpec_GCPAbsOri);

@@ -9,7 +9,7 @@
 
 #include <omp.h>
 
-#if(MMVII_USE_PDAL)
+#if MMVII_USE_PDAL
     #include <pdal/PointTable.hpp>
     #include <pdal/PointView.hpp>
     #include <pdal/io/LasReader.hpp>
@@ -87,7 +87,7 @@ SOFTWARE.
 
 
 
-#if(MMVII_USE_PDAL)
+#if MMVII_USE_PDAL
 using  namespace pdal;
 
  struct ClassificationTags
@@ -214,7 +214,7 @@ template <class Type> void cTriangulation3D<Type>::PlyInit(const std::string & a
  }
 }
 
-#if (MMVII_USE_PDAL)
+#if MMVII_USE_PDAL
  template <class Type> void cTriangulation3D<Type>::LasInit(const std::string & aNameFile, bool SelectForRegistration)
  {
    //StdOut()<<"START READING LAZ "<<std::endl;
@@ -340,7 +340,7 @@ template <class Type>  cTriangulation3D<Type>::cTriangulation3D(const std::strin
     {
        PlyInit(aName);
     }
-#if(MMVII_USE_PDAL)
+#if MMVII_USE_PDAL
     else if (UCaseEqual(LastPostfix(aName),"laz"))
     {
        LasInit(aName,SelectPointsByClass);
