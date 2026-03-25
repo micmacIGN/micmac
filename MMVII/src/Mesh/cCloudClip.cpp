@@ -312,6 +312,108 @@ cSpecMMVII_Appli  TheSpec_MMVII_CloudClip
 /*                                                 */
 /* =============================================== */
 
+#if (0)
+#endif
+/**  A basic application for clipping 3d data ,  almost all the job is done in
+ * libraries so it essentially interface to command line */
+
+class cAppli_MMVII_CloudSimulSin : public cMMVII_Appli
+{
+     public :
+
+        cAppli_MMVII_CloudSimulSin(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
+
+     private :
+        int Exe() override;
+        cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
+        cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
+
+        // --- Mandatory ----
+        std::string   mNameCloudIn;
+        // --- Optionnal ----
+        std::string mNameCloudOut;
+
+        cPt2di   mNb;
+        tREAL8   mPer;
+        tREAL8   mRatioAmpl;
+
+};
+
+cAppli_MMVII_CloudSimulSin::cAppli_MMVII_CloudSimulSin
+(
+     const std::vector<std::string> & aVArgs,
+     const cSpecMMVII_Appli & aSpec
+) :
+     cMMVII_Appli      (aVArgs,aSpec),
+     mNb               (1000,1000) ,
+     mPer              (50.0),
+     mRatioAmpl        (2.0)
+{
+}
+
+cCollecSpecArg2007 & cAppli_MMVII_CloudSimulSin::ArgObl(cCollecSpecArg2007 & anArgObl)
+{
+ return anArgObl
+      <<   Arg2007(mNb,"Name of input cloud/mesh")
+      <<   Arg2007(mNameCloudOut,"Name of ply output file")
+   ;
+}
+
+
+cCollecSpecArg2007 & cAppli_MMVII_CloudSimulSin::ArgOpt(cCollecSpecArg2007 & anArgOpt)
+{
+   return anArgOpt
+         << AOpt2007(mRatioAmpl,"ZAmpl","Amplitude of Z",{eTA2007::HDV})
+
+   ;
+}
+
+int  cAppli_MMVII_CloudSimulSin::Exe()
+{
+   cPointCloud   mPC_In;
+
+   cRect2 aRect(cPt2di(0,0),mNb);
+   for (const auto & aPt2 : aRect)
+   {
+       tREAL8 aZ = std::sin(aPt2.x()/mPer) * std::sin(aPt2.y()/mPer);
+       aZ *= mRatioAmpl * mPer;
+      cPt3dr aPt3(aPt2.x(),aPt2.y(),aZ);
+
+       mPC_In.AddPt(aPt3 + cPt3dr::PRandInSphere() * 0.0);
+   }
+   mPC_In.ToPly(mNameCloudOut,false);
+
+   return EXIT_SUCCESS;
+}
+
+     /* =============================================== */
+     /*                       ::                        */
+     /* =============================================== */
+
+tMMVII_UnikPApli Alloc_MMVII_CloudSimulSin(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec)
+{
+   return tMMVII_UnikPApli(new cAppli_MMVII_CloudSimulSin(aVArgs,aSpec));
+}
+
+cSpecMMVII_Appli  TheSpec_MMVII_CloudSimulSin
+(
+     "CloudMMVIISimulSin",
+      Alloc_MMVII_CloudSimulSin,
+      "Generate a ply version of  MMVII-Cloud",
+      {eApF::Cloud},
+      {eApDT::Ply},
+      {eApDT::Ply},
+      __FILE__
+);
+
+
+/* =============================================== */
+/*                                                 */
+/*                 cAppli_MMVII_CloudClip          */
+/*                                                 */
+/* =============================================== */
+
+
 /**  A basic application for clipping 3d data ,  almost all the job is done in
  * libraries so it essentially interface to command line */
 
@@ -327,7 +429,7 @@ class cAppli_MMVII_Cloud2Ply : public cMMVII_Appli
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
 
         // --- Mandatory ----
-	std::string   mNameCloudIn;
+    std::string   mNameCloudIn;
         // --- Optionnal ----
         std::string mNameCloudOut;
 
@@ -342,10 +444,10 @@ cAppli_MMVII_Cloud2Ply::cAppli_MMVII_Cloud2Ply
 {
 }
 
-cCollecSpecArg2007 & cAppli_MMVII_Cloud2Ply::ArgObl(cCollecSpecArg2007 & anArgObl) 
+cCollecSpecArg2007 & cAppli_MMVII_Cloud2Ply::ArgObl(cCollecSpecArg2007 & anArgObl)
 {
  return anArgObl
-	  <<   Arg2007(mNameCloudIn,"Name of input cloud/mesh", {eTA2007::FileDirProj,eTA2007::FileDmp})
+      <<   Arg2007(mNameCloudIn,"Name of input cloud/mesh", {eTA2007::FileDirProj,eTA2007::FileDmp})
    ;
 }
 
@@ -390,8 +492,4 @@ cSpecMMVII_Appli  TheSpec_MMVII_Cloud2Ply
       {eApDT::Ply},
       __FILE__
 );
-#if (0)
-#endif
-
-
 };
