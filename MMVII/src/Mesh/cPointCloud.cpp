@@ -194,6 +194,7 @@ void cPointCloud::ToPly(const std::string & aName,bool WithOffset) const
 
     size_t aNbP = NbPts();
     size_t aNbC = mColors.size(); 
+    StdOut() << " NcOlToPly=" << aNbC << "\n";
     bool  WithVis = (mMulDegVis>0);
     if (WithVis)
     {

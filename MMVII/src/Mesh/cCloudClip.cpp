@@ -336,6 +336,7 @@ class cAppli_MMVII_CloudSimulSin : public cMMVII_Appli
         cPt2di   mNb;
         tREAL8   mPer;
         tREAL8   mRatioAmpl;
+        tREAL8   mRandAmp;
 
 };
 
@@ -347,7 +348,8 @@ cAppli_MMVII_CloudSimulSin::cAppli_MMVII_CloudSimulSin
      cMMVII_Appli      (aVArgs,aSpec),
      mNb               (1000,1000) ,
      mPer              (50.0),
-     mRatioAmpl        (2.0)
+     mRatioAmpl        (2.0),
+     mRandAmp          (0.0)
 {
 }
 
@@ -364,6 +366,8 @@ cCollecSpecArg2007 & cAppli_MMVII_CloudSimulSin::ArgOpt(cCollecSpecArg2007 & anA
 {
    return anArgOpt
          << AOpt2007(mRatioAmpl,"ZAmpl","Amplitude of Z",{eTA2007::HDV})
+         << AOpt2007(mRandAmp,"RandAmpl","Amplitude of randomization",{eTA2007::HDV})
+
 
    ;
 }
@@ -379,7 +383,7 @@ int  cAppli_MMVII_CloudSimulSin::Exe()
        aZ *= mRatioAmpl * mPer;
       cPt3dr aPt3(aPt2.x(),aPt2.y(),aZ);
 
-       mPC_In.AddPt(aPt3 + cPt3dr::PRandInSphere() * 0.0);
+       mPC_In.AddPt(aPt3 + cPt3dr::PRandInSphere() *mRandAmp);
    }
    mPC_In.ToPly(mNameCloudOut,false);
 
