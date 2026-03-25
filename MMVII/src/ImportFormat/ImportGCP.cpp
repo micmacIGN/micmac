@@ -99,7 +99,7 @@ cCollecSpecArg2007 & cAppli_ImportGCP::ArgOpt(cCollecSpecArg2007 & anArgOpt)
     return anArgOpt
        << AOpt2007(mNameGCP,"NameGCP","Name of GCP set")
        << AOpt2007(mNbDigName,"NbDigName","Number of digit for name, if fixed size required (only if int)")
-       << AOpt2007(mPatternTransfo,"PatName","Pattern for transforming name (first sub-expr)",{{eTA2007::ISizeV,"[2,2]"}})
+       << AOpt2007(mPatternTransfo,"PatName","Pattern for transforming name [pattern, substitution] (use '$1' for 1st capture). Not matching points will be removed",{{eTA2007::ISizeV,"[2,2]"}})
        << mPhProj.ArgChSys(true)  // true =>  default init with None
        << AOpt2007(mMulCoord,"MulCoord","Coordinate multiplier, used to change unity as meter to mm")
        << AOpt2007(mDefSigma,"Sigma","Sigma for all coords (covar is 0). -1 to make all points free",{eTA2007::HDV})
@@ -171,7 +171,9 @@ int cAppli_ImportGCP::Exe()
 	//  eventually transformate the name using specified pattern
         if (IsInit(&mPatternTransfo))
         {
-            aNamePoint = ReplacePattern(mPatternTransfo.at(0),mPatternTransfo.at(1),aNamePoint);
+            aNamePoint = ReplacePattern(mPatternTransfo.at(0),mPatternTransfo.at(1),aNamePoint, true);
+            if (aNamePoint.empty())
+                continue;
         }
 
 	//  Eventually  fix the number of digit (error if it's not an int)
@@ -203,7 +205,7 @@ std::vector<std::string>  cAppli_ImportGCP::Samples() const
 {
    return 
    {
-       "MMVII ImportGCP  2023-10-06_15h31PolarModule.coo  NXYZ Std  NumL0=14 NumLast=34  PatName=\"P\\.(.*)\" NbDigName=4",
+       "MMVII ImportGCP  2023-10-06_15h31PolarModule.coo  NXYZ Std  NumL0=14 NumLast=34 PatName=\'[P\\.(.*),$1]\' NbDigName=4",
        "MMVII ImportGCP  Pannel5mm.obc  NXYZ Std NbDigName=4 ChSys=[LocalPannel]"
    };
 }

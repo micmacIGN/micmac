@@ -545,7 +545,7 @@ bool  MatchRegex(const std::string& aName,const std::string& aPat)
      return AllocRegex(aPat).Match(aName);
 }
 
-std::string ReplacePattern(const std::string & aPattern,const std::string & aSubst,const std::string & aString)
+std::string ReplacePattern(const std::string & aPattern,const std::string & aSubst,const std::string & aString, bool aSVP)
 {
    //  [4JO]
    //  to see  jo why
@@ -562,7 +562,7 @@ std::string ReplacePattern(const std::string & aPattern,const std::string & aSub
    {
        aRes = std::regex_replace(aString,std::regex(aPattern),aSubst, std::regex_constants::format_no_copy);
    }
-   if (aRes=="")
+   if ((aRes=="") && !aSVP)
    {
        StdOut() << "Pat=[" << aPattern << "] String=[" << aString << "]" << std::endl;
        MMVII_INTERNAL_ASSERT_tiny(false,"No match  in ReplacePattern");
