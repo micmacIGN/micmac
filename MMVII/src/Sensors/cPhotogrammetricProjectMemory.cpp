@@ -66,6 +66,14 @@ cPerspCamIntrCalib *  cPhotogrammetricProjectMemory::InternalCalibFromStdName(co
     return aIt->second;
 }
 
+cPerspCamIntrCalib *  cPhotogrammetricProjectMemory::InternalCalibFromImage(const std::string & aNameIm) const
+{
+    cSensorCamPC * aPC = ReadCamPC(aNameIm, false, SVP::Yes);
+    if (aPC == nullptr)
+        return InternalCalibFromStdName(aNameIm);
+    return aPC->InternalCalib();
+}
+
 cSensorCamPC *  cPhotogrammetricProjectMemory::ReadCamPC(const std::string & aNameIm,
                                                           bool /*ToDeleteAutom*/,
                                                           bool SVP) const

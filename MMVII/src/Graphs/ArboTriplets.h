@@ -267,6 +267,7 @@ public :
     cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
 private :
     cPhotogrammetricProject   mPhProj;
+    std::string               mPatImIn;
     int                       mNbMaxClust;
     tREAL8                    mDistClust;
     std::vector<tREAL8>       mLevelRand;

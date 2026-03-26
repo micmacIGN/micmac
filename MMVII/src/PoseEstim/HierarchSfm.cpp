@@ -58,7 +58,7 @@ cAppli_HierarchSfm::cAppli_HierarchSfm(const std::vector<std::string> & aVArgs,c
     mDoCheck     (true),
     mWBalance    (1.0),
     mViscPose    ({-1,-1}),
-    mLVM         (0),
+    mLVM         (0.1),
     mSigmaTPt    (1.0),
     mFacElim     (10.0),
     mNbIterBA    (2)
@@ -69,7 +69,7 @@ cCollecSpecArg2007 & cAppli_HierarchSfm::ArgObl(cCollecSpecArg2007 & anArgObl)
     return anArgObl
            << Arg2007(mPatImIn,"Pattern/file for images",{{eTA2007::MPatFile,"0"},{eTA2007::FileDirProj}})
            <<  mPhProj.DPOrient().ArgDirInMand("Input calibration folder")
-           <<  mPhProj.DPOriRel().ArgDirInMand("Input relative motions")
+           <<  mPhProj.DPOriRel().ArgDirInMand("Input relative orientations (triplets)")
         ;
 }
 
@@ -94,27 +94,9 @@ int cAppli_HierarchSfm::Exe()
     mPhProj.FinishInit();
 
     cAutoTimerSegm  aATS(TimeSegm(),"Read motions");
-    //cTripletSet *  a3Set =  mPhProj.ReadTriplets();
     std::vector<std::string> aSetIm = VectMainSet(0);
     std::vector<cDataSolOriTriplet> a3Set = mPhProj.ReadAllTriplets(aSetIm);
 
-    // filter triplets to match the image set
-    std::regex aPat(mPatImIn);
-    std::vector<cDataSolOriTriplet> aNewTriSet;
-    for (auto& a3 : a3Set)
-    {
-        int aMatches=0;
-        for (auto& im : a3.mVNames)
-        {
-            std::smatch aBoundMatch;
-            if (std::regex_search(im,aBoundMatch,aPat))
-                aMatches++;
-        }
-
-        if (aMatches==3)
-            aNewTriSet.push_back(a3);
-    }
-    a3Set = aNewTriSet;
 
     TimeSegm().SetIndex("cMakeArboTriplet");
     cMakeArboTriplet  aMk3(a3Set,mDoCheck,mWBalance,mPhProj,*this);
@@ -132,13 +114,9 @@ int cAppli_HierarchSfm::Exe()
     if (mPhProj.DPMulTieP().DirInIsInit())
     {
         aMk3.TPFolder() = mPhProj.DPMulTieP().DirIn() ;
-
         aMk3.InitTPtsStruct(mPhProj.DPMulTieP().DirIn(),aSetIm);
 
     }
-    else
-        MMVII_INTERNAL_ASSERT_always(mPhProj.DPMulTieP().DirInIsInit(),"Input features not initialised");
-
 
     TimeSegm().SetIndex("MakeGraphPose");
     aMk3.MakeGraphPose();
@@ -183,7 +161,7 @@ tMMVII_UnikPApli Alloc_HierarchSfm(const std::vector<std::string> & aVArgs,const
 
 cSpecMMVII_Appli  TheSpec_HierarchSfm
     (
-        "___HierarchSfm",
+        "HierarchicalSfm",
         Alloc_HierarchSfm,
         "Construct global orientation from a graph of relative motions",
         {eApF::Ori},

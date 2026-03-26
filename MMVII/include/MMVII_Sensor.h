@@ -457,6 +457,7 @@ class cIPhProj
 
         //=== Calibrations ===
         virtual cPerspCamIntrCalib *  InternalCalibFromStdName(const std::string aNameIm, bool isRemanent=true) const = 0;
+        virtual cPerspCamIntrCalib *  InternalCalibFromImage(const std::string & aNameIm) const = 0;
 
         //=== Orientations ===
         virtual cSensorImage *  ReadSensor(const std::string & aNameIm, bool ToDeleteAutom, bool SVP=false) const = 0;
@@ -603,7 +604,7 @@ class cPhotogrammetricProject : public cIPhProj
 	  std::string  FullDirCalibOut() const;
 	  
 	  /// read Pose file  and extract the name of internal  calibration
-          cPerspCamIntrCalib *  InternalCalibFromImage(const std::string &aNameIm) const;
+          cPerspCamIntrCalib *  InternalCalibFromImage(const std::string &aNameIm) const override;
 	  ///  compute the standard name of calibration before reading it
 	  cPerspCamIntrCalib *  InternalCalibFromStdName (const std::string aNameIm,bool isRemanent=true) const override;
 
@@ -983,6 +984,7 @@ class cPhotogrammetricProjectMemory : public cIPhProj
         // === cIPhProj interface ===
 
         cPerspCamIntrCalib *  InternalCalibFromStdName(const std::string aNameIm, bool isRemanent=true) const override;
+        cPerspCamIntrCalib *  InternalCalibFromImage(const std::string & aNameIm) const override;
 
         cSensorImage *  ReadSensor(const std::string & aNameIm, bool ToDeleteAutom, bool SVP=false) const override;
         cSensorCamPC *  ReadCamPC(const std::string &, bool ToDeleteAutom, bool SVP=false) const override;

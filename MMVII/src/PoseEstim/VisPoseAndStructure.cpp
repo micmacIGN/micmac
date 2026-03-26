@@ -16,7 +16,7 @@ namespace MMVII
 cAppli_VisuPoseStr3D::cAppli_VisuPoseStr3D(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
     cMMVII_Appli (aVArgs,aSpec),
     mPhProj      (*this),
-    mErrProjMax  (20.0),
+    mErrProjMax  (10.0),
     mCamScale    (1.0),
     mOutfile     ("VisSFM_${ori}_${features}.ply"),
     mBinary      (true)
@@ -45,7 +45,10 @@ cCollecSpecArg2007 & cAppli_VisuPoseStr3D::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 int cAppli_VisuPoseStr3D::Exe()
 {
     mPhProj.FinishInit();
-    mOutfile = ("VisSFM_"+mPhProj.DPOrient().DirIn()+ (mPhProj.DPMulTieP().DirInIsInit() ? "_"+mPhProj.DPMulTieP().DirIn() : "")  +".ply");
+
+    if (!IsInit(&mOutfile))
+        mOutfile = ("VisSFM_"+mPhProj.DPOrient().DirIn()+
+                    (mPhProj.DPMulTieP().DirInIsInit() ? "_"+mPhProj.DPMulTieP().DirIn() : "")  +".ply");
 
 
     // vector of all image names
@@ -57,7 +60,7 @@ int cAppli_VisuPoseStr3D::Exe()
     for (const auto & aIm : VectMainSet(0))
     {
         aVNames.push_back(aIm);
-        aVSens.push_back(mPhProj.ReadSensor(aIm,true));
+        aVSens.push_back(mPhProj.ReadSensor(aIm,true,true));
 
     }
     // sort images alphbetically (and aVSens accordingly) for AllocStdFromMTPFromFolder

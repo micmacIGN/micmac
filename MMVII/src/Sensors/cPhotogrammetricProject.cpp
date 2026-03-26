@@ -629,6 +629,7 @@ cSensorCamPC * cPhotogrammetricProject::ReadCamPC(const cDirsPhProj & aDP,const 
     aDP.AssertDirInIsInit();
 
     std::string aNameCam  =  aDP.FullDirIn() + cSensorCamPC::NameOri_From_Image(aNameIm);
+
     // if kindly asked and dont exist return
     if ( SVP && (!ExistFile(aNameCam)) )
     {

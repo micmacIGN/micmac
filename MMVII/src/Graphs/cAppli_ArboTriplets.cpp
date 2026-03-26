@@ -625,7 +625,7 @@ void cNodeArborTriplets::SaveGlobSol(const std::string & aPrefix) const
 
         //StdOut() << "== " << aSol.mPose.Tr() << std::endl;
 
-        cPerspCamIntrCalib *  aCalib = mPMAT->PhProj().InternalCalibFromStdName(mPMAT->MapI2Str(aSol.mNumPose));
+        cPerspCamIntrCalib *  aCalib = mPMAT->PhProj().InternalCalibFromImage(mPMAT->MapI2Str(aSol.mNumPose));// mPMAT->PhProj().InternalCalibFromStdName(mPMAT->MapI2Str(aSol.mNumPose));
         cSensorCamPC aCam(aCurImName,aSol.mPose,aCalib); //mmv2 convention
         mPMAT->PhProj().SaveCamPC(aCam);
 
@@ -799,14 +799,12 @@ void cNodeArborTriplets::MergeChildrenSol()
 
 }
 
-static std::mutex gBAMutex;
 /* Refinement on bundles (any camera projection) */
 void cNodeArborTriplets::RefineCurSolution()
 {
     //cBA_ArboTriplets aBA(mPMAT, mLocSols);
     cBA_ArboTriplets* aBA;
     {
-        std::lock_guard<std::mutex> lock(gBAMutex);
         aBA = new cBA_ArboTriplets(mPMAT, mLocSols);
     }
 
@@ -1019,8 +1017,8 @@ void cMakeArboTriplet::InitialiseCalibs()
 {
     for (size_t aKIm=0 ; aKIm<mMapStrI.size() ; aKIm++)
     {
-        //StdOut() << *mMapStrI.I2Obj(aKIm) << std::endl;
-        cPerspCamIntrCalib *   aCal = mPhProj.InternalCalibFromStdName(*mMapStrI.I2Obj(aKIm));
+        //StdOut() << *mMapStrI.I2Obj(aKIm) << std::endl; InternalCalibFromImage
+        cPerspCamIntrCalib *   aCal = mPhProj.InternalCalibFromImage(*mMapStrI.I2Obj(aKIm));// mPhProj.InternalCalibFromStdName(*mMapStrI.I2Obj(aKIm));
         FakeUseIt(aCal);
     }
 }
@@ -1045,7 +1043,7 @@ void cMakeArboTriplet::InitTPtsStruct(const std::string& aFolder, std::vector<st
         // for every image
         for (int aKIm=0; aKIm<NbIm; aKIm++)
         {
-            cPerspCamIntrCalib *   aCal = mPhProj.InternalCalibFromStdName(aVNames[aConf[aKIm]],true);
+            cPerspCamIntrCalib *   aCal = mPhProj.InternalCalibFromImage(aVNames[aConf[aKIm]]);;// mPhProj.InternalCalibFromStdName(aVNames[aConf[aKIm]],true);
 
             std::vector<cPt3dr> aOutBundles;
             std::vector<cPt2dr> aInObs;
@@ -1511,6 +1509,7 @@ cAppli_ArboTriplets::cAppli_ArboTriplets(const std::vector<std::string> & aVArgs
 cCollecSpecArg2007 & cAppli_ArboTriplets::ArgObl(cCollecSpecArg2007 & anArgObl)
 {
     return anArgObl
+              << Arg2007(mPatImIn,"Pattern/file for images",{{eTA2007::MPatFile,"0"},{eTA2007::FileDirProj}})
               <<  mPhProj.DPOriRel().ArgDirInMand("Input triplets")
            ;
 }
@@ -1539,7 +1538,8 @@ int cAppli_ArboTriplets::Exe()
 
       
      cAutoTimerSegm  aATS(TimeSegm(),"Read3");
-     std::vector<cDataSolOriTriplet> a3Set = mPhProj.ReadAllTriplets(VectMainSet(0));
+     std::vector<std::string> aSetIm = VectMainSet(0);
+     std::vector<cDataSolOriTriplet> a3Set = mPhProj.ReadAllTriplets(aSetIm);
 
      TimeSegm().SetIndex("cMakeArboTriplet");
      cMakeArboTriplet  aMk3(a3Set,mDoCheck,mWBalance,mPhProj,*this);
@@ -1549,8 +1549,8 @@ int cAppli_ArboTriplets::Exe()
         aMk3.WeigthEdge3() = mWeigthEdge3;
      if (IsInit(&mPerfectData))
         aMk3.PerfectData() = true;
-     if (mPhProj.IsOriInDirInit())
-        aMk3.PerfectOri() = true;
+     if (IsInit(&mPerfectData))
+        aMk3.PerfectOri() = mPerfectData;
      if (IsInit(&mViscPose))
      {
          // tie-points must be provided for BA
