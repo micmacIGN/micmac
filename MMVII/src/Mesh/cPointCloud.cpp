@@ -194,6 +194,7 @@ void cPointCloud::ToPly(const std::string & aName,bool WithOffset) const
 
     size_t aNbP = NbPts();
     size_t aNbC = mColors.size(); 
+    StdOut() << " NcOlToPly=" << aNbC << "\n";
     bool  WithVis = (mMulDegVis>0);
     if (WithVis)
     {
@@ -350,6 +351,93 @@ cBox3dr  cPointCloud::Box() const
 
 #if (0)
 
+
+/* =============================================== */
+/*                                                 */
+/*                 cAppli_MMVII_CloudClip          */
+/*                                                 */
+/* =============================================== */
+
+/**  A basic application for clipping 3d data ,  almost all the job is done in
+ * libraries so it essentially interface to command line */
+
+class cAppli_MMVII_CloudSimpulSin : public cMMVII_Appli
+{
+     public :
+
+        cAppli_MMVII_CloudSimpulSin(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
+
+     private :
+        int Exe() override;
+        cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
+        cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
+
+        // --- Mandatory ----
+    std::string   mNameCloudIn;
+        // --- Optionnal ----
+        std::string mNameCloudOut;
+
+};
+
+cAppli_MMVII_CloudSimpulSin::cAppli_MMVII_CloudSimpulSin
+(
+     const std::vector<std::string> & aVArgs,
+     const cSpecMMVII_Appli & aSpec
+) :
+     cMMVII_Appli      (aVArgs,aSpec)
+{
+}
+
+cCollecSpecArg2007 & cAppli_MMVII_CloudSimpulSin::ArgObl(cCollecSpecArg2007 & anArgObl)
+{
+ return anArgObl
+      <<   Arg2007(mNameCloudIn,"Name of input cloud/mesh", {eTA2007::FileDirProj,eTA2007::FileDmp})
+   ;
+}
+
+
+cCollecSpecArg2007 & cAppli_MMVII_CloudSimpulSin::ArgOpt(cCollecSpecArg2007 & anArgOpt)
+{
+   return anArgOpt
+          << AOpt2007(mNameCloudOut,CurOP_Out,"Name of output file, def=Clip_+InPut")
+   ;
+}
+
+int  cAppli_MMVII_CloudSimpulSin::Exe()
+{
+   if (! IsInit(&mNameCloudOut))
+      mNameCloudOut = LastPrefix(mNameCloudIn) + ".ply";
+
+   cPointCloud   mPC_In;
+   ReadFromFile(mPC_In,mNameCloudIn);
+
+   mPC_In.ToPly(mNameCloudOut,false);
+
+
+   return EXIT_SUCCESS;
+}
+
+     /* =============================================== */
+     /*                       ::                        */
+     /* =============================================== */
+
+tMMVII_UnikPApli Alloc_MMVII_CloudSimulSin(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec)
+{
+   return tMMVII_UnikPApli(new cAppli_MMVII_CloudSimpulSin(aVArgs,aSpec));
+}
+
+cSpecMMVII_Appli  TheSpec_MMVII_CloudSimulSin
+(
+     "CloudMMVII2Ply",
+      Alloc_MMVII_CloudSimulSin,
+      "Generate a ply version of  MMVII-Cloud",
+      {eApF::Cloud},
+      {eApDT::Ply},
+      {eApDT::Ply},
+      __FILE__
+);
+
 #endif
+
 };
 
