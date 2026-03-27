@@ -59,7 +59,7 @@ extern cSpecMMVII_Appli  TheSpecSimulSphere;
 extern cSpecMMVII_Appli  TheSpecDensifyRefMatch; 
 extern cSpecMMVII_Appli  TheSpecCompletUncodedTarget; 
 extern cSpecMMVII_Appli  TheSpecCloudClip; 
-extern cSpecMMVII_Appli  TheSpec_MMVII_CloudImProj; 
+extern cSpecMMVII_Appli  TheSpec_MMVII_GT_EpipOrthoC;
 extern cSpecMMVII_Appli  TheSpecMeshDev; 
 extern cSpecMMVII_Appli  TheSpecGenMeshDev; 
 extern cSpecMMVII_Appli  TheSpecTestCovProp; 

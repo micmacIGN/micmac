@@ -268,6 +268,14 @@ class cSensorImage  :   public cObj2DelAtEnd,
          /// Accesors  to
          //  cDataGenUnTypedIm<2> & GetImage();
 
+         /// Image of Depth -> Image of paralax
+         cIm2D<tREAL4> ImageDepth2ImagePax
+                       (
+                            cIm2D<tREAL4> aImDepth,
+                            const cSensorImage& aSen2,
+                            tREAL8 * aMaxPaxTrsv = nullptr
+                       ) const;
+
      private :
           cSensorImage(const cSensorImage &) = delete;
 
@@ -517,7 +525,7 @@ class cPhotogrammetricProject : public cIPhProj
 	  const std::string & TaggedNameDefSerial() const; /// short to Appli.Nam...
 	  const std::string & VectNameDefSerial() const; /// short to Appli.Nam...
 	  cDirsPhProj &   DPOrient(); ///< Accessor
-          cDirsPhProj &   DPOriTriplets(); ///< Accessor
+      cDirsPhProj &   DPOriTriplets(); ///< Accessor
 	  cDirsPhProj &   DPRadiomData(); ///< Accessor
 	  cDirsPhProj &   DPRadiomModel(); ///< Accessor
 	  cDirsPhProj &   DPMeshDev(); ///< Accessor
