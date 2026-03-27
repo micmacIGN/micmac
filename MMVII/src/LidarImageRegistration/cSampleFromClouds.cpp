@@ -11,7 +11,6 @@
 #include "MMVII_Radiom.h"
 #include <fstream>
 #include <iostream>
-//#include <StdAfx.h>
 
 
 

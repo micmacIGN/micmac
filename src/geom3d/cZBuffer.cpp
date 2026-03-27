@@ -213,7 +213,7 @@ Im2D_REAL4 cZBuffer::Basculer
     mTImDef_01.Resize(aSzDef);
     mTImDef_11.Resize(aSzDef);
 
-static int aCpt=0; aCpt++;
+    static int aCpt=0; aCpt++;
 
     // fait pour verifier par cher que le gradient est raisonnable
     
@@ -224,11 +224,11 @@ static int aCpt=0; aCpt++;
     double aNbBadGrad = 0.0;
     double aNbGrad = 0.0;
 
-double aDebugMaxGr =0 ;
-Pt3dr aPtOutMaxGrad(0,0,0);
-Pt2di aPtInMaxGrad(0,0);
-Pt3dr aLastPtOutMaxGrad(0,0,0);
-Pt2di aLastPtInMaxGrad(0,0);
+    double aDebugMaxGr =0 ;
+    Pt3dr aPtOutMaxGrad(0,0,0);
+    Pt2di aPtInMaxGrad(0,0);
+    Pt3dr aLastPtOutMaxGrad(0,0,0);
+    Pt2di aLastPtInMaxGrad(0,0);
 
     for (int anXDal0 = aP0In.x ;  anXDal0< aP1In.x ; anXDal0 += SzDalleDef  )
     {
@@ -239,139 +239,139 @@ Pt2di aLastPtInMaxGrad(0,0);
              std::vector<double> aVZofXY;
              for (aPIn.x=anXDal0 ; aPIn.x<anXDal1; aPIn.x++)
              {
-                  for (aPIn.y=anYDal0 ; aPIn.y<anYDal1; aPIn.y++)
-                  {
+              for (aPIn.y=anYDal0 ; aPIn.y<anYDal1; aPIn.y++)
+              {
 
-bool TEST = (aPIn.x==2000) && (aPIn.y==2000) && MPD_MM();
-			aNbPts++;
-			if (SelectP(aPIn))
-			{
-				aNbOkTer++;
-                                double aZofXY;
+                    bool TEST = (aPIn.x==2000) && (aPIn.y==2000) && MPD_MM();
+                                aNbPts++;
+                if (SelectP(aPIn))
+                {
+                    aNbOkTer++;
+                    double aZofXY;
 
-//static int aCpt=0; aCpt++; if (aCpt>10600000) std::cout << "Iiiinnnn " << aCpt << "\n";
-				Pt3dr aP3Out = ProjDisc(aPIn,&aZofXY);
-if (TEST)
-{
-    std::cout << "P3OUT " <<  aP3Out << "\n";
-   Pt3dr aPInTer =  ToCoordInAbs(Pt3dr(aPIn.x,aPIn.y,ZofXY(aPIn)));
-   Pt3dr aPOutTer = ProjTerrain(aPInTer);
-   Pt3dr  aPFIN = ToCoordOutLoc(aPOutTer);
+                    //static int aCpt=0; aCpt++; if (aCpt>10600000) std::cout << "Iiiinnnn " << aCpt << "\n";
+                    Pt3dr aP3Out = ProjDisc(aPIn,&aZofXY);
+                    if (TEST)
+                    {
+                        std::cout << "P3OUT " <<  aP3Out << "\n";
+                       Pt3dr aPInTer =  ToCoordInAbs(Pt3dr(aPIn.x,aPIn.y,ZofXY(aPIn)));
+                       Pt3dr aPOutTer = ProjTerrain(aPInTer);
+                       Pt3dr  aPFIN = ToCoordOutLoc(aPOutTer);
 
-    std::cout << "TTTT " << aPIn << "\n";
-    std::cout << "TTTT " << aPInTer << "\n";
-    std::cout << "TTTT " << aPOutTer << "\n";
-    std::cout << "TTTT " << aPFIN << "\n";
+                        std::cout << "TTTT " << aPIn << "\n";
+                        std::cout << "TTTT " << aPInTer << "\n";
+                        std::cout << "TTTT " << aPOutTer << "\n";
+                        std::cout << "TTTT " << aPFIN << "\n";
 
-}
-//if (aCpt>10600000)std::cout << "OooUuutt " << aCpt << "\n";
-				Pt2dr aP2Out(aP3Out.x,aP3Out.y);
+                    }
+                    //if (aCpt>10600000)std::cout << "OooUuutt " << aCpt << "\n";
+                    Pt2dr aP2Out(aP3Out.x,aP3Out.y);
 
-                                double aDist2 =  square_euclid(aPIn-aLastPIn);
-                                if ( aDist2 < 10)
-                                {
-                                    double aDist3 = sqrt(aDist2+ElSquare(aZofXY-aLastZofXY));
-                                    double aGrad = euclid(aP2Out-Pt2dr(aLastP3Out.x,aLastP3Out.y)) / aDist3;
-                                    aNbGrad ++;
-                                    if (aGrad>1.5)
+                                    double aDist2 =  square_euclid(aPIn-aLastPIn);
+                                    if ( aDist2 < 10)
                                     {
-                                        if (0 && ((MPD_MM() || ERupnik_MM()) && ((aZofXY>40) && (aZofXY<250))))
+                                        double aDist3 = sqrt(aDist2+ElSquare(aZofXY-aLastZofXY));
+                                        double aGrad = euclid(aP2Out-Pt2dr(aLastP3Out.x,aLastP3Out.y)) / aDist3;
+                                        aNbGrad ++;
+                                        if (aGrad>1.5)
                                         {
-                                            // std::cout << "ZZZZZZzBadGraddd  " << aZofXY  << " " << aP3Out << "\n";
-                                            if (aGrad>aDebugMaxGr)
+                                            if (0 && ((MPD_MM() || ERupnik_MM()) && ((aZofXY>40) && (aZofXY<250))))
                                             {
-                                               aDebugMaxGr = aGrad;
-                                               aPtOutMaxGrad  = aP3Out;
-                                               aPtInMaxGrad = aPIn;
+                                                // std::cout << "ZZZZZZzBadGraddd  " << aZofXY  << " " << aP3Out << "\n";
+                                                if (aGrad>aDebugMaxGr)
+                                                {
+                                                   aDebugMaxGr = aGrad;
+                                                   aPtOutMaxGrad  = aP3Out;
+                                                   aPtInMaxGrad = aPIn;
 
-                                               aLastPtOutMaxGrad  = aLastP3Out;
-                                               aLastPtInMaxGrad = aLastPIn;
+                                                   aLastPtOutMaxGrad  = aLastP3Out;
+                                                   aLastPtInMaxGrad = aLastPIn;
+                                                }
                                             }
+                                            aNbBadGrad++;
                                         }
-                                        aNbBadGrad++;
-                                    }
-                                    if (aGrad > aMaxGrad)
-                                    {
+                                        if (aGrad > aMaxGrad)
+                                        {
 
-if (0 && MPD_MM())
-{
-   std::cout.precision(12);
-   std::cout << "GRAD " << aGrad  << " D2="<< aDist2 << " D3=" << aDist3  << "\n";
-   std::cout << " IN=" <<  aPIn << aLastPIn <<  aPIn- aLastPIn<< "\n";
-   double  aValZofXY = ZofXY(aPIn);
-   double  aLastValZofXY = ZofXY(aLastPIn);
-   Pt3dr anAbsIn = ToCoordInAbs(Pt3dr(aPIn.x,aPIn.y,aValZofXY));
-   Pt3dr aPLastIn = ToCoordInAbs(Pt3dr(aLastPIn.x,aLastPIn.y,aLastValZofXY));
+                        if (0 && MPD_MM())
+                        {
+                           std::cout.precision(12);
+                           std::cout << "GRAD " << aGrad  << " D2="<< aDist2 << " D3=" << aDist3  << "\n";
+                           std::cout << " IN=" <<  aPIn << aLastPIn <<  aPIn- aLastPIn<< "\n";
+                           double  aValZofXY = ZofXY(aPIn);
+                           double  aLastValZofXY = ZofXY(aLastPIn);
+                           Pt3dr anAbsIn = ToCoordInAbs(Pt3dr(aPIn.x,aPIn.y,aValZofXY));
+                           Pt3dr aPLastIn = ToCoordInAbs(Pt3dr(aLastPIn.x,aLastPIn.y,aLastValZofXY));
 
-std::cout << "RPCCVISSSSSSSSSSSSSSSss " << RPCIsBascVisible(anAbsIn) <<  " " << RPCIsBascVisible(aPLastIn)  << "\n";
+                        std::cout << "RPCCVISSSSSSSSSSSSSSSss " << RPCIsBascVisible(anAbsIn) <<  " " << RPCIsBascVisible(aPLastIn)  << "\n";
 
-   std::cout << " IN-ABS=" <<  anAbsIn << aPLastIn <<   "\n";
-   std::cout << " OUT=" <<  aP3Out << aLastP3Out << aP3Out-aLastP3Out << "\n";
-   std::cout << "\n";
-   // getchar();
-}
-                                        aMaxGrad = aGrad;
-                                    }
-                                }
+                           std::cout << " IN-ABS=" <<  anAbsIn << aPLastIn <<   "\n";
+                           std::cout << " OUT=" <<  aP3Out << aLastP3Out << aP3Out-aLastP3Out << "\n";
+                           std::cout << "\n";
+                           // getchar();
+                        }
+                                                                aMaxGrad = aGrad;
+                                                            }
+                                                        }
 
-if (TEST)
-{
-   std::cout << "OOOuut " << aP2Out << "\n";
-}
+                        if (TEST)
+                        {
+                           std::cout << "OOOuut " << aP2Out << "\n";
+                        }
 
 
-				if (SelectPBascul(aP2Out))
-				{
-				   aNbOkIm++;
+                    if (SelectPBascul(aP2Out))
+                    {
+                       aNbOkIm++;
 
 
-if (0 && (aMaxGrad>400)  &&(MPD_MM() || ERupnik_MM()))
-{
+                        if (0 && (aMaxGrad>400)  &&(MPD_MM() || ERupnik_MM()))
+                        {
 
 
-//  std::cout << "pppppppppppppp " << aP2Out << "\n";
-// if (euclid(aP2Out) > 1e5  )
-{
-   std::cout << "STEPIN " << mStepIn << " OOOO " << aZofXY << "\n";
-   DEBUG_ZBB = true;
-   for (int aDx = -1 ; aDx<=1 ; aDx++)
-   {
-       for (int aDy = -1 ; aDy<=1 ; aDy++)
-       {
-           PT_BugZBB =  Pt2di(aDx,aDy);
-           Pt2di aPV = aPIn + PT_BugZBB;
-           std::cout << "uuu DEBUG_ZBB " << aPV << " " << aZofXY << "\n";
-           // mGeom.Objet2ImageInit_Euclid(Pt2dr(aPV),&aZofXY);
-           std::cout << " ZzzZzz " <<  ProjDisc(aPV,&aZofXY) << " " << aZofXY << "\n";
-           //  ProjDisc(aPV,&aZofXY);
+                        //  std::cout << "pppppppppppppp " << aP2Out << "\n";
+                        // if (euclid(aP2Out) > 1e5  )
+                        {
+                           std::cout << "STEPIN " << mStepIn << " OOOO " << aZofXY << "\n";
+                           DEBUG_ZBB = true;
+                           for (int aDx = -1 ; aDx<=1 ; aDx++)
+                           {
+                               for (int aDy = -1 ; aDy<=1 ; aDy++)
+                               {
+                                   PT_BugZBB =  Pt2di(aDx,aDy);
+                                   Pt2di aPV = aPIn + PT_BugZBB;
+                                   std::cout << "uuu DEBUG_ZBB " << aPV << " " << aZofXY << "\n";
+                                   // mGeom.Objet2ImageInit_Euclid(Pt2dr(aPV),&aZofXY);
+                                   std::cout << " ZzzZzz " <<  ProjDisc(aPV,&aZofXY) << " " << aZofXY << "\n";
+                                   //  ProjDisc(aPV,&aZofXY);
 
-       }
-   }
+                               }
+                           }
 
-   std::cout << "----aP2OutaP2Out " << aP2Out  << " " << aZofXY  << " " << aPIn << " BD=" <<  mBufDone << "\n";
-   ProjDisc(aPIn,&aZofXY);
-   DEBUG_ZBB = false;
-   std::cout << "Donnee aP2OutaP2Out\n";
-   exit(-1);
-}
-}
-				   aPInf.SetInf(aP2Out);
-				   aPSup.SetSup(aP2Out);
+                           std::cout << "----aP2OutaP2Out " << aP2Out  << " " << aZofXY  << " " << aPIn << " BD=" <<  mBufDone << "\n";
+                           ProjDisc(aPIn,&aZofXY);
+                           DEBUG_ZBB = false;
+                           std::cout << "Donnee aP2OutaP2Out\n";
+                           exit(-1);
+                        }
+                        }
+                       aPInf.SetInf(aP2Out);
+                       aPSup.SetSup(aP2Out);
 
-				   if (mWihBuf)
-				   {
-					  mDX3[aPIn.y-aP0In.y][aPIn.x-aP0In.x] = (tElZB)aP3Out.x;
-					  mDY3[aPIn.y-aP0In.y][aPIn.x-aP0In.x] = (tElZB)aP3Out.y;
-					  mDZ3[aPIn.y-aP0In.y][aPIn.x-aP0In.x] = (tElZB)aP3Out.z;
-				   }
-				   mImOkTer.set(aPIn.x-mP0In.x,aPIn.y-mP0In.y,1);
-                                   if (mDynEtire >0) aVZofXY.push_back(aZofXY);
-				}
-                                aLastPIn = aPIn;
-                                aLastP3Out = aP3Out;
-                                aLastZofXY = aZofXY;
-			}
+                       if (mWihBuf)
+                       {
+                          mDX3[aPIn.y-aP0In.y][aPIn.x-aP0In.x] = (tElZB)aP3Out.x;
+                          mDY3[aPIn.y-aP0In.y][aPIn.x-aP0In.x] = (tElZB)aP3Out.y;
+                          mDZ3[aPIn.y-aP0In.y][aPIn.x-aP0In.x] = (tElZB)aP3Out.z;
+                       }
+                       mImOkTer.set(aPIn.x-mP0In.x,aPIn.y-mP0In.y,1);
+                                       if (mDynEtire >0) aVZofXY.push_back(aZofXY);
+                    }
+                    aLastPIn = aPIn;
+                    aLastP3Out = aP3Out;
+                    aLastZofXY = aZofXY;
                 }
+              }
             }
 
             if (mDynEtire >0)
@@ -617,51 +617,51 @@ void cZBuffer::BasculerUnTriangle(Pt2di A,Pt2di B,Pt2di C,bool TriBas)
 
 
 
-/*
-        double aU2 = square_euclid(aU);
-        double aV2 = square_euclid(aV);
-        double aUV = scal(aU,aV);
-*/
+            /*
+                    double aU2 = square_euclid(aU);
+                    double aV2 = square_euclid(aV);
+                    double aUV = scal(aU,aV);
+            */
 
          // De memoire, la + grande des VP de l'affinite
         // aCoefEtirReel = sqrt((aU2+aV2+sqrt(ElSquare(aU2-aV2)+4*ElSquare(aUV)))/2);
 
-         // Version surfacique 
+         // Version surfacique
 
          aCoefEtirReel = ElAbs(aU.x * aV.y - aU.y * aV.x);
 
 
-if (0)
-{
-static double aMinCER = 1e20;
-static double aMaxCER = -1e20;
-bool Modif = false;
-if (aCoefEtirReel<aMinCER) 
-{
-     aMinCER = aCoefEtirReel;
-     Modif = true;
-}
-if (aCoefEtirReel> aMaxCER) 
-{
-     aMaxCER = aCoefEtirReel;
-     Modif = true;
-}
-if (Modif)
-     std::cout << "COEFFF =[" << aMinCER << " " << aMaxCER  << "]\n";
-}
+        if (0)
+        {
+        static double aMinCER = 1e20;
+        static double aMaxCER = -1e20;
+        bool Modif = false;
+        if (aCoefEtirReel<aMinCER)
+        {
+             aMinCER = aCoefEtirReel;
+             Modif = true;
+        }
+        if (aCoefEtirReel> aMaxCER)
+        {
+             aMaxCER = aCoefEtirReel;
+             Modif = true;
+        }
+        if (Modif)
+             std::cout << "COEFFF =[" << aMinCER << " " << aMaxCER  << "]\n";
+        }
 
 
 
-/*
- std::cout << "aCoefEtirReel " << aCoefEtirReel << "\n";
-if (aCoefEtirReel>1e10)
-{
-   std::cout << anIndexDef << m00 << " " << m10 << " " << m01 << " " << m11 << "\n";
-   std::cout << u << " " << v  << "\n";
-   std::cout << aU << " " << aV  << "\n";
-getchar();
-}
-*/
+        /*
+         std::cout << "aCoefEtirReel " << aCoefEtirReel << "\n";
+        if (aCoefEtirReel>1e10)
+        {
+           std::cout << anIndexDef << m00 << " " << m10 << " " << m01 << " " << m11 << "\n";
+           std::cout << u << " " << v  << "\n";
+           std::cout << aU << " " << aV  << "\n";
+        getchar();
+        }
+        */
         // aCoefEtire = ElMin(254,round_ni(aCoefEtirReel*mDynEtire));
         aCoefEtire = ElMax(1,ElMin(253,round_ni(mDynEtire/aCoefEtirReel)));
         if (aDet<0)
@@ -895,7 +895,7 @@ Im2D_REAL4 cZBuffer::BasculerAndInterpoleInverse
 	return aRes;
     }
 
-int aNBC = 0;
+    int aNBC = 0;
     Pt2di aP;
     for (aP.x=0 ; aP.x<mSzRes.x ; aP.x++)
     {
@@ -906,36 +906,36 @@ int aNBC = 0;
 	     {
 	       for (int aK=0 ; aK< 2 ; aK++)
 	       {
-	          bool OkInterp;
-	          Pt3dr aP1 = InverseProjDisc(aP);
-		  double aDZ1 = aP1.z-ZInterpofXY(Pt2dr(aP1.x,aP1.y),OkInterp);
-                  if (OkInterp)
-		  {
-                      double aZ2Out = aZ1Out-aDZ1;
-		      Pt3dr aP2 = InverseProjDisc(Pt3dr(aP.x,aP.y,aZ2Out));
-		      double aDZ2 = aP2.z -ZInterpofXY(Pt2dr(aP2.x,aP2.y),OkInterp);
+                bool OkInterp;
+                Pt3dr aP1 = InverseProjDisc(aP);
+                double aDZ1 = aP1.z-ZInterpofXY(Pt2dr(aP1.x,aP1.y),OkInterp);
+                if (OkInterp)
+                  {
+                        double aZ2Out = aZ1Out-aDZ1;
+                      Pt3dr aP2 = InverseProjDisc(Pt3dr(aP.x,aP.y,aZ2Out));
+                      double aDZ2 = aP2.z -ZInterpofXY(Pt2dr(aP2.x,aP2.y),OkInterp);
 
-		      if (OkInterp && (ElAbs(aDZ1-aDZ2) >  mEpsIntInv))
-		      {
-		           double aZ3Out = aZ1Out - (aDZ1*(aZ2Out-aZ1Out))/(aDZ2-aDZ1);
-		           Pt3dr aP3 = InverseProjDisc(Pt3dr(aP.x,aP.y,aZ3Out));
-		           double aDZ3 = aP3.z -ZInterpofXY(Pt2dr(aP3.x,aP3.y),OkInterp);
+                      if (OkInterp && (ElAbs(aDZ1-aDZ2) >  mEpsIntInv))
+                      {
+                           double aZ3Out = aZ1Out - (aDZ1*(aZ2Out-aZ1Out))/(aDZ2-aDZ1);
+                           Pt3dr aP3 = InverseProjDisc(Pt3dr(aP.x,aP.y,aZ3Out));
+                           double aDZ3 = aP3.z -ZInterpofXY(Pt2dr(aP3.x,aP3.y),OkInterp);
 
-		           if (OkInterp && (ElAbs(aDZ3) < ElAbs(aDZ1)))
-		           {
-aNBC++;
-		               aZ1Out = (float)aZ3Out;
-			       aDZ1 = aDZ3;
-		           }
+                           if (OkInterp && (ElAbs(aDZ3) < ElAbs(aDZ1)))
+                           {
+                                aNBC++;
+                                aZ1Out = (float)aZ3Out;
+                                aDZ1 = aDZ3;
+                           }
 
-		           if (ElAbs(aDZ2) < ElAbs(aDZ1))
-		           {
-aNBC++;
-		               aZ1Out = (float)aZ2Out;
-			       aDZ1 = aDZ2;
-		           }
-		      }
-		  }
+                           if (ElAbs(aDZ2) < ElAbs(aDZ1))
+                           {
+                                aNBC++;
+                                aZ1Out = (float)aZ2Out;
+                                aDZ1 = aDZ2;
+                           }
+                      }
+                  }
 	       }
 	     }
 	}

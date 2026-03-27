@@ -1,10 +1,7 @@
-#include <StdAfx.h>
 #include "MMVII_PCSens.h"
 #include "MMVII_Geom2D.h"
 #include "MMVII_Geom3D.h"
 #include "MMVII_DeclareCste.h"
-#include <fstream>
-#include <iostream>
 #include "MMVII_ZBuffer.h"
 #include "MMVII_Sys.h"
 #include "MMVII_Radiom.h"
@@ -12,7 +9,6 @@
 #include "LearnDM.h"
 #include "MMVII_AllClassDeclare.h"
 #include "MMVII_Interpolators.h"
-
 
 //static int NODATA=-9999;
 
@@ -27,9 +23,9 @@ namespace  cNS_MMGenDepthMV
   public:
     cWorldCoordinates(std::string tfw_file)
     {
-      ifstream input_tfw(tfw_file);
-      string aline;
-      std::vector< string > acontent;
+      std::ifstream input_tfw(tfw_file);
+      std::string aline;
+      std::vector< std::string > acontent;
       while(std::getline(input_tfw,aline))
         {
           acontent.push_back(aline);
@@ -100,10 +96,9 @@ namespace  cNS_MMGenDepthMV
     int ExeOnParsedBox() override;
     bool MakeDecision(std::vector<cPt3dr> & aVecPoints);
 
-    std::string NameImOri(std::string NameIM,std::string OriFolder, string SuffOri);
+    std::string NameImOri(std::string NameIM,std::string OriFolder, std::string SuffOri);
 
-    void ReadLidarTile (std::string aLidarTileName,std::vector<cPt3dr>&  aVPts_private);
-    void ReadLidarTiles (std::vector<cTriangulation3D<tREAL8>*>& allTris3D,
+    void ReadTriangulations (std::vector<cTriangulation3D<tREAL8>*>& allTris3D,
                         std::vector<std::vector<cPt3dr>>&  aVPtsAll);
     void Generate_sparse_depth(std::string aNameImage,
                                 size_t aSzMin,
@@ -135,7 +130,6 @@ namespace  cNS_MMGenDepthMV
    size_t                    mNbF;
    size_t                    mNbP;
    cSensorCamPC *            mCamPC;
-   CamStenope * mCamPCV1;
    tImDepth mDepthImage;
    tImMasq mMasqImage;
    tDImDepth * mDDepthImage;
@@ -172,7 +166,6 @@ namespace  cNS_MMGenDepthMV
      mTri3D           (nullptr),
      mTri3DReproj     (nullptr),
      mCamPC           (nullptr),
-     mCamPCV1         (nullptr),
      mDepthImage    (cPt2di(1,1)),
      mMasqImage     (cPt2di(1,1)),
      mDDepthImage       (nullptr),
@@ -195,9 +188,7 @@ namespace  cNS_MMGenDepthMV
   {
       return anArgObl
              << Arg2007(mSpecImIn,"Pattern/file for images",{{eTA2007::MPatFile,"0"}})
-             << Arg2007(mOriFolder,"Pattern of input clouds",{{eTA2007::FolderAny,"2"}})
-             //<< mPhProj.DPOrient().ArgDirInMand()
-             //<< mPhProj.DPMeshDev().ArgDirOutMand()
+             << mPhProj.DPOrient().ArgDirInMand()
           ;
   }
 
@@ -333,38 +324,28 @@ namespace  cNS_MMGenDepthMV
   }
 
 
-  void cAppliMMGenDepthMV::ReadLidarTiles (std::vector<cTriangulation3D<tREAL8>*>& allTris3D,
+  void cAppliMMGenDepthMV::ReadTriangulations (std::vector<cTriangulation3D<tREAL8>*>& allTris3D,
                                          std::vector<std::vector<cPt3dr>> &  aVPtsAll)
   {
-      //cTriangulation3D<tREAL8> aTri3D=  allTris3D[0];
 
       for (int i=0; i<(int)allTris3D.size();i++)
       {
-          #pragma omp parallel
+          //#pragma omp parallel
           {
               std::vector <cPt3dr> aVPts_pp;
-              #pragma omp for
+              //#pragma omp for
               for (size_t aKP=0; aKP<allTris3D[i]->NbPts();aKP++)
               {
                   cPt3dr aP3D=ToR(allTris3D[i]->KthPts(aKP));
-                  Pt3dr aP3DMMV1= Pt3dr(aP3D.x(),aP3D.y(),aP3D.z());
-                  if (mCamPCV1->PIsVisibleInImage(aP3DMMV1))
+                  if (mCamPC->IsVisible(aP3D))
                   {
-                      Pt2dr aP2DCapteur = mCamPCV1->Ter2Capteur(aP3DMMV1);
+                      cPt3dr aPt = mCamPC->Ground2ImageAndDepth(aP3D);
 
-                      /*
-                              cPt3dr aPt(mCamPC->Ground2Image(aP3D).x(),
-                                         mCamPC->Ground2Image(aP3D).y(),
-                                         mCamPC->Pose().Inverse(aP3D).z());
-                              */
-                      cPt3dr aPt (aP2DCapteur.x,
-                                 aP2DCapteur.y,
-                                 mCamPCV1->ProfondeurDeChamps(aP3DMMV1));
                       aVPts_pp.push_back(aPt);
                   }
               }
 
-              #pragma omp critical
+              //#pragma omp critical
               aVPtsAll[i].insert(aVPtsAll[i].end(),
                                    aVPts_pp.begin(),
                                    aVPts_pp.end());
@@ -374,52 +355,7 @@ namespace  cNS_MMGenDepthMV
 
 
 
-void cAppliMMGenDepthMV::ReadLidarTile (std::string aLidarTileName,
-                                            std::vector<cPt3dr>&  aVPts_private)
-  {
-
-      //StdOut()<<"test "<<std::endl;
-      std::vector<cTriangulation3D<tREAL8>*> allTris3D;
-      #pragma  omp parallel for
-      for (int i=0; i<2; i++)
-      {
-          cTriangulation3D<tREAL8> * aTri3D= new cTriangulation3D<tREAL8>(aLidarTileName);
-          allTris3D.push_back(aTri3D);
-      }
-      //cTriangulation3D<tREAL8> aTri3D=  allTris3D[0];
-
-     #pragma omp parallel
-      {
-          std::vector <cPt3dr> aVPts_pp;
-          #pragma omp for
-          for (size_t aKP=0; aKP<allTris3D[0]->NbPts();aKP++)
-          {
-              cPt3dr aP3D=ToR(allTris3D[0]->KthPts(aKP));
-              Pt3dr aP3DMMV1= Pt3dr(aP3D.x(),aP3D.y(),aP3D.z());
-              if (mCamPCV1->PIsVisibleInImage(aP3DMMV1))
-              {
-                  Pt2dr aP2DCapteur = mCamPCV1->Ter2Capteur(aP3DMMV1);
-
-                  /*
-                          cPt3dr aPt(mCamPC->Ground2Image(aP3D).x(),
-                                     mCamPC->Ground2Image(aP3D).y(),
-                                     mCamPC->Pose().Inverse(aP3D).z());
-                          */
-                  cPt3dr aPt (aP2DCapteur.x,
-                             aP2DCapteur.y,
-                             mCamPCV1->ProfondeurDeChamps(aP3DMMV1));
-                  aVPts_pp.push_back(aPt);
-              }
-          }
-
-          #pragma omp critical
-          aVPts_private.insert(aVPts_private.end(),
-                                     aVPts_pp.begin(),
-                                     aVPts_pp.end());
-        }
-  }
-
-  void cAppliMMGenDepthMV::Generate_sparse_depth(std::string aNameImage,
+void cAppliMMGenDepthMV::Generate_sparse_depth(std::string aNameImage,
                                                  size_t aSzMin,
                                                  tREAL8 aThresholdVisbility,
                                                  std::vector<cPt3dr>& aVPts,
@@ -428,7 +364,7 @@ void cAppliMMGenDepthMV::ReadLidarTile (std::string aLidarTileName,
       //mCamPC=mPhProj.ReadCamPC(aNameImage,true);
 
       // Depth
-      cPt2di aSz =cPt2di(mCamPCV1->Sz().x,mCamPCV1->Sz().y);
+      cPt2di aSz = mCamPC->SzPix();
       mDepthImage=cIm2D<tElemDepth>(aSz,nullptr,eModeInitImage::eMIA_Null);
       mDDepthImage=&(mDepthImage.DIm());
 
@@ -743,7 +679,7 @@ void cAppliMMGenDepthMV::ReadLidarTile (std::string aLidarTileName,
       }
   }
 
-  std::string cAppliMMGenDepthMV::NameImOri(std::string NameIM,std::string OriFolder, string SuffOri)
+  std::string cAppliMMGenDepthMV::NameImOri(std::string NameIM,std::string OriFolder, std::string SuffOri)
   {
       return OriFolder+"/"+SuffOri+NameIM+".xml";
   }
@@ -805,9 +741,9 @@ void cAppliMMGenDepthMV::ReadLidarTile (std::string aLidarTileName,
 
       if (IsInit(&mPatternLidar))
       {
-          std::vector<string> aVecLidar;
+          std::vector<std::string> aVecLidar;
 
-          for (const auto & aName :  RecGetFilesFromDir(mDirProject,AllocRegex(mPatternLidar),0,1))
+          for (const auto & aName :  RecGetFilesFromDir(mDirProject,AllocRegex(mPatternLidar),0,2))
           {
               aVecLidar.push_back(aName);
           }
@@ -825,20 +761,14 @@ void cAppliMMGenDepthMV::ReadLidarTile (std::string aLidarTileName,
           }
 
 
-
-          // compute orifolder
-          cInterfChantierNameManipulateur * aICNMOris=cInterfChantierNameManipulateur::BasicAlloc(mOriFolder);
-
           size_t aSzMin=5;
           tREAL8 aThresholdVisbility=0.68;
 
           for (const auto & anImageName : aVecIms)
-
           {
               // generate depth
-              std::string aNameImOri = NameImOri(anImageName,mOriFolder,"Orientation-");
 
-              mCamPCV1 = CamOrientGenFromFile(aNameImOri,aICNMOris);
+              mCamPC= mPhProj.ReadCamPC(anImageName,true);
 
               // project cloud into image geometry x,y and depth
               std::vector <cPt3dr> aVPts;
@@ -846,7 +776,7 @@ void cAppliMMGenDepthMV::ReadLidarTile (std::string aLidarTileName,
 
 
               std::vector<std::vector<cPt3dr>> aVAll{aVecLidar.size()};
-              ReadLidarTiles(allTris3D,aVAll);
+              ReadTriangulations(allTris3D,aVAll);
               StdOut()<<"READ TILES "<<std::endl;
               for (auto aV: aVAll)
                   aVPts.insert(aVPts.end(),aV.begin(),aV.end());
@@ -870,6 +800,7 @@ void cAppliMMGenDepthMV::ReadLidarTile (std::string aLidarTileName,
                // densify
               /*if (RunMultiSet(0,0))
                   return ResultMultiSet();*/
+
               APBI_ExecAll();
           }
 

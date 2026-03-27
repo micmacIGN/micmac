@@ -203,7 +203,7 @@ template <class Type>  class cDataIm2D  : public cDataTypedIm<Type,2>
 
           /// Set Value, check point and value in  non release mode
         void SetV(const cPt2di & aP,const tBase & aV)
-        { 
+        {
             tPB::AssertInside(aP);
             tBI::AssertValueOk(aV);
             Value(aP) = aV;

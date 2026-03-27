@@ -4,7 +4,7 @@
 #include "MMVII_DeclareCste.h"
 
 #if (MMVII_KEEP_LIBRARY_MMV1)
-#include "../../../include/StdAfx.h"
+#include "StdAfx.h"
 #endif
 
 static bool  DEBUG_EDM = false;

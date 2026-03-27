@@ -68,7 +68,6 @@ cBA_LidarPhotogra::cBA_LidarPhotogra(cPhotogrammetricProject * aPhProj,
     init(aParam, 2, 3);
 
     // Re allocate mInterp as it does not get initialized using init method
-
     std::vector<std::string> aParamInt {"Tabul","1000","SinCApod","10","10"};
     if(aParam.size()>=4 and aParam.at(3)!="")
         aParamInt = Str2VStr(aParam.at(3));

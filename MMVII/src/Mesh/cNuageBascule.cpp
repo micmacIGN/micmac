@@ -13,7 +13,6 @@
 #include "MMVII_Radiom.h"
 #include <fstream>
 #include <iostream>
-#include <StdAfx.h>
 
 
 
@@ -58,6 +57,7 @@ namespace MMVII
         bool mBascCorrel;
         int  mMultZ;
         double      mMII;   ///<  Marge Inside Image
+        double mStretschingThresh;
         //cBox2dr mBoxLocTarget;
         cTplBoxOfPts<tREAL8,2> mBoxLocTarget;
         cTplBoxOfPts<tREAL8,2> mBoxGlobTarget;
@@ -103,7 +103,8 @@ cAppliNuageBascule::cAppliNuageBascule(const std::vector<std::string> & aVArgs, 
     mZF_SameOri(true),
     mBascCorrel(false),
     mMultZ(mZF_SameOri ? 1 : -1),
-    mMII(0.0)
+    mMII(0.0),
+    mStretschingThresh(5.0)
 {
 }
 
@@ -132,13 +133,7 @@ cCollecSpecArg2007 & cAppliNuageBascule::ArgOpt(cCollecSpecArg2007 & anArgOpt)
                 << AOpt2007(mNameCorrel,"ImCorrel","Name of correlation or confidence image")
                 << AOpt2007(GSD,"GroundResolution", "Ground sampling distance of bascule")
                 << AOpt2007(mMII,"MII","Margin Inside Image (for triangle validation)", {eTA2007::HDV})
-               /*<< AOpt2007(mResolZBuf,"ResZBuf","Resolution of ZBuffer", {eTA2007::HDV})
-               << AOpt2007(mDoImages,"DoIm","Do images", {eTA2007::HDV})
-               << AOpt2007(mNbPixImRedr,"NbPixIR","Resolution of ZBuffer", {eTA2007::HDV})
-               << AOpt2007(mMII,"MII","Margin Inside Image (for triangle validation)", {eTA2007::HDV})
-               << AOpt2007(mSKE,CurOP_SkipWhenExist,"Skip command when result exist")*/
-               //<< AOptBench()
-               //<< mPhProj.DPRadiomData().ArgDirOutOpt()
+                << AOpt2007(mStretschingThresh,"ThresholdDistortion","Level of triangle distortion to discard from bascule")
         )
         ;
 }
@@ -197,8 +192,7 @@ void cAppliNuageBascule::MakeBasc()
                                        aBoxUtileWithMasq.P1())
          )
     {
-        cPt2di P00(aPix.x(),aPix.y());
-        cPt3dr aP00_3D =BascOnePoint(P00,aP0);
+        cPt3dr aP00_3D =BascOnePoint(aPix,aP0);
         aVPts.push_back(aP00_3D);
 
         if(mBascCorrel)
@@ -229,8 +223,6 @@ void cAppliNuageBascule::MakeBasc()
     StdOut()<<"computed tri "<<std::endl;
 
 
-    //APBI_WriteIm(mNameResult,mImRed);
-
     /// ZBUFFER
     mTri3D = new cTriangulation3D<tREAL8>(aVPts,aVFaces);
 
@@ -251,7 +243,9 @@ void cAppliNuageBascule::MakeBasc()
     aZBuf.MakeZBuf(eZBufModeIter::ProjInit);
 
     aZBuf.MakeZBuf(eZBufModeIter::SurfDevlpt);
+
     StdOut()<<"ZBBMAKE"<<std::endl;
+
     ProcessNoPix(aZBuf);
 
     /*aZBuf.ZBufIm().DIm().ToFile("buffer-"+
@@ -394,7 +388,9 @@ void cAppliNuageBascule::MakeBasculeTris(cZBuffer & aZB)
 
                 if( mBascCorrel)
                 {
-                    mImCorrelOut.DIm().SetV(aPix, round_ni(Scal(ToR(aTriCorrel),aVW[aK])));
+                    mImCorrelOut.DIm().SetV(aPix,
+                                            std::min(255,round_ni(Scal(ToR(aTriCorrel),aVW[aK])))
+                                            );
                 }
             }
         }
@@ -405,7 +401,7 @@ void cAppliNuageBascule::MakeBasculeTris(cZBuffer & aZB)
                                                   "BLOC-"+
                                                   ToStr(mIndBoxRecal.x())+"-"+
                                                   ToStr(mIndBoxRecal.y())+"-"+
-                                                  NameWithoutDir(mNameResult),
+                                                  FileOfPath(mNameResult,false),
                                                   eTyNums::eTN_REAL8,
                                                   mImRed.DIm().Sz(),
                                                   1);
@@ -416,7 +412,7 @@ void cAppliNuageBascule::MakeBasculeTris(cZBuffer & aZB)
                                                    "MASQ-"+
                                                    ToStr(mIndBoxRecal.x())+"-"+
                                                    ToStr(mIndBoxRecal.y())+"-"+
-                                                   NameWithoutDir(mNameResult),
+                                                   FileOfPath(mNameResult,false),
                                                    eTyNums::eTN_U_INT1,
                                                    mImMasqOut.DIm().Sz(),
                                                    1);
@@ -427,13 +423,13 @@ void cAppliNuageBascule::MakeBasculeTris(cZBuffer & aZB)
                                  "BLOC-"+
                                  ToStr(mIndBoxRecal.x())+"-"+
                                  ToStr(mIndBoxRecal.y())+"-"+
-                                 ChgPostix(NameWithoutDir(mNameResult),"tfw"));
+                                 ChgPostix(FileOfPath(mNameResult,false),"tfw"));
 
     GenTFW(anAffinetoTarget, mPhProj.DPMeshDev().FullDirOut()+
                                  "MASQ-"+
                                  ToStr(mIndBoxRecal.x())+"-"+
                                  ToStr(mIndBoxRecal.y())+"-"+
-                                 ChgPostix(NameWithoutDir(mNameResult),"tfw"));
+                                 ChgPostix(FileOfPath(mNameResult,false),"tfw"));
 
 
     /// CORREL
@@ -443,7 +439,7 @@ void cAppliNuageBascule::MakeBasculeTris(cZBuffer & aZB)
                                                        "CORR-"+
                                                        ToStr(mIndBoxRecal.x())+"-"+
                                                        ToStr(mIndBoxRecal.y())+"-"+
-                                                       NameWithoutDir(mNameResult),
+                                                       FileOfPath(mNameResult,false),
                                                        eTyNums::eTN_U_INT1,
                                                        mImCorrelOut.DIm().Sz(),
                                                        1);
@@ -453,7 +449,7 @@ void cAppliNuageBascule::MakeBasculeTris(cZBuffer & aZB)
                                      "CORR-"+
                                      ToStr(mIndBoxRecal.x())+"-"+
                                      ToStr(mIndBoxRecal.y())+"-"+
-                                     ChgPostix(NameWithoutDir(mNameResult),"tfw"));
+                                     ChgPostix(FileOfPath(mNameResult,false),"tfw"));
     }
 
 }
@@ -478,7 +474,7 @@ void cAppliNuageBascule::MergeResults()
                                               "MASQ-"+
                                               ToStr(PixI.x())+"-"+
                                               ToStr(PixI.y())+"-"+
-                                              ChgPostix(NameWithoutDir(mNameResult),"tfw"));
+                                              ChgPostix(FileOfPath(mNameResult,false),"tfw"));
 
         aLocAffOut.push_back(mTrfLocBox);
         // read masq files to get the extent of the number of pixels
@@ -487,7 +483,7 @@ void cAppliNuageBascule::MergeResults()
                                 "MASQ-"+
                                 ToStr(PixI.x())+"-"+
                                 ToStr(PixI.y())+"-"+
-                                NameWithoutDir(mNameResult) ;
+                                FileOfPath(mNameResult,false) ;
 
         cDataFileIm2D mDF = cDataFileIm2D::Create(aNameMasq,eForceGray::No);
 
@@ -510,11 +506,11 @@ void cAppliNuageBascule::MergeResults()
 
     cBox2di aBoxGlobOutPix(Pt_round_up(mBoxGlobTarget.CurBox().Sz()/mGSD));
 
-    std::string aNameBascOut = DirOfFile(mNameResult)+"Prof_"+ NameWithoutDir(mNameResult);
+    std::string aNameBascOut = DirOfPath(mNameResult,false)+"Prof_"+ FileOfPath(mNameResult,false);
 
-    std::string aNameMasqOut = DirOfFile(mNameResult)+"Masq_"+ NameWithoutDir(mNameResult);
+    std::string aNameMasqOut = DirOfPath(mNameResult,false)+"Masq_"+ FileOfPath(mNameResult,false);
 
-    std::string aNameTFWGlb =  DirOfFile(mNameResult)+"Masq_"+ ChgPostix(NameWithoutDir(mNameResult),"tfw");
+    std::string aNameTFWGlb =  DirOfPath(mNameResult,false)+"Masq_"+ ChgPostix(FileOfPath(mNameResult,false),"tfw");
 
 
     GenTFW(aGlobAff,aNameTFWGlb);
@@ -540,7 +536,7 @@ void cAppliNuageBascule::MergeResults()
 
     if (mBascCorrel)
     {
-        aNameCorrelOut= DirOfFile(mNameResult)+"Correl_"+ NameWithoutDir(mNameResult);
+        aNameCorrelOut= DirOfPath(mNameResult,false)+"Correl_"+ FileOfPath(mNameResult,false);
         aDFC = cDataFileIm2D::Create(aNameCorrelOut,
                                                    eTyNums::eTN_U_INT1,
                                                    aBoxGlobOutPix.Sz(),
@@ -557,13 +553,13 @@ void cAppliNuageBascule::MergeResults()
                                 "BLOC-"+
                                 ToStr(PixI.x())+"-"+
                                 ToStr(PixI.y())+"-"+
-                                NameWithoutDir(mNameResult) ;
+                                FileOfPath(mNameResult,false) ;
 
         std::string aNameMasqDalle = mPhProj.DPMeshDev().FullDirOut()+
                                 "MASQ-"+
                                 ToStr(PixI.x())+"-"+
                                 ToStr(PixI.y())+"-"+
-                                NameWithoutDir(mNameResult) ;
+                                FileOfPath(mNameResult,false) ;
 
         aP0G = ToI(aGlobAff.Inverse(aLocAffOut[aK].Value(cPt2dr(0,0))));
         aP1G = ToI(aGlobAff.Inverse(aLocAffOut[aK].Value(ToR(aSzLocTiles[aK]))));
@@ -587,7 +583,7 @@ void cAppliNuageBascule::MergeResults()
                                          "CORR-"+
                                          ToStr(PixI.x())+"-"+
                                          ToStr(PixI.y())+"-"+
-                                         NameWithoutDir(mNameResult) ;
+                                         FileOfPath(mNameResult,false) ;
             aImCorrelDalle=cIm2D<tU_INT1>(aSzLocTiles[aK]);
             aImCorrelDalle.Read(cDataFileIm2D::Create(aNameCorrelDalle,eForceGray::No),
                                 cPt2di(0,0)) ;
@@ -641,7 +637,7 @@ void cAppliNuageBascule::MergeResults()
         cPt2dr aCenter= ToR(mCamPC->SzPix()) / 2.0 ;
         tREAL4 aProf = mCamPC->ImageAndDepth2Ground(cPt3dr(aCenter.x(),aCenter.y()));
 
-    }
+    }aPBIO
     else
     {
 

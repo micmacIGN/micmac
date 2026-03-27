@@ -1,5 +1,4 @@
 #include "MMVII_all.h"
-#include <StdAfx.h>
 #include "V1VII.h"
 #include "MMVII_Matrix.h"
 #include "MMVII_Linear2DFiltering.h"
@@ -42,10 +41,11 @@ namespace  MMVII {
       string NameImOri(string NameIM,std::string OriFolder, string SuffOri);
       string NameOut(string NameIm, string sfx);
 
+
+      // --- constructed ---
+      cPhotogrammetricProject   mPhProj;
       std::string  mNameIm1, mNameIm2;
-      std::string mOriFolder;
       std::string mNameSuffixOut;
-      bool mConik=true;
       cPt2di mSzIm;
       tImDepth mDx,mDy;
       tImMasq mMx,mMy;
@@ -58,6 +58,7 @@ namespace  MMVII {
           // class definition
     cMGenDeformMaps::cMGenDeformMaps(const std::vector<string> &aVArgs, const cSpecMMVII_Appli &aSpec):
         cMMVII_Appli  (aVArgs,aSpec),
+        mPhProj(*this),
         mSzIm(cPt2di(0,0)),
         mDx(cPt2di(1,1)),
         mDy(cPt2di(1,1)),
@@ -74,7 +75,7 @@ namespace  MMVII {
            anArgObl
                <<   Arg2007(mNameIm1,"xml file from mm3d GrapheHom to get pair of viewing images")
                <<   Arg2007(mNameIm2,"xml file from mm3d GrapheHom to get pair of viewing images")
-               <<   Arg2007(mOriFolder,"Micmac Orientation Folder with Ori")
+               <<   mPhProj.DPOrient().ArgDirInMand()
               // <<   Arg2007(mMasterImage,"Master image to project point cloud to it !")
                //<<   Arg2007(mPointCloud,"Point cloud in ply or las format !")
         ;
@@ -85,7 +86,6 @@ namespace  MMVII {
     {
          return anArgOpt
                 << AOpt2007(mNameSuffixOut,"SuffixOut" ,"Default is defor_x and defor_y")
-                << AOpt2007(mConik,"Conik" ,"Geom capteur: default true")
          ;
     }
 
@@ -118,23 +118,19 @@ namespace  MMVII {
 
   int  cMGenDeformMaps::Exe()
     {
-      std::string N1,N2,N1M,N2M,N1Ori,N2Ori;
+      std::string N1,N2,N1M,N2M;
       std::string aDirOris,aPatOri;
-      SplitDirAndFile(aDirOris,aPatOri,mOriFolder,false);
-     // load xml image pairs
-      cInterfChantierNameManipulateur * aICNMOris=cInterfChantierNameManipulateur::BasicAlloc(aDirOris);
       N1=NameImDepth(mNameIm1);
       N1M=NameImMasq(mNameIm1);
-      N1Ori=NameImOri(mNameIm1,aDirOris,mConik ? "Orientation-":"GB-Orientation-:");
       N2=NameImDepth(mNameIm2);
       N2M=NameImMasq(mNameIm2);
-      N2Ori=NameImOri(mNameIm2,aDirOris,mConik ? "Orientation-":"GB-Orientation-:");
 
-      // get orientations
-      CamStenope * aCam1 = CamOrientGenFromFile(N1Ori,aICNMOris);
-      CamStenope * aCam2 = CamOrientGenFromFile(N2Ori,aICNMOris);
 
-      mSzIm=cPt2di(aCam1->Sz().x,aCam1->Sz().y);
+      cSensorCamPC * aCam1V2 = mPhProj.ReadCamPC(mNameIm1,true);
+      cSensorCamPC * aCam2V2 = mPhProj.ReadCamPC(mNameIm2,true);
+
+
+      mSzIm=aCam1V2->SzPix();
 
       // read images Depth and Masqs
       tImDepth aDepth1=tImDepth::FromFile(N1);
@@ -174,26 +170,24 @@ namespace  MMVII {
                 {
                   // DDEPTH CONTAINS GROUND TRUTH
                   // ADD perturbations to let locations in the image traval along epipolar lines
-                    Pt3dr aTer=aCam1->ImEtProf2Terrain(Pt2dr(aPix.x(),aPix.y()),aDDepth1.GetV(aPix));
-                    //
+                    cPt3dr aPTer = aCam1V2->ImageAndDepth2Ground(cPt3dr(aPix.x(),aPix.y(),aDDepth1.GetV(aPix)));
 
-                    if (aCam2->PIsVisibleInImage(aTer))
+                    if (aCam2V2->IsVisible(aPTer))
                       {
-                        Pt2dr PtCam=aCam2->Ter2Capteur(aTer);
+                        cPt2dr PtCam=aCam2V2->Ground2Image(aPTer);
                         // Check if we can get back to the first point
-                        aDxIm.SetV(aPix,PtCam.x-aPix.x());
+                        aDxIm.SetV(aPix,PtCam.x()-aPix.x());
                         //aDyIm.SetV(aPix,PtCam.y-aPix.y());
 
-                        cPt2dr aPMM2=cPt2dr(PtCam.x,PtCam.y);
-                        if (aDDepth2.InsideBL(aPMM2))
+                        if (aDDepth2.InsideBL(PtCam))
                           {
-                            Pt3dr aP3DIm2=aCam2->ImEtProf2Terrain(PtCam,aDDepth2.GetVBL(aPMM2));
-                            Pt2dr aP2InCam1=aCam1->Ter2Capteur(aP3DIm2);
-                            Pt2dr aDiff= aP2InCam1-Pt2dr(aPix.x(),aPix.y());
-                            if ((sqrt(aDiff.x*aDiff.x+aDiff.y*aDiff.y))<0.5) // Reprojection to the same point
+                            cPt3dr aP3DIm2= aCam2V2->ImageAndDepth2Ground(cPt3dr(PtCam.x(),PtCam.y(),aDDepth2.GetVBL(PtCam)));
+                            cPt2dr aP2InCam1=aCam1V2->Ground2Image(aP3DIm2);
+                            cPt2dr aDiff= aP2InCam1-cPt2dr(aPix.x(),aPix.y());
+                            if ((sqrt(aDiff.x()*aDiff.x()+aDiff.y()*aDiff.y()))<0.5) // Reprojection to the same point
                               {
                                 // point is visible in both images
-                                cPt2di aIntP((int)PtCam.x,(int)PtCam.y);
+                                //cPt2di aIntP((int)PtCam.x(),(int)PtCam.y());
                                 if(1)//aDDMasq2.GetV(aIntP))
                                   {
                                     aMxIm.SetV(aPix,1);
