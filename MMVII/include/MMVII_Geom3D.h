@@ -34,8 +34,10 @@ template <class Type> inline cPtxd<Type,3> PSymXY (const cPtxd<Type,3> & aP)
 //  Cylindric coordinates, 
 cPt3dr Cart2Cyl(const cPt3dr & aPtCart);
 cPt3dr Cyl2Cart(const cPt3dr & aPtspher);
-cPt3dr cart2spher(const cPt3dr & aPtCart);
+///  Phi-longitude[0,2PI],Teta-latitude [-PI/2,PI/2] ,Rho  =>  x,y,z
 cPt3dr spher2cart(const cPt3dr & aPtspher);
+/// Invert spher2cart
+cPt3dr cart2spher(const cPt3dr & aPtCart);
 
 
 

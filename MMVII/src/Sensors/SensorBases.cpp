@@ -555,6 +555,32 @@ bool cSensorImage::ImageIsLoaded() const
     return mImage;
 }
 
+cIm2D<tREAL4> cSensorImage::ImageDepth2ImagePax
+              (
+                   cIm2D<tREAL4> aImDepth,
+                   const cSensorImage& aSens2,
+                   tREAL8 * aPtrMaxPaxTrsv
+              ) const
+{
+    tREAL8 aMaxPaxTrsv= 0.0;
+    cDataIm2D<tREAL4>& aDataImD = aImDepth.DIm();
+    cIm2D<tREAL4> aImPax(aDataImD.Sz());
+
+    for (const auto & aP1 : aDataImD)
+    {
+        cPt3dr  aP1AndD(aP1.x(),aP1.y(),aDataImD.GetV(aP1));
+        cPt3dr aPGroud = ImageAndDepth2Ground(aP1AndD);
+        cPt3dr aP2AndD = aSens2.Ground2ImageAndDepth(aPGroud);
+        cPt2dr aP2 = Proj(aP2AndD-aP1AndD);
+
+        aImPax.DIm().SetV(aP1,aP2.x());
+        UpdateMax(aMaxPaxTrsv,std::abs(aP2.y()));
+    }
+    if (aPtrMaxPaxTrsv)
+        *aPtrMaxPaxTrsv = aMaxPaxTrsv;
+
+    return aImPax;
+}
 /* ******************************************************* */
 /*                                                         */
 /*                   cSIMap_Ground2ImageAndProf            */
