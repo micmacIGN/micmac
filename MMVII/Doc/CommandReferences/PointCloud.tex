@@ -109,7 +109,7 @@ command {\tt CloudMMVIIClip} :
 MMVII CloudMMVIIClip 18355_51565.dmp [0.4,0.4,0.6,0.6]
 \end{verbatim}
 
-The command will generate a file {\tt  Clip\_18355\_51565.dmp}.  Note tha the box is relative to the global
+The command will generate a file {\tt  Clip\_18355\_51565.dmp}.  Note that the box is relative to the global
 box (that is stored in the file).
 
 
@@ -141,7 +141,6 @@ Before generating image, we must compute the "colour" of each point/leave. The h
 we do for this are the following :
 
 
-\COM{
 \begin{itemize}
    \item the colour of each leave depend only of the quantity of light/energy it receive taking into account occlusions;
          this model is quite simplist because in real tree each leave has a different intrisic
@@ -149,13 +148,14 @@ we do for this are the following :
          \begin{itemize}
               \item  our intution when observing real tree is that the light occlusion is predominant over the albedo
                      variation for explaining contrats in images (except maybe trees at the begining of automn, 
-                     when there is a mix of green & brown leaves)
+                     when there is a mix of green \& brown leaves)
               \item  we have no mean to generate realistic albedo varaiation;
               \item  ometting albedo variation make the problem rather more difficult, and in the doubt, it's better
                      to train the networks with data too difficult than to easy.
          \end{itemize}
 
-         by the way, we dont exclude to add later some randomized albedo;
+         by the way, we dont exclude to add later some randomized albedo or use the lidar  intensity when it exist
+         to complement the previous value.
 
 
    \item the light is made from $2$ sources : an homogeneous halph sphere corresponding to the \emph{"sky"} and a mono directionnal spot light 
@@ -164,10 +164,44 @@ we do for this are the following :
    \item leaves are spheres.
 
 \end{itemize}
-}
 
 
+The command is {\tt CloudMMVIIColorate} it takes a {\tt MMVII} cloud point as input and create a new a {\tt MMVII} cloud point.
+Let's describe a few optional parameters :
 
+\begin{itemize}
+   \item  {\bf NbSampS} control the  number sampling of the sphere,  more précisely each face
+         of cube generate $NbSampS*NbSampS$ direction ;
+
+   \item {\bf Sun}  possibly add "high" energy cooressponding  to  a direction (direction of the sun), it's a 3d point,
+         let $Sun=[T,P,W]$  , the direction is a point of spherical coordinate $\theta = T * \frac{\pi}{2}$ and
+        $\phi = \frac{\pi}{2} + P$  ;  for $W$ it's the weithing of the sun compared to the total energy brought by the 
+        other direction .
+\end{itemize}
+
+Note that it's that use of {\bf Sun} parameter in this command, is only usefull for visuaslizing point cloud
+in $3d$  with  {\tt CloudMMVII2Ply}.  For generation of images in sections \ref{Cloud:Epip} and  \ref{Cloud:MultiV}
+, we recommand rather to add the sun at each image generation (because adding one direction take a few part
+of computing time).
+
+
+%-----------------------------------------------------------------------
+%-----------------------------------------------------------------------
+%-----------------------------------------------------------------------
+
+\section{Generating training data sets for epipolar with {CloudMMVII\_GT\_EpipOrthoC}}
+
+\label{Cloud:Epip}
+
+
+%-----------------------------------------------------------------------
+%-----------------------------------------------------------------------
+%-----------------------------------------------------------------------
+
+\section{Generating training data sets for multi view with {CloudMMVII\_GT\_MultiView}}
+
+
+\label{Cloud:MultiV}
 
 
 

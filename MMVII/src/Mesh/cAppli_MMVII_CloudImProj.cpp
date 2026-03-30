@@ -168,7 +168,7 @@ int  cAppli_MMVII_CloudImProj::Exe()
    {
       // cPt3dr aDirSun = VUnit(cPt3dr(mSun.x(),mSun.y(),1.0));
 
-       cPt3dr aDirSun = spher2cart(cPt3dr(mSun.x()*(M_PI/2.0),M_PI/2.0+mSun.y(),1.0));
+       cPt3dr aDirSun = VertSphericalDir(mSun);
        if (mShow)
           StdOut() << " SUN, cart:" << aDirSun  << "\n";
        std::unique_ptr<cCamOrthoC> aCam (aPPC.PPC_CamOrtho(0,false,aDirSun));

@@ -19,7 +19,9 @@ namespace MMVII
 class cCamOrthoC;
 class cOrthoProj;
 
-
+/** "Spherical coordinate for the sun",  x * Pi/2 -> phi  , Pi/2 + y -> teta */
+cPt3dr VertSphericalDir(const cPt2dr & aSun);
+cPt3dr VertSphericalDir(const cPt3dr & aSun);
 
 /* ------------------  cOrthoProj ------------------- */
 

@@ -13,6 +13,14 @@
 
 namespace MMVII
 {
+cPt3dr VertSphericalDir(const cPt2dr & aSun)
+{
+  return   spher2cart(cPt3dr(aSun.x()*(M_PI/2.0),M_PI/2.0+aSun.y(),1.0));
+}
+cPt3dr VertSphericalDir(const cPt3dr & aSun)
+{
+    return VertSphericalDir(Proj(aSun));
+}
 
 /* =============================================== */
 /*                                                 */
@@ -151,7 +159,7 @@ int  cAppli_MMVII_CloudColorate::Exe()
         if (IsInit(&mSun))
         {
             tREAL8 aW0  = mNbSampS ? aNbStd : 1.0;
-            std::unique_ptr<cCamOrthoC> aCam (aPPC.PPC_CamOrtho(0,mProfIsZ0,cPt3dr(mSun.x(),mSun.y(),1.0)));
+            std::unique_ptr<cCamOrthoC> aCam (aPPC.PPC_CamOrtho(0,mProfIsZ0,VertSphericalDir(mSun)));
             aPPC.ProcessOneProj(mSurResol,*aCam,aW0 * mSun.z(),false,"",false,false);
         }
         aPPC.ColorizePC();
