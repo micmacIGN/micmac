@@ -14,12 +14,12 @@
 This section introduce some command/piece of code that have been devlopped for simulating
 images and depth map from lidar data.  This simulation was done with the ambition of being usable as
 training data set for computing canopy model from photogrammetric acquisition. This
-simulation pretend by no way to be physically based, the assumption between this simulation
-is that what make the canopy difficult to modelize in photgrammetry is the 3D structure that :
+simulation pretend by no way to be physically based, the assumption behind this simulation
+is that what make the canopy difficult to modelize in photgrammetry is its 3D structure that :
 
 \begin{itemize}
-   \item make it difficult for modelization via regularization
-   \item generate highly variable images for small change of point of view
+   \item make it difficult to modelize (for ex via regularization);
+   \item generate highly variable images for small change of point of view.
 \end{itemize}
 
 
@@ -34,8 +34,8 @@ Conversely, a postive point of simulation is that we can generate "perfectly" re
 %-----------------------------------------------------------------------
 \subsection{MMVII format}
 
-As at this step, it is just a quick and dirty prototype, this mean the
-devlopment has been made with the objective of minmizing the effort for what
+As at this step, it is just a \emph{quick and dirty} prototype, this means that the
+devlopment has been made with the objective of minizing the effort for what
 was projected and absolutlely no idea of long term maintenance and evolution.
 For example, we did not  think it 
 was pertinent to add "big" librairies for lidar data reading and manipulation.
@@ -56,8 +56,10 @@ format that generate {\tt ".dmp"} files.
 
 At the time being, we  dont make any effort for maintening historical compatibility
 of this format.  It will probably evolve with new layer, and at each evolution
-previous file will become unusable.  Of course, at longer term, if this devlopment
+previous file may become unusable 
+ Of course, at longer term, if this devlopment
 continue, we will change that by : make an evolutive format or adopt a standard format.
+ (by the way,  the format already includes some layer for handling backward compatibility).
 
 %-----------------------------------------------------------------------
 %-----------------------------------------------------------------------
@@ -93,6 +95,7 @@ In this command :
 
 Note that this import, can be quite long .
 
+{\bf To be done : import ply binary format}.
 
 %-----------------------------------------------------------------------
 

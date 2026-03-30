@@ -240,12 +240,16 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpec_ImportTxtCloud);
         TheVecAll.push_back(&TheSpec_MMVII_CloudClip);
         TheVecAll.push_back(&TheSpec_MMVII_Cloud2Ply);
+        TheVecAll.push_back(&TheSpec_MMVII_CloudEdit);
+
         TheVecAll.push_back(&TheSpec_MMVII_CloudSimulSin);
 
         TheVecAll.push_back(&TheSpecTestLidarRevEng);
 
         TheVecAll.push_back(&TheSpec_MMVII_CloudColorate);
         TheVecAll.push_back(&TheSpec_MMVII_GT_EpipOrthoC);
+        TheVecAll.push_back(&TheSpec_MMVII_GT_MultiView);
+
 
         TheVecAll.push_back(&TheSpec_ImportM32);
         //TheVecAll.push_back(&TheSpecTopoComp);

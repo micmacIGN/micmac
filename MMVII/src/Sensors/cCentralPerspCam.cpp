@@ -450,8 +450,10 @@ double cPerspCamIntrCalib::DegreeVisibilityOnImFrame(const cPt2dr & aPIm) const
 double cPerspCamIntrCalib::DegreeVisibility(const cPt3dr & aP) const
 {
      // if the point is not OK for projector dont try any more ...
-     tREAL8 aRes3 =  mDefProj->P3DIsDef(aP) *F();
 
+ //StdOut()<< " xxxDegreeVisibility " << aP << "\n";
+     tREAL8 aRes3 =  mDefProj->P3DIsDef(aP) *F();
+ //StdOut()<< " yyyyDegreeVisibility \n";
      if (aRes3 <=0)
         return aRes3 ;
 

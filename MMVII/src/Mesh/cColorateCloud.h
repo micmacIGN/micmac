@@ -105,6 +105,8 @@ class cProjPointCloud
          /// constructor : memoriez PC, inialize accum, allocate mem
          cProjPointCloud(cPointCloud & aParam,tREAL8 aWeightInit );
 
+         void SetComputeProfMax(bool);
+
 	 /// Process on projection for  OR  (1) modify colorization of points (2) 
          void ProcessOneProj
               (
@@ -131,6 +133,8 @@ class cProjPointCloud
 	 // --------- Processed at initialization ----------------
          cPointCloud&           mPC;       ///< memorize cloud point
          const int              mNbPtsGlob;    ///< store number of points
+         bool                   mComputeProfMax;
+
 	 // int                    mNbPts;    ///<  Dynamic, change with SetOk
          std::vector<cPt3dr>    mGlobPtsInit; ///< initial point cloud (stores once  for all in 64-byte, for efficienciency)
          std::vector<cPt3dr> *  mVPtsInit;     /// Dynamic, change with SetOk

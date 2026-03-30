@@ -413,7 +413,7 @@ cSpecMMVII_Appli  TheSpec_MMVII_CloudSimulSin
 
 /* =============================================== */
 /*                                                 */
-/*                 cAppli_MMVII_CloudClip          */
+/*                 cAppli_MMVII_Cloud2Ply          */
 /*                                                 */
 /* =============================================== */
 
@@ -496,4 +496,113 @@ cSpecMMVII_Appli  TheSpec_MMVII_Cloud2Ply
       {eApDT::Ply},
       __FILE__
 );
+
+/* =============================================== */
+/*                                                 */
+/*                 cAppli_MMVII_CloudEdit          */
+/*                                                 */
+/* =============================================== */
+
+/**  A basic application for clipping 3d data ,  almost all the job is done in
+ * libraries so it essentially interface to command line */
+
+class cAppli_MMVII_CloudEdit : public cMMVII_Appli
+{
+     public :
+
+        cAppli_MMVII_CloudEdit(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
+
+     private :
+        int Exe() override;
+        cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
+        cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
+
+        // --- Mandatory ----
+        std::string   mNameCloudIn;
+};
+
+
+cAppli_MMVII_CloudEdit::cAppli_MMVII_CloudEdit
+(
+     const std::vector<std::string> & aVArgs,
+     const cSpecMMVII_Appli & aSpec
+) :
+     cMMVII_Appli      (aVArgs,aSpec)
+{
+}
+
+
+cCollecSpecArg2007 & cAppli_MMVII_CloudEdit::ArgObl(cCollecSpecArg2007 & anArgObl)
+{
+ return anArgObl
+      <<   Arg2007(mNameCloudIn,"Name of input cloud/mesh", {eTA2007::FileDirProj,eTA2007::FileDmp})
+   ;
+}
+
+
+cCollecSpecArg2007 & cAppli_MMVII_CloudEdit::ArgOpt(cCollecSpecArg2007 & anArgOpt)
+{
+   return anArgOpt
+        //  << AOpt2007(mNameCloudOut,CurOP_Out,"Name of output file, def=Clip_+InPut")
+   ;
+}
+
+
+int  cAppli_MMVII_CloudEdit::Exe()
+{
+   cPointCloud   mPC_In;
+   ReadFromFile(mPC_In,mNameCloudIn);
+
+   cBox2dr aBox2 =  mPC_In.Box2d();
+   cBox3dr aBox3 =  mPC_In.Box3d();
+   tREAL8  aDensH = mPC_In.NbPts() / aBox2.NbElem();
+   tREAL8  aDensNotH = mPC_In.CurStdDensity() ;
+
+
+   StdOut()  <<  "  NbPts=" << mPC_In.NbPts() << "\n";
+   StdOut()  <<  " Pt/m2 , Homogen=" << aDensH  << " NotH=" << aDensNotH  << "\n";
+   StdOut()  <<  "  Box, sz=" << aBox2.Sz() << " Mid=" << aBox2.Middle() << "\n";
+   StdOut()  <<  "  Z0=" << aBox3.P0().z() << " Mid=" << aBox3.P1().z() << "\n";
+
+   StdOut() << " Sz Equiv Pix for Dens1,"
+            << " Hom=" <<  ToI(aBox2.Sz() * std::sqrt(aDensH))
+            << " NotH=" << ToI(aBox2.Sz() * std::sqrt(aDensNotH))
+            << "\n";
+
+
+ //  StdOut() << " SzPix, DensityHom "
+
+
+   return EXIT_SUCCESS;
+}
+
+//CurStdDensity
+
+
+
+     /* =============================================== */
+     /*                       ::                        */
+     /* =============================================== */
+
+tMMVII_UnikPApli Alloc_MMVII_CloudEdit(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec)
+{
+   return tMMVII_UnikPApli(new cAppli_MMVII_CloudEdit(aVArgs,aSpec));
+}
+
+
+cSpecMMVII_Appli  TheSpec_MMVII_CloudEdit
+(
+     "CloudMMVIIEdit",
+      Alloc_MMVII_CloudEdit,
+      "Give Info, eventually edit, a MMVII format cloud point",
+      {eApF::Cloud},
+      {eApDT::MMVIICloud},
+      {eApDT::Console,eApDT::MMVIICloud},
+      __FILE__
+);
+
+#if (0)
+
+#endif
+
 };

@@ -231,6 +231,7 @@ cCamOrthoC * cProjPointCloud::PPC_CamOrtho(int aK,bool  ProfIsZ0,const cPt3dr & 
 cProjPointCloud::cProjPointCloud(cPointCloud& aPC,tREAL8 aWeightInit) :
    mPC        (aPC),
    mNbPtsGlob (aPC.NbPts()),
+   mComputeProfMax (true),
    // mSurResol  (aSurResol),
    mAvgD      (std::sqrt(1.0/mPC.CurStdDensity())),
    //mStepProf  (mAvgD / mSurResol),
@@ -258,6 +259,11 @@ cProjPointCloud::cProjPointCloud(cPointCloud& aPC,tREAL8 aWeightInit) :
        if (mPC.DegVisIsInit())
           mSumRad.at(aKPt) = aPC.GetDegVis(aKPt) * aWeightInit;
    }
+}
+
+void cProjPointCloud::SetComputeProfMax(bool aComputeProfMax)
+{
+   mComputeProfMax = aComputeProfMax;
 }
 
 void cProjPointCloud::ColorizePC()
@@ -311,34 +317,32 @@ void cProjPointCloud::ProcessOneProj
              {
                 aVPtsSel.push_back(aPt);
                 aVIndeSel.push_back(aKPt);
-
-               /* for (const auto & aPixBug : aVPixBugInit )
-                {
-                    if (Norm2(ToR(aPixBug)-Proj(aPt))<1e-5)
-                    {
-                        StdOut()  << "PP3d " << aPt
-                                  << " PIm=" << aSensor.Ground2Image(aPt)
-                                  << " Vis=" << mPC.GetDegVis(aKPt)
-                                  << "\n";
-                    }
-                }*/
              }
          }
-       //  StdOut()  << "SELLL=" << mVPtsInit->size() << " " << aVPtsSel.size() << "\n";
          mVPtsInit  = & aVPtsSel;
-	 // aCenter = Centroid(aVPtsSel);
      }
      else
      {
             for (size_t aKPt=0 ; aKPt<mGlobPtsInit.size() ; aKPt++)
                 aVIndeSel.push_back(aKPt);
      }
+
+   //  StdOut() << " Ratio Sel " << aVPtsSel.size() / double(mGlobPtsInit.size()) << "\n";
      
      //    [0.1] ---  Compute 3D proj+ its 2d-box ----
      mVPtsProj.clear();
      for (const auto & aPt : *mVPtsInit)
      {
+         /*
+         if (mVPtsProj.empty())
+         {
+             StdOut() << " xxxxxxxPt=" << aPt
+                      << " G2ID=" << aSensor.Ground2ImageAndDepth(aPt)
+                      << "\n";
+         }*/
+
           mVPtsProj.push_back(aSensor.Ground2ImageAndDepth(aPt));
+
      }
 
      cPt2dr aPMin(0.0,0.0);
@@ -427,6 +431,7 @@ void cProjPointCloud::ProcessOneProj
      // == [1] ==================   compute the depth image : accumulate for each pixel the maximal depth ================
      // ==================================================================================================================
 
+     //bool
      int aNbPtsCover = 0;
      cWeightAv<tREAL8,tREAL8> aAvgNb;
      FakeUseIt(aNbPtsCover);
@@ -444,7 +449,7 @@ void cProjPointCloud::ProcessOneProj
              if ( mDImIndex->Inside(aPt))
              {
                  int aIndex = mDImIndex->GetV(aPt);
-                 if ((aIndex==NoIndex) || (aDepth>mVPtsProj.at(aIndex).z()))
+                 if ((aIndex==NoIndex) || ((aDepth>mVPtsProj.at(aIndex).z())==mComputeProfMax) )
                  {
                     mDImIndex->SetV(aPt,aKPt);
                     aNbPtsCover++;
@@ -541,6 +546,8 @@ void cProjPointCloud::ProcessOneProj
              << " NbVis/Im=" << tREAL8(aNbVisTot) / (mSzIm.x() * mSzIm.y())
              << "\n";
     }
+
+    // Now put z in image depth
 
     for (const auto & aPix : *mDImIndex)
     {
