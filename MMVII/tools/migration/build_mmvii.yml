@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     - name: Install Qt and clang
       run: |
@@ -62,7 +62,7 @@ jobs:
       run: gh release delete MMVII_APIPY -y --cleanup-tag
 
     - name: Upload build artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: linux-build-artifacts
         path: |
@@ -75,12 +75,13 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     - name: Install Miniconda 
       uses: conda-incubator/setup-miniconda@v3
       with:
          auto-update-conda: true
+         conda-remove-defaults: true
           
     - name: Install GDAL,PROJ with miniconda
       run: conda install -c conda-forge -q -y proj gdal
@@ -89,7 +90,8 @@ jobs:
     - name: Install Qt
       uses: jurplel/install-qt-action@v3
       with: 
-        cache: true
+        cache: false
+        version: 5.15
     
     - name: Configure CMake for MMVII
       run: cmake -S . -B build -DCMAKE_PREFIX_PATH=C:/Miniconda/envs/test/Library -DvMMVII_BUILD=ON
@@ -145,7 +147,7 @@ jobs:
         files: mmvii_windows.zip
 
     - name: Upload build artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: windows-build-artifacts
         path: |
@@ -163,9 +165,9 @@ jobs:
     runs-on: ${{ matrix.platform }}
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
-    - uses: actions/setup-python@v5
+    - uses: actions/setup-python@v6
       with:
         python-version: ${{ matrix.python-version }}
 
@@ -192,14 +194,14 @@ jobs:
 
     - name: Download linux build artifacts
       if: runner.os == 'Linux'
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: linux-build-artifacts
         path: bin/
 
     - name: Download win build artifacts
       if: runner.os == 'Windows'
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: windows-build-artifacts
         path: bin/

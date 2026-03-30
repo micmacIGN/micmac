@@ -29,7 +29,7 @@ git filter-repo --replace-refs delete-no-add  --path-glob '*.o' --path-glob '*.d
 
 ../tabs.py
 
-git tag -l "*v1*" | xargs -r git tag -d
+git tag | xargs -r git tag -d
 
 git branch -m master main
 git reflog expire --expire=now --all
