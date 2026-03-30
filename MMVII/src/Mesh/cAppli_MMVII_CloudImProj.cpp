@@ -106,7 +106,7 @@ cCollecSpecArg2007 & cAppli_MMVII_CloudImProj::ArgObl(cCollecSpecArg2007 & anArg
   if (mMode==0)
   {
      anArgObl
-        <<  Arg2007(mParamP,"Param of projection [Phi,Nb,Teta1,Teta2?=-T1,NbE?=1],",{{eTA2007::ISizeV,"[3,5]"}})
+        <<  Arg2007(mParamP,"Param of projection [Phi,Nb,Teta1,Teta2?=-T1],",{{eTA2007::ISizeV,"[3,4]"}})
       ;
   }
   else if (mMode==1)
@@ -166,7 +166,7 @@ int  cAppli_MMVII_CloudImProj::Exe()
 
    if  (IsInit(&mSun))
    {
-      // cPt3dr aDirSun = VUnit(cPt3dr(mSun.x(),mSun.y(),1.0));
+      //cPt3dr aDirSun = VUnit(cPt3dr(mSun.x(),mSun.y(),1.0));
 
        cPt3dr aDirSun = VertSphericalDir(mSun);
        if (mShow)

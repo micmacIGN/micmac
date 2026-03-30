@@ -189,19 +189,79 @@ of computing time).
 %-----------------------------------------------------------------------
 %-----------------------------------------------------------------------
 
-\section{Generating training data sets for epipolar with {CloudMMVII\_GT\_EpipOrthoC}}
+\section{Training data sets for epipolar with {\tt CloudMMVII\_GT\_EpipOrthoC}}
 
 \label{Cloud:Epip}
 
 
+The command  {\tt CloudMMVII\_GT\_EpipOrthoC}  generate a set images corresponding
+to orthographic projections that are all in epipolar correspondance. The direction
+of projection are all on the same circle passing through vertical and regularly 
+distributed. The command take $2$ mandatory parameters,
+a {\tt MMVII} point-cloud, and a vector $V$ of $3$ to $5$ real value  controling
+the direction of projection :
+
+\begin{itemize}
+   \item  $V_0$  is such that $V_0 * \frac{\pi}{2}$ is the common longitude of the direction  of projection ;
+   \item   $V_1$ is the such there   $1+2*V_1$ projections;
+   \item   $V_2$ is such that  $ \frac{\pi}{2}+V_2$ is the longitude of  the first direction;
+   \item   $V_3$ is such that  $ \frac{\pi}{2}+V_3$ is the longitude of  the last direction, by default $V_3 = - V_2$ ;
+\end{itemize}
+
+
+The programm generate  results in the folder {\tt MVII-PhgrProj/VISU/CloudMMVII\_GT\_EpipOrthoC} . These
+result contains :
+
+\begin{itemize}
+   \item the "radiometric" simulated images ;
+
+   \item  ground truth disparities,  by default they are generated for consecutive directions and
+          in both way, but this can be changed with optional parameter {\tt DeltaPax}
+   
+   \item weighting image proportional to the density of point that have been projected, it can be used
+         to generate mask for no data image;
+
+\end{itemize}
+
+A \emph{sun} can be added like in \ref{Cloud::Colorate}. The images of figure~\ref{PC:Simul:Epip}
+were generated with the following command.
+
+\begin{verbatim}
+MMVII CloudMMVII_GT_EpipOrthoC Col-Clip-Leave2-2.dmp "[0.0,2,0.25]" "Sun=[-0.5,0.5,2]" SaveImD=1 Show=1 
+\end{verbatim}
+
+
+\begin{figure}
+\centering
+        \includegraphics[width=4cm]{CommandReferences/ImagesComRef/Rad0.jpg}
+        \includegraphics[width=4cm]{CommandReferences/ImagesComRef/Rad1.jpg}
+        \includegraphics[width=4cm]{CommandReferences/ImagesComRef/Rad2.jpg}
+        \caption{Example of radiometric images simulated}
+\label{PC:Simul:Epip}
+\end{figure}
+
+
 %-----------------------------------------------------------------------
 %-----------------------------------------------------------------------
 %-----------------------------------------------------------------------
 
-\section{Generating training data sets for multi view with {CloudMMVII\_GT\_MultiView}}
+\section{Training data sets for multi viewwith {\tt CloudMMVII\_GT\_MultiView}}
 
 
 \label{Cloud:MultiV}
+
+For multiview, we can use the {\tt CloudMMVII\_GT\_MultiView}. It take $3$ parameters :
+
+\begin{itemize}
+  \item input point cloud;
+  \item size of images
+  \item a folder for output cameras \emph{and} images  (to be changed maybe later, dont know where to put it ...)
+\end{itemize}
+
+The images are generated with a conical projection, the field of view of the camera can be controled
+with optionnale parameter {\tt FOV}, the number of images can be controled with parameter {\tt Overlap},
+the image are generated if at least $50\%$ are inside the box (can be changed with parameter {\tt MinInside}).
+
 
 
 
