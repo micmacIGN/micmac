@@ -238,6 +238,7 @@ cBA_LidarPhotograTri::cBA_LidarPhotograTri(cPhotogrammetricProject * aPhProj,
                                           mVIms,
                                           0.85,
                                           mVSCams,
+
                                           mNbScale-1);
         }
 

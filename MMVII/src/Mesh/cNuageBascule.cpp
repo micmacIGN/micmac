@@ -13,6 +13,7 @@
 #include "MMVII_Radiom.h"
 #include <fstream>
 #include <iostream>
+#include <chrono>
 
 
 
@@ -47,6 +48,7 @@ namespace MMVII
         // photogrammetric project
         cPhotogrammetricProject mPhProj;
         cTriangulation3D<tREAL8> * mTri3D;
+        cTriangulation3D<tREAL8> * mTri2DDepth;
         std::string mNameResult;
         eModeGeom mModeGeom;
         tREAL8 mGSD;
@@ -70,8 +72,9 @@ namespace MMVII
         typedef tAPBI::tIm               tImAPBI;
         typedef tAPBI::tDataIm           tDImAPBI;
         static constexpr tREAL8 mInfty =  -1e10;
-        cPt3dr BascOnePoint(cPt2di A,  cPt2di anOffSet);
-        void MakeBasc();
+        std::pair<cPt3dr,cPt3dr> BascOnePoint(cPt2di A,  cPt2di anOffSet);
+        //void MakeBasc();
+        void MakeFastBasc();
         void MakeBasculeTris(cZBuffer & aZB);
         void ProcessNoPix(cZBuffer &  aZB);
         void AnalyzeSurfParams();
@@ -95,6 +98,7 @@ cAppliNuageBascule::cAppliNuageBascule(const std::vector<std::string> & aVArgs, 
     mImRed(cPt2di(1,1)),
     mPhProj(*this),
     mTri3D(nullptr),
+    mTri2DDepth(nullptr),
     mNameResult("Bascule"),
     mModeGeom(eModeGeom::eGEOM_EPIP),
     mGSD(0.2),
@@ -151,24 +155,53 @@ cBox2di cAppliNuageBascule::BoxUtile()
 }
 
 
-cPt3dr cAppliNuageBascule::BascOnePoint(cPt2di A,  cPt2di anOffSet)
+std::pair<cPt3dr,cPt3dr> cAppliNuageBascule::BascOnePoint(cPt2di A,  cPt2di anOffSet)
 {
+    cPt3dr aPZA, aPWithDepth;
+
     cPt2di  aPix1 = A+anOffSet;
-    double  aX2= aPix1.x() + mImPx1.DIm().GetV(A);
-    cPt2dr aPix2=cPt2dr(aX2, aPix1.y());
-    tSeg3dr aP2TerCam1 = mCamPC->Image2Bundle(ToR(aPix1));
-    tSeg3dr aP2TerCam2= mSecCamPC->Image2Bundle(aPix2);
-    cPt3dr aPZA=RobustBundleInters({aP2TerCam1,aP2TerCam2});
+
+    if(mModeGeom==eModeGeom::eGEOM_EPIP)  ///< entry is a disparity maps so need to compute pseudo intersection
+    {
+        double  aX2= aPix1.x() + mImPx1.DIm().GetV(A);
+        cPt2dr aPix2=cPt2dr(aX2, aPix1.y());
+        tSeg3dr aP2TerCam1 = mCamPC->Image2Bundle(ToR(aPix1));
+        tSeg3dr aP2TerCam2= mSecCamPC->Image2Bundle(aPix2);
+
+        aPZA=RobustBundleInters({aP2TerCam1,aP2TerCam2});
+
+        // compute 2D + Depth and no need to perform Value of mapI2O Value or TriValue as it is already computed
+
+        // aPWithDepth = Value (aPZA)
+
+        aPWithDepth= cPt3dr(aPix1.x(),
+                             aPix1.y(),
+                             mCamPC->Pose().Inverse(aPZA).z());
+    }
+    else if (mModeGeom==eModeGeom::eGEOM_DEPTH) ///< entry is a depth map so just compute 3D world coordinates
+    {
+        aPWithDepth= cPt3dr(aPix1.x(),
+                            aPix1.y(),
+                            mImPx1.DIm().GetV(A));
+
+        aPZA = mCamPC->ImageAndDepth2Ground(aPWithDepth);
+    }
+    else
+    {
+        ///< nothing for now
+    }
     mBoxLocTarget.Add(Proj(aPZA));
-    return aPZA;
+
+    return {aPWithDepth,aPZA};
 }
 
 
+/*
 void cAppliNuageBascule::MakeBasc()
 {
     //mImRed.DIm().Resize(CurSzIn(),eModeInitImage::eMIA_Null);
     cPt2di aP0 = CurP0();
-    cPt2di aPix1;
+    cPt2di aP1= CurBoxIn().P1();
     std::vector<cPt3dr> aVPts;
     std::vector<cPt3di> aVFaces;
 
@@ -187,6 +220,7 @@ void cAppliNuageBascule::MakeBasc()
     }
 
 
+    auto start = std::chrono::high_resolution_clock::now();
     /// Create mesh points
     for(const auto & aPix: cPixBox<2>(aBoxUtileWithMasq.P0(),
                                        aBoxUtileWithMasq.P1())
@@ -199,6 +233,11 @@ void cAppliNuageBascule::MakeBasc()
             mVCorrel.push_back(mImCorrel.DIm().GetV(aPix));
     }
 
+    auto end = std::chrono::high_resolution_clock::now();
+
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+
+    std::cout << "Time create mesh points: " << duration.count() << " ms\n";
 
     /// Create mesh faces
     for(const auto & aPix: cPixBox<2>(aBoxUtileWithMasq.P0(),
@@ -220,9 +259,11 @@ void cAppliNuageBascule::MakeBasc()
         aVFaces.push_back(aFUP);
         aVFaces.push_back(aFDOWN);
     }
+
     StdOut()<<"computed tri "<<std::endl;
 
 
+    start = std::chrono::high_resolution_clock::now();
     /// ZBUFFER
     mTri3D = new cTriangulation3D<tREAL8>(aVPts,aVFaces);
 
@@ -232,30 +273,183 @@ void cAppliNuageBascule::MakeBasc()
 
     cSetVisibility aSetVis(mCamPC,mMII);
 
-    double Infty =1e20;
-    cPt2di aSzPix = mCamPC->SzPix();
-    cBox3dr  aBox(cPt3dr(mMII,mMII,-Infty),cPt3dr(aSzPix.x()-mMII,aSzPix.y()-mMII,Infty));
+    cBox3dr  aBox(cPt3dr(aP0.x(),aP0.y(),-mInfty),cPt3dr(aP1.x(),aP1.y(),mInfty));
+
     cDataBoundedSet<tREAL8,3>  aSetCam(aBox);
-    cZBuffer aZBuf(aTriIt,aSetVis,aMapCamDepth,aSetCam,1,true);
+
+    cZBuffer aZBuf(aTriIt,aSetVis,aMapCamDepth,aSetCam,1,true,true);
+
+    end = std::chrono::high_resolution_clock::now();
+
+    duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+
+    std::cout << "Time create cZBUffer: " << duration.count() << " ms\n";
 
     StdOut()<<"ZBB"<<std::endl;
 
-    aZBuf.MakeZBuf(eZBufModeIter::ProjInit);
+    start = std::chrono::high_resolution_clock::now();
 
-    aZBuf.MakeZBuf(eZBufModeIter::SurfDevlpt);
+    aZBuf.MakeZBufForBasc(eZBufModeIter::ProjInit);
+
+    end = std::chrono::high_resolution_clock::now();
+
+    duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+
+    std::cout << "Time cZBUffer MakeZBuffer projInit: " << duration.count() << " ms\n";
+
+    start = std::chrono::high_resolution_clock::now();
+    aZBuf.MakeZBufForBasc(eZBufModeIter::SurfDevlpt);
+    end = std::chrono::high_resolution_clock::now();
+
+    duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+
+    std::cout << "Time cZBUffer MakeZBuffer SurfDevlpt: " << duration.count() << " ms\n";
 
     StdOut()<<"ZBBMAKE"<<std::endl;
 
     ProcessNoPix(aZBuf);
 
-    /*aZBuf.ZBufIm().DIm().ToFile("buffer-"+
+    MakeBasculeTris(aZBuf);
+}
+*/
+
+void cAppliNuageBascule::MakeFastBasc()
+{
+    //mImRed.DIm().Resize(CurSzIn(),eModeInitImage::eMIA_Null);
+    cPt2di aP0 = CurP0();
+    cPt2di aP1= CurBoxIn().P1();
+    std::vector<cPt3dr> aVPts;
+    std::vector<cPt3dr> aVPtsDepth;
+    std::vector<cPt3di> aVFaces;
+
+    cBox2di  aBoxUtileWithMasq = BoxUtile();
+
+    ///  Init index for faces
+    ///
+    cIm2D<int> anImIndex(aBoxUtileWithMasq.Sz());
+    cDataIm2D<int> & aDIdx= anImIndex.DIm();
+
+    int IndBegin=0;
+    for (const auto & aPix: aDIdx)
+    {
+        aDIdx.SetV(aPix,IndBegin);
+        IndBegin++;
+    }
+
+
+    auto start = std::chrono::high_resolution_clock::now();
+    /// Create mesh points
+    cPt3dr aP00_Depth,aP00_3D;
+    for(const auto & aPix: cPixBox<2>(aBoxUtileWithMasq.P0(),
+                                       aBoxUtileWithMasq.P1())
+         )
+    {
+        auto [aP00_Depth,aP00_3D] =BascOnePoint(aPix,aP0);
+
+        aVPtsDepth.push_back(aP00_Depth);
+        aVPts.push_back(aP00_3D);
+
+
+        if(mBascCorrel)
+            mVCorrel.push_back(mImCorrel.DIm().GetV(aPix));
+    }
+
+    auto end = std::chrono::high_resolution_clock::now();
+
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+
+    std::cout << "Time create mesh points: " << duration.count() << " ms\n";
+
+    /// Create mesh faces
+    for(const auto & aPix: cPixBox<2>(aBoxUtileWithMasq.P0(),
+                                       aBoxUtileWithMasq.P1()-cPt2di(1,1))
+         )
+    {
+        cPt2di P00(aPix.x(),aPix.y());
+        cPt2di P10(aPix.x()+1,aPix.y());
+        cPt2di P01(aPix.x(),aPix.y()+1);
+        cPt2di P11(aPix.x()+1,aPix.y()+1);
+
+        cPt3di aFUP(aDIdx.GetV(P00-aBoxUtileWithMasq.P0()),
+                    aDIdx.GetV(P10-aBoxUtileWithMasq.P0()),
+                    aDIdx.GetV(P11-aBoxUtileWithMasq.P0()));
+        cPt3di aFDOWN(aDIdx.GetV(P00-aBoxUtileWithMasq.P0()),
+                      aDIdx.GetV(P11-aBoxUtileWithMasq.P0()),
+                      aDIdx.GetV(P01-aBoxUtileWithMasq.P0()));
+
+        aVFaces.push_back(aFUP);
+        aVFaces.push_back(aFDOWN);
+    }
+
+    StdOut()<<"computed tri "<<std::endl;
+
+
+    start = std::chrono::high_resolution_clock::now();
+
+    /// ZBUFFER
+    mTri3D = new cTriangulation3D<tREAL8>(aVPts,aVFaces);
+    mTri2DDepth = new cTriangulation3D<tREAL8> (aVPtsDepth,aVFaces);
+
+    cMeshTri3DIterator  aTriIt(mTri3D);
+
+    cMeshTri3DIterator * aTriIT2DDepth= new cMeshTri3DIterator(mTri2DDepth);
+
+    cSIMap_Ground2ImageAndProf aMapCamDepth(mCamPC);
+
+    cSetVisibility aSetVis(mCamPC,mMII);
+
+    double Infty =1e20;
+
+    cBox3dr  aBox(cPt3dr(aP0.x(),aP0.y(),-Infty),cPt3dr(aP1.x(),aP1.y(),Infty));
+
+    cDataBoundedSet<tREAL8,3>  aSetCam(aBox);
+
+    cZBuffer aZBuf(aTriIt,
+                   aSetVis,
+                   aMapCamDepth,
+                   aSetCam,
+                   1,
+                   true,
+                   true,
+                   aTriIT2DDepth);
+
+    end = std::chrono::high_resolution_clock::now();
+
+    duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+
+    std::cout << "Time create cZBUffer: " << duration.count() << " ms\n";
+
+    StdOut()<<"ZBB"<<std::endl;
+
+    start = std::chrono::high_resolution_clock::now();
+
+    aZBuf.MakeZBufForBasc(eZBufModeIter::ProjInit);
+
+    end = std::chrono::high_resolution_clock::now();
+
+    duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+
+    std::cout << "Time cZBUffer MakeZBuffer projInit: " << duration.count() << " ms\n";
+
+    start = std::chrono::high_resolution_clock::now();
+    aZBuf.MakeZBufForBasc(eZBufModeIter::SurfDevlpt);
+    end = std::chrono::high_resolution_clock::now();
+
+    duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+
+    std::cout << "Time cZBUffer MakeZBuffer SurfDevlpt: " << duration.count() << " ms\n";
+
+    StdOut()<<"ZBBMAKE"<<std::endl;
+
+    ProcessNoPix(aZBuf);
+
+    /*aZBuf.ZBufIm().DIm().ToFile("buffer-sameori_false_"+
                                 ToStr(mIndBoxRecal.x())+"-"+
                                 ToStr(mIndBoxRecal.y())+"-"+
                                 LastPrefix(mNameResult)+".tif");*/
 
     MakeBasculeTris(aZBuf);
 }
-
 
 void cAppliNuageBascule::GenTFW(const cAffin2D<tREAL8> & anAff, const std::string & aNameTFW)
 {
@@ -348,16 +542,30 @@ void cAppliNuageBascule::MakeBasculeTris(cZBuffer & aZB)
 
 
     // iterate over all over triangles and ( add : confidence and occlusion info)
+    int aNInOut=0;
+    int aNGood=0;
 
     for (size_t  aKF=0; aKF<mTri3D->NbFace(); aKF++)
     {
         if(aZB.ResSurfD(aKF).mResult == eZBufRes::NoPix)
         {
             //StdOut()<<"hidden"<<std::endl;
+            aNInOut++;
         }
-        if ((aZB.ResSurfD(aKF).mResult == eZBufRes::Visible) ||
-            (aZB.ResSurfD(aKF).mResult == eZBufRes::LikelyVisible) )
+        if(aZB.ResSurfD(aKF).mResult == eZBufRes::OutOut ||
+            aZB.ResSurfD(aKF).mResult == eZBufRes::OutOut ||
+            aZB.ResSurfD(aKF).mResult == eZBufRes::BadOriented ||
+            aZB.ResSurfD(aKF).mResult == eZBufRes::UnRegOut ||
+            aZB.ResSurfD(aKF).mResult == eZBufRes::UnRegIn ||
+            aZB.ResSurfD(aKF).mResult == eZBufRes::Undefined ||
+            aZB.ResSurfD(aKF).mResult == eZBufRes::Hidden  )
         {
+            aNInOut++;
+        }
+
+        if(ZBufLabIsOk(aZB.ResSurfD(aKF).mResult))
+        {
+            aNGood++;
             // apply affine transform
             tTri3dr aTri3DW = mTri3D->KthTri(aKF);
 
@@ -395,6 +603,8 @@ void cAppliNuageBascule::MakeBasculeTris(cZBuffer & aZB)
             }
         }
     }
+
+    StdOut()<<"NB GOOD "<<aNGood<<" NB BAD "<<aNInOut<<std::endl;
     // write individual images
 
     cDataFileIm2D aDF= cDataFileIm2D::Create(mPhProj.DPMeshDev().FullDirOut()+
@@ -656,8 +866,9 @@ int cAppliNuageBascule::ExeOnParsedBox()
         mImCorrel = APBI_ReadIm<tU_INT1>(mNameCorrel);
     }
 
-    if (mSecCamPC)
-        MakeBasc();
+
+    MakeFastBasc();
+
 
     return EXIT_SUCCESS;
 }

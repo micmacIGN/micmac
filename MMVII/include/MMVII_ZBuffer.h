@@ -119,11 +119,19 @@ class  cZBuffer
           static constexpr tElem mInfty =  -1e10;
 
 	  ///  constructor
-          cZBuffer(cTri3DIterator & aMesh,const tSet & aSetIn,const tMap & aMap,const tSet & aSetOut,double aResolOut, bool aSameOri=false);
+          cZBuffer(cTri3DIterator & aMesh,
+                   const tSet & aSetIn,
+                   const tMap & aMap,
+                   const tSet & aSetOut,
+                   double aResolOut,
+                   bool aSameOri=false,
+                   bool IsBascProc=false,
+                   cTri3DIterator * aMesh2DDepth=nullptr);
 
 
 	  /// 
           void MakeZBuf(eZBufModeIter aMode);
+          void MakeZBufForBasc(eZBufModeIter aMode);
 
 
           const cPt2di  SzPix() ; ///< Accessor
@@ -142,15 +150,17 @@ class  cZBuffer
 	  ///  make the job for one triangle, different computation possible depending on aMode
           eZBufRes MakeOneTri(const tTri3dr & aTriIn,const tTri3dr & aTriOut,eZBufModeIter aMode);
 
-          bool                  mIsOk;       ///< Many things can happen bad ...
-          bool                  mZF_SameOri; ///< Axe of Z (in out coord) and oriented surface have same orientation
-          int                   mMultZ;      ///< multiplier associated to SameOri
-          cTri3DIterator &      mMesh;       ///<  The mesh described as an iterator on triangles
-          cCountTri3DIterator * mCountMesh;  ///< posible cast on a counting-iteraror (unused 4 now)
-          const tMap &          mMapI2O;     ///<  Map Input -> Output 
-          const tSet &          mSetIn;      ///< Set where input triangles are defined
-          const tSet &          mSetOut;     ///< Set where output triangles are defined
-          double                mResolOut;   ///<  Resolution for computing Z Buf (ratio  )
+          bool                  mIsOk;        ///< Many things can happen bad ...
+          bool                  mZF_SameOri;  ///< Axe of Z (in out coord) and oriented surface have same orientation
+          int                   mMultZ;       ///< multiplier associated to SameOri
+          cTri3DIterator &      mMesh;        ///<  The mesh described as an iterator on triangles
+          cTri3DIterator &      mMesh2DDepth; ///<  The mesh described as an iterator on triangles corresponding to 2D + Depth
+          cCountTri3DIterator * mCountMesh;   ///< posible cast on a counting-iteraror (unused 4 now)
+          const tMap &          mMapI2O;      ///<  Map Input -> Output
+          const tSet &          mSetIn;       ///< Set where input triangles are defined
+          const tSet &          mSetOut;      ///< Set where output triangles are defined
+          double                mResolOut;    ///<  Resolution for computing Z Buf (ratio  )
+          bool                  mIsBasc ;     ///< Identify whether to check if points In Sets ( as the already are in case of bascule)
 
           cBox3dr          mBoxIn;     ///< Box in input space, not sure usefull, but ....
           cBox3dr          mBoxOut;    ///< Box in output space, usefull for xy, not sure for z , but ...

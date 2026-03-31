@@ -103,17 +103,20 @@ void  AddData(const cAuxAr2007  &anAux,cResModeSurfD& aRMS )
 /* =============================================== */
 
 
-cZBuffer::cZBuffer(cTri3DIterator & aMesh,const tSet &  aSetIn,const tMap & aMapI2O,const tSet &  aSetOut,double aResolOut,bool aSameOri) :
+cZBuffer::cZBuffer(cTri3DIterator & aMesh,const tSet &  aSetIn,const tMap & aMapI2O,
+                   const tSet &  aSetOut,double aResolOut,bool aSameOri, bool IsBascProc,
+                    cTri3DIterator * aMesh2D) :
     mIsOk       (true),
     mZF_SameOri (aSameOri),
-    mMultZ      (mZF_SameOri ? 1 : -1),
+    mMultZ      (mZF_SameOri ? -1 : 1),
     mMesh       (aMesh),
+    mMesh2DDepth(*aMesh2D),
     mCountMesh  (mMesh.CastCount()),
     mMapI2O     (aMapI2O),
     mSetIn      (aSetIn),
     mSetOut     (aSetOut),
     mResolOut   (aResolOut),
-
+    mIsBasc     (IsBascProc),
     mBoxIn      (cBox3dr::Empty()),
     mBoxOut     (cBox3dr::Empty()),
     mROut2Pix   (),
@@ -128,19 +131,37 @@ cZBuffer::cZBuffer(cTri3DIterator & aMesh,const tSet &  aSetIn,const tMap & aMap
     cPt3dr aPIn;
 
     mMesh.ResetAll();
-    while (mMesh.GetNextPoint(aPIn))
-    {
-        if (mSetIn.InsideWithBox(aPIn))
-        {
-            cPt3dr aPOut = mMapI2O.Value(aPIn);
 
-            if (mSetOut.InsideWithBox(aPOut))
+    if (mIsBasc)
+        {
+            mMesh2DDepth.ResetAll();
+
+            while (mMesh.GetNextPoint(aPIn))
             {
-               aBoxOfPtsIn.Add(aPIn);
-               aBoxOfPtsOut.Add(aPOut);
+                cPt3dr aPOut = mMapI2O.Value(aPIn);
+                aBoxOfPtsIn.Add(aPIn);
+                aBoxOfPtsOut.Add(aPOut);
+            }
+
+            mMesh2DDepth.ResetPts();
+        }
+    else  ///< General case no precomputed 2D + Depth
+        {
+            while (mMesh.GetNextPoint(aPIn))
+            {
+                if (mSetIn.InsideWithBox(aPIn))
+                {
+                    cPt3dr aPOut = mMapI2O.Value(aPIn);
+
+                    if (mSetOut.InsideWithBox(aPOut))
+                    {
+                        aBoxOfPtsIn.Add(aPIn);
+                        aBoxOfPtsOut.Add(aPOut);
+                    }
+                }
             }
         }
-    }
+
     mMesh.ResetPts();
 
     if ((aBoxOfPtsIn.NbPts()<3) || (aBoxOfPtsOut.NbPts()<3))
@@ -151,6 +172,8 @@ cZBuffer::cZBuffer(cTri3DIterator & aMesh,const tSet &  aSetIn,const tMap & aMap
 
     mBoxIn = aBoxOfPtsIn.CurBox();
     mBoxOut = aBoxOfPtsOut.CurBox();
+
+    StdOut()<<"aBOXOut "<<mBoxOut.P0()<<" "<<mBoxOut.P1()<<std::endl;
 
     cPt2di aBrd(2,2);
     //   aP0/aResout + aTr -> 1,1
@@ -231,6 +254,76 @@ void cZBuffer::MakeZBuf(eZBufModeIter aMode)
 }
 
 
+void cZBuffer::MakeZBufForBasc(eZBufModeIter aMode)
+{
+
+    if (aMode==eZBufModeIter::SurfDevlpt)
+    {
+        mResSurfD.clear();
+        mMaxRSD = 0.0;
+    }
+
+    tTri3dr  aTriIn  = tTri3dr::Tri000();
+    tTri3dr  aTriOut = tTri3dr::Tri000();
+
+    int aNbTriVis = 0;
+    while (mMesh.GetNextTri(aTriIn) &&
+           mMesh2DDepth.GetNextTri(aTriOut))
+    {
+        mLastResSurfDev = -1;
+        eZBufRes aRes = eZBufRes::Undefined;
+        if (!mIsOk)
+        {
+        }
+        //  not sure this is us to test that, or the user to assure it give clean data ...
+        else if (aTriIn.Regularity() <=0)
+            aRes = eZBufRes::UnRegIn;
+        else
+        {
+           // tTri3dr aTriOutFromMap = mMapI2O.TriValue(aTriIn);
+
+
+            /*StdOut()<<"XDIFF 0 "<< Norm1(aTriOut.Pt(0) - aTriOutFromMap.Pt(0) )
+                     <<"XDIFF 1 "<< Norm1(aTriOut.Pt(1) - aTriOutFromMap.Pt(1) )
+                     <<"XDIFF 2 "<< Norm1(aTriOut.Pt(2) - aTriOutFromMap.Pt(2) )<<std::endl;*/
+
+            /*if (aMode==eZBufModeIter::SurfDevlpt)
+            {
+            if(Norm1(aTriOut.Pt(0) - aTriOutFromMap.Pt(0) )>0.00001)
+                StdOut()<<"XDIFF 0 "<< Norm1(aTriOut.Pt(0) - aTriOutFromMap.Pt(0) )<<std::endl;
+
+            if(Norm1(aTriOut.Pt(1) - aTriOutFromMap.Pt(1) )>0.00001)
+                StdOut()<<"XDIFF 1 "<< Norm1(aTriOut.Pt(1) - aTriOutFromMap.Pt(1) )<<std::endl;
+
+            if(Norm1(aTriOut.Pt(2) - aTriOutFromMap.Pt(2) )>0.00001)
+                StdOut()<<"XDIFF 2 "<< Norm1(aTriOut.Pt(2) - aTriOutFromMap.Pt(2) )<<std::endl;
+            }*/
+
+            if (aTriOut.Regularity() <=0)
+                aRes = eZBufRes::UnRegOut;
+            else
+            {
+                aNbTriVis++;
+                aRes = MakeOneTri(aTriIn,aTriOut,aMode);
+            }
+        }
+        if (aMode==eZBufModeIter::SurfDevlpt)
+        {
+            cResModeSurfD aRMS;
+            aRMS.mResult = aRes;
+            aRMS.mResol  = mLastResSurfDev;
+            mResSurfD.push_back(aRMS);
+        }
+
+    }
+    if (aNbTriVis==0)
+        mIsOk=false;
+
+    mMesh.ResetTri();
+    mMesh2DDepth.ResetTri();
+}
+
+
 double cZBuffer::ComputeResol(const tTri3dr & aTri3In ,const tTri3dr & aTri3Out) const
 {
         // input triangle, developped isometrically on the plane
@@ -294,10 +387,13 @@ eZBufRes cZBuffer::MakeOneTri(const tTri3dr & aTriIn,const tTri3dr &aTri3,eZBufM
        {
            bool IsVis = ((aNbVis*2)  > int(aVPix.size()));
            aRes = IsVis ? eZBufRes::Visible : eZBufRes::Hidden;
-           mLastResSurfDev = ComputeResol(aTriIn,aTri3);
-           if (IsVis)
+           if(!mIsBasc) // mIsBasc= true -> no need to compute resol as it is just a mapping from depth to DEM
            {
-               UpdateMax(mMaxRSD,mLastResSurfDev);
+                mLastResSurfDev = ComputeResol(aTriIn,aTri3);
+               if (IsVis)
+               {
+                   UpdateMax(mMaxRSD,mLastResSurfDev);
+               }
            }
 
            if ((aVPix.size()<=0) && (aNbVis==0))
@@ -307,12 +403,5 @@ eZBufRes cZBuffer::MakeOneTri(const tTri3dr & aTriIn,const tTri3dr &aTri3,eZBufM
 
     return aRes;
 }
-
-
-
-
-
-
-
 
 };
