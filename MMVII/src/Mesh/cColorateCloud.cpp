@@ -602,7 +602,7 @@ cResImagesPPC cProjPointCloud::ProcessImage(tREAL8 aSurResol,const cSensorImage 
 
      // mDImRad->ToFile("IIII-RAD0-FILTR.tif");
        
-     static int aCpt=0; aCpt++;
+     //static int aCpt=0; aCpt++;
          
      cPt2di  aSzImFinal = aSensor.Sz();
      cResImagesPPC aRes(aSzImFinal);
