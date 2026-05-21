@@ -55,6 +55,6 @@ tensorflow-estimator==1.13.0
 termcolor==1.1.0
 tifffile==2020.8.25
 urllib3==1.25.10
-Werkzeug==1.0.1
+Werkzeug==2.2.3
 wrapt==1.12.1
 zipp==3.1.0
