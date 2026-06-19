@@ -1,6 +1,0 @@
-This folder will contain the code relative to what is called serialization in boost 
-(more a less read/write object from/to files).
-
-Do not know now if it will use boost or not. Not sure boost is usefull if we maintain 
-XML alternative for export.
-

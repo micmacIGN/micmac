@@ -1,6 +1,6 @@
 # MicMac
 
-- For **MicMac v2 (MMVII)** click **[HERE](MMVII/README.md)**. 
+- For **MicMac v2 (MMVII)** click **[HERE](https://github.com/micmac-V2/MMVII)**. 
 
 **Table of Contents**
 - [Description](#description)
