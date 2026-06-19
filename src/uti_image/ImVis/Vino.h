@@ -427,6 +427,7 @@ class cAppli_Vino : public cXml_EnvVino,
         Video_Win * PtrChc(Pt2dr tr,Pt2dr sc,bool SetClikCoord = false);
 
 
+        int  mNbDigit;
 };
 
 Fonc_Num  ChgDynAppliVino(Fonc_Num aF,cAppli_Vino & anAppli);

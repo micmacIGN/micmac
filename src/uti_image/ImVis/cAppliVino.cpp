@@ -102,7 +102,8 @@ cAppli_Vino::cAppli_Vino(int argc,char ** argv,const std::string & aNameImExtern
     mAimeZoomW        (7),
     mAimWStd          (nullptr),
     mAimWI0           (nullptr),
-    mAimWLP           (nullptr)
+    mAimWLP           (nullptr),
+    mNbDigit          (4)
 {
     mNameXmlIn = Basic_XML_MM_File("Def_Xml_EnvVino.xml");
     if (argc>1)
@@ -167,6 +168,7 @@ cAppli_Vino::cAppli_Vino(int argc,char ** argv,const std::string & aNameImExtern
          //  Aime pts car
                     << EAM(mNameAimePCar,"AimeNPC",true,"Aime name pts carac")
                     << EAM(mAimeShowFailed,"AimeSF",true,"Aime Show Failed points")
+                    << EAM(mNbDigit,"NbDigit","Number of digit to print image values")
     );
 
     mLabel =   Str2eTypePtRemark(mNameLab);
@@ -649,11 +651,12 @@ void  cAppli_Vino::ShowOneVal(Pt2dr aPW)
         {
            aVal = ToMnt(*mFOM,aVal);
         }
-        aMesV = aMesV  + StrNbChifApresVirg(aVal,3) ;
+        aMesV = aMesV  + StrNbChifApresVirg(aVal,mNbDigit) ;
     }
         // aMesV = aMesV  + StrNbChifSign(aStat.Soms()[aK],3) + " ";
         // aMesV = aMesV  + SimplString(ToString(aStat.Soms()[aK])) + " ";
 
+// std::cout << "  KKKKkKkklllUUip=" << aMesV << "\n";
     EffaceMessageVal();
     //  On my computer with small pixel/big curset I dont see the messag
     int OffsetY = (MPD_MM()) ? -50 : -50;
