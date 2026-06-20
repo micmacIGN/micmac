@@ -196,7 +196,7 @@ template <class TypeEl> Im2D_REAL4 * cTplLoadedImage<TypeEl>::FirstFloatIm()
 
 
 
-
+template cInterpolateurIm2D<float> *InterpoleOfEtape(const cEtapeMEC & anEt,float *t1,double *t2);
 
 template <class TypeEl,class tBase> cInterpolateurIm2D<TypeEl>  * InterpoleOfEtape(const cEtapeMEC & anEt,TypeEl *,tBase *)
 // template <class TypeEl,class tBase> cInterpolateurIm2D<TypeEl>  InterpoleOfEtape(const cEtapeMEC & anEt)
