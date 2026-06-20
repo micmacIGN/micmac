@@ -121,6 +121,7 @@
 // #define code_assert(ignore)((void) 0)
 
 
+namespace qpbo {
 
 // REAL: can be int, float, double.
 // Current instantiations are in instances.inc
@@ -803,6 +804,8 @@ template <typename T>
         cji = C;
     }
 }
+
+} // end namespace qpbo
 
 /*
     special constants for node->parent

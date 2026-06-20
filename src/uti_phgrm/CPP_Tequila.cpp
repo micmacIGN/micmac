@@ -38,7 +38,7 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #include "TexturePacker/TexturePacker.h"
-#include "GraphCut/QPBO-v1.4/QPBO.h"
+#include "qpbo.h"
 
 void LoadTrScaleRotate
      (
@@ -558,7 +558,7 @@ int Tequila_main(int argc,char ** argv)
 
                 for(int aCam=0; aCam< nCam;++aCam)
                 {
-                    QPBO<float>* q = new QPBO<float>(nTriangles, nEdges); // max number of nodes & edges
+                    qpbo::QPBO<float>* q = new qpbo::QPBO<float>(nTriangles, nEdges); // max number of nodes & edges
 
                     set <int> vTri;
                     cZBuf *aZBuffer = aZBufManager.getZBuf(aCam);

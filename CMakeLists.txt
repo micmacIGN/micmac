@@ -126,6 +126,9 @@ option(WITH_OPENCL  "Utilisation d'OpenCL" OFF)
 # Multi thread Poisson avec OpenMP
 option(WITH_OPEN_MP "use OpenMP" OFF)
 
+# External QPBO library require
+option(WITH_QPBO "use external QPBO" OFF)
+
 # print system calls
 option(TRACE_SYSTEM "print system calls" OFF)
 
@@ -185,6 +188,15 @@ if(WITH_OPEN_MP)
 	list(APPEND CMAKE_CXX_FLAGS ${OpenMP_CXX_FLAGS})
 	set(USE_OPEN_MP 1)
 endif()
+
+if(WITH_QPBO)
+        FIND_PACKAGE(qpbo REQUIRED)
+        if(NOT qpbo_FOUND)
+                message(FATAL_ERROR "QPBO library package wasn't found. Please disable QPBO with -DWITH_QPBO=OFF")
+        endif()
+else(WITH_QPBO)
+        message(STATUS "System QPBO was disabled, using embedded one")
+endif(WITH_QPBO)
 
 ######################################
 ## 	Trouver les EXES et Libs	##
