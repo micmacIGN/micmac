@@ -29,7 +29,7 @@ void writePointMatch_v0( ostream &aOutput, const vector<PointMatch> &aList )
 
 void readPointMatch_v0( istream &aInput, vector<PointMatch> &oVector )
 {
-	list<PointMatch> readList;
+	std::vector<PointMatch> readList; //G++11
 
 	REAL8 x0, y0, x1, y1;
 	size_t nbMatches = 0;
@@ -43,7 +43,8 @@ void readPointMatch_v0( istream &aInput, vector<PointMatch> &oVector )
 	nbMatches--;
 
 	oVector.resize(nbMatches);
-	list<PointMatch>::const_iterator itSrc = readList.begin();
+	// list<PointMatch>::const_iterator itSrc = readList.begin();
+	auto itSrc= readList.begin();   // G++11
 	PointMatch *itDst = oVector.data();
 	while ( nbMatches-- ) *itDst++ = *itSrc++;
 }

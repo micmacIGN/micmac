@@ -90,7 +90,7 @@ void cnpy::parse_npy_header(unsigned char* buffer,size_t& word_size, std::vector
     //byte order code | stands for not applicable. 
     //not sure when this applies except for byte array
     loc1 = header.find("descr")+9;
-    bool littleEndian = (header[loc1] == '<' || header[loc1] == '|' ? true : false);
+    bool littleEndian = (header[loc1] == '<' || header[loc1] == '|' ? true : false); GccUse(littleEndian);
     assert(littleEndian);
 
     //char type = header[loc1+1];
@@ -141,7 +141,7 @@ void cnpy::parse_npy_header(FILE* fp, size_t& word_size, std::vector<size_t>& sh
     if (loc1 == std::string::npos)
         throw std::runtime_error("parse_npy_header: failed to find header keyword: 'descr'");
     loc1 += 9;
-    bool littleEndian = (header[loc1] == '<' || header[loc1] == '|' ? true : false);
+    bool littleEndian = (header[loc1] == '<' || header[loc1] == '|' ? true : false); GccUse(littleEndian);
     assert(littleEndian);
 
     //char type = header[loc1+1];
@@ -161,13 +161,13 @@ void cnpy::parse_zip_footer(FILE* fp, uint16_t& nrecs, size_t& global_header_siz
         throw std::runtime_error("parse_zip_footer: failed fread");
 
     uint16_t disk_no, disk_start, nrecs_on_disk, comment_len;
-    disk_no = *(uint16_t*) &footer[4];
-    disk_start = *(uint16_t*) &footer[6];
-    nrecs_on_disk = *(uint16_t*) &footer[8];
-    nrecs = *(uint16_t*) &footer[10];
-    global_header_size = *(uint32_t*) &footer[12];
-    global_header_offset = *(uint32_t*) &footer[16];
-    comment_len = *(uint16_t*) &footer[20];
+    disk_no = *(uint16_t*) &footer[4]; GccUse(disk_no);
+    disk_start = *(uint16_t*) &footer[6]; GccUse(disk_start);
+    nrecs_on_disk = *(uint16_t*) &footer[8]; GccUse(nrecs_on_disk);
+    nrecs = *(uint16_t*) &footer[10]; GccUse(nrecs);
+    global_header_size = *(uint32_t*) &footer[12]; GccUse(global_header_size);
+    global_header_offset = *(uint32_t*) &footer[16]; GccUse(global_header_offset);
+    comment_len = *(uint16_t*) &footer[20]; GccUse(comment_len);
 
     assert(disk_no == 0);
     assert(disk_start == 0);

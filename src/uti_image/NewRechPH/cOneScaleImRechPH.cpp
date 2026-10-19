@@ -280,7 +280,7 @@ bool cOneScaleImRechPH::IsCol(int aRhoMax,const  std::vector<std::vector<Pt2di> 
    for (const auto & aVpt :  aVVPt)
    {
        std::vector<int> aVB;
-       for (const auto aVois : aVpt)
+       for (const auto & aVois : aVpt) // G++11
        {
            aVB.push_back(CmpValAndDec(aV0,mTIm.get(aP+aVois),aVois));
        }

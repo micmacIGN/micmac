@@ -2609,8 +2609,8 @@ void          cDistGen_FishEye_Generator<TPreC,NbRad,NbDec,NbPolyn,NBV>::InitCla
    }
 
    // Assure l'initialistaion
-   tVal aV[NBV==0?1:NBV]; // visual does not allow arrays of size 0
-   tVal aState[10];
+   tVal aV[NBV==0?1:NBV] ={}; // visual does not allow arrays of size 0 // G++11
+   tVal aState[10] ={}; // G++11
    Pt2d<tVal> aP(0,0);
 
    DistElem(true,aP,aV,aState,0,Pt2d<tVal>(0,0));
@@ -2676,8 +2676,8 @@ INSTANT_ONE_Num_FE(cFEStereoGraphique_Precond,10,5,5,50)
 
 void TestFishEye()
 {
-   double aV[200];
-   double aState[10];
+   double aV[200] = {} ;// G++11;
+   double aState[10] = {}; // G++11;
 
    cDistGen_FishEye_Generator<cFELinear_Precond<double>,10,5,5,50>::DistElem(true,Pt2dr(0,0),aV,aState,true);
 }

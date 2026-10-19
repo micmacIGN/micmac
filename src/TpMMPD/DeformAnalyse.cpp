@@ -76,7 +76,7 @@ int DeformAnalyse_main (int argc, char ** argv)
 
         // 3. get the vector PerResidu
         ifstream aPR((aDir + aOut1).c_str());
-        char *aPerR;
+        std::string aPerR;
         if(aPR)
         {
             std::string aLine;
@@ -87,7 +87,7 @@ int DeformAnalyse_main (int argc, char ** argv)
                 getline(aPR,aLine,'\n');
                 if(aLine.size() != 0)
                 {
-                    aPerR = strdup((char*)aLine.c_str());
+                    aPerR = aLine;
                 }
             }
             aPR.close();
