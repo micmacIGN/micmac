@@ -143,6 +143,7 @@ template <class TargAux> class cTplCelNapPrgDyn
 {
       public :
             cTplCelNapPrgDyn() :
+                mAuxArg(),          // init mVals à zéro explicitement
                 mCostAgrege(0),
                 mOwnCost(0)
             {
