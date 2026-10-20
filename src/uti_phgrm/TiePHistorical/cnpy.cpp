@@ -90,8 +90,9 @@ void cnpy::parse_npy_header(unsigned char* buffer,size_t& word_size, std::vector
     //byte order code | stands for not applicable. 
     //not sure when this applies except for byte array
     loc1 = header.find("descr")+9;
-    bool littleEndian = (header[loc1] == '<' || header[loc1] == '|' ? true : false); GccUse(littleEndian);
+    bool littleEndian = (header[loc1] == '<' || header[loc1] == '|' ? true : false); //GccUse(littleEndian);
     assert(littleEndian);
+    (void)littleEndian; // ne fait rien; juste avoid unused variable warning
 
     //char type = header[loc1+1];
     //assert(type == map_type(T));
