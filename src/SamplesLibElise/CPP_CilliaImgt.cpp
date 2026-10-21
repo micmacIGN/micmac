@@ -39,8 +39,14 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #if (ELISE_MacOs)
 #define SSTR( x ) (std::ostringstream()<< std::dec << x).str()
-#else
+#elif defined(_GLIBCXX_RELEASE) && (_GLIBCXX_RELEASE >= 11)
+// libstdc++ >= 11 : << renvoie std::ostringstream&&
+// pour tester si votre libstdc++ a macro _GLIBCXX_RELEASE definie (identifie version libstdc) :
+// echo '#include <sstream>' | g++ -x c++ -dM -E - | grep _GLIBCXX_RELEASE
 #define SSTR( x ) static_cast< std::ostringstream >( ( std::ostringstream() << std::dec << x ) ).str()
+#else
+// MSVC et libstdc++ ancienne : << renvoie un std::ostream&
+#define SSTR( x ) static_cast< std::ostringstream & >( ( std::ostringstream() << std::dec << x ) ).str()
 #endif
  
 int CilliaImgt_main(int argc, char ** argv)

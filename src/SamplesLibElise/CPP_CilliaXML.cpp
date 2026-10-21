@@ -37,10 +37,14 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
+
+// les meme macros suivants avec commentaires definis dans CPP_CilliaImgt.cpp
 #if (ELISE_MacOs)
 #define SSTR( x ) (std::ostringstream()<< std::dec << x).str()
-#else
+#elif defined(_GLIBCXX_RELEASE) && (_GLIBCXX_RELEASE >= 11)
 #define SSTR( x ) static_cast< std::ostringstream >( ( std::ostringstream() << std::dec << x ) ).str()
+#else
+#define SSTR( x ) static_cast< std::ostringstream & >( ( std::ostringstream() << std::dec << x ) ).str()
 #endif
 
 int HomToXML_main( int argc , char ** argv)
