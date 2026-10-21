@@ -109,6 +109,15 @@ Pt2di getImageSz(std::string const &aName)
     return aTif.sz();
 }
 
+/* type RPC ou RTO à partir de GB-Orientationxxxx.xml (Xml_CamGenPolBundle)
+- aName = path to GB-Orientation-xxx.xml file
+*/
+bool isGBPolBundle(const std::string & aName)
+{
+    cElXMLTree aTree(aName);
+    return (aTree.GetOneOrZero("Xml_CamGenPolBundle") != 0);
+}
+
 bool getCamera(const std::string imageName, const std::string oriType, const std::string modeOri, const std::string mDir, const Pt2di ImgSz, shared_ptr<ElCamera>& aCam, cInterfChantierNameManipulateur * mICNM)
 {
     std::string orientationName;
@@ -1362,8 +1371,21 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
               return;
           }
           shared_ptr<ElCamera> aCam;
+          shared_ptr<cBasicGeomCap3D> aCamRPC;
 
-          if (!getCamera(mImMaster,mOri,mModeOri,mDir,ImgSz, aCam, mICNM))
+          //Orientation GenBundle de type RPC (Xml_CamGenPolBundle) : Ter2Capteur via cBasicGeomCap3D
+          std::string aNameGB = mDir + "Ori-" + mOri + "/GB-Orientation-" + mImMaster + ".xml";
+          // Gestion Orientation format RPC
+          if (mModeOri!="GRID" && ELISE_fp::exist_file(aNameGB) && isGBPolBundle(aNameGB))
+          {
+              int aTypeCam = eTIGB_Unknown;
+              // utilise chargeur fichier orientation cBasicGeomCap3D::StdGetFromFile -> cPolynomial_BGC3M2D, qui gere aussi la correction dans GB et charger UnCorExtern-xxx
+              // On peut aussi utiliser directement CameraRPC::CamRPCOrientGenFromFile dans ce chargeur. Il faudrait dans ce cas donner un aTypeCam correct aulieu de eTIGB_Unknown
+              // On peut donner le type correct, mais on donne ici eTIGB_Unknown pour generaliser 
+              aCamRPC.reset(cBasicGeomCap3D::StdGetFromFile(aNameGB,aTypeCam));
+          }
+          // Gestion Orientation format GRI, RTO, general
+          else if (!getCamera(mImMaster,mOri,mModeOri,mDir,ImgSz, aCam, mICNM))
           {
               std::cout << "No orientation file for " << mImMaster << " - skip " << std::endl;
               return;
@@ -1375,10 +1397,10 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
           PtNE.x = aBoxTerrainGeomIm._p1.x;  PtNE.y = aBoxTerrainGeomIm._p1.y;  PtNE.z = aZMin;
           PtSE.x = PtNE.x;        PtSE.y = PtSO.y;        PtSE.z = aZMin;
           PtNO.x = PtSO.x;        PtNO.y = PtNE.y;        PtNO.z = aZMin;
-          Pt2dr ptINO = aCam->Ter2Capteur(PtNO);
-          Pt2dr ptINE = aCam->Ter2Capteur(PtNE);
-          Pt2dr ptISO = aCam->Ter2Capteur(PtSO);
-          Pt2dr ptISE = aCam->Ter2Capteur(PtSE);
+          Pt2dr ptINO = (aCamRPC ? aCamRPC->Ter2Capteur(PtNO) : aCam->Ter2Capteur(PtNO));
+          Pt2dr ptINE = (aCamRPC ? aCamRPC->Ter2Capteur(PtNE) : aCam->Ter2Capteur(PtNE));
+          Pt2dr ptISO = (aCamRPC ? aCamRPC->Ter2Capteur(PtSO) : aCam->Ter2Capteur(PtSO));
+          Pt2dr ptISE = (aCamRPC ? aCamRPC->Ter2Capteur(PtSE) : aCam->Ter2Capteur(PtSE));
 
           std::cout << "ptINO : " << ptINO.x << " " << ptINO.y << std::endl;
           std::cout << "ptINE : " << ptINE.x << " " << ptINE.y << std::endl;
