@@ -739,7 +739,9 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
       }
       bool ResolTerrainIsInit = EAMIsInit(&aResolTerrain);
       bool aRSRT = false;
-      if (!ResolTerrainIsInit)
+
+      // le calcul de resolution terrain metrique n'a pas de sens pour le mode GeomImage
+      if (!ResolTerrainIsInit && (mType!=eGeomImage))
       {
           if (IncMaxInit)
           {
